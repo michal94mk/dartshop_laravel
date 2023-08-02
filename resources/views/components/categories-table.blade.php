@@ -1,3 +1,7 @@
+<div class="mb-3">
+    <a href="{{ route('categories.create') }}" class="btn btn-success">Dodaj kategorię</a>
+</div>
+
 <table class="table table-bordered">
     <thead class="thead-light">
         <tr>
@@ -12,7 +16,6 @@
                 <td>{{ $category->id }}</td>
                 <td>{{ $category->name }}</td>
                 <td>
-                    <!-- Przykładowe linki do akcji edycji i usuwania -->
                     <a href="{{ route('categories.edit', ['category' => $category->id]) }}" class="btn btn-primary">Edytuj</a>
                     <form action="{{ route('categories.destroy', ['category' => $category->id]) }}" method="POST" class="d-inline">
                         @csrf
