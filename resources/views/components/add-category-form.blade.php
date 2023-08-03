@@ -4,5 +4,5 @@
         <label for="category_name">Name:</label><br>
         <input type="text" name="name" id="category_name" class="form-control" required><br>
     </div>
-    <button type="submit" class="btn btn-primary">Dodaj kategorię</button>
+    <button type="submit" class="btn btn-primary">Save</button>
 </form>
