@@ -5,5 +5,5 @@
         <label for="category_name">Name:</label><br>
         <input type="text" name="name" id="category_name" class="form-control" value="{{ $category->name }}" required><br>
     </div>
-    <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+    <button type="submit" class="btn btn-primary">Save changes</button>
 </form>

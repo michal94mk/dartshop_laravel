@@ -26,7 +26,7 @@ class CategoryController extends Controller
 
         Category::create($data);
 
-        return redirect()->route('categories.index')->with('success', 'Kategoria została dodana.');
+        return redirect()->route('categories.index')->with('success', 'Category has been added.');
     }
 
     public function edit($id)
@@ -45,7 +45,7 @@ class CategoryController extends Controller
 
         $category->update($data);
 
-        return redirect()->route('categories.index')->with('success', 'Kategoria została zaktualizowana.');
+        return redirect()->route('categories.index')->with('success', 'Category has been updated.');
     }
 
     public function destroy($id)
@@ -54,6 +54,6 @@ class CategoryController extends Controller
 
         $category->delete();
 
-        return redirect()->route('categories.index')->with('success', 'Kategoria została usunięta.');
+        return redirect()->route('categories.index')->with('success', 'Category has been deleted.');
     }
 }
