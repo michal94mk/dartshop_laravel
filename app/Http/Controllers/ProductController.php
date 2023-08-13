@@ -11,13 +11,13 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::all();
-        return view('products.index', compact('products'));
+        return view('admin.products.index', compact('products'));
     }
 
     public function create()
     {
         $categories = Category::all();
-        return view('products.create', compact('categories'));
+        return view('admin.products.create', compact('categories'));
     }
 
     public function store(Request $request)
@@ -31,18 +31,18 @@ class ProductController extends Controller
 
         $product = Product::create($data);
 
-        return redirect()->route('products.index')->with('success', 'Product has been added.');
+        return redirect()->route('admin.products.index')->with('success', 'Product has been added.');
     }
 
     public function show(Product $product)
     {
-        return view('products.show', compact('product'));
+        return view('admin.products.show', compact('product'));
     }
 
     public function edit(Product $product)
     {
         $categories = Category::all();
-        return view('products.edit', compact('product', 'categories'));
+        return view('admin.products.edit', compact('product', 'categories'));
     }
 
 
@@ -57,13 +57,13 @@ class ProductController extends Controller
 
         $product->update($data);
 
-        return redirect()->route('products.index')->with('success', 'Product has been updated.');
+        return redirect()->route('admin.products.index')->with('success', 'Product has been updated.');
     }
 
     public function destroy(Product $product)
     {
         $product->delete();
 
-        return redirect()->route('products.index')->with('success', 'Product has been deleted.');
+        return redirect()->route('admin.products.index')->with('success', 'Product has been deleted.');
     }
 }

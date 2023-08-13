@@ -1,5 +1,5 @@
 <div class="mb-3">
-    <a href="{{ route('products.create') }}" class="btn btn-success">Add product</a>
+    <a href="{{ route('admin.products.create') }}" class="btn btn-success">Add product</a>
 </div>
 
 <table class="table table-bordered">
@@ -22,7 +22,7 @@
                 <td>{{ $product->price }}</td>
                 <td>{{ $product->category->name }}</td>
                 <td>
-                    <a href="{{ route('products.edit', ['product' => $product->id]) }}" class="btn btn-primary">Edit</a>
+                    <a href="{{ route('admin.products.edit', ['product' => $product->id]) }}" class="btn btn-primary">Edit</a>
 
                     <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $product->id }}">
                         Delete
@@ -40,7 +40,7 @@
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                    <form action="{{ route('products.destroy', ['product' => $product->id]) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('admin.products.destroy', ['product' => $product->id]) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger">Delete</button>
