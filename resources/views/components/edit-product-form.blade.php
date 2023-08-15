@@ -1,4 +1,4 @@
-<form action="{{ route('admin.products.update', ['product' => $product->id]) }}" method="POST">
+<form action="{{ route('admin.products.update', ['product' => $product->id]) }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
     <div class="form-group">
@@ -22,5 +22,15 @@
             @endforeach
         </select><br>
     </div>
+    <div class="form-group">
+        <label for="image">Product Image:</label>
+            <img src="{{ asset($product->image) }}" alt="{{ asset('thumbnail/thumbnail.jpg') }}" class="thumbnail" style="max-width: 300px; max-height: 300px; border: 1px solid">
+                <br>
+            <input type="file" id="image" name="image">
+                @error('image')
+                    <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+    </div>
+        <br>
     <button type="submit" class="btn btn-primary">Save Changes</button>
 </form>

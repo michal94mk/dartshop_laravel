@@ -1,4 +1,4 @@
-<form action="{{ route('admin.products.store') }}" method="POST">
+<form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
     @csrf
     <div class="form-group">
         <label for="product_name">Name:</label><br>
@@ -20,6 +20,13 @@
                 <option value="{{ $category->id }}">{{ $category->name }}</option>
             @endforeach
         </select><br>
+    </div>
+    <div class="form-group">
+        <label for="image">Product Image:</label>
+        <input type="file" id="image" name="image">
+            @error('image')
+                <div class="alert alert-danger">{{ $message }}</div>
+            @enderror
     </div>
     <button type="submit" class="btn btn-primary">Save</button>
 </form>

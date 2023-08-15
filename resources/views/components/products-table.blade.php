@@ -10,6 +10,7 @@
             <th>Description</th>
             <th>Price</th>
             <th>Category</th>
+            <th>Photo</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -18,11 +19,20 @@
             <tr>
                 <td>{{ $product->id }}</td>
                 <td>{{ $product->name }}</td>
-                <td>{{ $product->description }}</td>
+                <td title="{{ $product->description }}">{{ Str::limit($product->description, 30) }}</td>
                 <td>{{ $product->price }}</td>
                 <td>{{ $product->category->name }}</td>
                 <td>
+                    @if ($product->image)
+                        <img src="{{ asset($product->image) }}" alt="{{ $product->name }} Thumbnail" class="thumbnail" style="max-width: 30px; max-height: 30px; border: 1px solid">
+                    @else
+                        <span class="text-muted">No photo</span>
+                    @endif
+
+                </td>
+                <td>
                     <a href="{{ route('admin.products.edit', ['product' => $product->id]) }}" class="btn btn-primary">Edit</a>
+                    <a href="{{ route('admin.products.show', ['product' => $product->id]) }}" class="btn btn-warning">Show</a>
 
                     <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $product->id }}">
                         Delete
@@ -54,3 +64,4 @@
         @endforeach
     </tbody>
 </table>
+{{ $products->links('pagination::bootstrap-4') }}
