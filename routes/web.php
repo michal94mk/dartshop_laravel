@@ -7,6 +7,7 @@ use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 use App\Constants\Roles;
 use App\Http\Controllers\UserController;
+use App\Http\Middleware\RoleMiddleware;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,7 +25,6 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/categories', [CategoryController::class, 'indexForRegularUsers'])->name('frontend.categories.index');
 
 
-
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -36,8 +36,7 @@ Route::middleware(['auth','verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware(['auth','verified'])->group(function () {
-    Route::get('/admin/index', [CategoryController::class, 'index'])->name('admin.categories.index');
+Route::middleware(['auth','verified', RoleMiddleware::class.':'.Roles::ROLE_ADMIN])->group(function () {
     Route::get('/admin/categories', [CategoryController::class, 'index'])->name('admin.categories.index');
     Route::get('/admin/categories/create', [CategoryController::class, 'create'])->name('admin.categories.create');
     Route::post('/admin/categories', [CategoryController::class, 'store'])->name('admin.categories.store');

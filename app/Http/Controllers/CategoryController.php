@@ -57,12 +57,15 @@ class CategoryController extends Controller
         return redirect()->route('admin.categories.index')->with('success', 'Category has been updated.');
     }
 
-    public function destroy($id)
-    {
-        $category = Category::find($id);
-
-        $category->delete();
-
-        return redirect()->route('admin.categories.index')->with('success', 'Category has been deleted.');
+    public function destroy(Category $category)
+{
+    if ($category->products->count() > 0) {
+        return back()->with('error', 'Cannot delete the category because it has associated products.');
     }
+
+    $category->delete();
+
+    return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully.');
+}
+
 }
