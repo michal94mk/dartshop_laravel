@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
+use App\Models\Product;
 
 
 class CategoryController extends Controller
@@ -12,6 +13,13 @@ class CategoryController extends Controller
     {
         $categories = Category::paginate(10);
         return view('admin.categories.index', compact('categories'));
+    }
+
+    public function indexForRegularUsers()
+    {
+        $categories = Category::all();
+        $products = Product::all();
+        return view('frontend.categories.index', compact('categories', 'products'));
     }
 
     public function create()

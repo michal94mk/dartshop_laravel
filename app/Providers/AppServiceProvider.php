@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
+use App\View\Composers\CategoriesComposer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,8 +23,9 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return void
      */
+
     public function boot()
     {
-        Paginator::useBootstrap();
+        view()->composer(['layouts.app'], CategoriesComposer::class);
     }
 }

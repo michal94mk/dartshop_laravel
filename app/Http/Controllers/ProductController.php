@@ -14,6 +14,12 @@ class ProductController extends Controller
         return view('admin.products.index', compact('products'));
     }
 
+    public function indexForRegularUsers()
+    {
+        $products = Product::paginate(10);
+        return view('frontend.categories.index', compact('products'));
+    }
+
     public function create()
     {
         $categories = Category::all();

@@ -21,6 +21,8 @@ use App\Http\Controllers\UserController;
 
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/categories', [CategoryController::class, 'indexForRegularUsers'])->name('frontend.categories.index');
+
 
 
 Route::get('/dashboard', function () {
