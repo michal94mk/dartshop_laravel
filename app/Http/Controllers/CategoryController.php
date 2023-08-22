@@ -15,13 +15,6 @@ class CategoryController extends Controller
         return view('admin.categories.index', compact('categories'));
     }
 
-    public function indexForRegularUsers()
-    {
-        $categories = Category::all();
-        $products = Product::all();
-        return view('frontend.categories.index', compact('categories', 'products'));
-    }
-
     public function create()
     {
         return view('admin.categories.create');
@@ -58,14 +51,13 @@ class CategoryController extends Controller
     }
 
     public function destroy(Category $category)
-{
-    if ($category->products->count() > 0) {
-        return back()->with('error', 'Cannot delete the category because it has associated products.');
+    {
+        if ($category->products->count() > 0) {
+            return back()->with('error', 'Cannot delete the category because it has associated products.');
+        }
+
+        $category->delete();
+
+        return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully.');
     }
-
-    $category->delete();
-
-    return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully.');
-}
-
 }

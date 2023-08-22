@@ -22,7 +22,8 @@ use App\Http\Middleware\RoleMiddleware;
 
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/categories', [CategoryController::class, 'indexForRegularUsers'])->name('frontend.categories.index');
+Route::get('/categories', [HomeController::class, 'indexForRegularUsers'])->name('frontend.categories.index');
+Route::post('/filter/products', [ProductController::class, 'filterProducts'])->name('filter.products');
 
 
 Route::get('/dashboard', function () {

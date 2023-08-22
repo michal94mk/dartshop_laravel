@@ -10,7 +10,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::paginate(10);
+        $products = Product::all();
         return view('admin.products.index', compact('products'));
     }
 
@@ -86,5 +86,24 @@ class ProductController extends Controller
         $product->delete();
 
         return redirect()->route('admin.products.index')->with('success', 'Product has been deleted.');
+    }
+
+    public function filterProducts(Request $request)
+    {
+        $selectedCategories = $request->input('categories', []);
+
+        $query = Product::query();
+
+        if (!empty($selectedCategories)) {
+            $query->whereIn('category_id', $selectedCategories);
+        }
+
+        $filteredProducts = $query->get();
+
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'filteredProducts' => $filteredProducts]);
+        }
+
+        return view('frontend.categories.index', compact('filteredProducts'));
     }
 }
