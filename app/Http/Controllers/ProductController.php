@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Brand;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\Product;
@@ -10,7 +11,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::all();
+        $products = Product::paginate(10);
         return view('admin.products.index', compact('products'));
     }
 
@@ -23,7 +24,8 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::all();
-        return view('admin.products.create', compact('categories'));
+        $brands = Brand::all();
+        return view('admin.products.create', compact('categories', 'brands'));
     }
 
     public function store(Request $request)
@@ -33,6 +35,7 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric',
             'category_id' => 'required',
+            'brand_id' => 'required',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
@@ -56,6 +59,7 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::all();
+        $brands = Brand::all();
         return view('admin.products.edit', compact('product', 'categories'));
     }
 
@@ -66,6 +70,7 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric',
             'category_id' => 'required',
+            'brand_id' => 'required',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 

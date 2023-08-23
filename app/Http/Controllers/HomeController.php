@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Brand;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
@@ -31,8 +32,11 @@ class HomeController extends Controller
             if (!is_null($filters['price_max'])) {
                 $query = $query->where('price', '<=', $filters['price_max']);
             }
+            if (array_key_exists('brands', $filters)) {
+                $query = $query->whereIn('brand_id', $filters['brands']);
+            }
 
-            $products = $query->with('category')->get();
+            $products = $query->with('category', 'brand')->get();
 
             $data = $products->map(function ($product) {
                 return [
@@ -42,6 +46,8 @@ class HomeController extends Controller
                     'image' => $product->image,
                     'category_id' => $product->category_id,
                     'category_name' => $product->category->name,
+                    'brand_id' => $product->brand_id,
+                    'brand_name' => $product->brand->name,
                 ];
             });
 
@@ -52,7 +58,8 @@ class HomeController extends Controller
 
         return view('frontend.categories.index', [
             'products' => $query->paginate(10),
-            'categories' => Category::all()
+            'categories' => Category::all(),
+            'brands' => Brand::all()
         ]);
     }
 

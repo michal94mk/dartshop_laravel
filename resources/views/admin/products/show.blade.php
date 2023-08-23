@@ -13,6 +13,7 @@
             <th>Description</th>
             <th>Price</th>
             <th>Category</th>
+            <th>Brand</th>
             <th>Photo</th>
         </tr>
     </thead>
@@ -23,6 +24,7 @@
                 <td>{{ $product->description }}</td>
                 <td>{{ $product->price }}</td>
                 <td>{{ $product->category->name }}</td>
+                <td>{{ $product->brand->name }}</td>
                 <td>
                     @if ($product->image)
                         <img src="{{ asset($product->image) }}" alt="{{ $product->name }} Thumbnail" class="thumbnail" style="max-width: 300px; max-height: 300px; border: 1px solid">

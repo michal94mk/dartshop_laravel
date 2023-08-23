@@ -4,7 +4,7 @@
 <div class="mb-3">
     <a href="{{ route('admin.products.index') }}" class="btn btn-info">Back</a>
 </div>
-
+<br>
 <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
     @csrf
     <div class="form-group">
@@ -25,6 +25,15 @@
             <option value="" disabled selected>Select a category</option>
             @foreach ($categories as $category)
                 <option value="{{ $category->id }}">{{ $category->name }}</option>
+            @endforeach
+        </select><br>
+    </div>
+    <div class="form-group">
+        <label for="brand_id">Brand:</label><br>
+        <select name="brand_id" id="brand_id" class="form-control" required>
+            <option value="" disabled selected>Select a brand</option>
+            @foreach ($brands as $brand)
+                <option value="{{ $brand->id }}">{{ $brand->name }}</option>
             @endforeach
         </select><br>
     </div>

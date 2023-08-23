@@ -6,6 +6,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 use App\Constants\Roles;
+use App\Http\Controllers\BrandController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\RoleMiddleware;
 
@@ -44,6 +45,13 @@ Route::middleware(['auth','verified', RoleMiddleware::class.':'.Roles::ROLE_ADMI
     Route::get('/admin/categories/{category}/edit', [CategoryController::class, 'edit'])->name('admin.categories.edit');
     Route::put('/admin/categories/{category}', [CategoryController::class, 'update'])->name('admin.categories.update');
     Route::delete('/admin/categories/{category}', [CategoryController::class, 'destroy'])->name('admin.categories.destroy');
+
+    Route::get('/admin/brands', [BrandController::class, 'index'])->name('admin.brands.index');
+    Route::get('/admin/brands/create', [BrandController::class, 'create'])->name('admin.brands.create');
+    Route::post('/admin/brands', [BrandController::class, 'store'])->name('admin.brands.store');
+    Route::get('/admin/brands/{brand}/edit', [BrandController::class, 'edit'])->name('admin.brands.edit');
+    Route::put('/admin/brands/{brand}', [BrandController::class, 'update'])->name('admin.brands.update');
+    Route::delete('/admin/brands/{brand}', [BrandController::class, 'destroy'])->name('admin.brands.destroy');
 
     Route::get('/admin/products', [ProductController::class, 'index'])->name('admin.products.index');
     Route::get('/admin/products/create', [ProductController::class, 'create'])->name('admin.products.create');

@@ -1,4 +1,4 @@
-<div id="products-container" class="row">
+{{-- <div id="products-container" class="row">
     <div class="row">
         @foreach($products as $product)
         <div class="col-md-4 col-xs-6">
@@ -39,4 +39,4 @@
         </div>
         @endforeach
     </div>
-</div>
+</div> --}}
