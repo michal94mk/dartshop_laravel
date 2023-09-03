@@ -20,9 +20,25 @@ class HomeController extends Controller
     public function indexForRegularUsers(Request $request): View|JsonResponse
     {
         $filters = $request->query('filter');
+        $paginate = $request->input('paginate', 10);
+        $sort = $request->input('sort');
         $query = Product::query();
 
+
+        if (!is_null($sort)) {
+            if ($sort === 'price-asc') {
+                $query = $query->orderBy('price', 'ASC');
+            } elseif ($sort === 'price-desc') {
+                $query = $query->orderBy('price', 'DESC');
+            } elseif ($sort === 'name-asc') {
+                $query = $query->orderBy('name', 'ASC');
+            } elseif ($sort === 'name-desc') {
+                $query = $query->orderBy('name', 'DESC');
+            }
+        }
+
         if (!is_null($filters)) {
+
             if (array_key_exists('categories', $filters)) {
                 $query = $query->whereIn('category_id', $filters['categories']);
             }
@@ -36,32 +52,28 @@ class HomeController extends Controller
                 $query = $query->whereIn('brand_id', $filters['brands']);
             }
 
-            $products = $query->with('category', 'brand')->get();
 
-            $data = $products->map(function ($product) {
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'price' => $product->price,
-                    'image' => $product->image,
-                    'category_id' => $product->category_id,
-                    'category_name' => $product->category->name,
-                    'brand_id' => $product->brand_id,
-                    'brand_name' => $product->brand->name,
-                ];
-            });
+
+            $products = $query->with('category', 'brand')->paginate($paginate);
 
             return response()->json([
-                'data' => $data
+                'data' => $products->items(),
+                'current_page' => $products->currentPage(),
+                'last_page' => $products->lastPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
             ]);
         }
 
+        $products = Product::with('category', 'brand')->paginate($paginate);
+
         return view('frontend.categories.index', [
-            'products' => $query->paginate(10),
+            'products' => $products,
             'categories' => Category::all(),
             'brands' => Brand::all()
         ]);
     }
+
 
 
 

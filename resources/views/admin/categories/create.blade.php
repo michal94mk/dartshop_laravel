@@ -4,7 +4,7 @@
 <div class="mb-3">
     <a href="{{ route('admin.categories.index') }}" class="btn btn-info">Back</a>
 </div>
-
+<br>
 <form action="{{ route('admin.categories.store') }}" method="POST">
     @csrf
     <div class="form-group">

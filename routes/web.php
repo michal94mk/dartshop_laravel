@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Constants\Roles;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CartController;
 use App\Http\Middleware\RoleMiddleware;
 
 /*
@@ -25,6 +26,15 @@ use App\Http\Middleware\RoleMiddleware;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/categories', [HomeController::class, 'indexForRegularUsers'])->name('frontend.categories.index');
 Route::post('/filter/products', [ProductController::class, 'filterProducts'])->name('filter.products');
+
+// Route::prefix('cart')->group(function () {
+//     Route::post('add/{product}', [CartController::class, 'addToCart'])->name('cart.add');
+//     Route::post('remove/{product}', [CartController::class, 'removeFromCart'])->name('cart.remove');
+// });
+
+Route::post('/cart/add/{product}', [CartController::class, 'addToCart'])->name('cart.add');
+Route::post('/cart/delete/{product}', [CartController::class, 'deleteFromCart'])->name('cart.delete');
+Route::get('/cart/contents', [CartController::class, 'getCartContents'])->name('cart.contents');
 
 
 Route::get('/dashboard', function () {
