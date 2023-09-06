@@ -177,10 +177,8 @@
 						<li class="active"><a href="{{ route('home') }}">Home</a></li>
 						<li><a href="#">Hot Deals</a></li>
 						<li><a href="{{ route('frontend.categories.index') }}">Categories</a></li>
-						<li><a href="#">Laptops</a></li>
-						<li><a href="#">Smartphones</a></li>
-						<li><a href="#">Cameras</a></li>
-						<li><a href="#">Accessories</a></li>
+						<li><a href="#">About us</a></li>
+						<li><a href="#">Contact</a></li>
 					</ul>
 					<!-- /NAV -->
 				</div>
@@ -362,7 +360,7 @@
         <script src="{{ asset('js/slick.min.js') }}"></script>
         <script src="{{ asset('js/nouislider.min.js') }}"></script>
         <script src="{{ asset('js/jquery.zoom.min.js') }}"></script>
-        <script src="{{ asset('js/main.js') }}" defer></script>
+        <script src="{{ asset('js/main.js') }}"></script>
 
         @yield('scripts')
 	</body>

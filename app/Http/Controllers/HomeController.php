@@ -20,7 +20,7 @@ class HomeController extends Controller
     public function indexForRegularUsers(Request $request): View|JsonResponse
     {
         $filters = $request->query('filter');
-        $paginate = $request->input('paginate', 10);
+        $paginate = $request->input('paginate', 9);
         $sort = $request->input('sort');
         $query = Product::query();
 

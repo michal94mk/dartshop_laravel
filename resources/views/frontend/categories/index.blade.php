@@ -89,18 +89,12 @@
 								<label>
                                     Show:
                                     <select class="input-select" id="products-per-page">
-                                        <option value="3">3</option>
-                                        <option value="6">6</option>
                                         <option value="9">9</option>
                                         <option value="12">12</option>
                                         <option value="15">15</option>
                                     </select>
                                 </label>
 							</div>
-							<ul class="store-grid">
-								<li class="active"><i class="fa fa-th"></i></li>
-								<li><a href="#"><i class="fa fa-th-list"></i></a></li>
-							</ul>
 						</div>
 						<!-- /store top filter -->
 
@@ -156,16 +150,47 @@
 
 						<!-- /store products -->
 						<!-- store bottom filter -->
-						<div class="store-filter clearfix">
-							<span class="store-qty">Showing 20-100 products</span>
-							<ul class="store-pagination">
-								<li class="active">1</li>
-								<li><a href="#">2</a></li>
-								<li><a href="#">3</a></li>
-								<li><a href="#">4</a></li>
-								<li><a href="#"><i class="fa fa-angle-right"></i></a></li>
-							</ul>
-						</div>
+                        <div class="store-filter clearfix">
+                            <span class="store-qty">
+                                Showing {{ $products->firstItem() }}-{{ $products->lastItem() }} of {{ $products->total() }} products
+                            </span>
+                            <ul class="store-pagination">
+                                @if ($products->currentPage() > 1)
+                                    <li><a href="{{ $products->previousPageUrl() }}"><</a></li>
+                                @endif
+
+                                @php
+                                    $leftLimit = max($products->currentPage() - 2, 1);
+                                    $rightLimit = min($products->currentPage() + 2, $products->lastPage());
+                                @endphp
+
+                                @if ($leftLimit > 1)
+                                    <li><a href="{{ $products->url(1) }}">1</a></li>
+                                    @if ($leftLimit > 2)
+                                        <li><span class="dots">...</span></li>
+                                    @endif
+                                @endif
+
+                                @for ($i = $leftLimit; $i <= $rightLimit; $i++)
+                                    <li class="{{ $i == $products->currentPage() ? 'active' : '' }}">
+                                        <a href="{{ $products->url($i) }}">{{ $i }}</a>
+                                    </li>
+                                @endfor
+
+                                @if ($rightLimit < $products->lastPage())
+                                    @if ($rightLimit < $products->lastPage() - 1)
+                                        <li><span class="dots">...</span></li>
+                                    @endif
+                                    <li><a href="{{ $products->url($products->lastPage()) }}">{{ $products->lastPage() }}</a></li>
+                                @endif
+
+                                @if ($products->currentPage() < $products->lastPage())
+                                    <li><a href="{{ $products->nextPageUrl() }}">></a></li>
+                                @endif
+                            </ul>
+                        </div>
+
+
 						<!-- /store bottom filter -->
 					</div>
 					<!-- /STORE -->
@@ -325,6 +350,12 @@
                 alert("ERROR");
             });
         }
+        $(document).ready(function() {
+    $('.dots').click(function() {
+        // Po kliknięciu na trzy kropeczki, pokaż/ukryj pole
+        $('#pageInput').toggle();
+    });
+});
     });
 </script>
 
