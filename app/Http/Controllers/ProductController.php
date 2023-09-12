@@ -6,6 +6,7 @@ use App\Models\Brand;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\Product;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -42,8 +43,12 @@ class ProductController extends Controller
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('images'), $imageName);
-            $data['image'] = 'images/' . $imageName;
+
+            $path = $image->storeAs('public/images', $imageName);
+
+            $imageUrl = Storage::url($path);
+
+            $data['image'] = $imageUrl;
         }
 
         $product = Product::create($data);
@@ -77,8 +82,12 @@ class ProductController extends Controller
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('images'), $imageName);
-            $data['image'] = 'images/' . $imageName;
+
+            $path = $image->storeAs('public/images', $imageName);
+
+            $imageUrl = Storage::url($path);
+
+            $data['image'] = $imageUrl;
         }
 
         $product->update($data);

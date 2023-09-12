@@ -13,7 +13,6 @@ class Cart extends Model
     protected $fillable = [
         'product_id',
         'quantity',
-        // Dodaj inne kolumny, jeśli są potrzebne
     ];
 
     public function product()

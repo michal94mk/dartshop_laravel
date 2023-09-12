@@ -126,7 +126,7 @@
                                     <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
                                         <i class="fa fa-shopping-cart"></i>
                                         <span>Your Cart</span>
-                                        <div class="qty" id="totalQty">0</div>
+                                        <div class="qty" id="totalQty">{{$totalQty}}</div>
                                     </a>
                                     <div class="cart-dropdown">
                                         <div class="cart-list">
@@ -137,7 +137,7 @@
                                             <h5>SUBTOTAL: $0.00</h5>
                                         </div>
                                         <div class="cart-btns">
-                                            <a href="#">View Cart</a>
+                                            <a href="{{route('cart.view')}}">View Cart</a>
                                             <a href="#">Checkout  <i class="fa fa-arrow-circle-right"></i></a>
                                         </div>
                                     </div>
@@ -361,7 +361,171 @@
         <script src="{{ asset('js/nouislider.min.js') }}"></script>
         <script src="{{ asset('js/jquery.zoom.min.js') }}"></script>
         <script src="{{ asset('js/main.js') }}"></script>
+        <script>
+            $(document).ready(function() {
+                updateCartDropdown();
 
-        @yield('scripts')
+                attachAddToCartListeners();
+                $('button#filter-button').click(getProducts);
+                $("#products-per-page").on("change", getProducts);
+                $("#sort").on("change", getProducts);
+
+
+                $('.cart-list').on('click', '.delete', function() {
+                    var productId = $(this).data('product-id');
+                    deleteFromCart(productId);
+                });
+
+
+                function attachAddToCartListeners() {
+                    $('.add-to-cart-btn').click(function(event) {
+                        event.preventDefault();
+                        var productId = $(this).data('product-id');
+                        addToCart(productId);
+                    });
+                }
+
+                function addToCart(productId) {
+                    $.ajax({
+                        url: '/cart/add/' + productId,
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            alert('Produkt dodany do koszyka!');
+                            updateCartDropdown(response);
+                        },
+                        error: function(error) {
+                            alert('Wystąpił błąd podczas dodawania produktu do koszyka.');
+                        }
+                    });
+                }
+
+const prefix = window.location.pathname.startsWith('/admin') ? '/admin' : '';
+
+function updateCartDropdown() {
+    $.ajax({
+        url: '{{ route("cart.contents") }}',
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            const cart = response.cart;
+            console.log(cart);
+
+            // Znajdź element .cart-list raz i wyczyść go
+            const $cartList = $('.cart-list');
+            $cartList.empty();
+
+            let totalQuantity = 0;
+
+            // Iteruj przez elementy koszyka
+            $.each(cart, function(productId, item) {
+                // Utwórz ścieżkę obrazka bezpośrednio z bazy danych
+                const imageSrc = item.product.image;
+
+                // Utwórz HTML dla produktu
+                const productHtml = `
+                    <div class="product-widget">
+                        <div class="product-img">
+                            <img src="${imageSrc}" alt="Obrazek">
+                        </div>
+                        <div class="product-body">
+                            <h3 class="product-name"><a href="#">${item.product.name}</a></h3>
+                            <h4 class="product-price"><span class="qty">${item.quantity}x</span> $${item.product.price}</h4>
+                        </div>
+                        <button class="delete" data-product-id="${productId}"><i class="fa fa-close"></i></button>
+                    </div>`;
+
+                // Dodaj produkt do listy
+                $cartList.append(productHtml);
+
+                totalQuantity += item.quantity;
+            });
+
+            // Zaktualizuj łączną ilość produktów
+            $('#totalQty').text(totalQuantity);
+        },
+        error: function(error) {
+            console.log('Wystąpił błąd podczas aktualizowania koszyka:', error);
+        }
+    });
+}
+
+
+
+
+                function deleteFromCart(productId) {
+                    $.ajax({
+                        url: '/cart/delete/' + productId,
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            updateCartDropdown(response.cart);
+                        },
+                        error: function(error) {
+                            alert('Wystąpił błąd podczas usuwania produktu z koszyka.');
+                        }
+                    });
+                }
+
+                function getProducts() {
+                    const sort = $("#sort").val();
+                    const paginate = $("#products-per-page").val();
+                    const form = $('form#filter-form').serialize();
+                    $.ajax({
+                        method: "GET",
+                        url: "/categories",
+                        data: form + "&" + $.param({ paginate: paginate, sort: sort })
+                    })
+                    .done(function(response) {
+                        $('div#products-container').empty();
+                        $.each(response.data, function (index, product) {
+                            const imageSrc = product.image ? product.image : 'images/default_image.jpg';
+                            const productHtml =
+                                `<div class="col-md-4 col-xs-6">
+                                    <div class="product">
+                                        <div class="product-img">
+                                            <img src="${imageSrc}" alt="No photo">
+                                            <div class="product-label">
+                                                <span class="sale">-30%</span>
+                                                <span class="new">NEW</span>
+                                            </div>
+                                        </div>
+                                        <div class="product-body">
+                                            <p class="product-category">${product.category_name}</p>
+                                            <h3 class="product-name"><a href="#">${product.name}</a></h3>
+                                            <h4 class="product-price">${product.price}<del class="product-old-price"></del></h4>
+                                            <div class="product-rating">
+                                                <i class="fa fa-star"></i>
+                                                <i class="fa fa-star"></i>
+                                                <i class="fa fa-star"></i>
+                                                <i class="fa fa-star"></i>
+                                                <i class="fa fa-star"></i>
+                                            </div>
+                                            <div class="product-btns">
+                                                <button class="add-to-wishlist"><i class="fa fa-heart-o"></i><span class="tooltipp">add to wishlist</span></button>
+                                                <button class="add-to-compare"><i class="fa fa-exchange"></i><span class="tooltipp">add to compare</span></button>
+                                                <button class="quick-view"><i class="fa fa-eye"></i><span class="tooltipp">quick view</span></button>
+                                            </div>
+                                        </div>
+                                        <div class="add-to-cart">
+                                            <button class="add-to-cart-btn" data-product-id="${product.id}"><i class="fa fa-shopping-cart"></i>Add to cart</button>
+                                        </div>
+                                    </div>
+                                </div>`;
+
+                            $('div#products-container').append(productHtml);
+                        });
+                        attachAddToCartListeners();
+                    })
+                    .fail(function(data) {
+                        alert("ERROR");
+                    });
+                }
+            });
+        </script>
 	</body>
 </html>

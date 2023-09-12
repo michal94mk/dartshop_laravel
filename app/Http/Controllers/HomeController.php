@@ -12,9 +12,19 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class HomeController extends Controller
 {
     public function index()
-    {
-        $products = Product::all();
-        return view('home', compact('products'));
+{
+    $newestProducts = Product::orderBy('created_at', 'desc')
+        ->take(10)
+        ->get();
+
+    return view('home', ['newestProducts' => $newestProducts]);
+}
+
+    public function indexNewestProductsForHomepage() : View {
+        $newestProducts = Product::orderBy('created_at', 'desc')
+        ->take(10)
+        ->get();
+    return view('home', ['newestProducts' => $newestProducts]);
     }
 
     public function indexForRegularUsers(Request $request): View|JsonResponse

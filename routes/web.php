@@ -23,7 +23,7 @@ use App\Http\Middleware\RoleMiddleware;
 */
 
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/', [HomeController::class, 'indexNewestProductsForHomepage'])->name('home');
 Route::get('/categories', [HomeController::class, 'indexForRegularUsers'])->name('frontend.categories.index');
 Route::post('/filter/products', [ProductController::class, 'filterProducts'])->name('filter.products');
 
@@ -35,6 +35,7 @@ Route::post('/filter/products', [ProductController::class, 'filterProducts'])->n
 Route::post('/cart/add/{product}', [CartController::class, 'addToCart'])->name('cart.add');
 Route::post('/cart/delete/{product}', [CartController::class, 'deleteFromCart'])->name('cart.delete');
 Route::get('/cart/contents', [CartController::class, 'getCartContents'])->name('cart.contents');
+Route::get('/cart/view', [CartController::class, 'cartView'])->name('cart.view');
 
 
 Route::get('/dashboard', function () {

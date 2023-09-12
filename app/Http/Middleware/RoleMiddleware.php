@@ -21,6 +21,8 @@ class RoleMiddleware
             abort(403, 'Unauthorized. You do not have access to this page.');
         }
 
+        view()->share('is_admin', Auth::user()->role === 'admin');
+
         return $next($request);
     }
 }

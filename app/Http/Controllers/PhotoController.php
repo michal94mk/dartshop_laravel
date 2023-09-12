@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PhotoController extends Controller
 {
@@ -15,8 +16,12 @@ class PhotoController extends Controller
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('images'), $imageName);
-            return 'images/' . $imageName;
+
+            $path = $image->storeAs('public/images', $imageName);
+
+            $imageUrl = Storage::url($path);
+
+            return $imageUrl;
         }
 
         return null;
@@ -25,9 +30,10 @@ class PhotoController extends Controller
     public function destroy($imagePath)
     {
         if ($imagePath) {
-            $fullImagePath = public_path($imagePath);
-            if (file_exists($fullImagePath)) {
-                unlink($fullImagePath);
+            $path = str_replace('storage/', 'public/', $imagePath);
+
+            if (Storage::exists($path)) {
+                Storage::delete($path);
             }
         }
 

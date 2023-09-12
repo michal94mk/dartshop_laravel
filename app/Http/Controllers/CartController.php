@@ -37,6 +37,11 @@ class CartController extends Controller
         return response()->json(['cart' => $cart]);
     }
 
+    public function cartView(Request $request)
+    {
+        $cart = $request->session()->get('cart', []);
+        return view('frontend.cart.cart', compact('cart'));
+    }
 
     public function deleteFromCart(Request $request, $productId)
     {
