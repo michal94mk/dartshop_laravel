@@ -86,6 +86,20 @@ ul, ol {
   list-style: none
 }
 
+.cart-view-table th,
+.cart-view-table td {
+    width: 20%;
+}
+
+.cart-product-name h6 {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+
 /*----------------------------*\
 	Buttons
 \*----------------------------*/
@@ -108,6 +122,21 @@ ul, ol {
   opacity: 0.9;
   color: #FFF;
 }
+
+.button-blue {
+    width: 152px;
+    height: 44px;
+    background-color: #1e1f29;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 40px;
+  }
+
+  .button-blue:hover {
+    background-color: #333344;
+  }
 
 /*----------------------------*\
 	Inputs
@@ -791,7 +820,7 @@ textarea.input {
   padding: 60px 0px;
   margin: 30px 0px;
   background-color: #E4E7ED;
-  background-image: url('../img/hotdeal.png');
+  background-image: url('../img/hotdeal.jpg');
   background-position: center;
   background-repeat: no-repeat;
 }

@@ -1,112 +1,191 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
-  <testsuite name="" tests="64" assertions="154" errors="0" warnings="0" failures="0" skipped="0" time="14.525086">
-    <testsuite name="Unit" tests="46" assertions="120" errors="0" warnings="0" failures="0" skipped="0" time="11.261921">
-      <testsuite name="Tests\Unit\AdminControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\AdminControllerTest.php" tests="1" assertions="1" errors="0" warnings="0" failures="0" skipped="0" time="3.290990">
-        <testcase name="test_example" class="Tests\Unit\AdminControllerTest" classname="Tests.Unit.AdminControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\AdminControllerTest.php" line="11" assertions="1" time="3.290990"/>
+  <testsuite name="" tests="64" assertions="154" errors="0" warnings="0" failures="1" skipped="0" time="5.932977">
+    <testsuite name="Unit" tests="46" assertions="120" errors="0" warnings="0" failures="1" skipped="0" time="4.372113">
+      <testsuite name="Tests\Unit\AdminControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\AdminControllerTest.php" tests="1" assertions="1" errors="0" warnings="0" failures="0" skipped="0" time="0.412387">
+        <testcase name="test_example" class="Tests\Unit\AdminControllerTest" classname="Tests.Unit.AdminControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\AdminControllerTest.php" line="11" assertions="1" time="0.412387"/>
       </testsuite>
-      <testsuite name="Tests\Unit\BrandControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandControllerTest.php" tests="5" assertions="13" errors="0" warnings="0" failures="0" skipped="0" time="1.804649">
-        <testcase name="testIndexReturnsBrands" class="Tests\Unit\BrandControllerTest" classname="Tests.Unit.BrandControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandControllerTest.php" line="21" assertions="2" time="1.026592"/>
-        <testcase name="testCreateBrand" class="Tests\Unit\BrandControllerTest" classname="Tests.Unit.BrandControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandControllerTest.php" line="28" assertions="3" time="0.458231"/>
-        <testcase name="testEditBrand" class="Tests\Unit\BrandControllerTest" classname="Tests.Unit.BrandControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandControllerTest.php" line="39" assertions="2" time="0.096175"/>
-        <testcase name="testUpdateBrand" class="Tests\Unit\BrandControllerTest" classname="Tests.Unit.BrandControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandControllerTest.php" line="47" assertions="3" time="0.050664"/>
-        <testcase name="testDeleteBrand" class="Tests\Unit\BrandControllerTest" classname="Tests.Unit.BrandControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandControllerTest.php" line="60" assertions="3" time="0.172987"/>
+      <testsuite name="Tests\Unit\BrandControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandControllerTest.php" tests="5" assertions="13" errors="0" warnings="0" failures="0" skipped="0" time="0.333213">
+        <testcase name="testIndexReturnsBrands" class="Tests\Unit\BrandControllerTest" classname="Tests.Unit.BrandControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandControllerTest.php" line="21" assertions="2" time="0.097996"/>
+        <testcase name="testCreateBrand" class="Tests\Unit\BrandControllerTest" classname="Tests.Unit.BrandControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandControllerTest.php" line="28" assertions="3" time="0.055195"/>
+        <testcase name="testEditBrand" class="Tests\Unit\BrandControllerTest" classname="Tests.Unit.BrandControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandControllerTest.php" line="39" assertions="2" time="0.055815"/>
+        <testcase name="testUpdateBrand" class="Tests\Unit\BrandControllerTest" classname="Tests.Unit.BrandControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandControllerTest.php" line="47" assertions="3" time="0.058093"/>
+        <testcase name="testDeleteBrand" class="Tests\Unit\BrandControllerTest" classname="Tests.Unit.BrandControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandControllerTest.php" line="60" assertions="3" time="0.066114"/>
       </testsuite>
-      <testsuite name="Tests\Unit\BrandTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandTest.php" tests="6" assertions="12" errors="0" warnings="0" failures="0" skipped="0" time="2.634336">
-        <testcase name="testBrandCanBeCreated" class="Tests\Unit\BrandTest" classname="Tests.Unit.BrandTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandTest.php" line="16" assertions="2" time="2.315314"/>
-        <testcase name="testBrandNameIsRequired" class="Tests\Unit\BrandTest" classname="Tests.Unit.BrandTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandTest.php" line="27" assertions="3" time="0.092976"/>
-        <testcase name="testBrandNameIsUnique" class="Tests\Unit\BrandTest" classname="Tests.Unit.BrandTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandTest.php" line="38" assertions="3" time="0.056420"/>
-        <testcase name="testBrandNameIsUniqueIgnoringItself" class="Tests\Unit\BrandTest" classname="Tests.Unit.BrandTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandTest.php" line="50" assertions="2" time="0.093526"/>
-        <testcase name="testBrandCanBeUpdated" class="Tests\Unit\BrandTest" classname="Tests.Unit.BrandTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandTest.php" line="61" assertions="1" time="0.031297"/>
-        <testcase name="testBrandCanBeDeleted" class="Tests\Unit\BrandTest" classname="Tests.Unit.BrandTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandTest.php" line="70" assertions="1" time="0.044802"/>
+      <testsuite name="Tests\Unit\BrandTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandTest.php" tests="6" assertions="12" errors="0" warnings="0" failures="0" skipped="0" time="1.487663">
+        <testcase name="testBrandCanBeCreated" class="Tests\Unit\BrandTest" classname="Tests.Unit.BrandTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandTest.php" line="16" assertions="2" time="1.274836"/>
+        <testcase name="testBrandNameIsRequired" class="Tests\Unit\BrandTest" classname="Tests.Unit.BrandTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandTest.php" line="27" assertions="3" time="0.030243"/>
+        <testcase name="testBrandNameIsUnique" class="Tests\Unit\BrandTest" classname="Tests.Unit.BrandTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandTest.php" line="38" assertions="3" time="0.031567"/>
+        <testcase name="testBrandNameIsUniqueIgnoringItself" class="Tests\Unit\BrandTest" classname="Tests.Unit.BrandTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandTest.php" line="50" assertions="2" time="0.048242"/>
+        <testcase name="testBrandCanBeUpdated" class="Tests\Unit\BrandTest" classname="Tests.Unit.BrandTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandTest.php" line="61" assertions="1" time="0.067380"/>
+        <testcase name="testBrandCanBeDeleted" class="Tests\Unit\BrandTest" classname="Tests.Unit.BrandTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\BrandTest.php" line="70" assertions="1" time="0.035395"/>
       </testsuite>
-      <testsuite name="Tests\Unit\CartControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CartControllerTest.php" tests="4" assertions="8" errors="0" warnings="0" failures="0" skipped="0" time="0.376259">
-        <testcase name="testAddToCart" class="Tests\Unit\CartControllerTest" classname="Tests.Unit.CartControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CartControllerTest.php" line="17" assertions="4" time="0.248497"/>
-        <testcase name="testGetCartContents" class="Tests\Unit\CartControllerTest" classname="Tests.Unit.CartControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CartControllerTest.php" line="28" assertions="1" time="0.025806"/>
-        <testcase name="testCartView" class="Tests\Unit\CartControllerTest" classname="Tests.Unit.CartControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CartControllerTest.php" line="34" assertions="1" time="0.067947"/>
-        <testcase name="testDeleteFromCart" class="Tests\Unit\CartControllerTest" classname="Tests.Unit.CartControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CartControllerTest.php" line="40" assertions="2" time="0.034009"/>
+      <testsuite name="Tests\Unit\CartControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CartControllerTest.php" tests="4" assertions="8" errors="0" warnings="0" failures="1" skipped="0" time="0.488722">
+        <testcase name="testAddToCart" class="Tests\Unit\CartControllerTest" classname="Tests.Unit.CartControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CartControllerTest.php" line="17" assertions="4" time="0.057608"/>
+        <testcase name="testGetCartContents" class="Tests\Unit\CartControllerTest" classname="Tests.Unit.CartControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CartControllerTest.php" line="28" assertions="1" time="0.027747"/>
+        <testcase name="testCartView" class="Tests\Unit\CartControllerTest" classname="Tests.Unit.CartControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CartControllerTest.php" line="34" assertions="1" time="0.352364">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">Tests\Unit\CartControllerTest::testCartView
+Expected response status code [200] but received 500.
+  Failed asserting that 200 is identical to 500.
+  
+  
+  
+  The following exception occurred during the last request:
+  
+  ErrorException: compact(): Undefined variable $total in C:\xampp\htdocs\dartshop_laravel\app\Http\Controllers\CartController.php:47
+  Stack trace:
+  #0 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Foundation\Bootstrap\HandleExceptions.php(270): Illuminate\Foundation\Bootstrap\HandleExceptions-&gt;handleError(2, 'compact(): Unde...', 'C:\\xampp\\htdocs...', 47)
+  #1 [internal function]: Illuminate\Foundation\Bootstrap\HandleExceptions-&gt;Illuminate\Foundation\Bootstrap\{closure}(2, 'compact(): Unde...', 'C:\\xampp\\htdocs...', 47)
+  #2 C:\xampp\htdocs\dartshop_laravel\app\Http\Controllers\CartController.php(47): compact('cart', 'total')
+  #3 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Routing\Controller.php(54): App\Http\Controllers\CartController-&gt;cartView(Object(Illuminate\Http\Request))
+  #4 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Routing\ControllerDispatcher.php(43): Illuminate\Routing\Controller-&gt;callAction('cartView', Array)
+  #5 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Routing\Route.php(260): Illuminate\Routing\ControllerDispatcher-&gt;dispatch(Object(Illuminate\Routing\Route), Object(App\Http\Controllers\CartController), 'cartView')
+  #6 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Routing\Route.php(205): Illuminate\Routing\Route-&gt;runController()
+  #7 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Routing\Router.php(798): Illuminate\Routing\Route-&gt;run()
+  #8 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(141): Illuminate\Routing\Router-&gt;Illuminate\Routing\{closure}(Object(Illuminate\Http\Request))
+  #9 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Routing\Middleware\SubstituteBindings.php(50): Illuminate\Pipeline\Pipeline-&gt;Illuminate\Pipeline\{closure}(Object(Illuminate\Http\Request))
+  #10 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(180): Illuminate\Routing\Middleware\SubstituteBindings-&gt;handle(Object(Illuminate\Http\Request), Object(Closure))
+  #11 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken.php(78): Illuminate\Pipeline\Pipeline-&gt;Illuminate\Pipeline\{closure}(Object(Illuminate\Http\Request))
+  #12 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(180): Illuminate\Foundation\Http\Middleware\VerifyCsrfToken-&gt;handle(Object(Illuminate\Http\Request), Object(Closure))
+  #13 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\View\Middleware\ShareErrorsFromSession.php(49): Illuminate\Pipeline\Pipeline-&gt;Illuminate\Pipeline\{closure}(Object(Illuminate\Http\Request))
+  #14 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(180): Illuminate\View\Middleware\ShareErrorsFromSession-&gt;handle(Object(Illuminate\Http\Request), Object(Closure))
+  #15 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Session\Middleware\StartSession.php(121): Illuminate\Pipeline\Pipeline-&gt;Illuminate\Pipeline\{closure}(Object(Illuminate\Http\Request))
+  #16 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Session\Middleware\StartSession.php(64): Illuminate\Session\Middleware\StartSession-&gt;handleStatefulRequest(Object(Illuminate\Http\Request), Object(Illuminate\Session\Store), Object(Closure))
+  #17 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(180): Illuminate\Session\Middleware\StartSession-&gt;handle(Object(Illuminate\Http\Request), Object(Closure))
+  #18 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse.php(37): Illuminate\Pipeline\Pipeline-&gt;Illuminate\Pipeline\{closure}(Object(Illuminate\Http\Request))
+  #19 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(180): Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse-&gt;handle(Object(Illuminate\Http\Request), Object(Closure))
+  #20 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Cookie\Middleware\EncryptCookies.php(67): Illuminate\Pipeline\Pipeline-&gt;Illuminate\Pipeline\{closure}(Object(Illuminate\Http\Request))
+  #21 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(180): Illuminate\Cookie\Middleware\EncryptCookies-&gt;handle(Object(Illuminate\Http\Request), Object(Closure))
+  #22 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(116): Illuminate\Pipeline\Pipeline-&gt;Illuminate\Pipeline\{closure}(Object(Illuminate\Http\Request))
+  #23 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Routing\Router.php(799): Illuminate\Pipeline\Pipeline-&gt;then(Object(Closure))
+  #24 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Routing\Router.php(776): Illuminate\Routing\Router-&gt;runRouteWithinStack(Object(Illuminate\Routing\Route), Object(Illuminate\Http\Request))
+  #25 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Routing\Router.php(740): Illuminate\Routing\Router-&gt;runRoute(Object(Illuminate\Http\Request), Object(Illuminate\Routing\Route))
+  #26 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Routing\Router.php(729): Illuminate\Routing\Router-&gt;dispatchToRoute(Object(Illuminate\Http\Request))
+  #27 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Foundation\Http\Kernel.php(190): Illuminate\Routing\Router-&gt;dispatch(Object(Illuminate\Http\Request))
+  #28 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(141): Illuminate\Foundation\Http\Kernel-&gt;Illuminate\Foundation\Http\{closure}(Object(Illuminate\Http\Request))
+  #29 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Foundation\Http\Middleware\TransformsRequest.php(21): Illuminate\Pipeline\Pipeline-&gt;Illuminate\Pipeline\{closure}(Object(Illuminate\Http\Request))
+  #30 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull.php(31): Illuminate\Foundation\Http\Middleware\TransformsRequest-&gt;handle(Object(Illuminate\Http\Request), Object(Closure))
+  #31 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(180): Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull-&gt;handle(Object(Illuminate\Http\Request), Object(Closure))
+  #32 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Foundation\Http\Middleware\TransformsRequest.php(21): Illuminate\Pipeline\Pipeline-&gt;Illuminate\Pipeline\{closure}(Object(Illuminate\Http\Request))
+  #33 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Foundation\Http\Middleware\TrimStrings.php(40): Illuminate\Foundation\Http\Middleware\TransformsRequest-&gt;handle(Object(Illuminate\Http\Request), Object(Closure))
+  #34 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(180): Illuminate\Foundation\Http\Middleware\TrimStrings-&gt;handle(Object(Illuminate\Http\Request), Object(Closure))
+  #35 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Foundation\Http\Middleware\ValidatePostSize.php(27): Illuminate\Pipeline\Pipeline-&gt;Illuminate\Pipeline\{closure}(Object(Illuminate\Http\Request))
+  #36 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(180): Illuminate\Foundation\Http\Middleware\ValidatePostSize-&gt;handle(Object(Illuminate\Http\Request), Object(Closure))
+  #37 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance.php(86): Illuminate\Pipeline\Pipeline-&gt;Illuminate\Pipeline\{closure}(Object(Illuminate\Http\Request))
+  #38 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(180): Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance-&gt;handle(Object(Illuminate\Http\Request), Object(Closure))
+  #39 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Http\Middleware\HandleCors.php(49): Illuminate\Pipeline\Pipeline-&gt;Illuminate\Pipeline\{closure}(Object(Illuminate\Http\Request))
+  #40 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(180): Illuminate\Http\Middleware\HandleCors-&gt;handle(Object(Illuminate\Http\Request), Object(Closure))
+  #41 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Http\Middleware\TrustProxies.php(39): Illuminate\Pipeline\Pipeline-&gt;Illuminate\Pipeline\{closure}(Object(Illuminate\Http\Request))
+  #42 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(180): Illuminate\Http\Middleware\TrustProxies-&gt;handle(Object(Illuminate\Http\Request), Object(Closure))
+  #43 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(116): Illuminate\Pipeline\Pipeline-&gt;Illuminate\Pipeline\{closure}(Object(Illuminate\Http\Request))
+  #44 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Foundation\Http\Kernel.php(165): Illuminate\Pipeline\Pipeline-&gt;then(Object(Closure))
+  #45 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Foundation\Http\Kernel.php(134): Illuminate\Foundation\Http\Kernel-&gt;sendRequestThroughRouter(Object(Illuminate\Http\Request))
+  #46 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Foundation\Testing\Concerns\MakesHttpRequests.php(557): Illuminate\Foundation\Http\Kernel-&gt;handle(Object(Illuminate\Http\Request))
+  #47 C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Foundation\Testing\Concerns\MakesHttpRequests.php(324): Illuminate\Foundation\Testing\TestCase-&gt;call('GET', '/cart/view', Array, Array, Array, Array)
+  #48 C:\xampp\htdocs\dartshop_laravel\tests\Unit\CartControllerTest.php(36): Illuminate\Foundation\Testing\TestCase-&gt;get('/cart/view')
+  #49 C:\xampp\htdocs\dartshop_laravel\vendor\phpunit\phpunit\src\Framework\TestCase.php(1612): Tests\Unit\CartControllerTest-&gt;testCartView()
+  #50 C:\xampp\htdocs\dartshop_laravel\vendor\phpunit\phpunit\src\Framework\TestCase.php(1218): PHPUnit\Framework\TestCase-&gt;runTest()
+  #51 C:\xampp\htdocs\dartshop_laravel\vendor\phpunit\phpunit\src\Framework\TestResult.php(728): PHPUnit\Framework\TestCase-&gt;runBare()
+  #52 C:\xampp\htdocs\dartshop_laravel\vendor\phpunit\phpunit\src\Framework\TestCase.php(968): PHPUnit\Framework\TestResult-&gt;run(Object(Tests\Unit\CartControllerTest))
+  #53 C:\xampp\htdocs\dartshop_laravel\vendor\phpunit\phpunit\src\Framework\TestSuite.php(684): PHPUnit\Framework\TestCase-&gt;run(Object(PHPUnit\Framework\TestResult))
+  #54 C:\xampp\htdocs\dartshop_laravel\vendor\phpunit\phpunit\src\Framework\TestSuite.php(684): PHPUnit\Framework\TestSuite-&gt;run(Object(PHPUnit\Framework\TestResult))
+  #55 C:\xampp\htdocs\dartshop_laravel\vendor\phpunit\phpunit\src\Framework\TestSuite.php(684): PHPUnit\Framework\TestSuite-&gt;run(Object(PHPUnit\Framework\TestResult))
+  #56 C:\xampp\htdocs\dartshop_laravel\vendor\phpunit\phpunit\src\TextUI\TestRunner.php(651): PHPUnit\Framework\TestSuite-&gt;run(Object(PHPUnit\Framework\TestResult))
+  #57 C:\xampp\htdocs\dartshop_laravel\vendor\phpunit\phpunit\src\TextUI\Command.php(144): PHPUnit\TextUI\TestRunner-&gt;run(Object(PHPUnit\Framework\TestSuite), Array, Array, true)
+  #58 C:\xampp\htdocs\dartshop_laravel\vendor\phpunit\phpunit\src\TextUI\Command.php(97): PHPUnit\TextUI\Command-&gt;run(Array, true)
+  #59 C:\xampp\htdocs\dartshop_laravel\vendor\phpunit\phpunit\phpunit(107): PHPUnit\TextUI\Command::main()
+  #60 {main}
+  
+  ----------------------------------------------------------------------------------
+  
+  compact(): Undefined variable $total
+
+C:\xampp\htdocs\dartshop_laravel\vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:123
+C:\xampp\htdocs\dartshop_laravel\tests\Unit\CartControllerTest.php:37</failure>
+        </testcase>
+        <testcase name="testDeleteFromCart" class="Tests\Unit\CartControllerTest" classname="Tests.Unit.CartControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CartControllerTest.php" line="40" assertions="2" time="0.051003"/>
       </testsuite>
-      <testsuite name="Tests\Unit\CategoryControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryControllerTest.php" tests="5" assertions="13" errors="0" warnings="0" failures="0" skipped="0" time="0.397421">
-        <testcase name="testIndexReturnsCategories" class="Tests\Unit\CategoryControllerTest" classname="Tests.Unit.CategoryControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryControllerTest.php" line="25" assertions="2" time="0.121218"/>
-        <testcase name="testCreateCategory" class="Tests\Unit\CategoryControllerTest" classname="Tests.Unit.CategoryControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryControllerTest.php" line="32" assertions="3" time="0.062940"/>
-        <testcase name="testEditCategory" class="Tests\Unit\CategoryControllerTest" classname="Tests.Unit.CategoryControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryControllerTest.php" line="43" assertions="2" time="0.086372"/>
-        <testcase name="testUpdateCategory" class="Tests\Unit\CategoryControllerTest" classname="Tests.Unit.CategoryControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryControllerTest.php" line="52" assertions="3" time="0.083413"/>
-        <testcase name="testDeleteCategory" class="Tests\Unit\CategoryControllerTest" classname="Tests.Unit.CategoryControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryControllerTest.php" line="65" assertions="3" time="0.043478"/>
+      <testsuite name="Tests\Unit\CategoryControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryControllerTest.php" tests="5" assertions="13" errors="0" warnings="0" failures="0" skipped="0" time="0.320500">
+        <testcase name="testIndexReturnsCategories" class="Tests\Unit\CategoryControllerTest" classname="Tests.Unit.CategoryControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryControllerTest.php" line="25" assertions="2" time="0.060530"/>
+        <testcase name="testCreateCategory" class="Tests\Unit\CategoryControllerTest" classname="Tests.Unit.CategoryControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryControllerTest.php" line="32" assertions="3" time="0.068417"/>
+        <testcase name="testEditCategory" class="Tests\Unit\CategoryControllerTest" classname="Tests.Unit.CategoryControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryControllerTest.php" line="43" assertions="2" time="0.061829"/>
+        <testcase name="testUpdateCategory" class="Tests\Unit\CategoryControllerTest" classname="Tests.Unit.CategoryControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryControllerTest.php" line="52" assertions="3" time="0.060977"/>
+        <testcase name="testDeleteCategory" class="Tests\Unit\CategoryControllerTest" classname="Tests.Unit.CategoryControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryControllerTest.php" line="65" assertions="3" time="0.068747"/>
       </testsuite>
-      <testsuite name="Tests\Unit\CategoryTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryTest.php" tests="4" assertions="7" errors="0" warnings="0" failures="0" skipped="0" time="0.182050">
-        <testcase name="testCategoryCanBeCreated" class="Tests\Unit\CategoryTest" classname="Tests.Unit.CategoryTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryTest.php" line="15" assertions="2" time="0.052598"/>
-        <testcase name="testCategoryNameIsRequired" class="Tests\Unit\CategoryTest" classname="Tests.Unit.CategoryTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryTest.php" line="26" assertions="3" time="0.027232"/>
-        <testcase name="testCategoryCanBeUpdated" class="Tests\Unit\CategoryTest" classname="Tests.Unit.CategoryTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryTest.php" line="37" assertions="1" time="0.055467"/>
-        <testcase name="testCategoryCanBeDeleted" class="Tests\Unit\CategoryTest" classname="Tests.Unit.CategoryTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryTest.php" line="46" assertions="1" time="0.046753"/>
+      <testsuite name="Tests\Unit\CategoryTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryTest.php" tests="4" assertions="7" errors="0" warnings="0" failures="0" skipped="0" time="0.208225">
+        <testcase name="testCategoryCanBeCreated" class="Tests\Unit\CategoryTest" classname="Tests.Unit.CategoryTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryTest.php" line="15" assertions="2" time="0.031330"/>
+        <testcase name="testCategoryNameIsRequired" class="Tests\Unit\CategoryTest" classname="Tests.Unit.CategoryTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryTest.php" line="26" assertions="3" time="0.025863"/>
+        <testcase name="testCategoryCanBeUpdated" class="Tests\Unit\CategoryTest" classname="Tests.Unit.CategoryTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryTest.php" line="37" assertions="1" time="0.050312"/>
+        <testcase name="testCategoryCanBeDeleted" class="Tests\Unit\CategoryTest" classname="Tests.Unit.CategoryTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\CategoryTest.php" line="46" assertions="1" time="0.100720"/>
       </testsuite>
-      <testsuite name="Tests\Unit\ExampleTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ExampleTest.php" tests="1" assertions="1" errors="0" warnings="0" failures="0" skipped="0" time="0.000133">
-        <testcase name="test_that_true_is_true" class="Tests\Unit\ExampleTest" classname="Tests.Unit.ExampleTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ExampleTest.php" line="14" assertions="1" time="0.000133"/>
+      <testsuite name="Tests\Unit\ExampleTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ExampleTest.php" tests="1" assertions="1" errors="0" warnings="0" failures="0" skipped="0" time="0.000120">
+        <testcase name="test_that_true_is_true" class="Tests\Unit\ExampleTest" classname="Tests.Unit.ExampleTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ExampleTest.php" line="14" assertions="1" time="0.000120"/>
       </testsuite>
-      <testsuite name="Tests\Unit\HomeControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\HomeControllerTest.php" tests="1" assertions="2" errors="0" warnings="0" failures="0" skipped="0" time="0.036389">
-        <testcase name="testIndexReturnsViewHome" class="Tests\Unit\HomeControllerTest" classname="Tests.Unit.HomeControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\HomeControllerTest.php" line="14" assertions="2" time="0.036389"/>
+      <testsuite name="Tests\Unit\HomeControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\HomeControllerTest.php" tests="1" assertions="2" errors="0" warnings="0" failures="0" skipped="0" time="0.109659">
+        <testcase name="testIndexReturnsViewHome" class="Tests\Unit\HomeControllerTest" classname="Tests.Unit.HomeControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\HomeControllerTest.php" line="14" assertions="2" time="0.109659"/>
       </testsuite>
-      <testsuite name="Tests\Unit\ProductControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductControllerTest.php" tests="3" assertions="18" errors="0" warnings="0" failures="0" skipped="0" time="0.833332">
-        <testcase name="testProductCanBeCreated" class="Tests\Unit\ProductControllerTest" classname="Tests.Unit.ProductControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductControllerTest.php" line="26" assertions="5" time="0.723724"/>
-        <testcase name="testProductCanBeSuccessfullyUpdated" class="Tests\Unit\ProductControllerTest" classname="Tests.Unit.ProductControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductControllerTest.php" line="63" assertions="9" time="0.048885"/>
-        <testcase name="testCanDeleteProduct" class="Tests\Unit\ProductControllerTest" classname="Tests.Unit.ProductControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductControllerTest.php" line="106" assertions="4" time="0.060723"/>
+      <testsuite name="Tests\Unit\ProductControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductControllerTest.php" tests="3" assertions="18" errors="0" warnings="0" failures="0" skipped="0" time="0.195894">
+        <testcase name="testProductCanBeCreated" class="Tests\Unit\ProductControllerTest" classname="Tests.Unit.ProductControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductControllerTest.php" line="26" assertions="5" time="0.098448"/>
+        <testcase name="testProductCanBeSuccessfullyUpdated" class="Tests\Unit\ProductControllerTest" classname="Tests.Unit.ProductControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductControllerTest.php" line="63" assertions="9" time="0.042098"/>
+        <testcase name="testCanDeleteProduct" class="Tests\Unit\ProductControllerTest" classname="Tests.Unit.ProductControllerTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductControllerTest.php" line="106" assertions="4" time="0.055348"/>
       </testsuite>
-      <testsuite name="Tests\Unit\ProductTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductTest.php" tests="6" assertions="15" errors="0" warnings="0" failures="0" skipped="0" time="0.342789">
-        <testcase name="testProductCanBeCreated" class="Tests\Unit\ProductTest" classname="Tests.Unit.ProductTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductTest.php" line="16" assertions="4" time="0.088532"/>
-        <testcase name="testProductNameIsRequired" class="Tests\Unit\ProductTest" classname="Tests.Unit.ProductTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductTest.php" line="26" assertions="3" time="0.043933"/>
-        <testcase name="testProductPriceIsRequired" class="Tests\Unit\ProductTest" classname="Tests.Unit.ProductTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductTest.php" line="37" assertions="3" time="0.047297"/>
-        <testcase name="testProductPriceIsNumeric" class="Tests\Unit\ProductTest" classname="Tests.Unit.ProductTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductTest.php" line="48" assertions="2" time="0.044660"/>
-        <testcase name="testProductCanBeUpdated" class="Tests\Unit\ProductTest" classname="Tests.Unit.ProductTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductTest.php" line="56" assertions="2" time="0.061762"/>
-        <testcase name="testProductCanBeDeleted" class="Tests\Unit\ProductTest" classname="Tests.Unit.ProductTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductTest.php" line="75" assertions="1" time="0.056605"/>
+      <testsuite name="Tests\Unit\ProductTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductTest.php" tests="6" assertions="15" errors="0" warnings="0" failures="0" skipped="0" time="0.241016">
+        <testcase name="testProductCanBeCreated" class="Tests\Unit\ProductTest" classname="Tests.Unit.ProductTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductTest.php" line="16" assertions="4" time="0.053598"/>
+        <testcase name="testProductNameIsRequired" class="Tests\Unit\ProductTest" classname="Tests.Unit.ProductTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductTest.php" line="26" assertions="3" time="0.032630"/>
+        <testcase name="testProductPriceIsRequired" class="Tests\Unit\ProductTest" classname="Tests.Unit.ProductTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductTest.php" line="37" assertions="3" time="0.032891"/>
+        <testcase name="testProductPriceIsNumeric" class="Tests\Unit\ProductTest" classname="Tests.Unit.ProductTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductTest.php" line="48" assertions="2" time="0.030596"/>
+        <testcase name="testProductCanBeUpdated" class="Tests\Unit\ProductTest" classname="Tests.Unit.ProductTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductTest.php" line="56" assertions="2" time="0.056396"/>
+        <testcase name="testProductCanBeDeleted" class="Tests\Unit\ProductTest" classname="Tests.Unit.ProductTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProductTest.php" line="75" assertions="1" time="0.034905"/>
       </testsuite>
-      <testsuite name="Tests\Unit\ProfileTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProfileTest.php" tests="5" assertions="21" errors="0" warnings="0" failures="0" skipped="0" time="1.002939">
-        <testcase name="test_profile_page_is_displayed" class="Tests\Unit\ProfileTest" classname="Tests.Unit.ProfileTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProfileTest.php" line="13" assertions="1" time="0.216465"/>
-        <testcase name="test_profile_information_can_be_updated" class="Tests\Unit\ProfileTest" classname="Tests.Unit.ProfileTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProfileTest.php" line="24" assertions="6" time="0.416596"/>
-        <testcase name="test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged" class="Tests\Unit\ProfileTest" classname="Tests.Unit.ProfileTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProfileTest.php" line="46" assertions="4" time="0.045732"/>
-        <testcase name="test_user_can_delete_their_account" class="Tests\Unit\ProfileTest" classname="Tests.Unit.ProfileTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProfileTest.php" line="64" assertions="5" time="0.184988"/>
-        <testcase name="test_correct_password_must_be_provided_to_delete_account" class="Tests\Unit\ProfileTest" classname="Tests.Unit.ProfileTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProfileTest.php" line="82" assertions="5" time="0.139159"/>
+      <testsuite name="Tests\Unit\ProfileTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProfileTest.php" tests="5" assertions="21" errors="0" warnings="0" failures="0" skipped="0" time="0.380420">
+        <testcase name="test_profile_page_is_displayed" class="Tests\Unit\ProfileTest" classname="Tests.Unit.ProfileTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProfileTest.php" line="13" assertions="1" time="0.043689"/>
+        <testcase name="test_profile_information_can_be_updated" class="Tests\Unit\ProfileTest" classname="Tests.Unit.ProfileTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProfileTest.php" line="24" assertions="6" time="0.047548"/>
+        <testcase name="test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged" class="Tests\Unit\ProfileTest" classname="Tests.Unit.ProfileTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProfileTest.php" line="46" assertions="4" time="0.037119"/>
+        <testcase name="test_user_can_delete_their_account" class="Tests\Unit\ProfileTest" classname="Tests.Unit.ProfileTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProfileTest.php" line="64" assertions="5" time="0.128964"/>
+        <testcase name="test_correct_password_must_be_provided_to_delete_account" class="Tests\Unit\ProfileTest" classname="Tests.Unit.ProfileTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\ProfileTest.php" line="82" assertions="5" time="0.123100"/>
       </testsuite>
-      <testsuite name="Tests\Unit\RoleMiddlewareTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\RoleMiddlewareTest.php" tests="3" assertions="4" errors="0" warnings="0" failures="0" skipped="0" time="0.216851">
-        <testcase name="testAuthorizedUserWithCorrectRoleCanAccessRoute" class="Tests\Unit\RoleMiddlewareTest" classname="Tests.Unit.RoleMiddlewareTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\RoleMiddlewareTest.php" line="17" assertions="2" time="0.068875"/>
-        <testcase name="testUnauthorizedUserIsBlockedFromRoute" class="Tests\Unit\RoleMiddlewareTest" classname="Tests.Unit.RoleMiddlewareTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\RoleMiddlewareTest.php" line="30" assertions="1" time="0.112506"/>
-        <testcase name="testUnauthenticatedUserIsBlockedFromRoute" class="Tests\Unit\RoleMiddlewareTest" classname="Tests.Unit.RoleMiddlewareTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\RoleMiddlewareTest.php" line="41" assertions="1" time="0.035471"/>
+      <testsuite name="Tests\Unit\RoleMiddlewareTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\RoleMiddlewareTest.php" tests="3" assertions="4" errors="0" warnings="0" failures="0" skipped="0" time="0.129210">
+        <testcase name="testAuthorizedUserWithCorrectRoleCanAccessRoute" class="Tests\Unit\RoleMiddlewareTest" classname="Tests.Unit.RoleMiddlewareTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\RoleMiddlewareTest.php" line="17" assertions="2" time="0.045029"/>
+        <testcase name="testUnauthorizedUserIsBlockedFromRoute" class="Tests\Unit\RoleMiddlewareTest" classname="Tests.Unit.RoleMiddlewareTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\RoleMiddlewareTest.php" line="30" assertions="1" time="0.059337"/>
+        <testcase name="testUnauthenticatedUserIsBlockedFromRoute" class="Tests\Unit\RoleMiddlewareTest" classname="Tests.Unit.RoleMiddlewareTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\RoleMiddlewareTest.php" line="41" assertions="1" time="0.024844"/>
       </testsuite>
-      <testsuite name="Tests\Unit\UserTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\UserTest.php" tests="2" assertions="5" errors="0" warnings="0" failures="0" skipped="0" time="0.143784">
-        <testcase name="testUserCreationWithRequiredFields" class="Tests\Unit\UserTest" classname="Tests.Unit.UserTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\UserTest.php" line="13" assertions="3" time="0.045665"/>
-        <testcase name="testEmailIsRequired" class="Tests\Unit\UserTest" classname="Tests.Unit.UserTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\UserTest.php" line="34" assertions="2" time="0.098119"/>
+      <testsuite name="Tests\Unit\UserTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\UserTest.php" tests="2" assertions="5" errors="0" warnings="0" failures="0" skipped="0" time="0.065084">
+        <testcase name="testUserCreationWithRequiredFields" class="Tests\Unit\UserTest" classname="Tests.Unit.UserTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\UserTest.php" line="13" assertions="3" time="0.029734"/>
+        <testcase name="testEmailIsRequired" class="Tests\Unit\UserTest" classname="Tests.Unit.UserTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Unit\UserTest.php" line="29" assertions="2" time="0.035349"/>
       </testsuite>
     </testsuite>
-    <testsuite name="Feature" tests="18" assertions="34" errors="0" warnings="0" failures="0" skipped="0" time="3.263165">
-      <testsuite name="Tests\Feature\Auth\AuthenticationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\AuthenticationTest.php" tests="3" assertions="5" errors="0" warnings="0" failures="0" skipped="0" time="0.626094">
-        <testcase name="test_login_screen_can_be_rendered" class="Tests\Feature\Auth\AuthenticationTest" classname="Tests.Feature.Auth.AuthenticationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\AuthenticationTest.php" line="14" assertions="1" time="0.144092"/>
-        <testcase name="test_users_can_authenticate_using_the_login_screen" class="Tests\Feature\Auth\AuthenticationTest" classname="Tests.Feature.Auth.AuthenticationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\AuthenticationTest.php" line="21" assertions="3" time="0.194386"/>
-        <testcase name="test_users_can_not_authenticate_with_invalid_password" class="Tests\Feature\Auth\AuthenticationTest" classname="Tests.Feature.Auth.AuthenticationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\AuthenticationTest.php" line="34" assertions="1" time="0.287616"/>
+    <testsuite name="Feature" tests="18" assertions="34" errors="0" warnings="0" failures="0" skipped="0" time="1.560864">
+      <testsuite name="Tests\Feature\Auth\AuthenticationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\AuthenticationTest.php" tests="3" assertions="5" errors="0" warnings="0" failures="0" skipped="0" time="0.430846">
+        <testcase name="test_login_screen_can_be_rendered" class="Tests\Feature\Auth\AuthenticationTest" classname="Tests.Feature.Auth.AuthenticationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\AuthenticationTest.php" line="14" assertions="1" time="0.052265"/>
+        <testcase name="test_users_can_authenticate_using_the_login_screen" class="Tests\Feature\Auth\AuthenticationTest" classname="Tests.Feature.Auth.AuthenticationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\AuthenticationTest.php" line="21" assertions="3" time="0.127405"/>
+        <testcase name="test_users_can_not_authenticate_with_invalid_password" class="Tests\Feature\Auth\AuthenticationTest" classname="Tests.Feature.Auth.AuthenticationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\AuthenticationTest.php" line="34" assertions="1" time="0.251176"/>
       </testsuite>
-      <testsuite name="Tests\Feature\Auth\EmailVerificationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\EmailVerificationTest.php" tests="3" assertions="6" errors="0" warnings="0" failures="0" skipped="0" time="0.413031">
-        <testcase name="test_email_verification_screen_can_be_rendered" class="Tests\Feature\Auth\EmailVerificationTest" classname="Tests.Feature.Auth.EmailVerificationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\EmailVerificationTest.php" line="17" assertions="1" time="0.091045"/>
-        <testcase name="test_email_can_be_verified" class="Tests\Feature\Auth\EmailVerificationTest" classname="Tests.Feature.Auth.EmailVerificationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\EmailVerificationTest.php" line="28" assertions="4" time="0.149928"/>
-        <testcase name="test_email_is_not_verified_with_invalid_hash" class="Tests\Feature\Auth\EmailVerificationTest" classname="Tests.Feature.Auth.EmailVerificationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\EmailVerificationTest.php" line="49" assertions="1" time="0.172058"/>
+      <testsuite name="Tests\Feature\Auth\EmailVerificationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\EmailVerificationTest.php" tests="3" assertions="6" errors="0" warnings="0" failures="0" skipped="0" time="0.153916">
+        <testcase name="test_email_verification_screen_can_be_rendered" class="Tests\Feature\Auth\EmailVerificationTest" classname="Tests.Feature.Auth.EmailVerificationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\EmailVerificationTest.php" line="17" assertions="1" time="0.038181"/>
+        <testcase name="test_email_can_be_verified" class="Tests\Feature\Auth\EmailVerificationTest" classname="Tests.Feature.Auth.EmailVerificationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\EmailVerificationTest.php" line="28" assertions="4" time="0.062980"/>
+        <testcase name="test_email_is_not_verified_with_invalid_hash" class="Tests\Feature\Auth\EmailVerificationTest" classname="Tests.Feature.Auth.EmailVerificationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\EmailVerificationTest.php" line="49" assertions="1" time="0.052755"/>
       </testsuite>
-      <testsuite name="Tests\Feature\Auth\PasswordConfirmationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordConfirmationTest.php" tests="3" assertions="4" errors="0" warnings="0" failures="0" skipped="0" time="0.469553">
-        <testcase name="test_confirm_password_screen_can_be_rendered" class="Tests\Feature\Auth\PasswordConfirmationTest" classname="Tests.Feature.Auth.PasswordConfirmationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordConfirmationTest.php" line="13" assertions="1" time="0.084087"/>
-        <testcase name="test_password_can_be_confirmed" class="Tests\Feature\Auth\PasswordConfirmationTest" classname="Tests.Feature.Auth.PasswordConfirmationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordConfirmationTest.php" line="22" assertions="2" time="0.133479"/>
-        <testcase name="test_password_is_not_confirmed_with_invalid_password" class="Tests\Feature\Auth\PasswordConfirmationTest" classname="Tests.Feature.Auth.PasswordConfirmationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordConfirmationTest.php" line="34" assertions="1" time="0.251988"/>
+      <testsuite name="Tests\Feature\Auth\PasswordConfirmationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordConfirmationTest.php" tests="3" assertions="4" errors="0" warnings="0" failures="0" skipped="0" time="0.408062">
+        <testcase name="test_confirm_password_screen_can_be_rendered" class="Tests\Feature\Auth\PasswordConfirmationTest" classname="Tests.Feature.Auth.PasswordConfirmationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordConfirmationTest.php" line="13" assertions="1" time="0.039276"/>
+        <testcase name="test_password_can_be_confirmed" class="Tests\Feature\Auth\PasswordConfirmationTest" classname="Tests.Feature.Auth.PasswordConfirmationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordConfirmationTest.php" line="22" assertions="2" time="0.115894"/>
+        <testcase name="test_password_is_not_confirmed_with_invalid_password" class="Tests\Feature\Auth\PasswordConfirmationTest" classname="Tests.Feature.Auth.PasswordConfirmationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordConfirmationTest.php" line="34" assertions="1" time="0.252892"/>
       </testsuite>
-      <testsuite name="Tests\Feature\Auth\PasswordResetTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordResetTest.php" tests="4" assertions="6" errors="0" warnings="0" failures="0" skipped="0" time="1.256911">
-        <testcase name="test_reset_password_link_screen_can_be_rendered" class="Tests\Feature\Auth\PasswordResetTest" classname="Tests.Feature.Auth.PasswordResetTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordResetTest.php" line="15" assertions="1" time="0.092671"/>
-        <testcase name="test_reset_password_link_can_be_requested" class="Tests\Feature\Auth\PasswordResetTest" classname="Tests.Feature.Auth.PasswordResetTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordResetTest.php" line="22" assertions="1" time="0.958237"/>
-        <testcase name="test_reset_password_screen_can_be_rendered" class="Tests\Feature\Auth\PasswordResetTest" classname="Tests.Feature.Auth.PasswordResetTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordResetTest.php" line="33" assertions="2" time="0.108812"/>
-        <testcase name="test_password_can_be_reset_with_valid_token" class="Tests\Feature\Auth\PasswordResetTest" classname="Tests.Feature.Auth.PasswordResetTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordResetTest.php" line="50" assertions="2" time="0.097191"/>
+      <testsuite name="Tests\Feature\Auth\PasswordResetTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordResetTest.php" tests="4" assertions="6" errors="0" warnings="0" failures="0" skipped="0" time="0.193059">
+        <testcase name="test_reset_password_link_screen_can_be_rendered" class="Tests\Feature\Auth\PasswordResetTest" classname="Tests.Feature.Auth.PasswordResetTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordResetTest.php" line="15" assertions="1" time="0.035635"/>
+        <testcase name="test_reset_password_link_can_be_requested" class="Tests\Feature\Auth\PasswordResetTest" classname="Tests.Feature.Auth.PasswordResetTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordResetTest.php" line="22" assertions="1" time="0.063060"/>
+        <testcase name="test_reset_password_screen_can_be_rendered" class="Tests\Feature\Auth\PasswordResetTest" classname="Tests.Feature.Auth.PasswordResetTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordResetTest.php" line="33" assertions="2" time="0.046512"/>
+        <testcase name="test_password_can_be_reset_with_valid_token" class="Tests\Feature\Auth\PasswordResetTest" classname="Tests.Feature.Auth.PasswordResetTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordResetTest.php" line="50" assertions="2" time="0.047853"/>
       </testsuite>
-      <testsuite name="Tests\Feature\Auth\PasswordUpdateTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordUpdateTest.php" tests="2" assertions="8" errors="0" warnings="0" failures="0" skipped="0" time="0.256544">
-        <testcase name="test_password_can_be_updated" class="Tests\Feature\Auth\PasswordUpdateTest" classname="Tests.Feature.Auth.PasswordUpdateTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordUpdateTest.php" line="14" assertions="4" time="0.131118"/>
-        <testcase name="test_correct_password_must_be_provided_to_update_password" class="Tests\Feature\Auth\PasswordUpdateTest" classname="Tests.Feature.Auth.PasswordUpdateTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordUpdateTest.php" line="34" assertions="4" time="0.125426"/>
+      <testsuite name="Tests\Feature\Auth\PasswordUpdateTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordUpdateTest.php" tests="2" assertions="8" errors="0" warnings="0" failures="0" skipped="0" time="0.266326">
+        <testcase name="test_password_can_be_updated" class="Tests\Feature\Auth\PasswordUpdateTest" classname="Tests.Feature.Auth.PasswordUpdateTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordUpdateTest.php" line="14" assertions="4" time="0.142470"/>
+        <testcase name="test_correct_password_must_be_provided_to_update_password" class="Tests\Feature\Auth\PasswordUpdateTest" classname="Tests.Feature.Auth.PasswordUpdateTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\PasswordUpdateTest.php" line="34" assertions="4" time="0.123856"/>
       </testsuite>
-      <testsuite name="Tests\Feature\Auth\RegistrationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\RegistrationTest.php" tests="2" assertions="4" errors="0" warnings="0" failures="0" skipped="0" time="0.190894">
-        <testcase name="test_registration_screen_can_be_rendered" class="Tests\Feature\Auth\RegistrationTest" classname="Tests.Feature.Auth.RegistrationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\RegistrationTest.php" line="13" assertions="1" time="0.118269"/>
-        <testcase name="test_new_users_can_register" class="Tests\Feature\Auth\RegistrationTest" classname="Tests.Feature.Auth.RegistrationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\RegistrationTest.php" line="20" assertions="3" time="0.072626"/>
+      <testsuite name="Tests\Feature\Auth\RegistrationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\RegistrationTest.php" tests="2" assertions="4" errors="0" warnings="0" failures="0" skipped="0" time="0.070950">
+        <testcase name="test_registration_screen_can_be_rendered" class="Tests\Feature\Auth\RegistrationTest" classname="Tests.Feature.Auth.RegistrationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\RegistrationTest.php" line="13" assertions="1" time="0.034958"/>
+        <testcase name="test_new_users_can_register" class="Tests\Feature\Auth\RegistrationTest" classname="Tests.Feature.Auth.RegistrationTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\Auth\RegistrationTest.php" line="20" assertions="3" time="0.035992"/>
       </testsuite>
-      <testsuite name="Tests\Feature\ExampleTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\ExampleTest.php" tests="1" assertions="1" errors="0" warnings="0" failures="0" skipped="0" time="0.050136">
-        <testcase name="test_the_application_returns_a_successful_response" class="Tests\Feature\ExampleTest" classname="Tests.Feature.ExampleTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\ExampleTest.php" line="15" assertions="1" time="0.050136"/>
+      <testsuite name="Tests\Feature\ExampleTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\ExampleTest.php" tests="1" assertions="1" errors="0" warnings="0" failures="0" skipped="0" time="0.037703">
+        <testcase name="test_the_application_returns_a_successful_response" class="Tests\Feature\ExampleTest" classname="Tests.Feature.ExampleTest" file="C:\xampp\htdocs\dartshop_laravel\tests\Feature\ExampleTest.php" line="15" assertions="1" time="0.037703"/>
       </testsuite>
     </testsuite>
   </testsuite>

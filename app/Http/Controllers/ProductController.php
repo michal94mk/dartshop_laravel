@@ -40,20 +40,18 @@ class ProductController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
+        $input = $request->all();
+
         if ($request->hasFile('image')) {
+            $destinationPath = '/images';
             $image = $request->file('image');
-            $imageName = time() . '.' . $image->getClientOriginalExtension();
+            $imageName = $image->getClientOriginalName();
+            $path = $request->file('image')->storeAs($destinationPath, $imageName);
+            $input['image'] = '/storage/'.$path;
 
-            $path = $image->storeAs('public/images', $imageName);
-
-            $imageUrl = Storage::url($path);
-
-            $data['image'] = $imageUrl;
+            Product::create($input);
+            return redirect()->route('admin.products.index')->with('success', 'Product has been added.');
         }
-
-        $product = Product::create($data);
-
-        return redirect()->route('admin.products.index')->with('success', 'Product has been added.');
     }
 
     public function show(Product $product)

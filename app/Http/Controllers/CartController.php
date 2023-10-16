@@ -3,8 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
 use App\Models\Product;
+use App\Models\Cart;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Arr;
 
 class CartController extends Controller
 {
@@ -26,9 +31,11 @@ class CartController extends Controller
             ];
         }
 
+        $totalQuantity = array_sum(array_column($cart, 'quantity'));
+
         $request->session()->put('cart', $cart);
 
-        return response()->json(['cart' => $cart]);
+        return response()->json(['cart' => $cart, 'quantity','total_quantity' => $totalQuantity]);
     }
 
     public function getCartContents(Request $request)
@@ -40,7 +47,38 @@ class CartController extends Controller
     public function cartView(Request $request)
     {
         $cart = $request->session()->get('cart', []);
-        return view('frontend.cart.cart', compact('cart'));
+        $total = 0;
+        $quantity = 0;
+
+        foreach ($cart as $item) {
+            $total += $item['product']->price * $item['quantity'];
+            $quantity += $item['quantity'];
+        }
+
+        $products = collect($cart);
+
+        $perPage = 10;
+
+        $page = $request->input('page', 1);
+
+        $pagedData = $this->paginate($products, $perPage, $page);
+
+        return view('frontend.cart.cart', compact('pagedData', 'total', 'quantity'));
+    }
+
+    protected function paginate($items, $perPage, $page, $options = [])
+    {
+        $items = $items instanceof Collection ? $items : Collection::make($items);
+
+        $page = $page ?: Paginator::resolveCurrentPage() ?: 1;
+
+        return new LengthAwarePaginator(
+            $items->forPage($page, $perPage),
+            $items->count(),
+            $perPage,
+            $page,
+            $options
+        );
     }
 
     public function deleteFromCart(Request $request, $productId)
@@ -54,11 +92,13 @@ class CartController extends Controller
                 unset($cart[$productId]);
             }
 
+            $totalQuantity = array_sum(array_column($cart, 'quantity'));
+
             $request->session()->put('cart', $cart);
-            return response()->json(['message' => 'Product removed from cart', 'cart' => $cart]);
+
+            return response()->json(['message' => 'Product removed from cart', 'cart' => $cart, 'total_quantity' => $totalQuantity]);
         } else {
             return response()->json(['message' => 'Product not found in cart', 'cart' => $cart], 404);
         }
     }
-
 }

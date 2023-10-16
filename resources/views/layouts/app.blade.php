@@ -363,29 +363,80 @@
         <script src="{{ asset('js/main.js') }}"></script>
         <script>
             $(document).ready(function() {
+                if (window.location.pathname === '/') {
+                    $.getScript('{{ asset('js/countdown.js') }}');
+                }
                 updateCartDropdown();
+                updateCartTotalAndPrice();
 
-                attachAddToCartListeners();
-                $('button#filter-button').click(getProducts);
-                $("#products-per-page").on("change", getProducts);
-                $("#sort").on("change", getProducts);
+                function updateCartTotalAndPrice() {
+                    const totalElements = document.querySelectorAll('.cart-product-total p');
+                    let cartTotal = 0;
 
+                    totalElements.forEach((totalElement) => {
+                        const total = parseFloat(totalElement.textContent.replace('$', ''));
+                        if (!isNaN(total)) {
+                            cartTotal += total;
+                        }
+                    });
 
-                $('.cart-list').on('click', '.delete', function() {
-                    var productId = $(this).data('product-id');
-                    deleteFromCart(productId);
-                });
+                    const cartTotalElement = document.querySelector('#cart-total');
+                    if (cartTotalElement) {
+                        cartTotalElement.textContent = `$${cartTotal.toFixed(2)}`;
+                    }
 
+                    const productElements = document.querySelectorAll('.quantity');
+                    productElements.forEach((inputElement) => {
+                        const productId = inputElement.getAttribute('data-product-id');
+                        const newQuantity = parseInt(inputElement.value);
+                        const priceElement = document.querySelector(`#price-${productId}`);
+                        const totalElement = document.querySelector(`#total-${productId}`);
+                        const productPrice = parseFloat(priceElement.textContent.replace('$', ''));
 
-                function attachAddToCartListeners() {
-                    $('.add-to-cart-btn').click(function(event) {
-                        event.preventDefault();
-                        var productId = $(this).data('product-id');
-                        addToCart(productId);
+                        if (!isNaN(productPrice)) {
+                            const newTotalPrice = productPrice * newQuantity;
+                            priceElement.textContent = `$${productPrice.toFixed(2)}`;
+                            totalElement.textContent = `$${newTotalPrice.toFixed(2)}`;
+                        }
                     });
                 }
 
-                function addToCart(productId) {
+                function updateQuantityOnPage(inputElement, newQuantity) {
+                    inputElement.value = newQuantity;
+                    updateCartDropdown();
+                    updateCartTotalAndPrice();
+                }
+
+                document.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('increase') || e.target.classList.contains('decrease')) {
+                        e.preventDefault();
+                        const productId = e.target.getAttribute('data-product-id');
+                        const inputQuantity = document.querySelector(`.quantity[data-product-id="${productId}"]`);
+                        let newQuantity = parseInt(inputQuantity.value);
+
+                        if (e.target.classList.contains('increase')) {
+                            addToCart(productId, false);
+                            updateQuantityOnPage(inputQuantity, newQuantity + 1);
+                        } else {
+                            deleteFromCart(productId);
+
+                            if (newQuantity > 1) {
+                                updateQuantityOnPage(inputQuantity, newQuantity - 1);
+                            } else if (newQuantity === 1) {
+                                const row = e.target.closest('tr');
+                                row.remove();
+                            }
+                        }
+                    }
+                });
+
+                function updateQuantityOnPage(inputElement, newQuantity) {
+                    inputElement.value = newQuantity;
+                    updateCartDropdown();
+                    updateCartTotalAndPrice();
+                }
+
+                function addToCart(productId, showAlert = true) {
                     $.ajax({
                         url: '/cart/add/' + productId,
                         method: 'POST',
@@ -393,7 +444,9 @@
                             _token: '{{ csrf_token() }}'
                         },
                         success: function(response) {
-                            alert('Produkt dodany do koszyka!');
+                            if (showAlert) {
+                                alert('Produkt dodany do koszyka!');
+                            }
                             updateCartDropdown(response);
                         },
                         error: function(error) {
@@ -401,59 +454,6 @@
                         }
                     });
                 }
-
-const prefix = window.location.pathname.startsWith('/admin') ? '/admin' : '';
-
-function updateCartDropdown() {
-    $.ajax({
-        url: '{{ route("cart.contents") }}',
-        method: 'GET',
-        dataType: 'json',
-        success: function(response) {
-            const cart = response.cart;
-            console.log(cart);
-
-            // Znajdź element .cart-list raz i wyczyść go
-            const $cartList = $('.cart-list');
-            $cartList.empty();
-
-            let totalQuantity = 0;
-
-            // Iteruj przez elementy koszyka
-            $.each(cart, function(productId, item) {
-                // Utwórz ścieżkę obrazka bezpośrednio z bazy danych
-                const imageSrc = item.product.image;
-
-                // Utwórz HTML dla produktu
-                const productHtml = `
-                    <div class="product-widget">
-                        <div class="product-img">
-                            <img src="${imageSrc}" alt="Obrazek">
-                        </div>
-                        <div class="product-body">
-                            <h3 class="product-name"><a href="#">${item.product.name}</a></h3>
-                            <h4 class="product-price"><span class="qty">${item.quantity}x</span> $${item.product.price}</h4>
-                        </div>
-                        <button class="delete" data-product-id="${productId}"><i class="fa fa-close"></i></button>
-                    </div>`;
-
-                // Dodaj produkt do listy
-                $cartList.append(productHtml);
-
-                totalQuantity += item.quantity;
-            });
-
-            // Zaktualizuj łączną ilość produktów
-            $('#totalQty').text(totalQuantity);
-        },
-        error: function(error) {
-            console.log('Wystąpił błąd podczas aktualizowania koszyka:', error);
-        }
-    });
-}
-
-
-
 
                 function deleteFromCart(productId) {
                     $.ajax({
@@ -467,6 +467,71 @@ function updateCartDropdown() {
                         },
                         error: function(error) {
                             alert('Wystąpił błąd podczas usuwania produktu z koszyka.');
+                        }
+                    });
+                }
+
+                updateCartDropdown();
+                attachAddToCartListeners();
+                $('button#filter-button').click(getProducts);
+                $("#products-per-page").on("change", getProducts);
+                $("#sort").on("change", getProducts);
+
+                $('.cart-list').on('click', '.delete', function() {
+                    var productId = $(this).data('product-id');
+                    console.log('productId:', productId);
+                    deleteFromCart(productId);
+                });
+
+                function attachAddToCartListeners() {
+                    $('.add-to-cart-btn').click(function(event) {
+                        event.preventDefault();
+                        var productId = $(this).data('product-id');
+                        addToCart(productId);
+                    });
+                }
+
+                const prefix = window.location.pathname.startsWith('/admin') ? '/admin' : '';
+
+                function updateCartDropdown() {
+                    $.ajax({
+                        url: '{{ route("cart.contents") }}',
+                        method: 'GET',
+                        dataType: 'json',
+                        success: function(response) {
+                            const cart = response.cart;
+                            console.log(response.cart);
+
+                            const $cartList = $('.cart-list');
+                            $cartList.empty();
+
+                            let totalQuantity = 0;
+
+                            $.each(cart, function(productId, item) {
+                                const imageSrc = item.product.image;
+
+                                const productHtml = `
+                                    <div class="product-widget">
+                                        <div class="product-img">
+                                            <img src="${imageSrc}" alt="Obrazek">
+                                        </div>
+                                        <div class="product-body">
+                                            <h3 class "product-name"><a href="#">${item.product.name}</a></h3>
+                                            <h4 class="product-price"><span class="qty">${item.quantity}x</span> $${item.product.price}</h4>
+                                        </div>
+                                        <button class="delete" data-product-id="${productId}"><i class="fa fa-close"></i></button>
+                                    </div>`;
+
+                                $cartList.append(productHtml);
+
+                                totalQuantity += item.quantity;
+                            });
+
+                            $('#totalQty').text(totalQuantity);
+                            console.log('Total:', totalQuantity);
+                        },
+                        error: function(error) {
+                            console.log('Wystąpił błąd podczas aktualizowania koszyka:', error);
                         }
                     });
                 }

@@ -42,7 +42,7 @@
                                     <td>{{ $product->brand->name }}</td>
                                     <td>
                                         @if ($product->image)
-                                            <img src="{{ asset($product->image) }}" alt="{{ $product->name }} Thumbnail" class="thumbnail" style="max-width: 30px; max-height: 30px; border: 1px solid">
+                                            <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" height="30px" width="30px">
                                         @else
                                             <span class="text-muted">No photo</span>
                                         @endif
@@ -83,7 +83,6 @@
                             @endforeach
                         </tbody>
                     </table>
-
                     {{ $products->links() }}
                 </div>
             </div>

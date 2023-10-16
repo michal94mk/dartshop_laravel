@@ -12,7 +12,6 @@ class UserTest extends TestCase
 
     public function testUserCreationWithRequiredFields()
     {
-        // Dostarcz dane testowe, w tym wymagane pole 'name'
         $userData = [
             'name' => 'user1',
             'email' => 'user1@example.com',
@@ -20,15 +19,11 @@ class UserTest extends TestCase
             'role' => 'user',
         ];
 
-        // Utwórz użytkownika na podstawie danych testowych
         $user = User::create($userData);
 
-        // Sprawdź, czy użytkownik został poprawnie utworzony
         $this->assertEquals($userData['name'], $user->name);
         $this->assertEquals($userData['email'], $user->email);
         $this->assertEquals($userData['role'], $user->role);
-
-        // Możesz również sprawdzić inne aspekty, takie jak czy użytkownik ma domyślną rolę itp.
     }
 
     public function testEmailIsRequired()
@@ -41,5 +36,4 @@ class UserTest extends TestCase
 
         $response->assertSessionHasErrors(['email']);
     }
-
 }

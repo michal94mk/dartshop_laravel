@@ -106,11 +106,10 @@
                                     <div class="product">
                                         <div class="product-img">
                                             @if ($product->image)
-                                                <img src="{{ asset($product->image) }}" alt="No photo">
+                                                <img src="{{ asset($product->image) }}" alt="{{ $product->name }}">
                                             @else
-                                                <img src="{{ asset('storage/images/default_image.jpg') }}" alt="No photo">
+                                                <span class="text-muted">No photo</span>
                                             @endif
-
                                             <div class="product-label">
                                                 <span class="sale">-30%</span>
                                                 <span class="new">NEW</span>

@@ -37,11 +37,10 @@
                 <div class="product">
                     <div class="product-img">
                         @if ($product->image)
-                            <img src="{{ asset($product->image) }}" alt="No photo">
+                            <img src="{{ asset($product->image) }}" alt="{{ $product->name }}">
                         @else
-                            <img src="{{ asset('images/default_image.jpg') }}" alt="No photo">
+                            <span class="text-muted">No photo</span>
                         @endif
-
                         <div class="product-label">
                             <span class="new">NEW</span>
                         </div>
@@ -92,31 +91,31 @@
 					<div class="col-md-12">
 						<div class="hot-deal">
 							<ul class="hot-deal-countdown">
-								<li>
-									<div>
-										<h3>02</h3>
-										<span>Days</span>
-									</div>
-								</li>
-								<li>
-									<div>
-										<h3>10</h3>
-										<span>Hours</span>
-									</div>
-								</li>
-								<li>
-									<div>
-										<h3>34</h3>
-										<span>Mins</span>
-									</div>
-								</li>
-								<li>
-									<div>
-										<h3>60</h3>
-										<span>Secs</span>
-									</div>
-								</li>
-							</ul>
+                                <li>
+                                    <div id="days">
+                                        <h3>30</h3>
+                                        <span>Days</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div id="hours">
+                                        <h3>10</h3>
+                                        <span>Hours</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div id="minutes">
+                                        <h3>34</h3>
+                                        <span>Mins</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div id="seconds">
+                                        <h3>60</h3>
+                                        <span>Secs</span>
+                                    </div>
+                                </li>
+                            </ul>
 							<h2 class="text-uppercase">hot deal this week</h2>
 							<p>New Collection Up to 50% OFF</p>
 							<a class="primary-btn cta-btn" href="#">Shop now</a>
@@ -604,112 +603,11 @@
 							</div>
 						</div>
 					</div>
-
 				</div>
 				<!-- /row -->
 			</div>
 			<!-- /container -->
 		</div>
 		<!-- /SECTION -->
-
-
-@endsection
-
-@section('scripts')
-<script>
-    $(document).ready(function() {
-        updateCartDropdown();
-
-        attachAddToCartListeners();
-
-        $(document).on('click', '.delete', function() {
-            var productId = $(this).data('product-id');
-            removeFromCart(productId);
-        });
-
-        function attachAddToCartListeners() {
-            $('.add-to-cart-btn').click(function(event) {
-                event.preventDefault(); // Dodane preventDefault
-                var productId = $(this).data('product-id');
-                addToCart(productId);
-            });
-        }
-
-        function addToCart(productId) {
-            $.ajax({
-                url: '/cart/add/' + productId,
-                method: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                    alert('Produkt dodany do koszyka!');
-                    updateCartDropdown(response);
-                },
-                error: function(error) {
-                    alert('Wystąpił błąd podczas dodawania produktu do koszyka.');
-                }
-            });
-        }
-
-        function updateCartDropdown() {
-            $.ajax({
-                url: '{{ route("cart.contents") }}',
-                method: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    const cart = response.cart;
-                    $('.cart-list').empty();
-
-                    let totalQuantity = 0;
-
-                    $.each(cart, function(productId, item) {
-                        const productHtml = `
-                            <div class="product-widget">
-                                <div class="product-img">
-                                    ${item.product.image ? `<img src="${item.product.image}" alt="No photo">` : '<img src="{{ asset("images/default_image.jpg") }}" alt="No photo">'}
-                                </div>
-                                <div class="product-body">
-                                    <h3 class="product-name"><a href="#">${item.product.name}</a></h3>
-                                    <h4 class="product-price"><span class="qty">${item.quantity}x</span> $${item.product.price}</h4>
-                                </div>
-                                <button class="delete" data-product-id="${productId}"><i class="fa fa-close"></i></button>
-                            </div>`;
-                        $('.cart-list').append(productHtml);
-
-                        totalQuantity += item.quantity;
-                    });
-
-                    // Aktualizacja reszty informacji o koszyku (subtotal, ilość)
-                    // ...
-
-                    // Jeśli potrzebujesz, możesz też zaktualizować liczbę przedmiotów na przycisku koszyka
-                    $('#totalQty').text(totalQuantity);
-                },
-                error: function(error) {
-                    console.log('Wystąpił błąd podczas aktualizowania koszyka:', error);
-                }
-            });
-        }
-
-
-        function removeFromCart(productId) {
-            $.ajax({
-                url: '/cart/remove/' + productId,
-                method: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                    updateCartDropdown(response.cart);
-                },
-                error: function(error) {
-                    alert('Wystąpił błąd podczas usuwania produktu z koszyka.');
-                }
-            });
-        }
-    });
-</script>
-
 
 @endsection

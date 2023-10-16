@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Validator;
 
 class CategoryTest extends TestCase
 {
-    use RefreshDatabase;
+    //use RefreshDatabase;
 
     public function testCategoryCanBeCreated()
     {

@@ -23,7 +23,7 @@ class Product extends Model
         'price' => 'required|numeric|min:0.01',
         'category_id' => 'integer|exists:categories,id',
         'brand_id' => 'integer|exists:brands,id',
-        'image' => 'nullable|string',
+        'image' => 'string|nullable',
     ];
 
     public function category()
@@ -43,6 +43,10 @@ class Product extends Model
         return !$validator->fails();
     }
 
+    // public function getImageUrlAttribute()
+    // {
+    //     return asset('storage/app/public/images/' . $this->image);
+    // }
 
     public function getErrors()
     {
