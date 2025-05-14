@@ -14,13 +14,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // Important to maintain the correct order due to foreign key constraints
+        // Always run the roles and permissions seeder first
+        $this->call(RolesAndPermissionsSeeder::class);
+
+        // Then seed other data
         $this->call([
-            UserSeeder::class,      // Users first (no dependencies)
-            CategorySeeder::class,  // Categories next (no dependencies)
-            BrandSeeder::class,     // Brands next (no dependencies)
-            ProductSeeder::class,   // Products last (depends on categories and brands)
-            RolesAndPermissionsSeeder::class,
+            CategorySeeder::class,
+            BrandSeeder::class,
+            ProductSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

@@ -40,6 +40,27 @@
                     <input id="password-confirm" type="password" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" name="password_confirmation" required autocomplete="new-password">
                 </div>
 
+                <div class="mb-4">
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            <input id="terms" name="terms" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded @error('terms') border-red-500 @enderror" required>
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <label for="terms" class="font-medium text-gray-700">{{ __('Akceptuję warunki korzystania z serwisu') }}</label>
+                        </div>
+                    </div>
+                    @error('terms')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mb-4">
+                    {!! NoCaptcha::display() !!}
+                    @error('g-recaptcha-response')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <div class="flex items-center justify-between mb-4">
                     <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         {{ __('Zarejestruj się') }}
@@ -59,3 +80,7 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+    {!! NoCaptcha::renderJs() !!}
+@endpush

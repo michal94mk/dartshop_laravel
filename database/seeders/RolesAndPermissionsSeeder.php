@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Enums\PermissionEnum;
+use App\Enums\RoleEnum;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -20,78 +22,39 @@ class RolesAndPermissionsSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Create permissions
-        $permissions = [
-            // Products
-            'view products',
-            'create products',
-            'edit products',
-            'delete products',
-            
-            // Categories
-            'view categories',
-            'create categories',
-            'edit categories',
-            'delete categories',
-            
-            // Brands
-            'view brands',
-            'create brands',
-            'edit brands',
-            'delete brands',
-            
-            // Users
-            'view users',
-            'create users',
-            'edit users',
-            'delete users',
-            
-            // Promotions
-            'view promotions',
-            'create promotions',
-            'edit promotions',
-            'delete promotions',
-            
-            // Contact
-            'manage contacts',
-        ];
-
-        foreach ($permissions as $permission) {
+        // Create permissions from enum
+        foreach (PermissionEnum::values() as $permission) {
             // Check if permission already exists
             if (!Permission::where('name', $permission)->exists()) {
                 Permission::create(['name' => $permission]);
             }
         }
 
-        // Create roles and assign permissions if they don't exist
-        if (!Role::where('name', 'admin')->exists()) {
-            $role = Role::create(['name' => 'admin']);
-            $role->givePermissionTo(Permission::all());
-        } else {
-            $role = Role::where('name', 'admin')->first();
-            $role->syncPermissions(Permission::all());
-        }
-        
-        if (!Role::where('name', 'user')->exists()) {
-            $role = Role::create(['name' => 'user']);
-            $role->givePermissionTo(['view products', 'view categories', 'view brands', 'view promotions']);
-        } else {
-            $role = Role::where('name', 'user')->first();
-            $role->syncPermissions(['view products', 'view categories', 'view brands', 'view promotions']);
+        // Create roles and assign permissions
+        foreach (RoleEnum::cases() as $roleEnum) {
+            $roleName = $roleEnum->value;
+            
+            // Check if role already exists
+            if (!Role::where('name', $roleName)->exists()) {
+                $role = Role::create(['name' => $roleName]);
+            } else {
+                $role = Role::where('name', $roleName)->first();
+            }
+            
+            // Assign the permissions
+            $role->syncPermissions($roleEnum->permissions());
         }
         
         // Assign role to admin user if it exists
         $admin = User::where('email', 'admin@example.com')->first();
         if ($admin) {
-            $admin->assignRole('admin');
+            $admin->assignRole(RoleEnum::Admin->value);
         }
         
-        // Assign role to regular users
-        $regularUsers = User::whereNotIn('email', ['admin@example.com'])->get();
+        // Assign regular role to users who don't have one
+        $regularUsers = User::whereDoesntHave('roles')->get();
         foreach ($regularUsers as $user) {
-            if (!$user->roles()->count()) {
-                $user->assignRole('user');
-            }
+            $user->assignRole(RoleEnum::User->value);
         }
     }
 } 
