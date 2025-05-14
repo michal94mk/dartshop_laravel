@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Constants;
+namespace App\Models;
 
-class Roles
+class Role
 {
     const ROLE_ADMIN = 'admin';
     const ROLE_USER = 'user';
-}
+} 
