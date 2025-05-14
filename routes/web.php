@@ -9,6 +9,8 @@ use App\Constants\Roles;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\PromotionController;
 use App\Http\Middleware\RoleMiddleware;
 
 /*
@@ -30,6 +32,13 @@ Route::get('/tailwind', function () {
 Route::get('/categories', [HomeController::class, 'indexForRegularUsers'])->name('frontend.categories.index');
 Route::get('/products/{id}', [HomeController::class, 'showProduct'])->name('frontend.products.show');
 Route::post('/filter/products', [ProductController::class, 'filterProducts'])->name('filter.products');
+
+// Promotions routes
+Route::get('/promotions', [PromotionController::class, 'showPromotions'])->name('frontend.promotions');
+
+// Contact routes
+Route::get('/contact', [ContactController::class, 'showContactForm'])->name('frontend.contact');
+Route::post('/contact', [ContactController::class, 'submitContactForm'])->name('frontend.contact.submit');
 
 // Route::prefix('cart')->group(function () {
 //     Route::post('add/{product}', [CartController::class, 'addToCart'])->name('cart.add');
@@ -84,6 +93,17 @@ Route::middleware(['auth','verified', RoleMiddleware::class.':'.Roles::ROLE_ADMI
     Route::get('/admin/users/{user}/edit', [UserController::class, 'edit'])->name('admin.users.edit');
     Route::put('/admin/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
     Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+    
+    // Admin promotions routes
+    Route::get('/admin/promotions', [PromotionController::class, 'index'])->name('admin.promotions.index');
+    Route::get('/admin/promotions/create', [PromotionController::class, 'create'])->name('admin.promotions.create');
+    Route::post('/admin/promotions', [PromotionController::class, 'store'])->name('admin.promotions.store');
+    Route::get('/admin/promotions/{promotion}/edit', [PromotionController::class, 'edit'])->name('admin.promotions.edit');
+    Route::put('/admin/promotions/{promotion}', [PromotionController::class, 'update'])->name('admin.promotions.update');
+    Route::delete('/admin/promotions/{promotion}', [PromotionController::class, 'destroy'])->name('admin.promotions.destroy');
+    
+    // Admin contact routes
+    Route::get('/admin/contact', [ContactController::class, 'index'])->name('admin.contact.index');
 });
 
 require __DIR__.'/auth.php';

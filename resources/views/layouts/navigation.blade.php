@@ -18,6 +18,12 @@
                     <x-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.index')">
                         {{ __('Products') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('admin.promotions.index')" :active="request()->routeIs('admin.promotions.index')">
+                        {{ __('Promotions') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('admin.contact.index')" :active="request()->routeIs('admin.contact.index')">
+                        {{ __('Contact') }}
+                    </x-nav-link>
                     <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.index')">
                         {{ __('Users') }}
                     </x-nav-link>
@@ -89,6 +95,12 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.index')">
                 {{ __('Products') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('admin.promotions.index')" :active="request()->routeIs('admin.promotions.index')">
+                {{ __('Promotions') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('admin.contact.index')" :active="request()->routeIs('admin.contact.index')">
+                {{ __('Contact') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.index')">
                 {{ __('Users') }}

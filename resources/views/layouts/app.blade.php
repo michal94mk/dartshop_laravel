@@ -42,10 +42,10 @@
                         <a href="{{ route('frontend.categories.index') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                             Kategorie
                         </a>
-                        <a href="#" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        <a href="{{ route('frontend.promotions') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                             Promocje
                         </a>
-                        <a href="#" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        <a href="{{ route('frontend.contact') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                             Kontakt
                         </a>
                     </div>
@@ -109,8 +109,8 @@
                 <div class="pt-2 pb-3 space-y-1">
                     <a href="{{ route('home') }}" class="bg-indigo-50 border-indigo-500 text-indigo-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">Home</a>
                     <a href="{{ route('frontend.categories.index') }}" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">Kategorie</a>
-                    <a href="#" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">Promocje</a>
-                    <a href="#" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">Kontakt</a>
+                    <a href="{{ route('frontend.promotions') }}" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">Promocje</a>
+                    <a href="{{ route('frontend.contact') }}" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">Kontakt</a>
                 </div>
                 <div class="pt-4 pb-3 border-t border-gray-200">
                     @auth
@@ -192,7 +192,10 @@
                         <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Pomoc</h3>
                         <ul role="list" class="mt-4 space-y-4">
                             <li>
-                                <a href="#" class="text-base text-gray-500 hover:text-gray-900">Kontakt</a>
+                                <a href="{{ route('frontend.contact') }}" class="text-base text-gray-500 hover:text-gray-900">Kontakt</a>
+                            </li>
+                            <li>
+                                <a href="{{ route('frontend.promotions') }}" class="text-base text-gray-500 hover:text-gray-900">Promocje</a>
                             </li>
                             <li>
                                 <a href="#" class="text-base text-gray-500 hover:text-gray-900">Dostawa</a>
