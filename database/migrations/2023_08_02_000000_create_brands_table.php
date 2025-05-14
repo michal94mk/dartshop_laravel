@@ -15,8 +15,13 @@ return new class extends Migration
     {
         Schema::create('brands', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->unique();
+            $table->text('description')->nullable();
+            $table->string('logo')->nullable();
             $table->timestamps();
+            
+            // Dodaj indeks dla wydajniejszego wyszukiwania po nazwie
+            $table->index('name');
         });
     }
 
@@ -29,4 +34,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('brands');
     }
-};
+}; 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use Spatie\Permission\Models\Role;
 
 class UserController extends BaseAdminController
 {
@@ -13,7 +14,7 @@ class UserController extends BaseAdminController
     public function index()
     {
         $perPage = $this->getPerPage();
-        $users = User::paginate($perPage);
+        $users = User::with('roles')->paginate($perPage);
         
         return view('admin.users.index', compact('users'));
     }
@@ -31,7 +32,13 @@ class UserController extends BaseAdminController
      */
     public function update(Request $request, User $user)
     {
-        $user->update($request->only(['name', 'email', 'role']));
+        $user->update($request->only(['name', 'email']));
+        
+        // Update user role
+        $role = $request->input('role');
+        if ($role) {
+            $user->syncRoles([$role]);
+        }
         
         return redirect()->route('admin.users.index')
             ->with('success', 'User updated successfully');

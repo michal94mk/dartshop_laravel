@@ -20,6 +20,11 @@ return new class extends Migration
             $table->text('reply')->nullable();
             $table->enum('status', ['unread', 'read', 'replied'])->default('unread');
             $table->timestamps();
+            
+            // Dodaj indeks dla wydajniejszego wyszukiwania po statusie
+            $table->index('status');
+            // Dodaj indeks dla wydajniejszego wyszukiwania po email
+            $table->index('email');
         });
     }
 

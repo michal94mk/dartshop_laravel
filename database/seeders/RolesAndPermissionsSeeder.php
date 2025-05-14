@@ -80,16 +80,17 @@ class RolesAndPermissionsSeeder extends Seeder
             $role->syncPermissions(['view products', 'view categories', 'view brands', 'view promotions']);
         }
         
-        // Migrate existing users (assign roles based on current 'role' column)
-        $users = User::all();
+        // Assign role to admin user if it exists
+        $admin = User::where('email', 'admin@example.com')->first();
+        if ($admin) {
+            $admin->assignRole('admin');
+        }
         
-        foreach ($users as $user) {
-            if (!$user->roles()->count()) { // Only assign roles if user doesn't have any
-                if ($user->role === 'admin') {
-                    $user->assignRole('admin');
-                } else {
-                    $user->assignRole('user');
-                }
+        // Assign role to regular users
+        $regularUsers = User::whereNotIn('email', ['admin@example.com'])->get();
+        foreach ($regularUsers as $user) {
+            if (!$user->roles()->count()) {
+                $user->assignRole('user');
             }
         }
     }
