@@ -1,4 +1,4 @@
-@extends('layouts.admin-tailwind')
+@extends('layouts.admin')
 
 @section('title', isset($category) ? 'Edytuj kategorię: ' . $category->name : 'Dodaj nową kategorię')
 

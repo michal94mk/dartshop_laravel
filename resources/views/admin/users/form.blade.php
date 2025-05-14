@@ -1,4 +1,4 @@
-@extends('layouts.admin-tailwind')
+@extends('layouts.admin')
 
 @section('title', 'Edytuj użytkownika: ' . $user->name)
 
@@ -51,7 +51,7 @@
             </div>
 
             <div class="flex justify-end pt-5">
-                <a href="{{ route('admin.users.index', ['tailwind' => 1]) }}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <a href="{{ route('admin.users.index') }}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     Anuluj
                 </a>
                 <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">

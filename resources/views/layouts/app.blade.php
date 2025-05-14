@@ -1,596 +1,251 @@
 <!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
-		 <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-		<title>Electro - HTML Ecommerce Template</title>
+    <title>{{ config('app.name', 'DartShop') }} - @yield('title', 'Sklep z akcesoriami do dart')</title>
 
- 		<!-- Google font -->
-         <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700" rel="stylesheet">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Scripts -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    <!-- Styles -->
+    @livewireStyles
+</head>
+<body class="font-sans antialiased bg-gray-50 text-gray-800">
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-white shadow">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <!-- Logo -->
+                    <div class="flex-shrink-0 flex items-center">
+                        <a href="{{ route('home') }}" class="text-xl font-bold text-indigo-600">
+                            <span>Dart</span><span class="text-gray-800">Shop</span>
+                        </a>
+                    </div>
+                    
+                    <!-- Navigation Links -->
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a href="{{ route('home') }}" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Home
+                        </a>
+                        <a href="{{ route('frontend.categories.index') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Kategorie
+                        </a>
+                        <a href="#" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Promocje
+                        </a>
+                        <a href="#" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Kontakt
+                        </a>
+                    </div>
 
-         <!-- Bootstrap -->
-         <link type="text/css" rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}"/>
-
-         <!-- Slick -->
-         <link type="text/css" rel="stylesheet" href="{{ asset('css/slick.css') }}"/>
-         <link type="text/css" rel="stylesheet" href="{{ asset('css/slick-theme.css') }}"/>
-
-         <!-- nouislider -->
-         <link type="text/css" rel="stylesheet" href="{{ asset('css/nouislider.min.css') }}"/>
-
-         <!-- Font Awesome Icon -->
-         <link rel="stylesheet" href="{{ asset('css/font-awesome.min.css') }}">
-
-         <!-- Custom stlylesheet -->
-         <link type="text/css" rel="stylesheet" href="{{ asset('css/style.css') }}"/>
-
- 		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
- 		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
- 		<!--[if lt IE 9]>
- 		  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
- 		  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
- 		<![endif]-->
-
-    </head>
-	<body>
-		<!-- HEADER -->
-		<header>
-			<!-- TOP HEADER -->
-            <div id="top-header">
-                <div class="container">
-                    <ul class="header-links pull-left">
-                        <li><a href="#"><i class="fa fa-phone"></i> +021-95-51-84</a></li>
-                        <li><a href="#"><i class="fa fa-envelope-o"></i> email@email.com</a></li>
-                        <li><a href="#"><i class="fa fa-map-marker"></i> 1734 Stonecoal Road</a></li>
-                    </ul>
-                    <ul class="header-links pull-right">
-                        <li><a href="#"><i class="fa fa-dollar"></i> USD</a></li>
-                        @guest
-                            <li><a href="{{ route('login') }}"><i class="fa fa-user-o"></i> {{ __('Login') }}</a></li>
-                            <li><a href="{{ route('register') }}"><i class="fa fa-user-o"></i> {{ __('Register') }}</a></li>
+                    <!-- Right side buttons -->
+                    <div class="flex items-center">
+                        <!-- Cart -->
+                        <a href="{{ route('cart.view') }}" class="ml-4 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 flex items-center">
+                            <i class="fas fa-shopping-cart mr-1"></i>
+                            <span id="cart-count" class="bg-indigo-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                                {{ Session::has('cart') ? array_sum(array_column(Session::get('cart'), 'quantity')) : 0 }}
+                            </span>
+                        </a>
+                        
+                        <!-- User menu -->
+                        @auth
+                            <div class="ml-3 relative">
+                                <div>
+                                    <button type="button" class="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
+                                        <span class="sr-only">Open user menu</span>
+                                        <span class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                                            {{ substr(Auth::user()->name, 0, 1) }}
+                                        </span>
+                                    </button>
+                                </div>
+                                <div class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1" id="user-dropdown">
+                                    @if(Auth::user()->hasRole('admin'))
+                                        <a href="{{ route('admin.categories.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Panel Administratora</a>
+                                    @endif
+                                    <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Twój Profil</a>
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Wyloguj</button>
+                                    </form>
+                                </div>
+                            </div>
                         @else
-                            @if(auth()->check())
-                                @if(auth()->user()->role === 'admin')
-                                    <li><a href="{{ route('admin.categories.index') }}"><i class="fa fa-cog"></i> Admin Panel</a></li>
-                                @endif
-                            @endif
-                            <li><a href="{{ route('logout') }}"
-                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                <i class="fa fa-sign-out"></i> {{ __('Logout') }}
-                            </a></li>
-                            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                                @csrf
-                            </form>
-                            <li><a href="{{ route('profile.edit') }}"><i class="fa fa-user-o"></i> My Account</a></li>
-                        @endguest
-                    </ul>
+                            <div class="hidden sm:flex sm:items-center sm:ml-6">
+                                <a href="{{ route('login') }}" class="text-sm text-gray-700 hover:text-indigo-600 mr-4">Logowanie</a>
+                                <a href="{{ route('register') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                                    Rejestracja
+                                </a>
+                            </div>
+                        @endauth
+                        
+                        <!-- Mobile menu button -->
+                        <div class="flex items-center sm:hidden">
+                            <button type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-controls="mobile-menu" aria-expanded="false" id="mobile-menu-button">
+                                <span class="sr-only">Open main menu</span>
+                                <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-
-
-			<!-- /TOP HEADER -->
-
-			<!-- MAIN HEADER -->
-			<div id="header">
-				<!-- container -->
-				<div class="container">
-					<!-- row -->
-					<div class="row">
-						<!-- LOGO -->
-						<div class="col-md-3">
-							<div class="header-logo">
-								<a href="#" class="logo">
-									<img src="{{ asset('img/logo.png') }}" alt="">
-								</a>
-							</div>
-						</div>
-						<!-- /LOGO -->
-
-						<!-- SEARCH BAR -->
-                        <div class="col-md-6">
-                            <div class="header-search">
-                                <form>
-                                    <select class="input-select">
-                                        <option value="0">All Categories</option>
-                                        @foreach($categories as $category)
-                                            <option value="{{ $category->id }}">{{ $category->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <input class="input" placeholder="Search here">
-                                    <button class="search-btn">Search</button>
-                                </form>
+            
+            <!-- Mobile menu -->
+            <div class="sm:hidden hidden" id="mobile-menu">
+                <div class="pt-2 pb-3 space-y-1">
+                    <a href="{{ route('home') }}" class="bg-indigo-50 border-indigo-500 text-indigo-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">Home</a>
+                    <a href="{{ route('frontend.categories.index') }}" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">Kategorie</a>
+                    <a href="#" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">Promocje</a>
+                    <a href="#" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">Kontakt</a>
+                </div>
+                <div class="pt-4 pb-3 border-t border-gray-200">
+                    @auth
+                        <div class="flex items-center px-4">
+                            <div class="flex-shrink-0">
+                                <span class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold">
+                                    {{ substr(Auth::user()->name, 0, 1) }}
+                                </span>
+                            </div>
+                            <div class="ml-3">
+                                <div class="text-base font-medium text-gray-800">{{ Auth::user()->name }}</div>
+                                <div class="text-sm font-medium text-gray-500">{{ Auth::user()->email }}</div>
                             </div>
                         </div>
-						<!-- /SEARCH BAR -->
+                        <div class="mt-3 space-y-1">
+                            @if(Auth::user()->hasRole('admin'))
+                                <a href="{{ route('admin.categories.index') }}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">Panel Administratora</a>
+                            @endif
+                            <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">Twój Profil</a>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">Wyloguj</button>
+                            </form>
+                        </div>
+                    @else
+                        <div class="mt-3 space-y-1">
+                            <a href="{{ route('login') }}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">Logowanie</a>
+                            <a href="{{ route('register') }}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">Rejestracja</a>
+                        </div>
+                    @endauth
+                </div>
+            </div>
+        </header>
 
-						<!-- ACCOUNT -->
-						<div class="col-md-3 clearfix">
-							<div class="header-ctn">
-								<!-- Wishlist -->
-								<div>
-									<a href="#">
-										<i class="fa fa-heart-o"></i>
-										<span>Your Wishlist</span>
-										<div class="qty">2</div>
-									</a>
-								</div>
-								<!-- /Wishlist -->
+        <!-- Main Content -->
+        <main class="flex-1">
+            @if (session('success'))
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mx-auto max-w-7xl mt-4" role="alert">
+                    <strong class="font-bold">Sukces!</strong>
+                    <span class="block sm:inline">{{ session('success') }}</span>
+                </div>
+            @endif
+            
+            @if (session('error'))
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mx-auto max-w-7xl mt-4" role="alert">
+                    <strong class="font-bold">Błąd!</strong>
+                    <span class="block sm:inline">{{ session('error') }}</span>
+                </div>
+            @endif
+            
+            @yield('content')
+        </main>
 
-								<!-- Cart -->
-                                <div class="dropdown">
-                                    <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
-                                        <i class="fa fa-shopping-cart"></i>
-                                        <span>Your Cart</span>
-                                        <div class="qty" id="totalQty">{{$totalQty}}</div>
-                                    </a>
-                                    <div class="cart-dropdown">
-                                        <div class="cart-list">
-                                        </div>
+        <!-- Footer -->
+        <footer class="bg-white border-t border-gray-200 mt-12">
+            <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">O nas</h3>
+                        <p class="mt-4 text-base text-gray-500">
+                            DartShop to sklep specjalizujący się w sprzedaży wysokiej jakości akcesoriów do gry w dart.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Kategorie</h3>
+                        <ul role="list" class="mt-4 space-y-4">
+                            <li>
+                                <a href="#" class="text-base text-gray-500 hover:text-gray-900">Lotki</a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-base text-gray-500 hover:text-gray-900">Tarcze</a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-base text-gray-500 hover:text-gray-900">Akcesoria</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Pomoc</h3>
+                        <ul role="list" class="mt-4 space-y-4">
+                            <li>
+                                <a href="#" class="text-base text-gray-500 hover:text-gray-900">Kontakt</a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-base text-gray-500 hover:text-gray-900">Dostawa</a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-base text-gray-500 hover:text-gray-900">Zwroty</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Śledź nas</h3>
+                        <div class="flex space-x-6 mt-4">
+                            <a href="#" class="text-gray-400 hover:text-gray-500">
+                                <span class="sr-only">Facebook</span>
+                                <i class="fab fa-facebook text-xl"></i>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-gray-500">
+                                <span class="sr-only">Instagram</span>
+                                <i class="fab fa-instagram text-xl"></i>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-gray-500">
+                                <span class="sr-only">Twitter</span>
+                                <i class="fab fa-twitter text-xl"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-12 border-t border-gray-200 pt-8">
+                    <p class="text-base text-gray-400 text-center">&copy; {{ date('Y') }} DartShop. Wszelkie prawa zastrzeżone.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
 
-                                        <div class="cart-summary">
-                                            <small><span class="qty"></span> Item(s) selected</small>
-                                            <h5>SUBTOTAL: $0.00</h5>
-                                        </div>
-                                        <div class="cart-btns">
-                                            <a href="{{route('cart.view')}}">View Cart</a>
-                                            <a href="#">Checkout  <i class="fa fa-arrow-circle-right"></i></a>
-                                        </div>
-                                    </div>
-                                </div>
-
-
-								<!-- /Cart -->
-
-								<!-- Menu Toogle -->
-								<div class="menu-toggle">
-									<a href="#">
-										<i class="fa fa-bars"></i>
-										<span>Menu</span>
-									</a>
-								</div>
-								<!-- /Menu Toogle -->
-							</div>
-						</div>
-						<!-- /ACCOUNT -->
-					</div>
-					<!-- row -->
-				</div>
-				<!-- container -->
-			</div>
-			<!-- /MAIN HEADER -->
-		</header>
-		<!-- /HEADER -->
-
-		<!-- NAVIGATION -->
-		<nav id="navigation">
-			<!-- container -->
-			<div class="container">
-				<!-- responsive-nav -->
-				<div id="responsive-nav">
-					<!-- NAV -->
-					<ul class="main-nav nav navbar-nav">
-						<li class="active"><a href="{{ route('home') }}">Home</a></li>
-						<li><a href="#">Hot Deals</a></li>
-						<li><a href="{{ route('frontend.categories.index') }}">Categories</a></li>
-						<li><a href="#">About us</a></li>
-						<li><a href="#">Contact</a></li>
-					</ul>
-					<!-- /NAV -->
-				</div>
-				<!-- /responsive-nav -->
-			</div>
-			<!-- /container -->
-		</nav>
-		<!-- /NAVIGATION -->
-
-		<!-- BREADCRUMB -->
-		<div id="breadcrumb" class="section">
-			<!-- container -->
-			<div class="container">
-				<!-- row -->
-				<div class="row">
-					<div class="col-md-12">
-						<h3 class="breadcrumb-header">Regular Page</h3>
-						<ul class="breadcrumb-tree">
-							<li><a href="#">Home</a></li>
-							<li class="active">Blank</li>
-						</ul>
-					</div>
-				</div>
-				<!-- /row -->
-			</div>
-			<!-- /container -->
-		</div>
-		<!-- /BREADCRUMB -->
-
-		<!-- SECTION -->
-		<div class="section">
-			<!-- container -->
-			<div class="container">
-                @yield('content')
-			</div>
-			<!-- /container -->
-		</div>
-		<!-- /SECTION -->
-
-
-
-		<!-- NEWSLETTER -->
-		<div id="newsletter" class="section">
-			<!-- container -->
-			<div class="container">
-				<!-- row -->
-				<div class="row">
-					<div class="col-md-12">
-						<div class="newsletter">
-							<p>Sign Up for the <strong>NEWSLETTER</strong></p>
-							<form>
-								<input class="input" type="email" placeholder="Enter Your Email">
-								<button class="newsletter-btn"><i class="fa fa-envelope"></i> Subscribe</button>
-							</form>
-							<ul class="newsletter-follow">
-								<li>
-									<a href="#"><i class="fa fa-facebook"></i></a>
-								</li>
-								<li>
-									<a href="#"><i class="fa fa-twitter"></i></a>
-								</li>
-								<li>
-									<a href="#"><i class="fa fa-instagram"></i></a>
-								</li>
-								<li>
-									<a href="#"><i class="fa fa-pinterest"></i></a>
-								</li>
-							</ul>
-						</div>
-					</div>
-				</div>
-				<!-- /row -->
-			</div>
-			<!-- /container -->
-		</div>
-		<!-- /NEWSLETTER -->
-
-		<!-- FOOTER -->
-		<footer id="footer">
-			<!-- top footer -->
-			<div class="section">
-				<!-- container -->
-				<div class="container">
-					<!-- row -->
-					<div class="row">
-						<div class="col-md-3 col-xs-6">
-							<div class="footer">
-								<h3 class="footer-title">About Us</h3>
-								<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut.</p>
-								<ul class="footer-links">
-									<li><a href="#"><i class="fa fa-map-marker"></i>1734 Stonecoal Road</a></li>
-									<li><a href="#"><i class="fa fa-phone"></i>+021-95-51-84</a></li>
-									<li><a href="#"><i class="fa fa-envelope-o"></i>email@email.com</a></li>
-								</ul>
-							</div>
-						</div>
-
-						<div class="col-md-3 col-xs-6">
-							<div class="footer">
-								<h3 class="footer-title">Categories</h3>
-								<ul class="footer-links">
-									<li><a href="#">Hot deals</a></li>
-									<li><a href="#">Laptops</a></li>
-									<li><a href="#">Smartphones</a></li>
-									<li><a href="#">Cameras</a></li>
-									<li><a href="#">Accessories</a></li>
-								</ul>
-							</div>
-						</div>
-
-						<div class="clearfix visible-xs"></div>
-
-						<div class="col-md-3 col-xs-6">
-							<div class="footer">
-								<h3 class="footer-title">Information</h3>
-								<ul class="footer-links">
-									<li><a href="#">About Us</a></li>
-									<li><a href="#">Contact Us</a></li>
-									<li><a href="#">Privacy Policy</a></li>
-									<li><a href="#">Orders and Returns</a></li>
-									<li><a href="#">Terms & Conditions</a></li>
-								</ul>
-							</div>
-						</div>
-
-						<div class="col-md-3 col-xs-6">
-							<div class="footer">
-								<h3 class="footer-title">Service</h3>
-								<ul class="footer-links">
-									<li><a href="#">My Account</a></li>
-									<li><a href="#">View Cart</a></li>
-									<li><a href="#">Wishlist</a></li>
-									<li><a href="#">Track My Order</a></li>
-									<li><a href="#">Help</a></li>
-								</ul>
-							</div>
-						</div>
-					</div>
-					<!-- /row -->
-				</div>
-				<!-- /container -->
-			</div>
-			<!-- /top footer -->
-
-			<!-- bottom footer -->
-			<div id="bottom-footer" class="section">
-				<div class="container">
-					<!-- row -->
-					<div class="row">
-						<div class="col-md-12 text-center">
-							<ul class="footer-payments">
-								<li><a href="#"><i class="fa fa-cc-visa"></i></a></li>
-								<li><a href="#"><i class="fa fa-credit-card"></i></a></li>
-								<li><a href="#"><i class="fa fa-cc-paypal"></i></a></li>
-								<li><a href="#"><i class="fa fa-cc-mastercard"></i></a></li>
-								<li><a href="#"><i class="fa fa-cc-discover"></i></a></li>
-								<li><a href="#"><i class="fa fa-cc-amex"></i></a></li>
-							</ul>
-							<span class="copyright">
-								<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-								Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="fa fa-heart-o" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
-							<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-							</span>
-
-
-						</div>
-					</div>
-						<!-- /row -->
-				</div>
-				<!-- /container -->
-			</div>
-			<!-- /bottom footer -->
-		</footer>
-		<!-- /FOOTER -->
-
-		<!-- jQuery Plugins -->
-        <script src="{{ asset('js/jquery.min.js') }}"></script>
-        <script src="{{ asset('js/bootstrap.min.js') }}"></script>
-        <script src="{{ asset('js/slick.min.js') }}"></script>
-        <script src="{{ asset('js/nouislider.min.js') }}"></script>
-        <script src="{{ asset('js/jquery.zoom.min.js') }}"></script>
-        <script src="{{ asset('js/main.js') }}"></script>
-        <script>
-            $(document).ready(function() {
-                if (window.location.pathname === '/') {
-                    $.getScript('{{ asset('js/countdown.js') }}');
-                }
-                updateCartDropdown();
-                updateCartTotalAndPrice();
-
-                function updateCartTotalAndPrice() {
-                    const totalElements = document.querySelectorAll('.cart-product-total p');
-                    let cartTotal = 0;
-
-                    totalElements.forEach((totalElement) => {
-                        const total = parseFloat(totalElement.textContent.replace('$', ''));
-                        if (!isNaN(total)) {
-                            cartTotal += total;
-                        }
-                    });
-
-                    const cartTotalElement = document.querySelector('#cart-total');
-                    if (cartTotalElement) {
-                        cartTotalElement.textContent = `$${cartTotal.toFixed(2)}`;
-                    }
-
-                    const productElements = document.querySelectorAll('.quantity');
-                    productElements.forEach((inputElement) => {
-                        const productId = inputElement.getAttribute('data-product-id');
-                        const newQuantity = parseInt(inputElement.value);
-                        const priceElement = document.querySelector(`#price-${productId}`);
-                        const totalElement = document.querySelector(`#total-${productId}`);
-                        const productPrice = parseFloat(priceElement.textContent.replace('$', ''));
-
-                        if (!isNaN(productPrice)) {
-                            const newTotalPrice = productPrice * newQuantity;
-                            priceElement.textContent = `$${productPrice.toFixed(2)}`;
-                            totalElement.textContent = `$${newTotalPrice.toFixed(2)}`;
-                        }
-                    });
-                }
-
-                function updateQuantityOnPage(inputElement, newQuantity) {
-                    inputElement.value = newQuantity;
-                    updateCartDropdown();
-                    updateCartTotalAndPrice();
-                }
-
-                document.addEventListener('click', function(e) {
-                    if (e.target.classList.contains('increase') || e.target.classList.contains('decrease')) {
-                        e.preventDefault();
-                        const productId = e.target.getAttribute('data-product-id');
-                        const inputQuantity = document.querySelector(`.quantity[data-product-id="${productId}"]`);
-                        let newQuantity = parseInt(inputQuantity.value);
-
-                        if (e.target.classList.contains('increase')) {
-                            addToCart(productId, false);
-                            updateQuantityOnPage(inputQuantity, newQuantity + 1);
-                        } else {
-                            deleteFromCart(productId);
-
-                            if (newQuantity > 1) {
-                                updateQuantityOnPage(inputQuantity, newQuantity - 1);
-                            } else if (newQuantity === 1) {
-                                const row = e.target.closest('tr');
-                                row.remove();
-                            }
-                        }
-                    }
-                });
-
-                function updateQuantityOnPage(inputElement, newQuantity) {
-                    inputElement.value = newQuantity;
-                    updateCartDropdown();
-                    updateCartTotalAndPrice();
-                }
-
-                function addToCart(productId, showAlert = true) {
-                    $.ajax({
-                        url: '/cart/add/' + productId,
-                        method: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}'
-                        },
-                        success: function(response) {
-                            if (showAlert) {
-                                alert('Produkt dodany do koszyka!');
-                            }
-                            updateCartDropdown(response);
-                        },
-                        error: function(error) {
-                            alert('Wystąpił błąd podczas dodawania produktu do koszyka.');
-                        }
-                    });
-                }
-
-                function deleteFromCart(productId) {
-                    $.ajax({
-                        url: '/cart/delete/' + productId,
-                        method: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}'
-                        },
-                        success: function(response) {
-                            updateCartDropdown(response.cart);
-                        },
-                        error: function(error) {
-                            alert('Wystąpił błąd podczas usuwania produktu z koszyka.');
-                        }
-                    });
-                }
-
-                updateCartDropdown();
-                attachAddToCartListeners();
-                $('button#filter-button').click(getProducts);
-                $("#products-per-page").on("change", getProducts);
-                $("#sort").on("change", getProducts);
-
-                $('.cart-list').on('click', '.delete', function() {
-                    var productId = $(this).data('product-id');
-                    console.log('productId:', productId);
-                    deleteFromCart(productId);
-                });
-
-                function attachAddToCartListeners() {
-                    $('.add-to-cart-btn').click(function(event) {
-                        event.preventDefault();
-                        var productId = $(this).data('product-id');
-                        addToCart(productId);
-                    });
-                }
-
-                const prefix = window.location.pathname.startsWith('/admin') ? '/admin' : '';
-
-                function updateCartDropdown() {
-                    $.ajax({
-                        url: '{{ route("cart.contents") }}',
-                        method: 'GET',
-                        dataType: 'json',
-                        success: function(response) {
-                            const cart = response.cart;
-                            console.log(response.cart);
-
-                            const $cartList = $('.cart-list');
-                            $cartList.empty();
-
-                            let totalQuantity = 0;
-
-                            $.each(cart, function(productId, item) {
-                                const imageSrc = item.product.image;
-
-                                const productHtml = `
-                                    <div class="product-widget">
-                                        <div class="product-img">
-                                            <img src="${imageSrc}" alt="Obrazek">
-                                        </div>
-                                        <div class="product-body">
-                                            <h3 class "product-name"><a href="#">${item.product.name}</a></h3>
-                                            <h4 class="product-price"><span class="qty">${item.quantity}x</span> $${item.product.price}</h4>
-                                        </div>
-                                        <button class="delete" data-product-id="${productId}"><i class="fa fa-close"></i></button>
-                                    </div>`;
-
-                                $cartList.append(productHtml);
-
-                                totalQuantity += item.quantity;
-                            });
-
-                            $('#totalQty').text(totalQuantity);
-                            console.log('Total:', totalQuantity);
-                        },
-                        error: function(error) {
-                            console.log('Wystąpił błąd podczas aktualizowania koszyka:', error);
-                        }
-                    });
-                }
-
-                function getProducts() {
-                    const sort = $("#sort").val();
-                    const paginate = $("#products-per-page").val();
-                    const form = $('form#filter-form').serialize();
-                    $.ajax({
-                        method: "GET",
-                        url: "/categories",
-                        data: form + "&" + $.param({ paginate: paginate, sort: sort })
-                    })
-                    .done(function(response) {
-                        $('div#products-container').empty();
-                        $.each(response.data, function (index, product) {
-                            const imageSrc = product.image ? product.image : 'images/default_image.jpg';
-                            const productHtml =
-                                `<div class="col-md-4 col-xs-6">
-                                    <div class="product">
-                                        <div class="product-img">
-                                            <img src="${imageSrc}" alt="No photo">
-                                            <div class="product-label">
-                                                <span class="sale">-30%</span>
-                                                <span class="new">NEW</span>
-                                            </div>
-                                        </div>
-                                        <div class="product-body">
-                                            <p class="product-category">${product.category_name}</p>
-                                            <h3 class="product-name"><a href="#">${product.name}</a></h3>
-                                            <h4 class="product-price">${product.price}<del class="product-old-price"></del></h4>
-                                            <div class="product-rating">
-                                                <i class="fa fa-star"></i>
-                                                <i class="fa fa-star"></i>
-                                                <i class="fa fa-star"></i>
-                                                <i class="fa fa-star"></i>
-                                                <i class="fa fa-star"></i>
-                                            </div>
-                                            <div class="product-btns">
-                                                <button class="add-to-wishlist"><i class="fa fa-heart-o"></i><span class="tooltipp">add to wishlist</span></button>
-                                                <button class="add-to-compare"><i class="fa fa-exchange"></i><span class="tooltipp">add to compare</span></button>
-                                                <button class="quick-view"><i class="fa fa-eye"></i><span class="tooltipp">quick view</span></button>
-                                            </div>
-                                        </div>
-                                        <div class="add-to-cart">
-                                            <button class="add-to-cart-btn" data-product-id="${product.id}"><i class="fa fa-shopping-cart"></i>Add to cart</button>
-                                        </div>
-                                    </div>
-                                </div>`;
-
-                            $('div#products-container').append(productHtml);
-                        });
-                        attachAddToCartListeners();
-                    })
-                    .fail(function(data) {
-                        alert("ERROR");
-                    });
-                }
-            });
-        </script>
-	</body>
-</html>
+    <script>
+        // Toggle user dropdown
+        document.getElementById('user-menu-button')?.addEventListener('click', function() {
+            document.getElementById('user-dropdown').classList.toggle('hidden');
+        });
+        
+        // Toggle mobile menu
+        document.getElementById('mobile-menu-button')?.addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+        
+        // Close dropdowns when clicking outside
+        window.addEventListener('click', function(e) {
+            if (!document.getElementById('user-menu-button')?.contains(e.target)) {
+                document.getElementById('user-dropdown')?.classList.add('hidden');
+            }
+        });
+    </script>
+    
+    @stack('scripts')
+</body>
+</html> 

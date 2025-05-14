@@ -1,142 +1,179 @@
 @extends('layouts.app')
 
-@section('content')
-    <h1>Your cart</h1>
+@section('title', 'Koszyk')
 
-    @if($pagedData->count() > 0)
-        <!-- CART VIEW -->
-        <div id="cart-view" class="section">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="cart-view-area">
-                            <div class="cart-view-table">
-                                <form action="#">
-                                    @csrf
-                                    <div class="table-responsive">
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th></th>
-                                                    <th>Product</th>
-                                                    <th>Price</th>
-                                                    <th>Quantity</th>
-                                                    <th>Total</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($pagedData as $item)
-                                                    <tr>
-                                                        <td>
-                                                            <div class="cart-product-img">
-                                                                @if ($item['product']->image)
-                                                                    <img src="{{ $item['product']->image }}" alt="{{ $item['product']->name }}" height="100px" width="100px">
-                                                                @else
-                                                                    <span class="text-muted">No photo</span>
-                                                                @endif
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <div class="cart-product-name">
-                                                                <h6>{{ $item['product']->name }}</h6>
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <div class="cart-product-price">
-                                                                <p id="price-{{ $item['product']->id }}">${{ $item['product']->price }}</p>
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <div class="cart-product-quantity">
-                                                                <form action="{{ route('cart.delete', $item['product']->id) }}" method="post" style="display: inline;">
-                                                                    @csrf
-                                                                    <button type="submit" class="decrease" data-product-id="{{ $item['product']->id }}">-</button>
-                                                                </form>
-                                                                <input class="quantity" type="number"
-                                                                    value="{{ $item['quantity'] }}"
-                                                                    data-product-id="{{ $item['product']->id }}"
-                                                                    min="1" readonly style="width: 50px;" >
-                                                                <form action="{{ route('cart.add', $item['product']->id) }}" method="post" style="display: inline;">
-                                                                    @csrf
-                                                                    <button type="submit" class="increase" data-product-id="{{ $item['product']->id }}">
-                                                                        +
-                                                                    </button>
-                                                                </form>
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <div class="cart-product-total">
-                                                                <p id="total-{{ $item['product']->id }}">${{ $item['product']->price * $item['quantity'] }}</p>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
+@section('content')
+    <div class="bg-white">
+        <div class="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
+            <h1 class="text-3xl font-extrabold tracking-tight text-gray-900">Twój koszyk</h1>
+
+            @if(count($cart ?? []) > 0)
+                <div class="mt-12">
+                    <div class="lg:grid lg:grid-cols-12 lg:gap-x-12 xl:gap-x-16">
+                        <div class="lg:col-span-7">
+                            <h2 class="sr-only">Produkty w koszyku</h2>
+
+                            <ul role="list" class="border-t border-b border-gray-200 divide-y divide-gray-200">
+                                @foreach($cart as $productId => $item)
+                                    <li class="flex py-6 sm:py-10">
+                                        <div class="flex-shrink-0">
+                                            <div class="h-24 w-24 sm:h-32 sm:w-32 rounded-md overflow-hidden">
+                                                @if($item['product']->image)
+                                                    <img src="{{ asset($item['product']->image) }}" alt="{{ $item['product']->name }}" class="h-full w-full object-cover object-center">
+                                                @else
+                                                    <div class="flex items-center justify-center h-full w-full bg-gray-200">
+                                                        <span class="text-gray-400">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                            </svg>
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        <div class="ml-4 flex-1 flex flex-col sm:ml-6">
+                                            <div>
+                                                <div class="flex justify-between">
+                                                    <h3 class="text-lg font-medium text-gray-900">
+                                                        {{ $item['product']->name }}
+                                                    </h3>
+                                                    <p class="ml-4 text-lg font-medium text-gray-900">{{ number_format($item['product']->price * $item['quantity'], 2) }} zł</p>
+                                                </div>
+                                                <p class="mt-1 text-sm text-gray-500">
+                                                    @if($item['product']->category)
+                                                        {{ $item['product']->category->name }}
+                                                    @endif
+                                                    @if($item['product']->brand)
+                                                        | {{ $item['product']->brand->name }}
+                                                    @endif
+                                                </p>
+                                            </div>
+
+                                            <div class="mt-4 flex justify-between">
+                                                <div class="flex items-center">
+                                                    <form action="{{ route('cart.delete', $productId) }}" method="post" class="quantity-form mr-4">
+                                                        @csrf
+                                                        <button type="submit" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                                            <span class="sr-only">Usuń</span>
+                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+                                                    
+                                                    <div class="flex items-center border rounded-md">
+                                                        <form action="{{ route('cart.delete', $productId) }}" method="post" class="quantity-form">
+                                                            @csrf
+                                                            <button type="submit" class="px-2 py-1 text-gray-600 hover:text-indigo-600">-</button>
+                                                        </form>
+                                                        
+                                                        <span class="px-4 py-1 text-gray-900">{{ $item['quantity'] }}</span>
+                                                        
+                                                        <form action="{{ route('cart.add', $productId) }}" method="post" class="quantity-form">
+                                                            @csrf
+                                                            <button type="submit" class="px-2 py-1 text-gray-600 hover:text-indigo-600">+</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+
+                                                <p class="ml-4 text-sm text-gray-700">{{ number_format($item['product']->price, 2) }} zł / szt.</p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+
+                        <!-- Order summary -->
+                        <div class="mt-16 lg:mt-0 lg:col-span-5">
+                            <div class="bg-gray-50 rounded-lg px-6 py-6">
+                                <h2 class="text-lg font-medium text-gray-900">Podsumowanie zamówienia</h2>
+
+                                <div class="mt-6 space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-sm text-gray-600">Suma częściowa</p>
+                                        <p class="text-sm font-medium text-gray-900">{{ number_format($total, 2) }} zł</p>
                                     </div>
-                                </form>
-                                <!-- Cart Total view -->
-                                <div class="cart-view-total">
-                                    <table class="table">
-                                        <tbody>
-                                            <tr>
-                                                <td>Total</td>
-                                                <td id="cart-total"></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <button class="button-blue">Checkout</button>
+
+                                    <div class="flex items-center justify-between border-t border-gray-200 pt-4">
+                                        <p class="text-sm text-gray-600">Dostawa</p>
+                                        <p class="text-sm font-medium text-gray-900">15.00 zł</p>
+                                    </div>
+
+                                    <div class="flex items-center justify-between border-t border-gray-200 pt-4">
+                                        <p class="text-base font-medium text-gray-900">Razem do zapłaty</p>
+                                        <p class="text-base font-medium text-gray-900">{{ number_format($total + 15, 2) }} zł</p>
+                                    </div>
                                 </div>
-                                <!-- /Cart Total view -->
+
+                                <div class="mt-6">
+                                    <button type="button" class="w-full bg-indigo-600 border border-transparent rounded-md py-3 px-4 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        Przejdź do zamówienia
+                                    </button>
+                                </div>
+
+                                <div class="mt-6 text-sm text-center">
+                                    <p class="text-gray-600">
+                                        lub 
+                                        <a href="{{ route('frontend.categories.index') }}" class="text-indigo-600 font-medium hover:text-indigo-500">
+                                            Kontynuuj zakupy<span aria-hidden="true"> &rarr;</span>
+                                        </a>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            @else
+                <div class="mt-12 text-center py-12 px-4 sm:px-6 lg:px-8">
+                    <div class="rounded-lg bg-gray-50 px-6 py-10">
+                        <svg class="mx-auto h-20 w-20 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                        <h3 class="mt-4 text-xl font-medium text-gray-900">Twój koszyk jest pusty</h3>
+                        <p class="mt-2 text-base text-gray-500">Zacznij zakupy i dodaj produkty do koszyka.</p>
+                        <div class="mt-6">
+                            <a href="{{ route('frontend.categories.index') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Przejdź do sklepu
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
-
-        <!-- Pagination -->
-        <div class="store-filter clearfix">
-            <span class="store-qty">
-                Showing {{ $pagedData->firstItem() }}-{{ $pagedData->lastItem() }} of {{ $pagedData->total() }} products
-            </span>
-            <ul class="store-pagination">
-                @if ($pagedData->currentPage() > 1)
-                    <li><a href="{{ route('cart.view', ['page' => $pagedData->currentPage() - 1]) }}"><</a></li>
-                @endif
-
-                @php
-                    $leftLimit = max($pagedData->currentPage() - 2, 1);
-                    $rightLimit = min($pagedData->currentPage() + 2, $pagedData->lastPage());
-                @endphp
-
-                @if ($leftLimit > 1)
-                    <li><a href="{{ route('cart.view', ['page' => 1]) }}">1</a></li>
-                    @if ($leftLimit > 2)
-                        <li><span class="dots">...</span></li>
-                    @endif
-                @endif
-
-                @for ($i = $leftLimit; $i <= $rightLimit; $i++)
-                    <li class="{{ $i == $pagedData->currentPage() ? 'active' : '' }}">
-                        <a href="{{ route('cart.view', ['page' => $i]) }}">{{ $i }}</a>
-                    </li>
-                @endfor
-
-                @if ($rightLimit < $pagedData->lastPage())
-                    @if ($rightLimit < $pagedData->lastPage() - 1)
-                        <li><span class="dots">...</span></li>
-                    @endif
-                    <li><a href="{{ route('cart.view', ['page' => $pagedData->lastPage()]) }}">{{ $pagedData->lastPage() }}</a></li>
-                @endif
-
-                @if ($pagedData->currentPage() < $pagedData->lastPage())
-                    <li><a href="{{ route('cart.view', ['page' => $pagedData->currentPage() + 1]) }}">></a></li>
-                @endif
-            </ul>
-        </div>
-                <!-- /Pagination -->
-    @else
-        <p>Your cart is empty.</p>
-    @endif
+    </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle quantity forms with AJAX
+        const quantityForms = document.querySelectorAll('.quantity-form');
+        
+        quantityForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(form);
+                const url = form.getAttribute('action');
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Refresh page to update cart
+                    window.location.reload();
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        });
+    });
+</script>
+@endpush 

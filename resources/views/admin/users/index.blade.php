@@ -1,76 +1,111 @@
-@extends('layouts.app')
+@extends('layouts.admin')
+
+@section('title', 'Zarządzanie użytkownikami')
 
 @section('content')
-@if(session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
-<a href="{{ route('admin.categories.index') }}" class="btn {{ Request::routeIs('admin.categories.index') ? 'btn-primary' : 'btn-default' }}">Categories</a>
-<a href="{{ route('admin.brands.index') }}" class="btn {{ Request::routeIs('admin.brands.index') ? 'btn-primary' : 'btn-default' }}">Brands</a>
-<a href="{{ route('admin.products.index') }}" class="btn {{ Request::routeIs('admin.products.index') ? 'btn-primary' : 'btn-default' }}">Products</a>
-<a href="{{ route('admin.users.index') }}" class="btn {{ Request::routeIs('admin.users.index') ? 'btn-primary' : 'btn-default' }}">Users</a>
-<hr>
-<div class="container">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-body">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($users as $user)
-                                <tr>
-                                    <td>{{ $user->id }}</td>
-                                    <td>{{ $user->name }}</td>
-                                    <td>{{ $user->email }}</td>
-                                    <td>
-                                        <a href="{{ route('admin.users.edit', ['user' => $user->id]) }}" class="btn btn-sm btn-primary">Edit</a>
+<div class="bg-white shadow rounded-lg overflow-hidden">
+    <div class="p-6 bg-white border-b border-gray-200">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800">Lista użytkowników</h2>
+        </div>
 
-                                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ $user->id }}">Delete</button>
-
-                                        <!-- Delete Modal -->
-                                        <div class="modal fade" id="deleteModal{{ $user->id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ $user->id }}" aria-hidden="true">
-                                            <div class="modal-dialog" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header" style="text-align: center;">
-                                                        <h5 class="modal-title" id="deleteModalLabel{{ $user->id }}">Delete Confirmation</h5>
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <p style="text-align: center;">Are you sure you want to delete the user "{{ $user->name }}"?</p>
-                                                    </div>
-                                                    <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
-                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                                        <form action="{{ route('admin.users.destroy', ['user' => $user->id]) }}" method="POST">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger">Delete</button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
+        @if($users->count() > 0)
+            <div class="overflow-hidden overflow-x-auto rounded-lg shadow">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Imię i nazwisko</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rola</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data rejestracji</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach($users as $user)
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $user->id }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <div class="flex items-center">
+                                        <div class="h-8 w-8 flex-shrink-0 mr-3">
+                                            <span class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold text-sm">
+                                                {{ substr($user->name, 0, 1) }}
+                                            </span>
                                         </div>
-                                        <!-- End Delete Modal -->
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-
-                    {{ $users->links() }}
+                                        <div>{{ $user->name }}</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $user->email }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {{ $user->role === 'admin' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
+                                        {{ ucfirst($user->role ?? 'user') }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $user->created_at->format('d.m.Y H:i') }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <a href="{{ route('admin.users.edit', ['user' => $user->id]) }}" class="text-indigo-600 hover:text-indigo-900">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        
+                                        @if(Auth::id() !== $user->id)
+                                            <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="delete-form" data-user-name="{{ $user->name }}">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:text-red-900 ml-2">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-4">
+                {{ $users->links() }}
+            </div>
+        @else
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-yellow-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            Brak użytkowników w bazie danych.
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
+        @endif
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteForms = document.querySelectorAll('.delete-form');
+        
+        deleteForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const userName = this.getAttribute('data-user-name');
+                
+                if (confirm(`Czy na pewno chcesz usunąć użytkownika "${userName}"?`)) {
+                    this.submit();
+                }
+            });
+        });
+    });
+</script>
+@endpush 

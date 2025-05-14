@@ -1,82 +1,98 @@
-@extends('layouts.app')
+@extends('layouts.admin')
+
+@section('title', 'Zarządzanie kategoriami')
 
 @section('content')
-@if(session('error'))
-    <div class="alert alert-danger">
-        {{ session('error') }}
-    </div>
-@endif
-@if(session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
+<div class="bg-white shadow rounded-lg overflow-hidden">
+    <div class="p-6 bg-white border-b border-gray-200">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800">Lista kategorii</h2>
+            <a href="{{ route('admin.categories.create') }}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded shadow-sm">
+                <i class="fas fa-plus mr-1"></i> Dodaj kategorię
+            </a>
+        </div>
 
-<a href="{{ route('admin.categories.index') }}" class="btn {{ Request::routeIs('admin.categories.index') ? 'btn-primary' : 'btn-default' }}">Categories</a>
-<a href="{{ route('admin.brands.index') }}" class="btn {{ Request::routeIs('admin.brands.index') ? 'btn-primary' : 'btn-default' }}">Brands</a>
-<a href="{{ route('admin.products.index') }}" class="btn {{ Request::routeIs('admin.products.index') ? 'btn-primary' : 'btn-default' }}">Products</a>
-<a href="{{ route('admin.users.index') }}" class="btn {{ Request::routeIs('admin.users.index') ? 'btn-primary' : 'btn-default' }}">Users</a>
-<hr>
-<div class="container">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-body">
-                    <a href="{{ route('admin.categories.create') }}" class="btn btn-success mb-3">Add Category</a>
-
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Actions</th>
+        @if($categories->count() > 0)
+            <div class="overflow-hidden overflow-x-auto rounded-lg shadow">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nazwa</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ilość produktów</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data utworzenia</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach($categories as $category)
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $category->id }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $category->name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ $category->products->count() }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $category->created_at->format('d.m.Y H:i') }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <a href="{{ route('admin.categories.edit', $category->id) }}" class="text-indigo-600 hover:text-indigo-900">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        
+                                        <form action="{{ route('admin.categories.destroy', $category->id) }}" method="POST" class="delete-form" data-category-name="{{ $category->name }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:text-red-900 ml-2">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($categories as $category)
-                                <tr>
-                                    <td>{{ $category->id }}</td>
-                                    <td>{{ $category->name }}</td>
-                                    <td>
-                                        <a href="{{ route('admin.categories.edit', ['category' => $category->id]) }}" class="btn btn-sm btn-primary">Edit</a>
-
-                                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ $category->id }}">Delete</button>
-
-                                        <!-- Delete Modal -->
-                                        <div class="modal fade" id="deleteModal{{ $category->id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ $category->id }}" aria-hidden="true">
-                                            <div class="modal-dialog" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header" style="text-align: center;">
-                                                        <h5 class="modal-title" id="deleteModalLabel{{ $category->id }}">Delete Confirmation</h5>
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <p style="text-align: center;">Are you sure you want to delete the category "{{ $category->name }}"?</p>
-                                                    </div>
-                                                    <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
-                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                                        <form action="{{ route('admin.categories.destroy', ['category' => $category->id]) }}" method="POST">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger">Delete</button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- End Delete Modal -->
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-
-                    {{ $categories->links() }}
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-4">
+                {{ $categories->links() }}
+            </div>
+        @else
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-yellow-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            Brak kategorii w bazie danych. Dodaj pierwszą kategorię.
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
+        @endif
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteForms = document.querySelectorAll('.delete-form');
+        
+        deleteForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const categoryName = this.getAttribute('data-category-name');
+                
+                if (confirm(`Czy na pewno chcesz usunąć kategorię "${categoryName}"? Spowoduje to również usunięcie wszystkich przypisanych produktów.`)) {
+                    this.submit();
+                }
+            });
+        });
+    });
+</script>
+@endpush 

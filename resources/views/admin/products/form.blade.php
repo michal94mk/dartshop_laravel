@@ -1,4 +1,4 @@
-@extends('layouts.admin-tailwind')
+@extends('layouts.admin')
 
 @section('title', isset($product) ? 'Edytuj produkt: ' . $product->name : 'Dodaj nowy produkt')
 
