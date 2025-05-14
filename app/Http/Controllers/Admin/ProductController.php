@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
 use App\Models\Brand;
 use Illuminate\Http\Request;
@@ -9,7 +9,6 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Admin\BaseAdminController;
 
 class ProductController extends BaseAdminController
 {
@@ -205,97 +204,55 @@ class ProductController extends BaseAdminController
             $product->delete();
             
             return redirect()->route('admin.products.index')
-                ->with('success', 'Produkt został usunięty.');
+                ->with('success', 'Produkt został usunięty pomyślnie.');
         } catch (\Exception $e) {
             Log::error('Error deleting product', [
                 'error' => $e->getMessage(),
-                'product_id' => $product->id
+                'trace' => $e->getTraceAsString()
             ]);
             
             return redirect()->back()
                 ->with('error', 'Wystąpił błąd podczas usuwania produktu: ' . $e->getMessage());
         }
     }
-
+    
     public function filterProducts(Request $request)
     {
-        // Pobierz parametry filtrowania
-        $selectedCategories = $request->input('categories', []);
-        $selectedBrands = $request->input('brands', []);
-        $priceMin = $request->input('price_min');
-        $priceMax = $request->input('price_max');
-        $sort = $request->input('sort');
-        $paginate = $request->input('per_page', $this->perPage);
-
-        $query = Product::query()->with(['category', 'brand']);
-
-        // Filtry kategorii
-        if (!empty($selectedCategories)) {
-            $query->whereIn('category_id', $selectedCategories);
+        $query = Product::query();
+        
+        // Apply category filter
+        if ($request->has('category_id') && $request->category_id) {
+            $query->where('category_id', $request->category_id);
         }
         
-        // Filtry marek
-        if (!empty($selectedBrands)) {
-            $query->whereIn('brand_id', $selectedBrands);
-        }
-
-        // Filtry zakresu cen
-        if (!empty($priceMin)) {
-            $query->where('price', '>=', $priceMin);
+        // Apply brand filter
+        if ($request->has('brand_id') && $request->brand_id) {
+            $query->where('brand_id', $request->brand_id);
         }
         
-        if (!empty($priceMax)) {
-            $query->where('price', '<=', $priceMax);
+        // Apply price range filter
+        if ($request->has('price_min') && $request->price_min) {
+            $query->where('price', '>=', $request->price_min);
         }
-
-        // Sortowanie
-        if (!empty($sort)) {
-            switch($sort) {
-                case 'price-asc':
-                    $query->orderBy('price', 'asc');
-                    break;
-                case 'price-desc':
-                    $query->orderBy('price', 'desc');
-                    break;
-                case 'name-asc':
-                    $query->orderBy('name', 'asc');
-                    break;
-                case 'name-desc':
-                    $query->orderBy('name', 'desc');
-                    break;
-                case 'newest':
-                    $query->orderBy('created_at', 'desc');
-                    break;
-                default:
-                    // Domyślnie sortuj według najnowszych
-                    $query->orderBy('created_at', 'desc');
-            }
-        } else {
-            // Domyślne sortowanie, jeśli nie podano parametru sort
-            $query->orderBy('created_at', 'desc');
-        }
-
-        // Paginacja wyników
-        $filteredProducts = $query->paginate($paginate);
-
-        // Obsłuż żądania AJAX
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true, 
-                'data' => $filteredProducts->items(),
-                'pagination' => [
-                    'current_page' => $filteredProducts->currentPage(),
-                    'last_page' => $filteredProducts->lastPage(),
-                    'per_page' => $filteredProducts->perPage(),
-                    'total' => $filteredProducts->total()
-                ]
-            ]);
-        }
-
-        // Pobranie wszystkich kategorii i marek do filtrów
-        $categories = Category::all();
-        $brands = Brand::all();
         
-        return view('frontend.categories.index', compact('filteredProducts', 'categories', 'brands', 'selectedCategories', 'selectedBrands', 'priceMin', 'priceMax', 'sort'));
+        if ($request->has('price_max') && $request->price_max) {
+            $query->where('price', '<=', $request->price_max);
+        }
+        
+        // Get the filtered products
+        $products = $query->paginate(12);
+        
+        return view('frontend.products.filtered', compact('products'));
     }
-}
+
+    public function search(Request $request)
+    {
+        $search = $request->input('search');
+        
+        $products = Product::where('name', 'like', "%{$search}%")
+            ->orWhere('description', 'like', "%{$search}%")
+            ->paginate(10);
+            
+        return view('frontend.products.search', compact('products', 'search'));
+    }
+} 

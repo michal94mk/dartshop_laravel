@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Frontend;
 
+use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use Illuminate\Http\Request;
 use App\Models\Product;
@@ -12,13 +13,13 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class HomeController extends Controller
 {
     public function index()
-{
-    $newestProducts = Product::orderBy('created_at', 'desc')
-        ->take(10)
-        ->get();
+    {
+        $newestProducts = Product::orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
 
-    return view('frontend.home', ['newestProducts' => $newestProducts]);
-}
+        return view('frontend.home', ['newestProducts' => $newestProducts]);
+    }
 
     public function indexNewestProductsForHomepage()
     {
@@ -61,8 +62,6 @@ class HomeController extends Controller
                 $query = $query->whereIn('brand_id', $filters['brands']);
             }
 
-
-
             $products = $query->with('category', 'brand')->paginate($paginate);
 
             return response()->json([
@@ -81,9 +80,6 @@ class HomeController extends Controller
         return view('frontend.categories.index', compact('products', 'categories', 'brands'));
     }
 
-
-
-
     public function about()
     {
         return view('home.about');
@@ -99,4 +95,4 @@ class HomeController extends Controller
         $product = Product::with(['category', 'brand'])->find($id);
         return view('frontend.product', compact('product'));
     }
-}
+} 

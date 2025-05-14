@@ -1,16 +1,17 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Models\Brand;
+use App\Http\Controllers\Controller;
 
-
-class BrandController extends Controller
+class BrandController extends BaseAdminController
 {
     public function index()
     {
-        $brands = Brand::paginate(10);
+        $perPage = $this->getPerPage();
+        $brands = Brand::paginate($perPage);
         
         // Check if request is for Tailwind view
         if (request()->has('tailwind')) {
@@ -79,4 +80,4 @@ class BrandController extends Controller
         return redirect()->route('admin.brands.index')
             ->with('success', 'Marka została pomyślnie usunięta.');
     }
-}
+} 

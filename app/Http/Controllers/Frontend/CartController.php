@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Frontend;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Cart;
@@ -174,4 +175,4 @@ class CartController extends Controller
 
         return redirect()->back()->with('success', 'Koszyk został opróżniony');
     }
-}
+} 

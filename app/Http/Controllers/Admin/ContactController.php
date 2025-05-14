@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Models\ContactMessage;
-use App\Http\Controllers\Admin\BaseAdminController;
 
 class ContactController extends BaseAdminController
 {
@@ -19,35 +18,6 @@ class ContactController extends BaseAdminController
         $messages = ContactMessage::orderBy('created_at', 'desc')->paginate($perPage);
         
         return view('admin.contact.index', compact('messages'));
-    }
-
-    /**
-     * Display contact form for frontend users.
-     */
-    public function showContactForm()
-    {
-        return view('frontend.contact');
-    }
-
-    /**
-     * Process the contact form submission.
-     */
-    public function submitContactForm(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'subject' => 'required|string|max:255',
-            'message' => 'required|string',
-        ]);
-
-        // Save contact message to database
-        ContactMessage::create($validated);
-        
-        // Optional: Send email notification
-        // Mail::to('admin@example.com')->send(new \App\Mail\ContactFormMail($validated));
-
-        return redirect()->back()->with('success', 'Wiadomość została wysłana. Skontaktujemy się z Tobą wkrótce.');
     }
 
     /**
@@ -93,4 +63,4 @@ class ContactController extends BaseAdminController
         return redirect()->route('admin.contact.index')
             ->with('success', 'Wiadomość została usunięta.');
     }
-}
+} 

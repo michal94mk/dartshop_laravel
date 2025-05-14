@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Http\Controllers\Admin\BaseAdminController;
 
 class UserController extends BaseAdminController
 {
@@ -46,4 +45,4 @@ class UserController extends BaseAdminController
         return redirect()->route('admin.users.index', $request->has('tailwind') ? ['tailwind' => 1] : [])
             ->with('success', 'User deleted successfully');
     }
-}
+} 

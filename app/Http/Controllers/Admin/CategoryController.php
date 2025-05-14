@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
-use App\Http\Controllers\Admin\BaseAdminController;
 
 class CategoryController extends BaseAdminController
 {
@@ -83,4 +82,4 @@ class CategoryController extends BaseAdminController
         return redirect()->route('admin.categories.index')
             ->with('success', 'Kategoria została pomyślnie usunięta.');
     }
-}
+} 

@@ -1,27 +1,20 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class PromotionController extends Controller
+class PromotionController extends BaseAdminController
 {
     /**
      * Display a listing of the resource for admin.
      */
     public function index()
     {
+        $perPage = $this->getPerPage();
         // Admin view of all promotions
         return view('admin.promotions.index');
-    }
-
-    /**
-     * Display promotions page for frontend users.
-     */
-    public function showPromotions()
-    {
-        // Frontend view for customers
-        return view('frontend.promotions');
     }
 
     /**
@@ -71,4 +64,4 @@ class PromotionController extends Controller
     {
         //
     }
-}
+} 
