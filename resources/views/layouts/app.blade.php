@@ -70,7 +70,7 @@
                                         </span>
                                     </button>
                                 </div>
-                                <div class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1" id="user-dropdown">
+                                <div class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1" id="user-dropdown">
                                     @if(Auth::user()->hasRole('admin'))
                                         <a href="{{ route('admin.categories.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Panel Administratora</a>
                                     @endif
@@ -104,7 +104,7 @@
             </div>
             
             <!-- Mobile menu -->
-            <div class="sm:hidden hidden" id="mobile-menu">
+            <div class="sm:hidden hidden z-40" id="mobile-menu">
                 <div class="pt-2 pb-3 space-y-1">
                     <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800' }} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">Home</a>
                     <a href="{{ route('frontend.categories.index') }}" class="{{ request()->routeIs('frontend.categories.index') || request()->routeIs('frontend.products.show') ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800' }} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">Kategorie</a>
