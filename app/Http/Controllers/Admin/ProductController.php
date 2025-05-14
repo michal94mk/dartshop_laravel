@@ -34,7 +34,7 @@ class ProductController extends BaseAdminController
         $query = Product::with(['category', 'brand']);
         
         // Wyszukiwanie przez metodę z BaseAdminController
-        $this->applySearch($query, $request, ['name', 'description', 'sku', 'price']);
+        $this->applySearch($query, $request, ['name', 'description']);
         
         $products = $query->paginate($perPage);
         

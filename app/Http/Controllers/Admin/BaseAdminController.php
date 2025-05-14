@@ -61,12 +61,33 @@ class BaseAdminController extends Controller
      */
     protected function applySearch(Builder $query, Request $request, array $searchFields): Builder
     {
-        if ($request->has('search') && !empty($request->search)) {
-            $search = $request->search;
+        if ($request->has('search') && !empty(trim($request->search))) {
+            $search = trim($request->search);
             
-            $query->where(function($q) use ($search, $searchFields) {
+            // Prepare search patterns for exact word matching
+            $exactTerms = [
+                strtolower($search), // Exact match for the entire field
+                strtolower($search) . ' %', // Match at the beginning
+                '% ' . strtolower($search) . ' %', // Match in the middle
+                '% ' . strtolower($search) // Match at the end
+            ];
+            
+            $query->where(function($q) use ($search, $searchFields, $exactTerms) {
                 foreach ($searchFields as $field) {
-                    $q->orWhere($field, 'like', "%{$search}%");
+                    // For each field, check against all exact matching patterns
+                    $q->orWhere(function($innerQ) use ($field, $exactTerms) {
+                        // Exact match for the entire field
+                        $innerQ->whereRaw("LOWER($field) = ?", [$exactTerms[0]]);
+                        
+                        // Match at the beginning
+                        $innerQ->orWhereRaw("LOWER($field) LIKE ?", [$exactTerms[1]]);
+                        
+                        // Match in the middle
+                        $innerQ->orWhereRaw("LOWER($field) LIKE ?", [$exactTerms[2]]);
+                        
+                        // Match at the end
+                        $innerQ->orWhereRaw("LOWER($field) LIKE ?", [$exactTerms[3]]);
+                    });
                 }
             });
         }
