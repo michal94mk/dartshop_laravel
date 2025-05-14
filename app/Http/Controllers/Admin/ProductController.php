@@ -58,6 +58,10 @@ class ProductController extends BaseAdminController
 
     /**
      * Store a newly created product in storage.
+     * 
+     * @param ProductRequest $request
+     * @return \Illuminate\Http\RedirectResponse
+     * @throws \Exception When image upload fails or database operation fails
      */
     public function store(ProductRequest $request)
     {
@@ -110,6 +114,11 @@ class ProductController extends BaseAdminController
 
     /**
      * Update the specified product in storage.
+     * 
+     * @param ProductRequest $request
+     * @param Product $product
+     * @return \Illuminate\Http\RedirectResponse
+     * @throws \Exception When image processing fails or database operation fails
      */
     public function update(ProductRequest $request, Product $product)
     {
@@ -146,6 +155,10 @@ class ProductController extends BaseAdminController
 
     /**
      * Remove the specified product from storage.
+     * 
+     * @param Product $product
+     * @return \Illuminate\Http\RedirectResponse
+     * @throws \Exception When image deletion fails or database operation fails
      */
     public function destroy(Product $product)
     {

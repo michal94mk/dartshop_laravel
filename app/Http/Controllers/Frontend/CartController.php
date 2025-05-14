@@ -11,9 +11,16 @@ use Illuminate\Pagination\Paginator;
 
 class CartController extends Controller
 {
+    /**
+     * Add a product to the shopping cart
+     *
+     * @param Request $request
+     * @param int $productId
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+     */
     public function addToCart(Request $request, $productId)
     {
-        // Find the product
+        // Validate product exists
         $product = Product::find($productId);
         if (!$product) {
             if ($request->ajax() || $request->wantsJson()) {
@@ -22,10 +29,9 @@ class CartController extends Controller
             return redirect()->back()->with('error', 'Product not found');
         }
 
-        // Get cart from session
         $cart = session()->get('cart', []);
 
-        // Add product to cart
+        // Increment quantity if product already in cart, otherwise add it
         if (isset($cart[$productId])) {
             $cart[$productId]['quantity']++;
         } else {
@@ -35,7 +41,7 @@ class CartController extends Controller
             ];
         }
 
-        // Calculate total quantity and total price
+        // Calculate cart totals
         $totalQuantity = 0;
         $totalPrice = 0;
         
@@ -44,11 +50,10 @@ class CartController extends Controller
             $totalPrice += $item['product']->price * $item['quantity'];
         }
 
-        // Save cart back to session
         session()->put('cart', $cart);
         session()->save();
 
-        // Respond based on request type
+        // Handle AJAX/JSON response
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true, 
@@ -59,10 +64,15 @@ class CartController extends Controller
             ]);
         }
 
-        // For regular HTTP requests
         return redirect()->back()->with('success', 'Product has been added to cart');
     }
 
+    /**
+     * Get current cart contents and totals as JSON response
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getCartContents(Request $request)
     {
         $cart = session()->get('cart', []);
@@ -82,6 +92,12 @@ class CartController extends Controller
         ]);
     }
 
+    /**
+     * Display the cart page with all items and totals
+     *
+     * @param Request $request
+     * @return \Illuminate\View\View
+     */
     public function cartView(Request $request)
     {
         $cart = session()->get('cart', []);
@@ -93,10 +109,18 @@ class CartController extends Controller
             $quantity += $item['quantity'];
         }
 
-        // Use cart.blade.php view from the correct path
         return view('frontend.cart.cart', compact('cart', 'total', 'quantity'));
     }
 
+    /**
+     * Custom pagination for collection items
+     * 
+     * @param mixed $items
+     * @param int $perPage
+     * @param int|null $page
+     * @param array $options
+     * @return LengthAwarePaginator
+     */
     protected function paginate($items, $perPage, $page, $options = [])
     {
         $items = $items instanceof Collection ? $items : Collection::make($items);
@@ -112,17 +136,26 @@ class CartController extends Controller
         );
     }
 
+    /**
+     * Remove one unit of a product from the cart or delete completely if last unit
+     *
+     * @param Request $request
+     * @param int $productId
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+     */
     public function deleteFromCart(Request $request, $productId)
     {
         $cart = session()->get('cart', []);
 
         if (array_key_exists($productId, $cart)) {
+            // Decrement quantity or remove if last item
             if ($cart[$productId]['quantity'] > 1) {
                 $cart[$productId]['quantity']--;
             } else {
                 unset($cart[$productId]);
             }
 
+            // Recalculate cart totals
             $totalQuantity = 0;
             $totalPrice = 0;
             
@@ -154,9 +187,14 @@ class CartController extends Controller
         return redirect()->back()->with('error', 'Product was not found in the cart');
     }
 
+    /**
+     * Remove all items from the cart
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+     */
     public function emptyCart(Request $request)
     {
-        // Remove cart from session
         session()->forget('cart');
         session()->save();
 

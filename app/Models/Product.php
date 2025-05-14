@@ -4,8 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\MessageBag;
 
 class Product extends Model
 {
@@ -18,16 +16,6 @@ class Product extends Model
         'weight' => 'decimal:2',
     ];
 
-    public static $rules = [
-        'name' => 'required|string|max:255',
-        'description' => 'required|string',
-        'price' => 'required|numeric|min:0.01',
-        'weight' => 'nullable|numeric|min:0.01',
-        'category_id' => 'integer|exists:categories,id',
-        'brand_id' => 'integer|exists:brands,id',
-        'image' => 'string|nullable',
-    ];
-
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -37,21 +25,17 @@ class Product extends Model
     {
         return $this->belongsTo(Brand::class);
     }
-
-    public function validate(array $data)
+    
+    public function carts()
     {
-        $validator = Validator::make($data, static::$rules);
-
-        return !$validator->fails();
+        return $this->hasMany(Cart::class);
     }
 
-    // public function getImageUrlAttribute()
-    // {
-    //     return asset('storage/app/public/images/' . $this->image);
-    // }
-
-    public function getErrors()
+    public function getImageUrlAttribute()
     {
-        return $this->errors ?? new MessageBag();
+        if (!$this->image) {
+            return asset('images/default-product.jpg');
+        }
+        return asset('storage/images/' . $this->image);
     }
 }

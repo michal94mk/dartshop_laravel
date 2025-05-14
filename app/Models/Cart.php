@@ -13,10 +13,32 @@ class Cart extends Model
     protected $fillable = [
         'product_id',
         'quantity',
+        'session_id',
+        'user_id'
     ];
 
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public static function getCurrentSessionId()
+    {
+        return Session::getId();
+    }
+
+    public static function getCartBySession($sessionId)
+    {
+        return self::where('session_id', $sessionId)->get();
+    }
+
+    public static function getCartByUser($userId)
+    {
+        return self::where('user_id', $userId)->get();
     }
 }
