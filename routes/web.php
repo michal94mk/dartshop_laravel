@@ -5,7 +5,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
-use App\Models\Role;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CartController;
@@ -16,6 +15,8 @@ use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Frontend\CartController as FrontendCartController;
 use App\Http\Controllers\Frontend\CategoryController as FrontendCategoryController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\PermissionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -67,7 +68,7 @@ Route::middleware(['auth','verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware(['auth','verified', RoleMiddleware::class.':'.Role::ROLE_ADMIN])->group(function () {
+Route::middleware(['auth','verified', RoleMiddleware::class.':admin'])->group(function () {
     Route::get('/admin/categories', [CategoryController::class, 'index'])->name('admin.categories.index');
     Route::get('/admin/categories/create', [CategoryController::class, 'create'])->name('admin.categories.create');
     Route::post('/admin/categories', [CategoryController::class, 'store'])->name('admin.categories.store');
@@ -108,6 +109,23 @@ Route::middleware(['auth','verified', RoleMiddleware::class.':'.Role::ROLE_ADMIN
     
     // Admin contact routes
     Route::get('/admin/contact', [ContactController::class, 'index'])->name('admin.contact.index');
+
+    // Roles and Permissions routes
+    Route::get('/admin/roles', [RoleController::class, 'index'])->name('admin.roles.index');
+    Route::get('/admin/roles/create', [RoleController::class, 'create'])->name('admin.roles.create');
+    Route::post('/admin/roles', [RoleController::class, 'store'])->name('admin.roles.store');
+    Route::get('/admin/roles/{role}', [RoleController::class, 'show'])->name('admin.roles.show');
+    Route::get('/admin/roles/{role}/edit', [RoleController::class, 'edit'])->name('admin.roles.edit');
+    Route::put('/admin/roles/{role}', [RoleController::class, 'update'])->name('admin.roles.update');
+    Route::delete('/admin/roles/{role}', [RoleController::class, 'destroy'])->name('admin.roles.destroy');
+    
+    Route::get('/admin/permissions', [PermissionController::class, 'index'])->name('admin.permissions.index');
+    Route::get('/admin/permissions/create', [PermissionController::class, 'create'])->name('admin.permissions.create');
+    Route::post('/admin/permissions', [PermissionController::class, 'store'])->name('admin.permissions.store');
+    Route::get('/admin/permissions/{permission}', [PermissionController::class, 'show'])->name('admin.permissions.show');
+    Route::get('/admin/permissions/{permission}/edit', [PermissionController::class, 'edit'])->name('admin.permissions.edit');
+    Route::put('/admin/permissions/{permission}', [PermissionController::class, 'update'])->name('admin.permissions.update');
+    Route::delete('/admin/permissions/{permission}', [PermissionController::class, 'destroy'])->name('admin.permissions.destroy');
 });
 
 require __DIR__.'/auth.php';

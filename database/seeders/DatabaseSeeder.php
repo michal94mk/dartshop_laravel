@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,  // Categories next (no dependencies)
             BrandSeeder::class,     // Brands next (no dependencies)
             ProductSeeder::class,   // Products last (depends on categories and brands)
+            RolesAndPermissionsSeeder::class,
         ]);
     }
 }

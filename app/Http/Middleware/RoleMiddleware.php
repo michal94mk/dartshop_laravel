@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Access\AuthorizationException;
-use App\Models\Role;
 
 class RoleMiddleware
 {
@@ -27,11 +26,20 @@ class RoleMiddleware
             throw new AuthenticationException('Unauthenticated.');
         }
 
-        if (!in_array(Auth::user()->role, $roles)) {
+        // Check if user has any of the requested roles
+        $hasRole = false;
+        foreach ($roles as $role) {
+            if (Auth::user()->hasRole($role)) {
+                $hasRole = true;
+                break;
+            }
+        }
+
+        if (!$hasRole) {
             throw new AuthorizationException('Unauthorized. You do not have access to this page.');
         }
 
-        view()->share('is_admin', Auth::user()->role === Role::ROLE_ADMIN);
+        view()->share('is_admin', Auth::user()->hasRole('admin'));
 
         return $next($request);
     }
