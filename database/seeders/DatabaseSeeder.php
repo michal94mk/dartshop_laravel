@@ -14,11 +14,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
-
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        // Important to maintain the correct order due to foreign key constraints
+        $this->call([
+            UserSeeder::class,      // Users first (no dependencies)
+            CategorySeeder::class,  // Categories next (no dependencies)
+            BrandSeeder::class,     // Brands next (no dependencies)
+            ProductSeeder::class,   // Products last (depends on categories and brands)
+        ]);
     }
 }
