@@ -92,30 +92,23 @@
             <!-- Image -->
             <div>
                 <label for="image" class="block text-sm font-medium text-gray-700">Zdjęcie</label>
-                <div class="mt-1 flex items-center">
-                    @if(isset($product) && $product->image)
-                        <div class="mr-4 flex-shrink-0">
-                            <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="h-20 w-20 object-cover rounded-md">
-                        </div>
-                    @endif
-                    <div class="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md flex-1">
-                        <div class="space-y-1 text-center">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                            <div class="flex text-sm text-gray-600">
-                                <label for="image" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                                    <span>Dodaj zdjęcie</span>
-                                    <input id="image" name="image" type="file" class="sr-only" accept="image/*">
-                                </label>
-                                <p class="pl-1">lub przeciągnij i upuść</p>
-                            </div>
-                            <p class="text-xs text-gray-500">
-                                PNG, JPG, GIF do 2MB
-                            </p>
-                        </div>
+                
+                @if(isset($product) && $product->image)
+                    <div class="mt-2 mb-4">
+                        <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="h-32 w-32 object-cover rounded-md border border-gray-300">
                     </div>
+                @endif
+                
+                <div class="mt-1">
+                    <input type="file" name="image" id="image" 
+                           class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                           accept="image/*">
                 </div>
+                
+                <p class="mt-1 text-sm text-gray-500">
+                    PNG, JPG, GIF do 2MB
+                </p>
+                
                 @error('image')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
@@ -132,40 +125,4 @@
         </form>
     </div>
 </div>
-@endsection
-
-@push('scripts')
-<script>
-    // Image preview
-    document.getElementById('image').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                // If there's already an image, replace it
-                let existingImg = document.querySelector('.mr-4.flex-shrink-0 img');
-                
-                if (existingImg) {
-                    existingImg.src = e.target.result;
-                } else {
-                    // Create new image container
-                    const imgContainer = document.createElement('div');
-                    imgContainer.className = 'mr-4 flex-shrink-0';
-                    
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.className = 'h-20 w-20 object-cover rounded-md';
-                    img.alt = 'Preview';
-                    
-                    imgContainer.appendChild(img);
-                    
-                    // Add before the upload box
-                    const uploadBox = document.querySelector('.flex.justify-center');
-                    uploadBox.parentNode.insertBefore(imgContainer, uploadBox);
-                }
-            }
-            reader.readAsDataURL(file);
-        }
-    });
-</script>
-@endpush 
+@endsection 

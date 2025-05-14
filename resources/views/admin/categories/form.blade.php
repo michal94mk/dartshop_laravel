@@ -29,16 +29,6 @@
                 @enderror
             </div>
 
-            <!-- Description (optional) -->
-            <div>
-                <label for="description" class="block text-sm font-medium text-gray-700">Opis (opcjonalnie)</label>
-                <textarea name="description" id="description" rows="3" 
-                          class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">{{ old('description', $category->description ?? '') }}</textarea>
-                @error('description')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
             <div class="flex justify-end pt-5">
                 <a href="{{ route('admin.categories.index') }}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     Anuluj

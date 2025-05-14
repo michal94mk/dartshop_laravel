@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -43,7 +45,7 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0.01',
@@ -51,18 +53,50 @@ class ProductController extends Controller
             'brand_id' => 'required|exists:brands,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
-
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $path = $image->storeAs('public/images', $imageName);
-            $data['image'] = Storage::url($path);
+        
+        try {
+            // Create product without image first
+            $product = new Product();
+            $product->name = $validated['name'];
+            $product->description = $validated['description'];
+            $product->price = $validated['price'];
+            $product->category_id = $validated['category_id'];
+            $product->brand_id = $validated['brand_id'];
+            
+            // Handle image upload if present
+            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+                $image = $request->file('image');
+                $filename = Str::slug($product->name) . '-' . time() . '.' . $image->getClientOriginalExtension();
+                
+                // Log debug info
+                Log::info('Uploading image', [
+                    'original_name' => $image->getClientOriginalName(),
+                    'mime_type' => $image->getMimeType(),
+                    'size' => $image->getSize(),
+                    'destination' => 'public/images/' . $filename
+                ]);
+                
+                // Store with direct method instead of helper
+                $image->move(public_path('storage/images'), $filename);
+                
+                // Set the path directly for DB
+                $product->image = 'storage/images/' . $filename;
+            }
+            
+            $product->save();
+            
+            return redirect()->route('admin.products.index')
+                ->with('success', 'Produkt został dodany pomyślnie.');
+        } catch (\Exception $e) {
+            Log::error('Error creating product', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Wystąpił błąd podczas dodawania produktu: ' . $e->getMessage());
         }
-
-        Product::create($data);
-
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Produkt został dodany pomyślnie.');
     }
 
     public function show(Product $product)
@@ -90,7 +124,7 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
-        $data = $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0.01',
@@ -98,36 +132,83 @@ class ProductController extends Controller
             'brand_id' => 'required|exists:brands,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
-
-        if ($request->hasFile('image')) {
-            // Delete old image if exists
-            if ($product->image && Storage::exists(str_replace('/storage', 'public', $product->image))) {
-                Storage::delete(str_replace('/storage', 'public', $product->image));
+        
+        try {
+            // Update product properties
+            $product->name = $validated['name'];
+            $product->description = $validated['description'];
+            $product->price = $validated['price'];
+            $product->category_id = $validated['category_id'];
+            $product->brand_id = $validated['brand_id'];
+            
+            // Handle image upload if present
+            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+                // Delete the old image if it exists
+                if ($product->image) {
+                    $oldImagePath = public_path($product->image);
+                    if (file_exists($oldImagePath)) {
+                        @unlink($oldImagePath);
+                    }
+                }
+                
+                $image = $request->file('image');
+                $filename = Str::slug($product->name) . '-' . time() . '.' . $image->getClientOriginalExtension();
+                
+                // Log debug info
+                Log::info('Updating image', [
+                    'original_name' => $image->getClientOriginalName(),
+                    'mime_type' => $image->getMimeType(),
+                    'size' => $image->getSize(),
+                    'destination' => 'public/images/' . $filename
+                ]);
+                
+                // Store with direct method
+                $image->move(public_path('storage/images'), $filename);
+                
+                // Make sure path is public accessible
+                $product->image = 'storage/images/' . $filename;
             }
             
-            $image = $request->file('image');
-            $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $path = $image->storeAs('public/images', $imageName);
-            $data['image'] = Storage::url($path);
+            $product->save();
+            
+            return redirect()->route('admin.products.index')
+                ->with('success', 'Produkt został zaktualizowany pomyślnie.');
+        } catch (\Exception $e) {
+            Log::error('Error updating product', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Wystąpił błąd podczas aktualizacji produktu: ' . $e->getMessage());
         }
-
-        $product->update($data);
-
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Produkt został zaktualizowany pomyślnie.');
     }
 
     public function destroy(Product $product)
     {
-        // Delete image if exists
-        if ($product->image && Storage::exists(str_replace('/storage', 'public', $product->image))) {
-            Storage::delete(str_replace('/storage', 'public', $product->image));
+        try {
+            // Delete the image if it exists
+            if ($product->image) {
+                $imagePath = public_path($product->image);
+                if (file_exists($imagePath)) {
+                    @unlink($imagePath);
+                }
+            }
+            
+            $product->delete();
+            
+            return redirect()->route('admin.products.index')
+                ->with('success', 'Produkt został usunięty.');
+        } catch (\Exception $e) {
+            Log::error('Error deleting product', [
+                'error' => $e->getMessage(),
+                'product_id' => $product->id
+            ]);
+            
+            return redirect()->back()
+                ->with('error', 'Wystąpił błąd podczas usuwania produktu: ' . $e->getMessage());
         }
-        
-        $product->delete();
-
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Produkt został usunięty.');
     }
 
     public function filterProducts(Request $request)

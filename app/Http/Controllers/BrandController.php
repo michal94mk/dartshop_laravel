@@ -38,8 +38,8 @@ class BrandController extends Controller
 
         Brand::create($data);
 
-        return redirect()->route('admin.brands.index', $request->has('tailwind') ? ['tailwind' => 1] : [])
-            ->with('success', 'Brand has been added.');
+        return redirect()->route('admin.brands.index')
+            ->with('success', 'Marka została pomyślnie dodana.');
     }
 
     public function edit($id)
@@ -64,19 +64,19 @@ class BrandController extends Controller
 
         $brand->update($data);
 
-        return redirect()->route('admin.brands.index', $request->has('tailwind') ? ['tailwind' => 1] : [])
-            ->with('success', 'Brand has been updated.');
+        return redirect()->route('admin.brands.index')
+            ->with('success', 'Marka została pomyślnie zaktualizowana.');
     }
 
     public function destroy(Request $request, Brand $brand)
     {
         if ($brand->products->count() > 0) {
-            return back()->with('error', 'Cannot delete the brand because it has associated products.');
+            return back()->with('error', 'Nie można usunąć marki, ponieważ ma powiązane produkty.');
         }
 
         $brand->delete();
 
-        return redirect()->route('admin.brands.index', $request->has('tailwind') ? ['tailwind' => 1] : [])
-            ->with('success', 'Brand deleted successfully.');
+        return redirect()->route('admin.brands.index')
+            ->with('success', 'Marka została pomyślnie usunięta.');
     }
 }
