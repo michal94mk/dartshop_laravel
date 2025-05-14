@@ -31,7 +31,7 @@ Route::get('/tailwind', function () {
 })->name('tailwind.home');
 Route::get('/categories', [HomeController::class, 'indexForRegularUsers'])->name('frontend.categories.index');
 Route::get('/products/{id}', [HomeController::class, 'showProduct'])->name('frontend.products.show');
-Route::post('/filter/products', [ProductController::class, 'filterProducts'])->name('filter.products');
+Route::get('/filter/products', [ProductController::class, 'filterProducts'])->name('filter.products');
 
 // Promotions routes
 Route::get('/promotions', [PromotionController::class, 'showPromotions'])->name('frontend.promotions');

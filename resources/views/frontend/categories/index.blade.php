@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Kategorie produktów')
+@section('title', 'Produkty')
 
 @section('content')
 <div class="bg-white">
@@ -43,8 +43,54 @@
                             </button>
                         </div>
 
-                        <!-- Filters -->
-                        <form class="mt-4 border-t border-gray-200">
+                        <!-- Filters - Mobile -->
+                        <form action="{{ route('filter.products') }}" method="GET" class="mt-4 border-t border-gray-200">
+                            <!-- Sortowanie - Mobile -->
+                            <div class="p-4 border-t border-gray-200">
+                                <h3 class="font-medium text-gray-900">Sortowanie</h3>
+                                <div class="pt-4">
+                                    <select name="sort" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                        <option value="newest" {{ isset($sort) && $sort == 'newest' ? 'selected' : '' }}>Najnowsze</option>
+                                        <option value="price-asc" {{ isset($sort) && $sort == 'price-asc' ? 'selected' : '' }}>Cena: rosnąco</option>
+                                        <option value="price-desc" {{ isset($sort) && $sort == 'price-desc' ? 'selected' : '' }}>Cena: malejąco</option>
+                                        <option value="name-asc" {{ isset($sort) && $sort == 'name-asc' ? 'selected' : '' }}>Nazwa: A-Z</option>
+                                        <option value="name-desc" {{ isset($sort) && $sort == 'name-desc' ? 'selected' : '' }}>Nazwa: Z-A</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Zakres cen - Mobile -->
+                            <div class="p-4 border-t border-gray-200">
+                                <h3 class="font-medium text-gray-900">Zakres cenowy</h3>
+                                <div class="pt-4 grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="mobile-price-min" class="sr-only">Cena od</label>
+                                        <input 
+                                            type="number" 
+                                            name="price_min" 
+                                            id="mobile-price-min" 
+                                            placeholder="Od" 
+                                            min="0" 
+                                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                            value="{{ $priceMin ?? '' }}"
+                                        >
+                                    </div>
+                                    <div>
+                                        <label for="mobile-price-max" class="sr-only">Cena do</label>
+                                        <input 
+                                            type="number" 
+                                            name="price_max" 
+                                            id="mobile-price-max" 
+                                            placeholder="Do" 
+                                            min="0" 
+                                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                            value="{{ $priceMax ?? '' }}"
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Kategorie - Mobile -->
                             <div class="p-4 border-t border-gray-200">
                                 <h3 class="font-medium text-gray-900">Kategorie</h3>
                                 <div class="pt-6" id="filter-section-mobile">
@@ -55,7 +101,8 @@
                                                        name="categories[]" 
                                                        value="{{ $category->id }}" 
                                                        type="checkbox" 
-                                                       class="h-4 w-4 border-gray-300 rounded text-indigo-600 focus:ring-indigo-500">
+                                                       class="h-4 w-4 border-gray-300 rounded text-indigo-600 focus:ring-indigo-500"
+                                                       {{ isset($selectedCategories) && in_array($category->id, $selectedCategories) ? 'checked' : '' }}>
                                                 <label for="mobile-category-{{ $category->id }}" class="ml-3 min-w-0 flex-1 text-gray-500">
                                                     {{ $category->name }}
                                                 </label>
@@ -65,6 +112,7 @@
                                 </div>
                             </div>
                             
+                            <!-- Marki - Mobile -->
                             <div class="p-4 border-t border-gray-200">
                                 <h3 class="font-medium text-gray-900">Marki</h3>
                                 <div class="pt-6" id="filter-section-mobile-1">
@@ -75,7 +123,8 @@
                                                        name="brands[]" 
                                                        value="{{ $brand->id }}" 
                                                        type="checkbox" 
-                                                       class="h-4 w-4 border-gray-300 rounded text-indigo-600 focus:ring-indigo-500">
+                                                       class="h-4 w-4 border-gray-300 rounded text-indigo-600 focus:ring-indigo-500"
+                                                       {{ isset($selectedBrands) && in_array($brand->id, $selectedBrands) ? 'checked' : '' }}>
                                                 <label for="mobile-brand-{{ $brand->id }}" class="ml-3 min-w-0 flex-1 text-gray-500">
                                                     {{ $brand->name }}
                                                 </label>
@@ -85,10 +134,14 @@
                                 </div>
                             </div>
                             
-                            <div class="p-4">
-                                <button type="submit" class="w-full bg-indigo-600 border border-transparent rounded-md py-2 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                    Filtruj
+                            <!-- Przyciski akcji - Mobile -->
+                            <div class="p-4 flex space-x-4">
+                                <button type="submit" class="flex-1 bg-indigo-600 border border-transparent rounded-md py-2 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    Zastosuj
                                 </button>
+                                <a href="{{ route('frontend.categories.index') }}" class="flex-1 bg-gray-200 border border-transparent rounded-md py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 text-center">
+                                    Wyczyść
+                                </a>
                             </div>
                         </form>
                     </div>
@@ -97,8 +150,58 @@
 
             <!-- Filters - Desktop -->
             <div class="hidden lg:block">
-                <form class="divide-y divide-gray-200 space-y-10">
+                <form action="{{ route('filter.products') }}" method="GET" class="divide-y divide-gray-200 space-y-10">
+                    <!-- Sortowanie - Desktop -->
                     <div>
+                        <fieldset>
+                            <legend class="block text-sm font-medium text-gray-900">Sortowanie</legend>
+                            <div class="pt-4">
+                                <select name="sort" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                    <option value="newest" {{ isset($sort) && $sort == 'newest' ? 'selected' : '' }}>Najnowsze</option>
+                                    <option value="price-asc" {{ isset($sort) && $sort == 'price-asc' ? 'selected' : '' }}>Cena: rosnąco</option>
+                                    <option value="price-desc" {{ isset($sort) && $sort == 'price-desc' ? 'selected' : '' }}>Cena: malejąco</option>
+                                    <option value="name-asc" {{ isset($sort) && $sort == 'name-asc' ? 'selected' : '' }}>Nazwa: A-Z</option>
+                                    <option value="name-desc" {{ isset($sort) && $sort == 'name-desc' ? 'selected' : '' }}>Nazwa: Z-A</option>
+                                </select>
+                            </div>
+                        </fieldset>
+                    </div>
+                    
+                    <!-- Zakres cen - Desktop -->
+                    <div class="pt-10">
+                        <fieldset>
+                            <legend class="block text-sm font-medium text-gray-900">Zakres cenowy</legend>
+                            <div class="pt-4 grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="price-min" class="sr-only">Cena od</label>
+                                    <input 
+                                        type="number" 
+                                        name="price_min" 
+                                        id="price-min" 
+                                        placeholder="Od" 
+                                        min="0" 
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                        value="{{ $priceMin ?? '' }}"
+                                    >
+                                </div>
+                                <div>
+                                    <label for="price-max" class="sr-only">Cena do</label>
+                                    <input 
+                                        type="number" 
+                                        name="price_max" 
+                                        id="price-max" 
+                                        placeholder="Do" 
+                                        min="0" 
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                        value="{{ $priceMax ?? '' }}"
+                                    >
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    
+                    <!-- Kategorie - Desktop -->
+                    <div class="pt-10">
                         <fieldset>
                             <legend class="block text-sm font-medium text-gray-900">Kategorie</legend>
                             <div class="pt-6 space-y-3">
@@ -108,7 +211,8 @@
                                                name="categories[]" 
                                                value="{{ $category->id }}" 
                                                type="checkbox" 
-                                               class="h-4 w-4 border-gray-300 rounded text-indigo-600 focus:ring-indigo-500">
+                                               class="h-4 w-4 border-gray-300 rounded text-indigo-600 focus:ring-indigo-500"
+                                               {{ isset($selectedCategories) && in_array($category->id, $selectedCategories) ? 'checked' : '' }}>
                                         <label for="category-{{ $category->id }}" class="ml-3 text-sm text-gray-600">
                                             {{ $category->name }}
                                         </label>
@@ -118,6 +222,7 @@
                         </fieldset>
                     </div>
                     
+                    <!-- Marki - Desktop -->
                     <div class="pt-10">
                         <fieldset>
                             <legend class="block text-sm font-medium text-gray-900">Marki</legend>
@@ -128,7 +233,8 @@
                                                name="brands[]" 
                                                value="{{ $brand->id }}" 
                                                type="checkbox" 
-                                               class="h-4 w-4 border-gray-300 rounded text-indigo-600 focus:ring-indigo-500">
+                                               class="h-4 w-4 border-gray-300 rounded text-indigo-600 focus:ring-indigo-500"
+                                               {{ isset($selectedBrands) && in_array($brand->id, $selectedBrands) ? 'checked' : '' }}>
                                         <label for="brand-{{ $brand->id }}" class="ml-3 text-sm text-gray-600">
                                             {{ $brand->name }}
                                         </label>
@@ -138,10 +244,14 @@
                         </fieldset>
                     </div>
                     
-                    <div class="pt-6">
-                        <button type="submit" class="w-full bg-indigo-600 border border-transparent rounded-md py-2 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            Filtruj
+                    <!-- Przyciski akcji - Desktop -->
+                    <div class="pt-10 flex space-x-4">
+                        <button type="submit" class="flex-1 bg-indigo-600 border border-transparent rounded-md py-2 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Zastosuj filtry
                         </button>
+                        <a href="{{ route('frontend.categories.index') }}" class="flex-1 bg-gray-200 border border-transparent rounded-md py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 text-center">
+                            Wyczyść filtry
+                        </a>
                     </div>
                 </form>
             </div>
@@ -149,7 +259,9 @@
             <!-- Product grid -->
             <div class="mt-6 lg:mt-0 lg:col-span-4">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-medium text-gray-900">{{ isset($filteredProducts) ? count($filteredProducts) : count($products) }} produktów</h2>
+                    <h2 class="text-xl font-medium text-gray-900">
+                        {{ isset($filteredProducts) ? $filteredProducts->total() : (isset($products) ? $products->total() : 0) }} produktów
+                    </h2>
                     
                     <!-- Mobile filter button -->
                     <button type="button" class="inline-flex items-center lg:hidden" @click="open = true">
@@ -182,43 +294,17 @@
                         </div>
                     @endif
                 </div>
+                
+                <!-- Pagination -->
+                <div class="mt-8">
+                    @if(isset($filteredProducts) && $filteredProducts->lastPage() > 1)
+                        {{ $filteredProducts->appends(request()->query())->links() }}
+                    @elseif(isset($products) && $products->lastPage() > 1)
+                        {{ $products->links() }}
+                    @endif
+                </div>
             </div>
         </div>
     </div>
 </div>
-@endsection
-
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Filter form submission with AJAX
-        const filterForms = document.querySelectorAll('form');
-        
-        filterForms.forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(form);
-                
-                fetch('{{ route("filter.products") }}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'Accept': 'application/json',
-                    },
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Refresh with new data
-                        window.location.reload();
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-            });
-        });
-    });
-</script>
-@endpush 
+@endsection 

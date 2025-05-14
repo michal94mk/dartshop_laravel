@@ -213,33 +213,83 @@ class ProductController extends Controller
 
     public function filterProducts(Request $request)
     {
+        // Pobierz parametry filtrowania
         $selectedCategories = $request->input('categories', []);
         $selectedBrands = $request->input('brands', []);
+        $priceMin = $request->input('price_min');
+        $priceMax = $request->input('price_max');
+        $sort = $request->input('sort');
+        $paginate = $request->input('paginate', 9);
 
-        $query = Product::query();
+        $query = Product::query()->with(['category', 'brand']);
 
+        // Filtry kategorii
         if (!empty($selectedCategories)) {
             $query->whereIn('category_id', $selectedCategories);
         }
         
+        // Filtry marek
         if (!empty($selectedBrands)) {
             $query->whereIn('brand_id', $selectedBrands);
         }
 
-        $filteredProducts = $query->get();
-
-        if ($request->ajax()) {
-            return response()->json(['success' => true, 'filteredProducts' => $filteredProducts]);
+        // Filtry zakresu cen
+        if (!empty($priceMin)) {
+            $query->where('price', '>=', $priceMin);
+        }
+        
+        if (!empty($priceMax)) {
+            $query->where('price', '<=', $priceMax);
         }
 
+        // Sortowanie
+        if (!empty($sort)) {
+            switch($sort) {
+                case 'price-asc':
+                    $query->orderBy('price', 'asc');
+                    break;
+                case 'price-desc':
+                    $query->orderBy('price', 'desc');
+                    break;
+                case 'name-asc':
+                    $query->orderBy('name', 'asc');
+                    break;
+                case 'name-desc':
+                    $query->orderBy('name', 'desc');
+                    break;
+                case 'newest':
+                    $query->orderBy('created_at', 'desc');
+                    break;
+                default:
+                    // Domyślnie sortuj według najnowszych
+                    $query->orderBy('created_at', 'desc');
+            }
+        } else {
+            // Domyślne sortowanie, jeśli nie podano parametru sort
+            $query->orderBy('created_at', 'desc');
+        }
+
+        // Paginacja wyników
+        $filteredProducts = $query->paginate($paginate);
+
+        // Obsłuż żądania AJAX
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true, 
+                'data' => $filteredProducts->items(),
+                'pagination' => [
+                    'current_page' => $filteredProducts->currentPage(),
+                    'last_page' => $filteredProducts->lastPage(),
+                    'per_page' => $filteredProducts->perPage(),
+                    'total' => $filteredProducts->total()
+                ]
+            ]);
+        }
+
+        // Pobranie wszystkich kategorii i marek do filtrów
         $categories = Category::all();
         $brands = Brand::all();
         
-        // Check if request is for Tailwind view
-        if (request()->has('tailwind')) {
-            return view('frontend.categories.index-tailwind', compact('filteredProducts', 'categories', 'brands'));
-        }
-
-        return view('frontend.categories.index', compact('filteredProducts'));
+        return view('frontend.categories.index', compact('filteredProducts', 'categories', 'brands', 'selectedCategories', 'selectedBrands', 'priceMin', 'priceMax', 'sort'));
     }
 }
