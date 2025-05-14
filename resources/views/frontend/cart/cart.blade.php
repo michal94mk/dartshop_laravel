@@ -121,6 +121,15 @@
                                         </a>
                                     </p>
                                 </div>
+                                
+                                <div class="mt-4">
+                                    <form action="{{ route('cart.empty') }}" method="post" class="empty-cart-form">
+                                        @csrf
+                                        <button type="submit" class="w-full bg-red-600 border border-transparent rounded-md py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                            Opróżnij koszyk
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -174,6 +183,34 @@
                 .catch(error => console.error('Error:', error));
             });
         });
+        
+        // Handle empty cart form with AJAX
+        const emptyCartForm = document.querySelector('.empty-cart-form');
+        if (emptyCartForm) {
+            emptyCartForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (confirm('Czy na pewno chcesz opróżnić koszyk?')) {
+                    const formData = new FormData(emptyCartForm);
+                    const url = emptyCartForm.getAttribute('action');
+                    
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json',
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Refresh page to update cart
+                        window.location.reload();
+                    })
+                    .catch(error => console.error('Error:', error));
+                }
+            });
+        }
     });
 </script>
 @endpush 

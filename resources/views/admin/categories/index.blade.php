@@ -13,6 +13,17 @@
         </div>
 
         @if($categories->count() > 0)
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <p class="text-sm text-gray-600">
+                        Wyświetlanie {{ $categories->firstItem() }}-{{ $categories->lastItem() }} z {{ $categories->total() }} kategorii
+                    </p>
+                </div>
+                <div>
+                    @include('components.per-page-selector')
+                </div>
+            </div>
+            
             <div class="overflow-hidden overflow-x-auto rounded-lg shadow">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -57,7 +68,7 @@
             </div>
             
             <div class="mt-4">
-                {{ $categories->links() }}
+                {{ $categories->appends(request()->except('page'))->links() }}
             </div>
         @else
             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-4">

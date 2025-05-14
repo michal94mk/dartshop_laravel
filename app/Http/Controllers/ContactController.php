@@ -4,16 +4,21 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use App\Models\ContactMessage;
+use App\Http\Controllers\Admin\BaseAdminController;
 
-class ContactController extends Controller
+class ContactController extends BaseAdminController
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        // Admin view of contact messages
-        return view('admin.contact.index');
+        // Admin view of contact messages with pagination
+        $perPage = $this->getPerPage();
+        $messages = ContactMessage::orderBy('created_at', 'desc')->paginate($perPage);
+        
+        return view('admin.contact.index', compact('messages'));
     }
 
     /**
@@ -36,57 +41,56 @@ class ContactController extends Controller
             'message' => 'required|string',
         ]);
 
-        // Process form submission (e.g., save to database, send email)
+        // Save contact message to database
+        ContactMessage::create($validated);
+        
+        // Optional: Send email notification
         // Mail::to('admin@example.com')->send(new \App\Mail\ContactFormMail($validated));
 
         return redirect()->back()->with('success', 'Wiadomość została wysłana. Skontaktujemy się z Tobą wkrótce.');
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('admin.contact.create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(ContactMessage $message)
     {
-        //
+        // Mark message as read if unread
+        if ($message->status === 'unread') {
+            $message->update(['status' => 'read']);
+        }
+        
+        return response()->json($message);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Update the specified resource with a reply.
      */
-    public function edit(string $id)
+    public function reply(Request $request, ContactMessage $message)
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
+        $validated = $request->validate([
+            'reply' => 'required|string',
+        ]);
+        
+        $message->update([
+            'reply' => $validated['reply'],
+            'status' => 'replied'
+        ]);
+        
+        // Optional: Send reply email to the user
+        // Mail::to($message->email)->send(new \App\Mail\ContactReplyMail($message));
+        
+        return redirect()->back()->with('success', 'Odpowiedź została wysłana.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(ContactMessage $message)
     {
-        //
+        $message->delete();
+        
+        return redirect()->route('admin.contact.index')
+            ->with('success', 'Wiadomość została usunięta.');
     }
 }

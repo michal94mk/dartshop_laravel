@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Http\Controllers\Admin\BaseAdminController;
 
-class UserController extends Controller
+class UserController extends BaseAdminController
 {
     public function index()
     {
-        $users = User::paginate(10);
+        $perPage = $this->getPerPage();
+        $users = User::paginate($perPage);
         
         // Check if request is for Tailwind view
         if (request()->has('tailwind')) {

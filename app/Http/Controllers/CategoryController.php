@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
+use App\Http\Controllers\Admin\BaseAdminController;
 
-
-class CategoryController extends Controller
+class CategoryController extends BaseAdminController
 {
     public function index()
     {
-        $categories = Category::with('products')->paginate(10);
+        $perPage = $this->getPerPage();
+        $categories = Category::with('products')->paginate($perPage);
         
         // Check if request is for Tailwind view
         if (request()->has('tailwind')) {

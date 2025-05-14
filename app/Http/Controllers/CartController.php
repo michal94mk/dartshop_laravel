@@ -155,4 +155,23 @@ class CartController extends Controller
 
         return redirect()->back()->with('error', 'Produkt nie został znaleziony w koszyku');
     }
+
+    public function emptyCart(Request $request)
+    {
+        // Usunięcie koszyka z sesji
+        session()->forget('cart');
+        session()->save();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Koszyk został opróżniony',
+                'cart' => [],
+                'total_quantity' => 0,
+                'total_price' => '0.00'
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Koszyk został opróżniony');
+    }
 }

@@ -9,12 +9,14 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Admin\BaseAdminController;
 
-class ProductController extends Controller
+class ProductController extends BaseAdminController
 {
     public function index()
     {
-        $products = Product::with(['category', 'brand'])->paginate(10);
+        $perPage = $this->getPerPage();
+        $products = Product::with(['category', 'brand'])->paginate($perPage);
         
         // Check if request is for Tailwind view
         if (request()->has('tailwind')) {
@@ -223,7 +225,7 @@ class ProductController extends Controller
         $priceMin = $request->input('price_min');
         $priceMax = $request->input('price_max');
         $sort = $request->input('sort');
-        $paginate = $request->input('paginate', 9);
+        $paginate = $request->input('per_page', $this->perPage);
 
         $query = Product::query()->with(['category', 'brand']);
 

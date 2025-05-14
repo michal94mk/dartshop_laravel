@@ -13,6 +13,17 @@
         </div>
 
         @if($products->count() > 0)
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <p class="text-sm text-gray-600">
+                        Wyświetlanie {{ $products->firstItem() }}-{{ $products->lastItem() }} z {{ $products->total() }} produktów
+                    </p>
+                </div>
+                <div>
+                    @include('components.per-page-selector')
+                </div>
+            </div>
+            
             <div class="overflow-hidden overflow-x-auto rounded-lg shadow">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -79,7 +90,7 @@
             </div>
             
             <div class="mt-4">
-                {{ $products->links() }}
+                {{ $products->appends(request()->except('page'))->links() }}
             </div>
         @else
             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-4">

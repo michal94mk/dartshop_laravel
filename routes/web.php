@@ -53,6 +53,7 @@ Route::post('/contact', [ContactController::class, 'submitContactForm'])->name('
 Route::post('/cart/add/{product}', [CartController::class, 'addToCart'])->name('cart.add');
 Route::post('/cart/delete/{product}', [CartController::class, 'deleteFromCart'])->name('cart.delete');
 Route::post('/cart/update', [CartController::class, 'updateCart'])->name('cart.update');
+Route::post('/cart/empty', [CartController::class, 'emptyCart'])->name('cart.empty');
 Route::get('/cart/contents', [CartController::class, 'getCartContents'])->name('cart.contents');
 Route::get('/cart/view', [CartController::class, 'cartView'])->name('cart.view');
 
@@ -109,6 +110,9 @@ Route::middleware(['auth','verified', RoleMiddleware::class.':admin'])->group(fu
     
     // Admin contact routes
     Route::get('/admin/contact', [ContactController::class, 'index'])->name('admin.contact.index');
+    Route::get('/admin/contact/{message}', [ContactController::class, 'show'])->name('admin.contact.show');
+    Route::post('/admin/contact/{message}/reply', [ContactController::class, 'reply'])->name('admin.contact.reply');
+    Route::delete('/admin/contact/{message}', [ContactController::class, 'destroy'])->name('admin.contact.destroy');
 
     // Roles and Permissions routes
     Route::get('/admin/roles', [RoleController::class, 'index'])->name('admin.roles.index');
