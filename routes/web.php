@@ -28,6 +28,7 @@ Route::get('/tailwind', function () {
     return redirect()->route('home', ['tailwind' => 1]);
 })->name('tailwind.home');
 Route::get('/categories', [HomeController::class, 'indexForRegularUsers'])->name('frontend.categories.index');
+Route::get('/products/{id}', [HomeController::class, 'showProduct'])->name('frontend.products.show');
 Route::post('/filter/products', [ProductController::class, 'filterProducts'])->name('filter.products');
 
 // Route::prefix('cart')->group(function () {

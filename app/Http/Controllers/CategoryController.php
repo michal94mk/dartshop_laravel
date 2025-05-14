@@ -10,53 +10,78 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::paginate(10);
+        $categories = Category::with('products')->paginate(10);
+        
+        // Check if request is for Tailwind view
+        if (request()->has('tailwind')) {
+            return view('admin.categories.index-tailwind', compact('categories'));
+        }
+        
         return view('admin.categories.index', compact('categories'));
     }
 
     public function create()
     {
+        // Check if request is for Tailwind view
+        if (request()->has('tailwind')) {
+            return view('admin.categories.form-tailwind');
+        }
+        
         return view('admin.categories.create');
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories',
+            'description' => 'nullable|string'
         ]);
 
-        Category::create($data);
+        Category::create($validated);
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category has been added.');
+        return redirect()->route('admin.categories.index')
+            ->with('success', 'Kategoria została pomyślnie utworzona.');
     }
 
-    public function edit($id)
+    public function show(Category $category)
     {
-        $category = Category::find($id);
+        return view('admin.categories.show', compact('category'));
+    }
+
+    public function edit(Category $category)
+    {
+        // Check if request is for Tailwind view
+        if (request()->has('tailwind')) {
+            return view('admin.categories.form-tailwind', compact('category'));
+        }
+        
         return view('admin.categories.edit', compact('category'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, Category $category)
     {
-        $category = Category::find($id);
-
-        $data = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,'.$id,
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+            'description' => 'nullable|string'
         ]);
 
-        $category->update($data);
+        $category->update($validated);
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category has been updated.');
+        return redirect()->route('admin.categories.index')
+            ->with('success', 'Kategoria została pomyślnie zaktualizowana.');
     }
 
     public function destroy(Category $category)
     {
-        if ($category->products->count() > 0) {
-            return back()->with('error', 'Cannot delete the category because it has associated products.');
-        }
-
+        // Option 1: Delete related products 
+        // $category->products()->delete();
+        
+        // Option 2: Detach products from category (set category_id to null)
+        // $category->products()->update(['category_id' => null]);
+        
         $category->delete();
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully.');
+        return redirect()->route('admin.categories.index')
+            ->with('success', 'Kategoria została pomyślnie usunięta.');
     }
 }

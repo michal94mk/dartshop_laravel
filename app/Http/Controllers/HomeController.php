@@ -105,7 +105,13 @@ class HomeController extends Controller
 
     public function showProduct($id)
     {
-        $product = Product::find($id);
+        $product = Product::with(['category', 'brand'])->find($id);
+        
+        // Check if request is for Tailwind view
+        if (request()->has('tailwind')) {
+            return view('frontend.product-tailwind', compact('product'));
+        }
+        
         return view('home.product', ['product' => $product]);
     }
 }
