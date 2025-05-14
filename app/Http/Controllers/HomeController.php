@@ -23,11 +23,6 @@ class HomeController extends Controller
     public function indexNewestProductsForHomepage()
     {
         $newestProducts = Product::orderBy('created_at', 'desc')->take(8)->get();
-        
-        if (request()->has('tailwind')) {
-            return view('home-tailwind', compact('newestProducts'));
-        }
-        
         return view('home', compact('newestProducts'));
     }
 
@@ -83,11 +78,7 @@ class HomeController extends Controller
         $categories = Category::all();
         $brands = Brand::all();
         
-        if (request()->has('tailwind')) {
-            return view('frontend.categories.index-tailwind', compact('products', 'categories', 'brands'));
-        }
-        
-        return view('frontend.categories.index', compact('products'));
+        return view('frontend.categories.index', compact('products', 'categories', 'brands'));
     }
 
 
@@ -106,12 +97,6 @@ class HomeController extends Controller
     public function showProduct($id)
     {
         $product = Product::with(['category', 'brand'])->find($id);
-        
-        // Check if request is for Tailwind view
-        if (request()->has('tailwind')) {
-            return view('frontend.product-tailwind', compact('product'));
-        }
-        
-        return view('home.product', ['product' => $product]);
+        return view('frontend.product', compact('product'));
     }
 }
