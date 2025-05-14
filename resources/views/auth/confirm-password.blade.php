@@ -1,31 +1,35 @@
 @extends('layouts.app')
 
+@section('title', 'Potwierdź hasło')
+
 @section('content')
-    <div class="max-w-md mx-auto my-10 bg-white p-6 rounded shadow-md">
-        <div class="mb-4 text-sm text-gray-600">
-            {{ __('This is a secure area of the application. Please confirm your password before continuing.') }}
+<div class="max-w-7xl mx-auto py-12 sm:px-6 lg:px-8">
+    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg max-w-md mx-auto">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">{{ __('Potwierdź hasło') }}</h2>
+            
+            <div class="mb-4 text-sm text-gray-600">
+                {{ __('To jest bezpieczny obszar aplikacji. Proszę potwierdź swoje hasło, aby kontynuować.') }}
+            </div>
+
+            <form method="POST" action="{{ route('password.confirm') }}">
+                @csrf
+
+                <div class="mb-4">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">{{ __('Hasło') }}</label>
+                    <input id="password" type="password" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 @error('password') border-red-500 @enderror" name="password" required autocomplete="current-password">
+                    @error('password')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="flex items-center justify-end">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        {{ __('Potwierdź') }}
+                    </button>
+                </div>
+            </form>
         </div>
-
-        <form method="POST" action="{{ route('password.confirm') }}">
-            @csrf
-
-            <!-- Password -->
-            <div class="mb-4">
-                <label for="password" class="block text-sm font-medium text-gray-700">{{ __('Password') }}</label>
-
-                <input id="password" type="password" class="mt-1 px-4 py-2 w-full border rounded-md"
-                       name="password" required autocomplete="current-password">
-
-                @error('password')
-                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <div class="flex justify-end mt-4">
-                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md">
-                    {{ __('Confirm') }}
-                </button>
-            </div>
-        </form>
     </div>
+</div>
 @endsection

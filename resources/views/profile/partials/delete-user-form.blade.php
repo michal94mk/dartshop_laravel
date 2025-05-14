@@ -20,15 +20,16 @@
         </p>
 
         <div class="form-group">
-            <label for="password">{{ __('Password') }}</label>
-            <input id="password" name="password" type="password" class="form-control">
-            @error('password')
-                <p>{{ $message }}</p>
+            <label for="password" class="block text-sm font-medium text-gray-700">{{ __('Password') }}</label>
+            <input id="password" name="password" type="password" placeholder="{{ __('Password') }}" 
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+            @error('password', 'userDeletion')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>
 
         <div class="form-group">
-            <button type="submit" class="btn btn-danger" onclick="return confirm('{{ __("Are you sure you want to delete your account? This action cannot be undone.") }}')">{{ __('Delete Account') }}</button>
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">{{ __('Delete Account') }}</button>
         </div>
     </form>
 </section>

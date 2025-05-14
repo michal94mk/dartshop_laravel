@@ -14,10 +14,18 @@
             <p class="mt-6 text-xl text-indigo-100 max-w-3xl">
                 Profesjonalny sklep z akcesoriami do gry w dart. Najwyższa jakość, najlepsze marki, konkurencyjne ceny.
             </p>
-            <div class="mt-10">
+            <div class="mt-10 flex flex-wrap gap-4">
                 <a href="{{ route('frontend.categories.index') }}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-white hover:bg-indigo-50">
                     Sprawdź ofertę
                 </a>
+                @guest
+                    <a href="{{ route('login') }}" class="inline-flex items-center px-6 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-indigo-600">
+                        Logowanie
+                    </a>
+                    <a href="{{ route('register') }}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-white hover:bg-indigo-50">
+                        Rejestracja
+                    </a>
+                @endguest
             </div>
         </div>
     </div>
