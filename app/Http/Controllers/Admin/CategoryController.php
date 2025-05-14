@@ -4,16 +4,22 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\CategoryRequest;
 use App\Models\Category;
+use Illuminate\Http\Request;
 
 class CategoryController extends BaseAdminController
 {
     /**
      * Display a listing of categories.
      */
-    public function index()
+    public function index(Request $request)
     {
         $perPage = $this->getPerPage();
-        $categories = Category::with('products')->paginate($perPage);
+        $query = Category::query()->with('products');
+        
+        // Wyszukiwanie przez metodę z BaseAdminController
+        $this->applySearch($query, $request, ['name']);
+        
+        $categories = $query->paginate($perPage);
         
         return view('admin.categories.index', compact('categories'));
     }

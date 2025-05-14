@@ -9,9 +9,21 @@ class PromotionController extends BaseAdminController
     /**
      * Display a listing of promotions.
      */
-    public function index()
+    public function index(Request $request)
     {
         $perPage = $this->getPerPage();
+        
+        // Kod poniżej będzie działać, gdy model Promotion zostanie zaimplementowany
+        // W tej chwili jest to przygotowanie na przyszłość
+        /*
+        $query = Promotion::query();
+        
+        // Wyszukiwanie przez metodę z BaseAdminController
+        $this->applySearch($query, $request, ['name', 'code', 'description']);
+        
+        $promotions = $query->paginate($perPage);
+        */
+        
         // Admin view of all promotions
         return view('admin.promotions.index');
     }

@@ -12,6 +12,11 @@
             </a>
         </div>
 
+        @include('components.admin-search-form', [
+            'action' => route('admin.categories.index'),
+            'placeholder' => 'Wyszukaj kategorie...'
+        ])
+
         @if($categories->count() > 0)
             <div class="flex justify-between items-center mb-4">
                 <div>

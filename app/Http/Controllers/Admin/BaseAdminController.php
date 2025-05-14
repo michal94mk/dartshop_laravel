@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 
 class BaseAdminController extends Controller
 {
@@ -47,5 +49,28 @@ class BaseAdminController extends Controller
     protected function getPerPage()
     {
         return request()->input('per_page', $this->perPage);
+    }
+    
+    /**
+     * Apply search filter to a query builder
+     * 
+     * @param Builder $query The Eloquent query builder
+     * @param Request $request The HTTP request
+     * @param array $searchFields Fields to search in (e.g. ['name', 'email'])
+     * @return Builder Query with search applied
+     */
+    protected function applySearch(Builder $query, Request $request, array $searchFields): Builder
+    {
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            
+            $query->where(function($q) use ($search, $searchFields) {
+                foreach ($searchFields as $field) {
+                    $q->orWhere($field, 'like', "%{$search}%");
+                }
+            });
+        }
+        
+        return $query;
     }
 } 

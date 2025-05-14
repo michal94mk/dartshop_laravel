@@ -9,6 +9,11 @@
             <h2 class="text-2xl font-semibold text-gray-800">Lista użytkowników</h2>
         </div>
 
+        @include('components.admin-search-form', [
+            'action' => route('admin.users.index'),
+            'placeholder' => 'Wyszukaj użytkowników...'
+        ])
+
         @if($users->count() > 0)
             <div class="flex justify-between items-center mb-4">
                 <div>

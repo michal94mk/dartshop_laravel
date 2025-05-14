@@ -11,6 +11,11 @@
                 <i class="fas fa-plus mr-1"></i> Dodaj nową promocję
             </a>
         </div>
+        
+        @include('components.admin-search-form', [
+            'action' => route('admin.promotions.index'),
+            'placeholder' => 'Wyszukaj promocje...'
+        ])
     
         <div class="overflow-hidden overflow-x-auto rounded-lg shadow">
             <table class="min-w-full divide-y divide-gray-200">

@@ -9,6 +9,11 @@
             <h2 class="text-2xl font-semibold text-gray-800">Wiadomości kontaktowe</h2>
         </div>
         
+        @include('components.admin-search-form', [
+            'action' => route('admin.contact.index'),
+            'placeholder' => 'Wyszukaj wiadomości...'
+        ])
+        
         @if($messages->count() > 0)
             <div class="flex justify-between items-center mb-4">
                 <div>

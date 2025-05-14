@@ -11,10 +11,15 @@ class BrandController extends BaseAdminController
     /**
      * Display a listing of brands.
      */
-    public function index()
+    public function index(Request $request)
     {
         $perPage = $this->getPerPage();
-        $brands = Brand::paginate($perPage);
+        $query = Brand::query()->with('products');
+        
+        // Wyszukiwanie przez metodę z BaseAdminController
+        $this->applySearch($query, $request, ['name']);
+        
+        $brands = $query->paginate($perPage);
         
         return view('admin.brands.index', compact('brands'));
     }

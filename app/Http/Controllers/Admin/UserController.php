@@ -12,10 +12,15 @@ class UserController extends BaseAdminController
     /**
      * Display a listing of the users.
      */
-    public function index()
+    public function index(Request $request)
     {
         $perPage = $this->getPerPage();
-        $users = User::with('roles')->paginate($perPage);
+        $query = User::query()->with('roles');
+        
+        // Wyszukiwanie przez metodę z BaseAdminController
+        $this->applySearch($query, $request, ['name', 'email']);
+        
+        $users = $query->paginate($perPage);
         
         return view('admin.users.index', compact('users'));
     }

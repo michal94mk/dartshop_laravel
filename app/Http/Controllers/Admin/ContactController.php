@@ -10,11 +10,16 @@ class ContactController extends BaseAdminController
     /**
      * Display a listing of the contact messages.
      */
-    public function index()
+    public function index(Request $request)
     {
         // Admin view of contact messages with pagination
         $perPage = $this->getPerPage();
-        $messages = ContactMessage::orderBy('created_at', 'desc')->paginate($perPage);
+        $query = ContactMessage::query()->orderBy('created_at', 'desc');
+        
+        // Wyszukiwanie przez metodę z BaseAdminController
+        $this->applySearch($query, $request, ['name', 'email', 'subject', 'message']);
+        
+        $messages = $query->paginate($perPage);
         
         return view('admin.contact.index', compact('messages'));
     }

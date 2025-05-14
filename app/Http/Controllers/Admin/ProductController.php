@@ -28,10 +28,15 @@ class ProductController extends BaseAdminController
     /**
      * Display a listing of the products.
      */
-    public function index()
+    public function index(Request $request)
     {
         $perPage = $this->getPerPage();
-        $products = Product::with(['category', 'brand'])->paginate($perPage);
+        $query = Product::with(['category', 'brand']);
+        
+        // Wyszukiwanie przez metodę z BaseAdminController
+        $this->applySearch($query, $request, ['name', 'description', 'sku', 'price']);
+        
+        $products = $query->paginate($perPage);
         
         return view('admin.products.index', compact('products'));
     }
