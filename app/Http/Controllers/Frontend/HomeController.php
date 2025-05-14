@@ -9,6 +9,8 @@ use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Contracts\View\View;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Models\Promotion;
+use Carbon\Carbon;
 
 class HomeController extends Controller
 {
@@ -33,8 +35,24 @@ class HomeController extends Controller
      */
     public function indexNewestProductsForHomepage()
     {
-        $newestProducts = Product::orderBy('created_at', 'desc')->take(8)->get();
-        return view('frontend.home', compact('newestProducts'));
+        $newestProducts = Product::with(['category', 'brand'])
+            ->orderBy('created_at', 'desc')
+            ->take(4)
+            ->get();
+        
+        $activePromotions = Promotion::where('is_active', true)
+            ->where('starts_at', '<=', Carbon::now())
+            ->where(function ($query) {
+                $query->whereNull('ends_at')
+                    ->orWhere('ends_at', '>=', Carbon::now());
+            })
+            ->take(4)
+            ->get();
+            
+        return view('frontend.home', [
+            'newestProducts' => $newestProducts,
+            'activePromotions' => $activePromotions
+        ]);
     }
 
     /**

@@ -56,6 +56,8 @@ Route::post('/cart/update', [CartController::class, 'updateCart'])->name('cart.u
 Route::post('/cart/empty', [CartController::class, 'emptyCart'])->name('cart.empty');
 Route::get('/cart/contents', [CartController::class, 'getCartContents'])->name('cart.contents');
 Route::get('/cart/view', [CartController::class, 'cartView'])->name('cart.view');
+Route::post('/cart/promotion/apply', [CartController::class, 'applyPromotion'])->name('cart.promotion.apply');
+Route::post('/cart/promotion/remove', [CartController::class, 'removePromotion'])->name('cart.promotion.remove');
 
 
 Route::get('/dashboard', function () {

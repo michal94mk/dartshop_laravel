@@ -50,6 +50,26 @@
         </div>
     </div>
 
+    <!-- Active Promotions Section -->
+    @if(isset($activePromotions) && $activePromotions->count() > 0)
+    <div class="bg-gray-50">
+        <div class="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
+            <div class="flex items-center justify-between space-x-4">
+                <h2 class="text-2xl font-extrabold tracking-tight text-gray-900">Aktualne promocje</h2>
+                <a href="{{ route('frontend.promotions') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                    Zobacz wszystkie<span aria-hidden="true"> &rarr;</span>
+                </a>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 sm:gap-y-10 lg:grid-cols-4">
+                @foreach($activePromotions as $promotion)
+                    <x-promotion-card :promotion="$promotion" />
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Discount Banner -->
     <div class="bg-indigo-700">
         <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">

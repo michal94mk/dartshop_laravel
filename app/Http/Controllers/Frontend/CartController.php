@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\Promotion;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\Paginator;
@@ -101,6 +102,7 @@ class CartController extends Controller
     public function cartView(Request $request)
     {
         $cart = session()->get('cart', []);
+        $promotion = session()->get('promotion');
         $total = 0;
         $quantity = 0;
 
@@ -109,7 +111,20 @@ class CartController extends Controller
             $quantity += $item['quantity'];
         }
 
-        return view('frontend.cart.cart', compact('cart', 'total', 'quantity'));
+        $discountAmount = 0;
+        if ($promotion) {
+            $discountAmount = $promotion['discount_amount'];
+        }
+
+        $finalTotal = $total - $discountAmount;
+        $shippingCost = 15.00;
+
+        // Free shipping for orders over 200 zł (can be adjusted based on your business rules)
+        if ($finalTotal >= 200) {
+            $shippingCost = 0;
+        }
+
+        return view('frontend.cart.cart', compact('cart', 'total', 'quantity', 'promotion', 'discountAmount', 'finalTotal', 'shippingCost'));
     }
 
     /**
@@ -196,6 +211,7 @@ class CartController extends Controller
     public function emptyCart(Request $request)
     {
         session()->forget('cart');
+        session()->forget('promotion');
         session()->save();
 
         if ($request->ajax() || $request->wantsJson()) {
@@ -209,5 +225,109 @@ class CartController extends Controller
         }
 
         return redirect()->back()->with('success', 'Cart has been emptied');
+    }
+
+    /**
+     * Apply a promotion code to the cart
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+     */
+    public function applyPromotion(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string|max:50'
+        ]);
+
+        $code = $request->input('code');
+        $cart = session()->get('cart', []);
+        
+        // Calculate current cart total
+        $cartTotal = 0;
+        foreach ($cart as $item) {
+            $cartTotal += $item['product']->price * $item['quantity'];
+        }
+
+        // Find the promotion by code
+        $promotion = Promotion::where('code', $code)->first();
+
+        if (!$promotion) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Kod promocyjny jest nieprawidłowy.'
+                ]);
+            }
+            return redirect()->back()->with('error', 'Kod promocyjny jest nieprawidłowy.');
+        }
+
+        if (!$promotion->isValid()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Kod promocyjny wygasł lub jest nieaktywny.'
+                ]);
+            }
+            return redirect()->back()->with('error', 'Kod promocyjny wygasł lub jest nieaktywny.');
+        }
+
+        if ($promotion->minimum_order_value && $cartTotal < $promotion->minimum_order_value) {
+            $message = "Minimalna wartość zamówienia to {$promotion->minimum_order_value} zł.";
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => $message
+                ]);
+            }
+            return redirect()->back()->with('error', $message);
+        }
+
+        // Calculate discount
+        $discountAmount = $promotion->calculateDiscountAmount($cartTotal);
+
+        // Store promotion in session
+        session()->put('promotion', [
+            'id' => $promotion->id,
+            'code' => $promotion->code,
+            'discount_type' => $promotion->discount_type,
+            'discount_value' => $promotion->discount_value,
+            'discount_amount' => $discountAmount
+        ]);
+        session()->save();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true, 
+                'message' => 'Kod promocyjny został pomyślnie zastosowany.',
+                'promotion' => session()->get('promotion'),
+                'cart_total' => $cartTotal,
+                'discount_amount' => $discountAmount,
+                'final_total' => $cartTotal - $discountAmount
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Kod promocyjny został pomyślnie zastosowany.');
+    }
+
+    /**
+     * Remove the promotion code from the cart
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+     */
+    public function removePromotion(Request $request)
+    {
+        session()->forget('promotion');
+        session()->save();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Kod promocyjny został usunięty.'
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Kod promocyjny został usunięty.');
     }
 } 

@@ -95,15 +95,59 @@
                                         <p class="text-sm text-gray-600">Suma częściowa</p>
                                         <p class="text-sm font-medium text-gray-900">{{ number_format($total, 2) }} zł</p>
                                     </div>
+                                    
+                                    @if(isset($promotion))
+                                    <div class="flex items-center justify-between border-t border-gray-200 pt-4">
+                                        <div>
+                                            <p class="text-sm text-gray-600">Kod promocyjny</p>
+                                            <p class="text-xs text-indigo-600">{{ $promotion['code'] }} 
+                                                @if($promotion['discount_type'] == 'percentage')
+                                                    ({{ $promotion['discount_value'] }}%)
+                                                @else
+                                                    ({{ number_format($promotion['discount_value'], 2) }} zł)
+                                                @endif
+                                            </p>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <p class="text-sm font-medium text-red-600">-{{ number_format($discountAmount, 2) }} zł</p>
+                                            <form action="{{ route('cart.promotion.remove') }}" method="post" class="promotion-remove-form ml-2">
+                                                @csrf
+                                                <button type="submit" class="text-gray-400 hover:text-red-600">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    @else
+                                    <div class="flex items-center justify-between border-t border-gray-200 pt-4">
+                                        <form action="{{ route('cart.promotion.apply') }}" method="post" class="promotion-form w-full">
+                                            @csrf
+                                            <div class="flex flex-col space-y-2">
+                                                <label for="promo-code" class="text-sm font-medium text-gray-700">Posiadasz kod promocyjny?</label>
+                                                <div class="flex space-x-2">
+                                                    <input type="text" id="promo-code" name="code" placeholder="Wpisz kod" class="text-sm border-gray-300 rounded-md flex-grow focus:ring-indigo-500 focus:border-indigo-500">
+                                                    <button type="submit" class="text-sm px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md">
+                                                        Zastosuj
+                                                    </button>
+                                                </div>
+                                                <p class="text-xs text-gray-500">
+                                                    <a href="{{ route('frontend.promotions') }}" class="text-indigo-600 hover:text-indigo-500">Zobacz dostępne promocje</a>
+                                                </p>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    @endif
 
                                     <div class="flex items-center justify-between border-t border-gray-200 pt-4">
                                         <p class="text-sm text-gray-600">Dostawa</p>
-                                        <p class="text-sm font-medium text-gray-900">15.00 zł</p>
+                                        <p class="text-sm font-medium text-gray-900">{{ number_format($shippingCost, 2) }} zł</p>
                                     </div>
 
                                     <div class="flex items-center justify-between border-t border-gray-200 pt-4">
                                         <p class="text-base font-medium text-gray-900">Razem do zapłaty</p>
-                                        <p class="text-base font-medium text-gray-900">{{ number_format($total + 15, 2) }} zł</p>
+                                        <p class="text-base font-medium text-gray-900">{{ number_format($finalTotal + $shippingCost, 2) }} zł</p>
                                     </div>
                                 </div>
 
@@ -209,6 +253,97 @@
                     })
                     .catch(error => console.error('Error:', error));
                 }
+            });
+        }
+        
+        // Handle promotion form with AJAX
+        const promotionForm = document.querySelector('.promotion-form');
+        if (promotionForm) {
+            promotionForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(promotionForm);
+                const url = promotionForm.getAttribute('action');
+                
+                // Show loading state
+                const submitButton = promotionForm.querySelector('button[type="submit"]');
+                const originalText = submitButton.innerHTML;
+                submitButton.innerHTML = 'Sprawdzanie...';
+                submitButton.disabled = true;
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        const messageElement = document.createElement('div');
+                        messageElement.className = 'mt-2 text-sm text-green-600';
+                        messageElement.textContent = data.message;
+                        
+                        const formParent = promotionForm.parentElement;
+                        formParent.appendChild(messageElement);
+                        
+                        // Remove message after 3 seconds and reload
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        // Show error message
+                        const messageElement = document.createElement('div');
+                        messageElement.className = 'mt-2 text-sm text-red-600';
+                        messageElement.textContent = data.message;
+                        
+                        const formParent = promotionForm.parentElement;
+                        formParent.appendChild(messageElement);
+                        
+                        // Reset button
+                        submitButton.innerHTML = originalText;
+                        submitButton.disabled = false;
+                        
+                        // Remove message after 5 seconds
+                        setTimeout(() => {
+                            messageElement.remove();
+                        }, 5000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    submitButton.innerHTML = originalText;
+                    submitButton.disabled = false;
+                });
+            });
+        }
+        
+        // Handle promotion remove form with AJAX
+        const promotionRemoveForm = document.querySelector('.promotion-remove-form');
+        if (promotionRemoveForm) {
+            promotionRemoveForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(promotionRemoveForm);
+                const url = promotionRemoveForm.getAttribute('action');
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Refresh page to update cart
+                    window.location.reload();
+                })
+                .catch(error => console.error('Error:', error));
             });
         }
     });
