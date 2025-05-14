@@ -2,93 +2,89 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Requests\Admin\ProductRequest;
+use App\Http\Traits\HandlesTailwindViews;
 use App\Models\Brand;
-use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\Product;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use App\Services\ImageService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class ProductController extends BaseAdminController
 {
+    use HandlesTailwindViews;
+
+    /**
+     * The image service instance.
+     */
+    protected ImageService $imageService;
+
+    /**
+     * Create a new controller instance.
+     */
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
+    /**
+     * Display a listing of the products.
+     */
     public function index()
     {
         $perPage = $this->getPerPage();
         $products = Product::with(['category', 'brand'])->paginate($perPage);
         
-        // Check if request is for Tailwind view
-        if (request()->has('tailwind')) {
-            return view('admin.products.index-tailwind', compact('products'));
-        }
-        
-        return view('admin.products.index', compact('products'));
+        return view($this->getViewType(
+            'admin.products.index', 
+            'admin.products.index-tailwind'
+        ), compact('products'));
     }
 
+    /**
+     * Display a listing of products for regular users.
+     */
     public function indexForRegularUsers()
     {
         $products = Product::paginate(10);
         return view('frontend.categories.index', compact('products'));
     }
 
+    /**
+     * Show the form for creating a new product.
+     */
     public function create()
     {
         $categories = Category::all();
         $brands = Brand::all();
         
-        // Check if request is for Tailwind view
-        if (request()->has('tailwind')) {
-            return view('admin.products.form-tailwind', compact('categories', 'brands'));
-        }
-        
-        return view('admin.products.create', compact('categories', 'brands'));
+        return view($this->getViewType(
+            'admin.products.create', 
+            'admin.products.form-tailwind'
+        ), compact('categories', 'brands'));
     }
 
-    public function store(Request $request)
+    /**
+     * Store a newly created product in storage.
+     */
+    public function store(ProductRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0.01',
-            'weight' => 'nullable|numeric|min:0.01',
-            'category_id' => 'required|exists:categories,id',
-            'brand_id' => 'required|exists:brands,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
-        
         try {
-            // Create product without image first
             $product = new Product();
-            $product->name = $validated['name'];
-            $product->description = $validated['description'];
-            $product->price = $validated['price'];
-            $product->weight = $validated['weight'] ?? null;
-            $product->category_id = $validated['category_id'];
-            $product->brand_id = $validated['brand_id'];
+            $product->fill($request->safe()->except('image'));
             
             // Handle image upload if present
-            if ($request->hasFile('image') && $request->file('image')->isValid()) {
-                $image = $request->file('image');
-                $filename = Str::slug($product->name) . '-' . time() . '.' . $image->getClientOriginalExtension();
-                
-                // Log debug info
-                Log::info('Uploading image', [
-                    'original_name' => $image->getClientOriginalName(),
-                    'mime_type' => $image->getMimeType(),
-                    'size' => $image->getSize(),
-                    'destination' => 'public/images/' . $filename
-                ]);
-                
-                // Store with direct method instead of helper
-                $image->move(public_path('storage/images'), $filename);
-                
-                // Set the path directly for DB
-                $product->image = 'storage/images/' . $filename;
+            if ($request->hasFile('image')) {
+                $product->image = $this->imageService->uploadImage(
+                    $request->file('image'),
+                    $product->name
+                );
             }
             
             $product->save();
             
-            return redirect()->route('admin.products.index')
+            return redirect()->route('admin.products.index', $this->appendTailwindParam())
                 ->with('success', 'Produkt został dodany pomyślnie.');
         } catch (\Exception $e) {
             Log::error('Error creating product', [
@@ -102,81 +98,54 @@ class ProductController extends BaseAdminController
         }
     }
 
+    /**
+     * Display the specified product.
+     */
     public function show(Product $product)
     {
-        // Check if request is for Tailwind view
-        if (request()->has('tailwind')) {
-            return view('admin.products.show-tailwind', compact('product'));
-        }
-        
-        return view('admin.products.show', compact('product'));
+        return view($this->getViewType(
+            'admin.products.show', 
+            'admin.products.show-tailwind'
+        ), compact('product'));
     }
 
+    /**
+     * Show the form for editing the specified product.
+     */
     public function edit(Product $product)
     {
         $categories = Category::all();
         $brands = Brand::all();
         
-        // Check if request is for Tailwind view
-        if (request()->has('tailwind')) {
-            return view('admin.products.form-tailwind', compact('product', 'categories', 'brands'));
-        }
-        
-        return view('admin.products.edit', compact('product', 'categories', 'brands'));
+        return view($this->getViewType(
+            'admin.products.edit', 
+            'admin.products.form-tailwind'
+        ), compact('product', 'categories', 'brands'));
     }
 
-    public function update(Request $request, Product $product)
+    /**
+     * Update the specified product in storage.
+     */
+    public function update(ProductRequest $request, Product $product)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0.01',
-            'weight' => 'nullable|numeric|min:0.01',
-            'category_id' => 'required|exists:categories,id',
-            'brand_id' => 'required|exists:brands,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
-        
         try {
-            // Update product properties
-            $product->name = $validated['name'];
-            $product->description = $validated['description'];
-            $product->price = $validated['price'];
-            $product->weight = $validated['weight'] ?? null;
-            $product->category_id = $validated['category_id'];
-            $product->brand_id = $validated['brand_id'];
+            $product->fill($request->safe()->except('image'));
             
             // Handle image upload if present
-            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            if ($request->hasFile('image')) {
                 // Delete the old image if it exists
-                if ($product->image) {
-                    $oldImagePath = public_path($product->image);
-                    if (file_exists($oldImagePath)) {
-                        @unlink($oldImagePath);
-                    }
-                }
+                $this->imageService->deleteImage($product->image);
                 
-                $image = $request->file('image');
-                $filename = Str::slug($product->name) . '-' . time() . '.' . $image->getClientOriginalExtension();
-                
-                // Log debug info
-                Log::info('Updating image', [
-                    'original_name' => $image->getClientOriginalName(),
-                    'mime_type' => $image->getMimeType(),
-                    'size' => $image->getSize(),
-                    'destination' => 'public/images/' . $filename
-                ]);
-                
-                // Store with direct method
-                $image->move(public_path('storage/images'), $filename);
-                
-                // Make sure path is public accessible
-                $product->image = 'storage/images/' . $filename;
+                // Upload the new image
+                $product->image = $this->imageService->uploadImage(
+                    $request->file('image'),
+                    $product->name
+                );
             }
             
             $product->save();
             
-            return redirect()->route('admin.products.index')
+            return redirect()->route('admin.products.index', $this->appendTailwindParam())
                 ->with('success', 'Produkt został zaktualizowany pomyślnie.');
         } catch (\Exception $e) {
             Log::error('Error updating product', [
@@ -190,20 +159,18 @@ class ProductController extends BaseAdminController
         }
     }
 
+    /**
+     * Remove the specified product from storage.
+     */
     public function destroy(Product $product)
     {
         try {
             // Delete the image if it exists
-            if ($product->image) {
-                $imagePath = public_path($product->image);
-                if (file_exists($imagePath)) {
-                    @unlink($imagePath);
-                }
-            }
+            $this->imageService->deleteImage($product->image);
             
             $product->delete();
             
-            return redirect()->route('admin.products.index')
+            return redirect()->route('admin.products.index', $this->appendTailwindParam())
                 ->with('success', 'Produkt został usunięty pomyślnie.');
         } catch (\Exception $e) {
             Log::error('Error deleting product', [
@@ -216,6 +183,9 @@ class ProductController extends BaseAdminController
         }
     }
     
+    /**
+     * Filter products based on request parameters.
+     */
     public function filterProducts(Request $request)
     {
         $query = Product::query();
@@ -245,6 +215,9 @@ class ProductController extends BaseAdminController
         return view('frontend.products.filtered', compact('products'));
     }
 
+    /**
+     * Search for products.
+     */
     public function search(Request $request)
     {
         $search = $request->input('search');

@@ -2,73 +2,84 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\Admin\CategoryRequest;
+use App\Http\Traits\HandlesTailwindViews;
 use App\Models\Category;
+use Illuminate\Http\Request;
 
 class CategoryController extends BaseAdminController
 {
+    use HandlesTailwindViews;
+
+    /**
+     * Display a listing of categories.
+     */
     public function index()
     {
         $perPage = $this->getPerPage();
         $categories = Category::with('products')->paginate($perPage);
         
-        // Check if request is for Tailwind view
-        if (request()->has('tailwind')) {
-            return view('admin.categories.index-tailwind', compact('categories'));
-        }
-        
-        return view('admin.categories.index', compact('categories'));
+        return view($this->getViewType(
+            'admin.categories.index', 
+            'admin.categories.index-tailwind'
+        ), compact('categories'));
     }
 
+    /**
+     * Show the form for creating a new category.
+     */
     public function create()
     {
-        // Check if request is for Tailwind view
-        if (request()->has('tailwind')) {
-            return view('admin.categories.form-tailwind');
-        }
-        
-        return view('admin.categories.create');
+        return view($this->getViewType(
+            'admin.categories.create', 
+            'admin.categories.form-tailwind'
+        ));
     }
 
-    public function store(Request $request)
+    /**
+     * Store a newly created category in storage.
+     */
+    public function store(CategoryRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories',
-        ]);
+        Category::create($request->validated());
 
-        Category::create($validated);
-
-        return redirect()->route('admin.categories.index')
+        return redirect()->route('admin.categories.index', $this->appendTailwindParam())
             ->with('success', 'Kategoria została pomyślnie utworzona.');
     }
 
+    /**
+     * Display the specified category.
+     */
     public function show(Category $category)
     {
         return view('admin.categories.show', compact('category'));
     }
 
+    /**
+     * Show the form for editing the specified category.
+     */
     public function edit(Category $category)
     {
-        // Check if request is for Tailwind view
-        if (request()->has('tailwind')) {
-            return view('admin.categories.form-tailwind', compact('category'));
-        }
-        
-        return view('admin.categories.edit', compact('category'));
+        return view($this->getViewType(
+            'admin.categories.edit', 
+            'admin.categories.form-tailwind'
+        ), compact('category'));
     }
 
-    public function update(Request $request, Category $category)
+    /**
+     * Update the specified category in storage.
+     */
+    public function update(CategoryRequest $request, Category $category)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
-        ]);
+        $category->update($request->validated());
 
-        $category->update($validated);
-
-        return redirect()->route('admin.categories.index')
+        return redirect()->route('admin.categories.index', $this->appendTailwindParam())
             ->with('success', 'Kategoria została pomyślnie zaktualizowana.');
     }
 
+    /**
+     * Remove the specified category from storage.
+     */
     public function destroy(Category $category)
     {
         // Option 1: Delete related products 
@@ -79,7 +90,7 @@ class CategoryController extends BaseAdminController
         
         $category->delete();
 
-        return redirect()->route('admin.categories.index')
+        return redirect()->route('admin.categories.index', $this->appendTailwindParam())
             ->with('success', 'Kategoria została pomyślnie usunięta.');
     }
 } 
