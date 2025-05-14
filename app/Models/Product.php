@@ -11,16 +11,18 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'description', 'price', 'category_id', 'brand_id', 'image'];
+    protected $fillable = ['name', 'description', 'price', 'weight', 'category_id', 'brand_id', 'image'];
 
     protected $casts = [
         'price' => 'decimal:2',
+        'weight' => 'decimal:2',
     ];
 
     public static $rules = [
         'name' => 'required|string|max:255',
         'description' => 'required|string',
         'price' => 'required|numeric|min:0.01',
+        'weight' => 'nullable|numeric|min:0.01',
         'category_id' => 'integer|exists:categories,id',
         'brand_id' => 'integer|exists:brands,id',
         'image' => 'string|nullable',

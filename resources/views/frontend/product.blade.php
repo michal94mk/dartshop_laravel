@@ -99,6 +99,9 @@
                                 <li>Marka: {{ $product->brand->name }}</li>
                             @endif
                             <li>Cena: {{ number_format($product->price, 2) }} zł</li>
+                            @if($product->weight && (Str::contains($product->category->name, 'Darts') || Str::contains($product->category->name, 'Lotki')))
+                                <li>Waga: {{ number_format($product->weight, 2) }} g</li>
+                            @endif
                         </ul>
                     </div>
                 </div>

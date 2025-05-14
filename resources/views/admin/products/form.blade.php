@@ -59,7 +59,8 @@
             <div>
                 <label for="category_id" class="block text-sm font-medium text-gray-700">Kategoria</label>
                 <select name="category_id" id="category_id" 
-                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        onchange="toggleWeightField()">
                     <option value="">Wybierz kategorię</option>
                     @foreach($categories as $category)
                         <option value="{{ $category->id }}" {{ (old('category_id', $product->category_id ?? '') == $category->id) ? 'selected' : '' }}>
@@ -68,6 +69,21 @@
                     @endforeach
                 </select>
                 @error('category_id')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Weight - only for Darts/Lotki -->
+            <div id="weight-field" style="display: none;">
+                <label for="weight" class="block text-sm font-medium text-gray-700">Waga (g)</label>
+                <div class="mt-1 relative rounded-md shadow-sm">
+                    <input type="number" step="0.01" min="0" name="weight" id="weight" value="{{ old('weight', $product->weight ?? '') }}" 
+                           class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pr-12 sm:text-sm border-gray-300 rounded-md">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <span class="text-gray-500 sm:text-sm">g</span>
+                    </div>
+                </div>
+                @error('weight')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
@@ -125,4 +141,25 @@
         </form>
     </div>
 </div>
+
+<script>
+    function toggleWeightField() {
+        const categorySelect = document.getElementById('category_id');
+        const weightField = document.getElementById('weight-field');
+        const selectedCategory = categorySelect.options[categorySelect.selectedIndex].text;
+        
+        // Sprawdzamy czy wybrana kategoria to "Darts/Lotki"
+        if (selectedCategory.includes('Darts') || selectedCategory.includes('Lotki')) {
+            weightField.style.display = 'block';
+        } else {
+            weightField.style.display = 'none';
+            document.getElementById('weight').value = '';
+        }
+    }
+    
+    // Wywołaj funkcję przy załadowaniu strony
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleWeightField();
+    });
+</script>
 @endsection 

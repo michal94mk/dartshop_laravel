@@ -49,6 +49,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0.01',
+            'weight' => 'nullable|numeric|min:0.01',
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'required|exists:brands,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
@@ -60,6 +61,7 @@ class ProductController extends Controller
             $product->name = $validated['name'];
             $product->description = $validated['description'];
             $product->price = $validated['price'];
+            $product->weight = $validated['weight'] ?? null;
             $product->category_id = $validated['category_id'];
             $product->brand_id = $validated['brand_id'];
             
@@ -128,6 +130,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0.01',
+            'weight' => 'nullable|numeric|min:0.01',
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'required|exists:brands,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
@@ -138,6 +141,7 @@ class ProductController extends Controller
             $product->name = $validated['name'];
             $product->description = $validated['description'];
             $product->price = $validated['price'];
+            $product->weight = $validated['weight'] ?? null;
             $product->category_id = $validated['category_id'];
             $product->brand_id = $validated['brand_id'];
             

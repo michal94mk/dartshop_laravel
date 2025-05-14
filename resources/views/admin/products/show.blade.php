@@ -47,6 +47,14 @@
                                 {{ number_format($product->price, 2) }} zł
                             </p>
                         </div>
+                        @if($product->weight && (Str::contains($product->category->name, 'Darts') || Str::contains($product->category->name, 'Lotki')))
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500">Waga</h3>
+                            <p class="mt-1 text-base font-medium text-gray-900">
+                                {{ number_format($product->weight, 2) }} g
+                            </p>
+                        </div>
+                        @endif
                         <div>
                             <h3 class="text-sm font-medium text-gray-500">Data utworzenia</h3>
                             <p class="mt-1 text-base font-medium text-gray-900">
