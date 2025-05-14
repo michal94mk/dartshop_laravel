@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\Admin\UserUpdateRequest;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 
 class UserController extends BaseAdminController
@@ -24,20 +25,21 @@ class UserController extends BaseAdminController
      */
     public function edit(User $user)
     {
-        return view('admin.users.edit', compact('user'));
+        $roles = Role::all();
+        return view('admin.users.edit', compact('user', 'roles'));
     }
 
     /**
      * Update the specified user in storage.
      */
-    public function update(Request $request, User $user)
+    public function update(UserUpdateRequest $request, User $user)
     {
-        $user->update($request->only(['name', 'email']));
+        // Update user details with validated data
+        $user->update($request->safe()->only(['name', 'email']));
         
-        // Update user role
-        $role = $request->input('role');
-        if ($role) {
-            $user->syncRoles([$role]);
+        // Update user role if provided
+        if ($request->has('role')) {
+            $user->syncRoles([$request->role]);
         }
         
         return redirect()->route('admin.users.index')
@@ -49,6 +51,17 @@ class UserController extends BaseAdminController
      */
     public function destroy(Request $request, User $user)
     {
+        // Prevent deleting the admin user or currently logged in user
+        if ($user->hasRole('admin')) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'Cannot delete user with admin role.');
+        }
+        
+        if ($user->id === $request->user()->id) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'Cannot delete your own account.');
+        }
+
         $user->delete();
         
         return redirect()->route('admin.users.index')
