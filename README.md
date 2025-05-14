@@ -64,3 +64,27 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Nowy interfejs z Tailwind CSS
+
+Aplikacja posiada alternatywny interfejs oparty na Tailwind CSS. Można go włączyć dodając parametr `tailwind` do adresu URL:
+
+- Strona główna z Tailwind: `/tailwind`
+- Kategorie z Tailwind: `/categories?tailwind=1`
+- Koszyk z Tailwind: `/cart/view?tailwind=1`
+
+### Zalety interfejsu Tailwind:
+
+- Nowoczesny, minimalistyczny design
+- W pełni responsywny dla wszystkich urządzeń
+- Ulepszone wrażenia użytkownika
+- Animacje i przejścia
+- Szybsze ładowanie strony
+- Lepsze filtry i sortowanie produktów
+
+Aby zainstalować i uruchomić nowy interfejs:
+
+```bash
+npm install
+npm run build
+```

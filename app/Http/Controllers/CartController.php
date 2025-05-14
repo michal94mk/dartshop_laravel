@@ -55,12 +55,15 @@ class CartController extends Controller
             $quantity += $item['quantity'];
         }
 
+        // Check if request is for Tailwind view
+        if (request()->has('tailwind')) {
+            return view('frontend.cart.cart-tailwind', compact('cart', 'total', 'quantity'));
+        }
+
+        // Default pagination for original template
         $products = collect($cart);
-
         $perPage = 10;
-
         $page = $request->input('page', 1);
-
         $pagedData = $this->paginate($products, $perPage, $page);
 
         return view('frontend.cart.cart', compact('pagedData', 'total', 'quantity'));

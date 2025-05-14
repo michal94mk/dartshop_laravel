@@ -1,3 +1,39 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Additional custom styles */
+@layer components {
+    /* Custom aspect ratios for product images */
+    .aspect-square {
+        aspect-ratio: 1 / 1;
+    }
+    
+    /* Transitions */
+    .transition-shadow {
+        transition-property: box-shadow;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 300ms;
+    }
+    
+    /* Form focus rings */
+    .focus-ring {
+        @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500;
+    }
+}
+
+/* Display tooltip on hover */
+[data-tooltip]:hover:after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.25rem 0.5rem;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 10;
+}

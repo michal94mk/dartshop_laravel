@@ -11,10 +11,30 @@ module.exports = {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['Inter', ...defaultTheme.fontFamily.sans],
+            },
+            colors: {
+                'brand': {
+                    50: '#f5f7ff',
+                    100: '#ebf0fe',
+                    200: '#d6e0fd',
+                    300: '#b3c7fc',
+                    400: '#899ff8',
+                    500: '#6676f3',
+                    600: '#4f54e8',
+                    700: '#4540d1',
+                    800: '#3a36a9',
+                    900: '#343485',
+                },
+            },
+            aspectRatio: {
+                '1/1': '1 / 1',
             },
         },
     },
 
-    plugins: [require('@tailwindcss/forms')],
+    plugins: [
+        require('@tailwindcss/forms'),
+        require('@tailwindcss/aspect-ratio'),
+    ],
 };

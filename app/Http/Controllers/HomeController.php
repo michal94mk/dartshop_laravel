@@ -20,11 +20,15 @@ class HomeController extends Controller
     return view('home', ['newestProducts' => $newestProducts]);
 }
 
-    public function indexNewestProductsForHomepage() : View {
-        $newestProducts = Product::orderBy('created_at', 'desc')
-        ->take(10)
-        ->get();
-    return view('home', ['newestProducts' => $newestProducts]);
+    public function indexNewestProductsForHomepage()
+    {
+        $newestProducts = Product::orderBy('created_at', 'desc')->take(8)->get();
+        
+        if (request()->has('tailwind')) {
+            return view('home-tailwind', compact('newestProducts'));
+        }
+        
+        return view('home', compact('newestProducts'));
     }
 
     public function indexForRegularUsers(Request $request): View|JsonResponse
@@ -76,12 +80,14 @@ class HomeController extends Controller
         }
 
         $products = Product::with('category', 'brand')->paginate($paginate);
-
-        return view('frontend.categories.index', [
-            'products' => $products,
-            'categories' => Category::all(),
-            'brands' => Brand::all()
-        ]);
+        $categories = Category::all();
+        $brands = Brand::all();
+        
+        if (request()->has('tailwind')) {
+            return view('frontend.categories.index-tailwind', compact('products', 'categories', 'brands'));
+        }
+        
+        return view('frontend.categories.index', compact('products'));
     }
 
 
