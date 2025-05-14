@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\ProductRequest;
-use App\Http\Traits\HandlesTailwindViews;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
@@ -13,8 +12,6 @@ use Illuminate\Support\Facades\Log;
 
 class ProductController extends BaseAdminController
 {
-    use HandlesTailwindViews;
-
     /**
      * The image service instance.
      */
@@ -36,10 +33,7 @@ class ProductController extends BaseAdminController
         $perPage = $this->getPerPage();
         $products = Product::with(['category', 'brand'])->paginate($perPage);
         
-        return view($this->getViewType(
-            'admin.products.index', 
-            'admin.products.index-tailwind'
-        ), compact('products'));
+        return view('admin.products.index', compact('products'));
     }
 
     /**
@@ -59,10 +53,7 @@ class ProductController extends BaseAdminController
         $categories = Category::all();
         $brands = Brand::all();
         
-        return view($this->getViewType(
-            'admin.products.create', 
-            'admin.products.form-tailwind'
-        ), compact('categories', 'brands'));
+        return view('admin.products.create', compact('categories', 'brands'));
     }
 
     /**
@@ -84,8 +75,8 @@ class ProductController extends BaseAdminController
             
             $product->save();
             
-            return redirect()->route('admin.products.index', $this->appendTailwindParam())
-                ->with('success', 'Produkt został dodany pomyślnie.');
+            return redirect()->route('admin.products.index')
+                ->with('success', 'Product has been added successfully.');
         } catch (\Exception $e) {
             Log::error('Error creating product', [
                 'error' => $e->getMessage(),
@@ -94,7 +85,7 @@ class ProductController extends BaseAdminController
             
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Wystąpił błąd podczas dodawania produktu: ' . $e->getMessage());
+                ->with('error', 'An error occurred while adding the product: ' . $e->getMessage());
         }
     }
 
@@ -103,10 +94,7 @@ class ProductController extends BaseAdminController
      */
     public function show(Product $product)
     {
-        return view($this->getViewType(
-            'admin.products.show', 
-            'admin.products.show-tailwind'
-        ), compact('product'));
+        return view('admin.products.show', compact('product'));
     }
 
     /**
@@ -117,10 +105,7 @@ class ProductController extends BaseAdminController
         $categories = Category::all();
         $brands = Brand::all();
         
-        return view($this->getViewType(
-            'admin.products.edit', 
-            'admin.products.form-tailwind'
-        ), compact('product', 'categories', 'brands'));
+        return view('admin.products.edit', compact('product', 'categories', 'brands'));
     }
 
     /**
@@ -145,8 +130,8 @@ class ProductController extends BaseAdminController
             
             $product->save();
             
-            return redirect()->route('admin.products.index', $this->appendTailwindParam())
-                ->with('success', 'Produkt został zaktualizowany pomyślnie.');
+            return redirect()->route('admin.products.index')
+                ->with('success', 'Product has been updated successfully.');
         } catch (\Exception $e) {
             Log::error('Error updating product', [
                 'error' => $e->getMessage(),
@@ -155,7 +140,7 @@ class ProductController extends BaseAdminController
             
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Wystąpił błąd podczas aktualizacji produktu: ' . $e->getMessage());
+                ->with('error', 'An error occurred while updating the product: ' . $e->getMessage());
         }
     }
 
@@ -170,8 +155,8 @@ class ProductController extends BaseAdminController
             
             $product->delete();
             
-            return redirect()->route('admin.products.index', $this->appendTailwindParam())
-                ->with('success', 'Produkt został usunięty pomyślnie.');
+            return redirect()->route('admin.products.index')
+                ->with('success', 'Product has been deleted successfully.');
         } catch (\Exception $e) {
             Log::error('Error deleting product', [
                 'error' => $e->getMessage(),
@@ -179,7 +164,7 @@ class ProductController extends BaseAdminController
             ]);
             
             return redirect()->back()
-                ->with('error', 'Wystąpił błąd podczas usuwania produktu: ' . $e->getMessage());
+                ->with('error', 'An error occurred while deleting the product: ' . $e->getMessage());
         }
     }
     

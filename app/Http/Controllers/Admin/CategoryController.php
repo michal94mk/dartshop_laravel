@@ -3,14 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\CategoryRequest;
-use App\Http\Traits\HandlesTailwindViews;
 use App\Models\Category;
-use Illuminate\Http\Request;
 
 class CategoryController extends BaseAdminController
 {
-    use HandlesTailwindViews;
-
     /**
      * Display a listing of categories.
      */
@@ -19,10 +15,7 @@ class CategoryController extends BaseAdminController
         $perPage = $this->getPerPage();
         $categories = Category::with('products')->paginate($perPage);
         
-        return view($this->getViewType(
-            'admin.categories.index', 
-            'admin.categories.index-tailwind'
-        ), compact('categories'));
+        return view('admin.categories.index', compact('categories'));
     }
 
     /**
@@ -30,10 +23,7 @@ class CategoryController extends BaseAdminController
      */
     public function create()
     {
-        return view($this->getViewType(
-            'admin.categories.create', 
-            'admin.categories.form-tailwind'
-        ));
+        return view('admin.categories.create');
     }
 
     /**
@@ -43,8 +33,8 @@ class CategoryController extends BaseAdminController
     {
         Category::create($request->validated());
 
-        return redirect()->route('admin.categories.index', $this->appendTailwindParam())
-            ->with('success', 'Kategoria została pomyślnie utworzona.');
+        return redirect()->route('admin.categories.index')
+            ->with('success', 'Category has been created successfully.');
     }
 
     /**
@@ -60,10 +50,7 @@ class CategoryController extends BaseAdminController
      */
     public function edit(Category $category)
     {
-        return view($this->getViewType(
-            'admin.categories.edit', 
-            'admin.categories.form-tailwind'
-        ), compact('category'));
+        return view('admin.categories.edit', compact('category'));
     }
 
     /**
@@ -73,8 +60,8 @@ class CategoryController extends BaseAdminController
     {
         $category->update($request->validated());
 
-        return redirect()->route('admin.categories.index', $this->appendTailwindParam())
-            ->with('success', 'Kategoria została pomyślnie zaktualizowana.');
+        return redirect()->route('admin.categories.index')
+            ->with('success', 'Category has been updated successfully.');
     }
 
     /**
@@ -82,15 +69,13 @@ class CategoryController extends BaseAdminController
      */
     public function destroy(Category $category)
     {
-        // Option 1: Delete related products 
-        // $category->products()->delete();
-        
-        // Option 2: Detach products from category (set category_id to null)
-        // $category->products()->update(['category_id' => null]);
+        if ($category->products->count() > 0) {
+            return back()->with('error', 'Cannot delete category because it has associated products.');
+        }
         
         $category->delete();
 
-        return redirect()->route('admin.categories.index', $this->appendTailwindParam())
-            ->with('success', 'Kategoria została pomyślnie usunięta.');
+        return redirect()->route('admin.categories.index')
+            ->with('success', 'Category has been deleted successfully.');
     }
 } 

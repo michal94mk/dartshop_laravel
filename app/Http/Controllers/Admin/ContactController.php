@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use App\Models\ContactMessage;
 
 class ContactController extends BaseAdminController
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the contact messages.
      */
     public function index()
     {
@@ -21,7 +20,7 @@ class ContactController extends BaseAdminController
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified contact message.
      */
     public function show(ContactMessage $message)
     {
@@ -34,7 +33,7 @@ class ContactController extends BaseAdminController
     }
 
     /**
-     * Update the specified resource with a reply.
+     * Update the specified message with a reply.
      */
     public function reply(Request $request, ContactMessage $message)
     {
@@ -50,17 +49,17 @@ class ContactController extends BaseAdminController
         // Optional: Send reply email to the user
         // Mail::to($message->email)->send(new \App\Mail\ContactReplyMail($message));
         
-        return redirect()->back()->with('success', 'Odpowiedź została wysłana.');
+        return redirect()->back()->with('success', 'Reply has been sent.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified message from storage.
      */
     public function destroy(ContactMessage $message)
     {
         $message->delete();
         
         return redirect()->route('admin.contact.index')
-            ->with('success', 'Wiadomość została usunięta.');
+            ->with('success', 'Message has been deleted.');
     }
 } 

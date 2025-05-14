@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 class PromotionController extends BaseAdminController
 {
     /**
-     * Display a listing of the resource for admin.
+     * Display a listing of promotions.
      */
     public function index()
     {
@@ -18,7 +17,7 @@ class PromotionController extends BaseAdminController
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show the form for creating a new promotion.
      */
     public function create()
     {
@@ -26,7 +25,7 @@ class PromotionController extends BaseAdminController
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created promotion in storage.
      */
     public function store(Request $request)
     {
@@ -34,7 +33,7 @@ class PromotionController extends BaseAdminController
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified promotion.
      */
     public function show(string $id)
     {
@@ -42,7 +41,7 @@ class PromotionController extends BaseAdminController
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Show the form for editing the specified promotion.
      */
     public function edit(string $id)
     {
@@ -50,7 +49,7 @@ class PromotionController extends BaseAdminController
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified promotion in storage.
      */
     public function update(Request $request, string $id)
     {
@@ -58,7 +57,7 @@ class PromotionController extends BaseAdminController
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified promotion from storage.
      */
     public function destroy(string $id)
     {

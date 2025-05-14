@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Frontend\ContactRequest;
 use App\Models\ContactMessage;
-use Illuminate\Support\Facades\Mail;
 
 class ContactController extends Controller
 {
@@ -28,6 +27,6 @@ class ContactController extends Controller
         // Optional: Send email notification
         // Mail::to('admin@example.com')->send(new \App\Mail\ContactFormMail($message));
 
-        return redirect()->back()->with('success', 'Wiadomość została wysłana. Skontaktujemy się z Tobą wkrótce.');
+        return redirect()->back()->with('success', 'Your message has been sent. We will contact you soon.');
     }
 } 

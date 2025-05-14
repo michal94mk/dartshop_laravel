@@ -5,30 +5,27 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Product;
-use App\Models\Cart;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Arr;
 
 class CartController extends Controller
 {
     public function addToCart(Request $request, $productId)
     {
-        // Znajdź produkt
+        // Find the product
         $product = Product::find($productId);
         if (!$product) {
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['error' => 'Produkt nie znaleziony'], 404);
+                return response()->json(['error' => 'Product not found'], 404);
             }
-            return redirect()->back()->with('error', 'Produkt nie znaleziony');
+            return redirect()->back()->with('error', 'Product not found');
         }
 
-        // Pobierz koszyk z sesji
+        // Get cart from session
         $cart = session()->get('cart', []);
 
-        // Dodaj produkt do koszyka
+        // Add product to cart
         if (isset($cart[$productId])) {
             $cart[$productId]['quantity']++;
         } else {
@@ -38,7 +35,7 @@ class CartController extends Controller
             ];
         }
 
-        // Oblicz sumę ilości i cenę całkowitą
+        // Calculate total quantity and total price
         $totalQuantity = 0;
         $totalPrice = 0;
         
@@ -47,23 +44,23 @@ class CartController extends Controller
             $totalPrice += $item['product']->price * $item['quantity'];
         }
 
-        // Zapisz koszyk z powrotem do sesji
+        // Save cart back to session
         session()->put('cart', $cart);
         session()->save();
 
-        // Odpowiedz w zależności od typu żądania
+        // Respond based on request type
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true, 
-                'message' => 'Produkt dodany do koszyka', 
+                'message' => 'Product added to cart', 
                 'cart' => $cart, 
                 'total_quantity' => $totalQuantity,
                 'total_price' => number_format($totalPrice, 2)
             ]);
         }
 
-        // Dla zwykłych żądań HTTP
-        return redirect()->back()->with('success', 'Produkt został dodany do koszyka');
+        // For regular HTTP requests
+        return redirect()->back()->with('success', 'Product has been added to cart');
     }
 
     public function getCartContents(Request $request)
@@ -96,7 +93,7 @@ class CartController extends Controller
             $quantity += $item['quantity'];
         }
 
-        // Użyj widoku cart.blade.php z prawidłowej ścieżki
+        // Use cart.blade.php view from the correct path
         return view('frontend.cart.cart', compact('cart', 'total', 'quantity'));
     }
 
@@ -140,39 +137,39 @@ class CartController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Produkt usunięty z koszyka', 
+                    'message' => 'Product removed from cart', 
                     'cart' => $cart, 
                     'total_quantity' => $totalQuantity,
                     'total_price' => number_format($totalPrice, 2)
                 ]);
             }
 
-            return redirect()->back()->with('success', 'Produkt został usunięty z koszyka');
+            return redirect()->back()->with('success', 'Product has been removed from cart');
         } 
         
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['success' => false, 'message' => 'Produkt nie został znaleziony w koszyku', 'cart' => $cart], 404);
+            return response()->json(['success' => false, 'message' => 'Product was not found in the cart', 'cart' => $cart], 404);
         }
 
-        return redirect()->back()->with('error', 'Produkt nie został znaleziony w koszyku');
+        return redirect()->back()->with('error', 'Product was not found in the cart');
     }
 
     public function emptyCart(Request $request)
     {
-        // Usunięcie koszyka z sesji
+        // Remove cart from session
         session()->forget('cart');
         session()->save();
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Koszyk został opróżniony',
+                'message' => 'Cart has been emptied',
                 'cart' => [],
                 'total_quantity' => 0,
                 'total_price' => '0.00'
             ]);
         }
 
-        return redirect()->back()->with('success', 'Koszyk został opróżniony');
+        return redirect()->back()->with('success', 'Cart has been emptied');
     }
 } 

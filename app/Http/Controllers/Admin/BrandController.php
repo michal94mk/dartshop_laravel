@@ -2,82 +2,73 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\Admin\BrandRequest;
 use App\Models\Brand;
-use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 
 class BrandController extends BaseAdminController
 {
+    /**
+     * Display a listing of brands.
+     */
     public function index()
     {
         $perPage = $this->getPerPage();
         $brands = Brand::paginate($perPage);
         
-        // Check if request is for Tailwind view
-        if (request()->has('tailwind')) {
-            return view('admin.brands.index-tailwind', compact('brands'));
-        }
-        
         return view('admin.brands.index', compact('brands'));
     }
 
+    /**
+     * Show the form for creating a new brand.
+     */
     public function create()
     {
-        // Check if request is for Tailwind view
-        if (request()->has('tailwind')) {
-            return view('admin.brands.form-tailwind');
-        }
-        
         return view('admin.brands.create');
     }
 
-    public function store(Request $request)
+    /**
+     * Store a newly created brand in storage.
+     */
+    public function store(BrandRequest $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255|unique:brands',
-        ]);
-
-        Brand::create($data);
+        Brand::create($request->validated());
 
         return redirect()->route('admin.brands.index')
-            ->with('success', 'Marka została pomyślnie dodana.');
+            ->with('success', 'Brand has been added successfully.');
     }
 
-    public function edit($id)
+    /**
+     * Show the form for editing the specified brand.
+     */
+    public function edit(Brand $brand)
     {
-        $brand = Brand::find($id);
-        
-        // Check if request is for Tailwind view
-        if (request()->has('tailwind')) {
-            return view('admin.brands.form-tailwind', compact('brand'));
-        }
-        
         return view('admin.brands.edit', compact('brand'));
     }
 
-    public function update(Request $request, $id)
+    /**
+     * Update the specified brand in storage.
+     */
+    public function update(BrandRequest $request, Brand $brand)
     {
-        $brand = Brand::find($id);
-
-        $data = $request->validate([
-            'name' => 'required|string|max:255|unique:brands,name,'.$id,
-        ]);
-
-        $brand->update($data);
+        $brand->update($request->validated());
 
         return redirect()->route('admin.brands.index')
-            ->with('success', 'Marka została pomyślnie zaktualizowana.');
+            ->with('success', 'Brand has been updated successfully.');
     }
 
+    /**
+     * Remove the specified brand from storage.
+     */
     public function destroy(Request $request, Brand $brand)
     {
         if ($brand->products->count() > 0) {
-            return back()->with('error', 'Nie można usunąć marki, ponieważ ma powiązane produkty.');
+            return back()->with('error', 'Cannot delete brand because it has associated products.');
         }
 
         $brand->delete();
 
         return redirect()->route('admin.brands.index')
-            ->with('success', 'Marka została pomyślnie usunięta.');
+            ->with('success', 'Brand has been deleted successfully.');
     }
 } 
