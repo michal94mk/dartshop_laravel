@@ -15,14 +15,20 @@ class CartController extends Controller
 {
     public function addToCart(Request $request, $productId)
     {
+        // Znajdź produkt
         $product = Product::find($productId);
         if (!$product) {
-            return response()->json(['error' => 'Product not found'], 404);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['error' => 'Produkt nie znaleziony'], 404);
+            }
+            return redirect()->back()->with('error', 'Produkt nie znaleziony');
         }
 
-        $cart = $request->session()->get('cart', []);
+        // Pobierz koszyk z sesji
+        $cart = session()->get('cart', []);
 
-        if (array_key_exists($productId, $cart)) {
+        // Dodaj produkt do koszyka
+        if (isset($cart[$productId])) {
             $cart[$productId]['quantity']++;
         } else {
             $cart[$productId] = [
@@ -31,22 +37,56 @@ class CartController extends Controller
             ];
         }
 
-        $totalQuantity = array_sum(array_column($cart, 'quantity'));
+        // Oblicz sumę ilości i cenę całkowitą
+        $totalQuantity = 0;
+        $totalPrice = 0;
+        
+        foreach ($cart as $item) {
+            $totalQuantity += $item['quantity'];
+            $totalPrice += $item['product']->price * $item['quantity'];
+        }
 
-        $request->session()->put('cart', $cart);
+        // Zapisz koszyk z powrotem do sesji
+        session()->put('cart', $cart);
+        session()->save();
 
-        return response()->json(['cart' => $cart, 'quantity','total_quantity' => $totalQuantity]);
+        // Odpowiedz w zależności od typu żądania
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true, 
+                'message' => 'Produkt dodany do koszyka', 
+                'cart' => $cart, 
+                'total_quantity' => $totalQuantity,
+                'total_price' => number_format($totalPrice, 2)
+            ]);
+        }
+
+        // Dla zwykłych żądań HTTP
+        return redirect()->back()->with('success', 'Produkt został dodany do koszyka');
     }
 
     public function getCartContents(Request $request)
     {
-        $cart = $request->session()->get('cart', []);
-        return response()->json(['cart' => $cart]);
+        $cart = session()->get('cart', []);
+        $totalQuantity = 0;
+        $totalPrice = 0;
+        
+        foreach ($cart as $item) {
+            $totalQuantity += $item['quantity'];
+            $totalPrice += $item['product']->price * $item['quantity'];
+        }
+        
+        return response()->json([
+            'success' => true,
+            'cart' => $cart,
+            'total_quantity' => $totalQuantity,
+            'total_price' => number_format($totalPrice, 2)
+        ]);
     }
 
     public function cartView(Request $request)
     {
-        $cart = $request->session()->get('cart', []);
+        $cart = session()->get('cart', []);
         $total = 0;
         $quantity = 0;
 
@@ -55,18 +95,8 @@ class CartController extends Controller
             $quantity += $item['quantity'];
         }
 
-        // Check if request is for Tailwind view
-        if (request()->has('tailwind')) {
-            return view('frontend.cart.cart-tailwind', compact('cart', 'total', 'quantity'));
-        }
-
-        // Default pagination for original template
-        $products = collect($cart);
-        $perPage = 10;
-        $page = $request->input('page', 1);
-        $pagedData = $this->paginate($products, $perPage, $page);
-
-        return view('frontend.cart.cart', compact('pagedData', 'total', 'quantity'));
+        // Użyj widoku cart.blade.php z prawidłowej ścieżki
+        return view('frontend.cart.cart', compact('cart', 'total', 'quantity'));
     }
 
     protected function paginate($items, $perPage, $page, $options = [])
@@ -86,7 +116,7 @@ class CartController extends Controller
 
     public function deleteFromCart(Request $request, $productId)
     {
-        $cart = $request->session()->get('cart', []);
+        $cart = session()->get('cart', []);
 
         if (array_key_exists($productId, $cart)) {
             if ($cart[$productId]['quantity'] > 1) {
@@ -95,13 +125,34 @@ class CartController extends Controller
                 unset($cart[$productId]);
             }
 
-            $totalQuantity = array_sum(array_column($cart, 'quantity'));
+            $totalQuantity = 0;
+            $totalPrice = 0;
+            
+            foreach ($cart as $item) {
+                $totalQuantity += $item['quantity'];
+                $totalPrice += $item['product']->price * $item['quantity'];
+            }
 
-            $request->session()->put('cart', $cart);
+            session()->put('cart', $cart);
+            session()->save();
 
-            return response()->json(['message' => 'Product removed from cart', 'cart' => $cart, 'total_quantity' => $totalQuantity]);
-        } else {
-            return response()->json(['message' => 'Product not found in cart', 'cart' => $cart], 404);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Produkt usunięty z koszyka', 
+                    'cart' => $cart, 
+                    'total_quantity' => $totalQuantity,
+                    'total_price' => number_format($totalPrice, 2)
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Produkt został usunięty z koszyka');
+        } 
+        
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => false, 'message' => 'Produkt nie został znaleziony w koszyku', 'cart' => $cart], 404);
         }
+
+        return redirect()->back()->with('error', 'Produkt nie został znaleziony w koszyku');
     }
 }

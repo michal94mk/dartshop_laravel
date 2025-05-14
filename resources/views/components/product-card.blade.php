@@ -33,11 +33,11 @@
         <p class="text-sm text-gray-500 line-clamp-2">{{ $product->description }}</p>
         <div class="mt-auto pt-2">
             <div class="flex items-center justify-between">
-                <p class="text-base font-medium text-gray-900">${{ number_format($product->price, 2) }}</p>
+                <p class="text-base font-medium text-gray-900">{{ number_format($product->price, 2) }} zł</p>
                 <p class="text-sm text-gray-500">{{ $product->category->name }}</p>
             </div>
             <div class="mt-3 flex space-x-2">
-                <form action="{{ route('cart.add', $product->id) }}" method="POST" class="add-to-cart-form flex-1">
+                <form action="{{ route('cart.add', $product->id) }}" method="POST" class="add-to-cart-form flex-1" data-product-id="{{ $product->id }}">
                     @csrf
                     <button type="submit" class="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">

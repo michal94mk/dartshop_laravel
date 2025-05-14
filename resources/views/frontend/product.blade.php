@@ -78,7 +78,7 @@
                 </div>
 
                 <div class="mt-8 flex">
-                    <form method="POST" action="{{ route('cart.add', $product->id) }}" class="add-to-cart-form">
+                    <form method="POST" action="{{ route('cart.add', $product->id) }}" class="add-to-cart-form" data-product-id="{{ $product->id }}">
                         @csrf
                         <button type="submit" class="flex max-w-xs flex-1 items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:w-full">
                             <svg class="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -117,26 +117,118 @@
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.querySelector('.add-to-cart-form');
         
+        if (!form) {
+            console.error('Form not found!');
+            return;
+        }
+        
+        console.log('Form found, setting up event listener');
+        
         form.addEventListener('submit', function(e) {
             e.preventDefault();
+            console.log('Form submit intercepted');
             
             const formData = new FormData(form);
             const url = form.getAttribute('action');
+            const button = form.querySelector('button');
+            const originalText = button.innerHTML;
+            
+            // Disable button while processing
+            button.disabled = true;
+            button.innerHTML = '<svg class="-ml-1 mr-2 h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Dodawanie...';
+            
+            // Przygotuj nagłówki
+            const headers = {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            };
+            
+            // Dodaj nagłówek X-Requested-With tylko gdy używamy AJAX
+            if (typeof XMLHttpRequest !== 'undefined') {
+                headers['X-Requested-With'] = 'XMLHttpRequest';
+            }
             
             fetch(url, {
                 method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json',
-                },
+                headers: headers,
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                // Show success message
-                alert('Produkt został dodany do koszyka!');
+            .then(response => {
+                console.log('Response received', response);
+                return response.json();
             })
-            .catch(error => console.error('Error:', error));
+            .then(data => {
+                console.log('Data received', data);
+                // Update cart count
+                const cartCount = document.getElementById('cart-count');
+                if (cartCount && data.total_quantity) {
+                    cartCount.textContent = data.total_quantity;
+                }
+                
+                // Show success message
+                button.innerHTML = '<svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Dodano!';
+                button.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                button.classList.add('bg-green-600', 'hover:bg-green-700');
+                
+                // Create a notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded max-w-md shadow-lg z-50 transition-opacity';
+                notification.innerHTML = `
+                    <div class="flex items-center">
+                        <svg class="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <strong class="font-bold mr-2">Sukces!</strong>
+                        <span class="block">Produkt został dodany do koszyka!</span>
+                    </div>
+                `;
+                document.body.appendChild(notification);
+                
+                // Remove notification after 3 seconds
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 300);
+                }, 3000);
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('bg-green-600', 'hover:bg-green-700');
+                    button.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+                    button.disabled = false;
+                }, 2000);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                // Reset button
+                button.innerHTML = originalText;
+                button.disabled = false;
+                
+                // Show error notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded max-w-md shadow-lg z-50';
+                notification.innerHTML = `
+                    <div class="flex items-center">
+                        <svg class="h-6 w-6 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        <strong class="font-bold mr-2">Błąd!</strong>
+                        <span class="block">Nie udało się dodać produktu do koszyka.</span>
+                    </div>
+                `;
+                document.body.appendChild(notification);
+                
+                // Remove notification after 3 seconds
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 300);
+                }, 3000);
+            });
         });
     });
 </script>
