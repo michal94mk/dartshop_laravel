@@ -19,7 +19,6 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <!-- Styles -->
-    @livewireStyles
 </head>
 <body class="font-sans antialiased bg-gray-100">
     <div class="min-h-screen bg-gray-100">
@@ -38,27 +37,27 @@
                         <!-- Navigation Links -->
                         <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                             <a href="{{ route('admin.products.index') }}" 
-                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.products.*') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
+                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ str_starts_with(request()->route()->getName(), 'admin.products') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
                                 Produkty
                             </a>
                             <a href="{{ route('admin.categories.index') }}" 
-                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.categories.*') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
+                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ str_starts_with(request()->route()->getName(), 'admin.categories') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
                                 Kategorie
                             </a>
                             <a href="{{ route('admin.brands.index') }}" 
-                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.brands.*') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
+                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ str_starts_with(request()->route()->getName(), 'admin.brands') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
                                 Marki
                             </a>
                             <a href="{{ route('admin.promotions.index') }}" 
-                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.promotions.*') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
+                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ str_starts_with(request()->route()->getName(), 'admin.promotions') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
                                 Promocje
                             </a>
                             <a href="{{ route('admin.contact.index') }}" 
-                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.contact.*') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
+                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ str_starts_with(request()->route()->getName(), 'admin.contact') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
                                 Kontakt
                             </a>
                             <a href="{{ route('admin.users.index') }}" 
-                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.users.*') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
+                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ str_starts_with(request()->route()->getName(), 'admin.users') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
                                 Użytkownicy
                             </a>
                         </div>
@@ -115,22 +114,22 @@
             <!-- Responsive Navigation Menu -->
             <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
                 <div class="pt-2 pb-3 space-y-1">
-                    <a href="{{ route('admin.products.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('admin.products.*') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
+                    <a href="{{ route('admin.products.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ str_starts_with(request()->route()->getName(), 'admin.products') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
                         Produkty
                     </a>
-                    <a href="{{ route('admin.categories.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('admin.categories.*') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
+                    <a href="{{ route('admin.categories.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ str_starts_with(request()->route()->getName(), 'admin.categories') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
                         Kategorie
                     </a>
-                    <a href="{{ route('admin.brands.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('admin.brands.*') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
+                    <a href="{{ route('admin.brands.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ str_starts_with(request()->route()->getName(), 'admin.brands') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
                         Marki
                     </a>
-                    <a href="{{ route('admin.promotions.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('admin.promotions.*') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
+                    <a href="{{ route('admin.promotions.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ str_starts_with(request()->route()->getName(), 'admin.promotions') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
                         Promocje
                     </a>
-                    <a href="{{ route('admin.contact.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('admin.contact.*') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
+                    <a href="{{ route('admin.contact.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ str_starts_with(request()->route()->getName(), 'admin.contact') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
                         Kontakt
                     </a>
-                    <a href="{{ route('admin.users.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('admin.users.*') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
+                    <a href="{{ route('admin.users.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ str_starts_with(request()->route()->getName(), 'admin.users') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
                         Użytkownicy
                     </a>
                     <a href="{{ route('home') }}" class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300 text-base font-medium">

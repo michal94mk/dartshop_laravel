@@ -17,13 +17,13 @@ class HomeController extends Controller
         ->take(10)
         ->get();
 
-    return view('home', ['newestProducts' => $newestProducts]);
+    return view('frontend.home', ['newestProducts' => $newestProducts]);
 }
 
     public function indexNewestProductsForHomepage()
     {
         $newestProducts = Product::orderBy('created_at', 'desc')->take(8)->get();
-        return view('home', compact('newestProducts'));
+        return view('frontend.home', compact('newestProducts'));
     }
 
     public function indexForRegularUsers(Request $request): View|JsonResponse
