@@ -49,6 +49,14 @@
                                class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.brands.*') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
                                 Marki
                             </a>
+                            <a href="{{ route('admin.promotions.index') }}" 
+                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.promotions.*') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
+                                Promocje
+                            </a>
+                            <a href="{{ route('admin.contact.index') }}" 
+                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.contact.*') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
+                                Kontakt
+                            </a>
                             <a href="{{ route('admin.users.index') }}" 
                                class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.users.*') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
                                 Użytkownicy
@@ -115,6 +123,12 @@
                     </a>
                     <a href="{{ route('admin.brands.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('admin.brands.*') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
                         Marki
+                    </a>
+                    <a href="{{ route('admin.promotions.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('admin.promotions.*') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
+                        Promocje
+                    </a>
+                    <a href="{{ route('admin.contact.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('admin.contact.*') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
+                        Kontakt
                     </a>
                     <a href="{{ route('admin.users.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('admin.users.*') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
                         Użytkownicy
