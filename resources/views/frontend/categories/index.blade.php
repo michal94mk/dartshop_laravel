@@ -308,3 +308,143 @@
     </div>
 </div>
 @endsection 
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle favorite toggle AJAX for all products on the page
+        const favoriteForms = document.querySelectorAll('.favorite-form');
+        
+        if (favoriteForms.length > 0) {
+            favoriteForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(form);
+                    
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        credentials: 'same-origin'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update heart icon
+                            const heartIcon = form.querySelector('svg');
+                            if (data.status === 'added') {
+                                heartIcon.classList.remove('text-gray-400');
+                                heartIcon.classList.add('text-red-500');
+                            } else {
+                                heartIcon.classList.remove('text-red-500');
+                                heartIcon.classList.add('text-gray-400');
+                            }
+                            
+                            // Show notification
+                            Swal.fire({
+                                text: data.message,
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        } else {
+                            Swal.fire({
+                                text: data.message || 'Wystąpił błąd',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            text: 'Wystąpił błąd podczas przetwarzania żądania',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    });
+                });
+            });
+        }
+        
+        // Handle add to cart AJAX
+        const cartForms = document.querySelectorAll('.add-to-cart-form');
+        
+        if (cartForms.length > 0) {
+            cartForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(form);
+                    const productId = form.getAttribute('data-product-id');
+                    const button = form.querySelector('button');
+                    const originalText = button.innerHTML;
+                    
+                    // Disable button and show loading state
+                    button.disabled = true;
+                    button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 animate-spin mx-auto" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+                    
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        credentials: 'same-origin'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Reset button
+                        button.disabled = false;
+                        button.innerHTML = originalText;
+                        
+                        if (data.success) {
+                            // Show success notification
+                            Swal.fire({
+                                title: 'Sukces!',
+                                text: 'Produkt został dodany do koszyka',
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                            
+                            // Update cart count
+                            const cartCountElement = document.querySelector('#cart-count');
+                            if (cartCountElement && data.cart_count) {
+                                cartCountElement.textContent = data.cart_count;
+                                cartCountElement.classList.remove('hidden');
+                            }
+                        } else {
+                            // Show error notification
+                            Swal.fire({
+                                title: 'Błąd!',
+                                text: data.message || 'Wystąpił błąd podczas dodawania produktu do koszyka',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        // Reset button
+                        button.disabled = false;
+                        button.innerHTML = originalText;
+                        
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Błąd!',
+                            text: 'Wystąpił błąd podczas dodawania produktu do koszyka',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    });
+                });
+            });
+        }
+    });
+</script>
+@endsection 

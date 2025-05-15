@@ -77,7 +77,7 @@
                     <p class="text-3xl font-bold text-gray-900">{{ number_format($product->price, 2) }} zł</p>
                 </div>
 
-                <div class="mt-8 flex">
+                <div class="mt-8 flex space-x-4">
                     <form method="POST" action="{{ route('cart.add', $product->id) }}" class="add-to-cart-form" data-product-id="{{ $product->id }}">
                         @csrf
                         <button type="submit" class="flex max-w-xs flex-1 items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:w-full">
@@ -87,6 +87,25 @@
                             Dodaj do koszyka
                         </button>
                     </form>
+                    
+                    @auth
+                        <form method="POST" action="{{ route('profile.favorites.toggle', $product->id) }}" class="favorite-form">
+                            @csrf
+                            <button type="submit" class="flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-3 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50">
+                                <svg class="h-6 w-6 {{ Auth::user()->favoriteProducts->contains($product->id) ? 'text-red-500' : 'text-gray-400' }}" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                                <span class="sr-only">{{ Auth::user()->favoriteProducts->contains($product->id) ? 'Usuń z ulubionych' : 'Dodaj do ulubionych' }}</span>
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" class="flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-3 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                            <span class="sr-only">Zaloguj się, aby dodać do ulubionych</span>
+                        </a>
+                    @endauth
                 </div>
 
                 <div class="mt-10 border-t border-gray-200 pt-10">
@@ -198,107 +217,111 @@
             console.log('Form submit intercepted');
             
             const formData = new FormData(form);
-            const url = form.getAttribute('action');
-            const button = form.querySelector('button');
-            const originalText = button.innerHTML;
             
-            // Disable button while processing
-            button.disabled = true;
-            button.innerHTML = '<svg class="-ml-1 mr-2 h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Dodawanie...';
-            
-            // Przygotuj nagłówki
-            const headers = {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json'
-            };
-            
-            // Dodaj nagłówek X-Requested-With tylko gdy używamy AJAX
-            if (typeof XMLHttpRequest !== 'undefined') {
-                headers['X-Requested-With'] = 'XMLHttpRequest';
-            }
-            
-            fetch(url, {
+            fetch(form.action, {
                 method: 'POST',
-                headers: headers,
-                body: formData
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                credentials: 'same-origin'
             })
-            .then(response => {
-                console.log('Response received', response);
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                console.log('Data received', data);
-                // Update cart count
-                const cartCount = document.getElementById('cart-count');
-                if (cartCount && data.total_quantity) {
-                    cartCount.textContent = data.total_quantity;
+                console.log('Response:', data);
+                if (data.success) {
+                    // Show success notification
+                    Swal.fire({
+                        title: 'Sukces!',
+                        text: 'Produkt został dodany do koszyka',
+                        icon: 'success',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                    
+                    // Update cart count
+                    const cartCountElement = document.querySelector('.cart-count');
+                    if (cartCountElement && data.cart_count) {
+                        cartCountElement.textContent = data.cart_count;
+                        cartCountElement.classList.remove('hidden');
+                    }
+                } else {
+                    // Show error notification
+                    Swal.fire({
+                        title: 'Błąd!',
+                        text: data.message || 'Wystąpił błąd podczas dodawania produktu do koszyka',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
                 }
-                
-                // Show success message
-                button.innerHTML = '<svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Dodano!';
-                button.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
-                button.classList.add('bg-green-600', 'hover:bg-green-700');
-                
-                // Create a notification
-                const notification = document.createElement('div');
-                notification.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded max-w-md shadow-lg z-50 transition-opacity';
-                notification.innerHTML = `
-                    <div class="flex items-center">
-                        <svg class="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        <strong class="font-bold mr-2">Sukces!</strong>
-                        <span class="block">Produkt został dodany do koszyka!</span>
-                    </div>
-                `;
-                document.body.appendChild(notification);
-                
-                // Remove notification after 3 seconds
-                setTimeout(() => {
-                    notification.style.opacity = '0';
-                    setTimeout(() => {
-                        notification.remove();
-                    }, 300);
-                }, 3000);
-                
-                // Reset button after 2 seconds
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.classList.remove('bg-green-600', 'hover:bg-green-700');
-                    button.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
-                    button.disabled = false;
-                }, 2000);
             })
             .catch(error => {
                 console.error('Error:', error);
-                
-                // Reset button
-                button.innerHTML = originalText;
-                button.disabled = false;
-                
-                // Show error notification
-                const notification = document.createElement('div');
-                notification.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded max-w-md shadow-lg z-50';
-                notification.innerHTML = `
-                    <div class="flex items-center">
-                        <svg class="h-6 w-6 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                        <strong class="font-bold mr-2">Błąd!</strong>
-                        <span class="block">Nie udało się dodać produktu do koszyka.</span>
-                    </div>
-                `;
-                document.body.appendChild(notification);
-                
-                // Remove notification after 3 seconds
-                setTimeout(() => {
-                    notification.style.opacity = '0';
-                    setTimeout(() => {
-                        notification.remove();
-                    }, 300);
-                }, 3000);
+                Swal.fire({
+                    title: 'Błąd!',
+                    text: 'Wystąpił błąd podczas dodawania produktu do koszyka',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
             });
         });
+        
+        // Handle favorite toggle AJAX
+        const favoriteForm = document.querySelector('.favorite-form');
+        if (favoriteForm) {
+            favoriteForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(favoriteForm);
+                
+                fetch(favoriteForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update heart icon
+                        const heartIcon = favoriteForm.querySelector('svg');
+                        if (data.status === 'added') {
+                            heartIcon.classList.remove('text-gray-400');
+                            heartIcon.classList.add('text-red-500');
+                        } else {
+                            heartIcon.classList.remove('text-red-500');
+                            heartIcon.classList.add('text-gray-400');
+                        }
+                        
+                        // Show notification
+                        Swal.fire({
+                            text: data.message,
+                            icon: 'success',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    } else {
+                        Swal.fire({
+                            text: data.message || 'Wystąpił błąd',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        text: 'Wystąpił błąd podczas przetwarzania żądania',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                });
+            });
+        }
     });
 </script>
 @endpush 

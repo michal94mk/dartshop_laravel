@@ -10,6 +10,26 @@
                 <h2 class="text-2xl font-bold text-gray-800">{{ __('Twój profil') }}</h2>
             </div>
             
+            <div class="mb-6 border-b border-gray-200">
+                <nav class="flex space-x-6">
+                    <a href="{{ route('profile.edit') }}" class="px-3 py-2 text-sm font-medium {{ request()->routeIs('profile.edit') ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
+                        {{ __('Profil') }}
+                    </a>
+                    <a href="{{ route('profile.orders') }}" class="px-3 py-2 text-sm font-medium {{ request()->routeIs('profile.orders') ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
+                        {{ __('Zamówienia') }}
+                    </a>
+                    <a href="{{ route('profile.payments') }}" class="px-3 py-2 text-sm font-medium {{ request()->routeIs('profile.payments') ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
+                        {{ __('Płatności') }}
+                    </a>
+                    <a href="{{ route('profile.favorites') }}" class="px-3 py-2 text-sm font-medium {{ request()->routeIs('profile.favorites') ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
+                        {{ __('Ulubione') }}
+                    </a>
+                    <a href="{{ route('profile.addresses') }}" class="px-3 py-2 text-sm font-medium {{ request()->routeIs('profile.addresses*') ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
+                        {{ __('Adresy') }}
+                    </a>
+                </nav>
+            </div>
+            
             <div class="mb-10">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('Informacje o profilu') }}</h3>
                 <div class="bg-gray-50 p-6 rounded-lg">
