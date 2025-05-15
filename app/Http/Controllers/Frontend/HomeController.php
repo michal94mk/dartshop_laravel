@@ -7,6 +7,7 @@ use App\Models\Brand;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Review;
 use Illuminate\Contracts\View\View;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Models\Promotion;
@@ -48,10 +49,30 @@ class HomeController extends Controller
             })
             ->take(4)
             ->get();
+        
+        // Pobieramy wyróżnione recenzje z losową rotacją jeśli jest ich więcej niż 3
+        $featuredReviews = Review::with(['user', 'product'])
+            ->where('is_approved', true)
+            ->where('is_featured', true);
+            
+        // Sprawdzamy ile jest wyróżnionych recenzji
+        $totalFeaturedCount = (clone $featuredReviews)->count();
+        
+        // Jeśli jest więcej niż 3, stosujemy losową kolejność
+        if ($totalFeaturedCount > 3) {
+            $featuredReviews = $featuredReviews->inRandomOrder();
+        } else {
+            // W przeciwnym razie sortujemy po dacie
+            $featuredReviews = $featuredReviews->orderBy('created_at', 'desc');
+        }
+        
+        // Pobieramy 3 recenzje do wyświetlenia
+        $featuredReviews = $featuredReviews->take(3)->get();
             
         return view('frontend.home', [
             'newestProducts' => $newestProducts,
-            'activePromotions' => $activePromotions
+            'activePromotions' => $activePromotions,
+            'featuredReviews' => $featuredReviews
         ]);
     }
 
@@ -158,7 +179,7 @@ class HomeController extends Controller
      */
     public function showProduct($id)
     {
-        $product = Product::with(['category', 'brand'])->find($id);
+        $product = Product::with(['category', 'brand', 'reviews.user'])->find($id);
         return view('frontend.product', compact('product'));
     }
 } 

@@ -107,6 +107,75 @@
                 </div>
             </div>
         </div>
+
+        <!-- Reviews section -->
+        <div class="mt-16 border-t border-gray-200 pt-10">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-extrabold tracking-tight text-gray-900">Recenzje klientów</h2>
+                @auth
+                    <a href="{{ route('frontend.reviews.create', $product->id) }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Dodaj recenzję
+                    </a>
+                @else
+                    <a href="{{ route('login') }}" class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                        Zaloguj się, aby dodać recenzję
+                        <svg class="ml-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                    </a>
+                @endauth
+            </div>
+            
+            <div class="mt-6 space-y-10 divide-y divide-gray-200 border-b border-gray-200 pb-10">
+                @if($product->reviews()->where('is_approved', true)->count() > 0)
+                    @foreach($product->reviews()->where('is_approved', true)->orderBy('created_at', 'desc')->get() as $review)
+                        <div class="pt-10">
+                            <div class="flex items-center">
+                                <div class="flex items-center">
+                                    @for ($i = 1; $i <= 5; $i++)
+                                        @if ($i <= $review->rating)
+                                            <svg class="h-5 w-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                            </svg>
+                                        @else
+                                            <svg class="h-5 w-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                            </svg>
+                                        @endif
+                                    @endfor
+                                </div>
+                                <p class="ml-2 text-sm font-medium text-gray-900">{{ $review->title }}</p>
+                            </div>
+                            
+                            <div class="mt-4 text-sm text-gray-600">
+                                <p>{{ $review->content }}</p>
+                            </div>
+                            
+                            <div class="mt-4 flex items-center">
+                                <div class="flex-shrink-0">
+                                    <span class="sr-only">{{ $review->user->name }}</span>
+                                    <div class="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center">
+                                        <span class="text-white font-semibold text-xs">{{ strtoupper(substr($review->user->name, 0, 1)) }}</span>
+                                    </div>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-gray-900">{{ $review->user->name }}</p>
+                                    <time class="text-sm text-gray-500" datetime="{{ $review->created_at->format('Y-m-d') }}">{{ $review->created_at->format('d.m.Y') }}</time>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                @else
+                    <div class="py-10 text-center">
+                        <p class="text-gray-500">Ten produkt nie ma jeszcze recenzji.</p>
+                        <p class="mt-2 text-gray-500">Bądź pierwszy i podziel się swoją opinią!</p>
+                    </div>
+                @endif
+            </div>
+        </div>
     </div>
 </div>
 @endsection

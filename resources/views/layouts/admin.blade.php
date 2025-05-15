@@ -52,6 +52,10 @@
                                class="inline-flex items-center px-1 pt-1 border-b-2 {{ str_starts_with(request()->route()->getName(), 'admin.promotions') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
                                 Promocje
                             </a>
+                            <a href="{{ route('admin.reviews.index') }}" 
+                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ str_starts_with(request()->route()->getName(), 'admin.reviews') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
+                                Recenzje
+                            </a>
                             <a href="{{ route('admin.orders.index') }}" 
                                class="inline-flex items-center px-1 pt-1 border-b-2 {{ str_starts_with(request()->route()->getName(), 'admin.orders') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
                                 Zamówienia
@@ -133,6 +137,9 @@
                     </a>
                     <a href="{{ route('admin.promotions.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ str_starts_with(request()->route()->getName(), 'admin.promotions') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
                         Promocje
+                    </a>
+                    <a href="{{ route('admin.reviews.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ str_starts_with(request()->route()->getName(), 'admin.reviews') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
+                        Recenzje
                     </a>
                     <a href="{{ route('admin.orders.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ str_starts_with(request()->route()->getName(), 'admin.orders') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
                         Zamówienia

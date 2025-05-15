@@ -8,6 +8,7 @@ use App\Http\Controllers\Frontend\PaymentController;
 use App\Http\Controllers\Frontend\ContactController as FrontendContactController;
 use App\Http\Controllers\Frontend\PromotionController as FrontendPromotionController;
 use App\Http\Controllers\Frontend\PhotoController;
+use App\Http\Controllers\Frontend\ReviewController;
 
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\RoleMiddleware;
@@ -48,6 +50,10 @@ Route::get('/filter/products', [ProductController::class, 'filterProducts'])->na
 
 // Promotions routes
 Route::get('/promotions', [FrontendPromotionController::class, 'showPromotions'])->name('frontend.promotions');
+
+// Reviews routes
+Route::get('/products/{product}/reviews/create', [ReviewController::class, 'create'])->name('frontend.reviews.create')->middleware('auth');
+Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])->name('frontend.reviews.store')->middleware('auth');
 
 // Contact routes
 Route::get('/contact', [FrontendContactController::class, 'showContactForm'])->name('frontend.contact');
@@ -176,6 +182,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified', RoleMiddl
     Route::get('/permissions/{permission}/edit', [PermissionController::class, 'edit'])->name('permissions.edit');
     Route::put('/permissions/{permission}', [PermissionController::class, 'update'])->name('permissions.update');
     Route::delete('/permissions/{permission}', [PermissionController::class, 'destroy'])->name('permissions.destroy');
+
+    // Reviews management
+    Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
+    Route::get('/reviews/{review}', [AdminReviewController::class, 'show'])->name('reviews.show');
+    Route::get('/reviews/{review}/edit', [AdminReviewController::class, 'edit'])->name('reviews.edit');
+    Route::put('/reviews/{review}', [AdminReviewController::class, 'update'])->name('reviews.update');
+    Route::post('/reviews/{review}/approve', [AdminReviewController::class, 'approve'])->name('reviews.approve');
+    Route::post('/reviews/{review}/reject', [AdminReviewController::class, 'reject'])->name('reviews.reject');
+    Route::post('/reviews/{review}/toggle-featured', [AdminReviewController::class, 'toggleFeatured'])->name('reviews.toggle-featured');
+    Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
 });
 
 require __DIR__.'/auth.php';
