@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Frontend\PaymentRequest;
 use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Http\Request;
@@ -56,11 +57,11 @@ class PaymentController extends Controller
      * Updates the associated order status to processing. In a production
      * environment, this would verify the payment with the payment gateway.
      *
-     * @param Request $request The incoming request
+     * @param PaymentRequest $request The incoming request
      * @param Order $order The order being paid for
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function complete(Request $request, Order $order)
+    public function complete(PaymentRequest $request, Order $order)
     {
         // Verify that the order belongs to the current user or session
         if (Auth::check() && $order->user_id !== Auth::id() && $order->session_id !== session()->getId()) {

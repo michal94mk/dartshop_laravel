@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Admin\PaymentRequest;
 use App\Models\Payment;
 use App\Enums\PaymentStatus;
+use Illuminate\Http\Request;
 
 /**
  * Payment management controller for the admin panel.
@@ -89,16 +90,13 @@ class PaymentController extends Controller
      * If payment status is updated to COMPLETED, also updates the associated 
      * order status to PROCESSING.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\PaymentRequest  $request
      * @param  \App\Models\Payment  $payment
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(Request $request, Payment $payment)
+    public function update(PaymentRequest $request, Payment $payment)
     {
-        $validated = $request->validate([
-            'status' => 'required|in:' . implode(',', array_column(PaymentStatus::cases(), 'value')),
-            'notes' => 'nullable|string|max:1000',
-        ]);
+        $validated = $request->validated();
 
         $payment->update($validated);
 

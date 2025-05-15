@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\OrderRequest;
 use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Http\Request;
@@ -67,11 +68,8 @@ class OrderController extends Controller
     /**
      * Update the specified order.
      */
-    public function update(Request $request, Order $order)
+    public function update(OrderRequest $request, Order $order)
     {
-        $request->validate([
-            'status' => 'required|string',
-        ]);
         
         try {
             DB::beginTransaction();

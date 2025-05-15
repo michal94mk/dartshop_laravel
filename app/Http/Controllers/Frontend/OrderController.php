@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Frontend\OrderRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 
 /**
  * Frontend OrderController handles all order-related actions for customers.
@@ -82,34 +82,15 @@ class OrderController extends Controller
      * calculates final pricing, and directs customer to appropriate payment method.
      * Clears the cart on successful order placement.
      *
-     * @param Request $request The incoming request with order details
+     * @param OrderRequest $request The incoming request with order details
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function placeOrder(Request $request)
+    public function placeOrder(OrderRequest $request)
     {
         $cart = session()->get('cart', []);
         
         if (empty($cart)) {
             return redirect()->route('cart.view')->with('error', 'Your cart is empty. Add products before placing an order.');
-        }
-        
-        // Validate customer details
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'required|string|max:255',
-            'city' => 'required|string|max:255',
-            'postal_code' => 'required|string|max:10',
-            'notes' => 'nullable|string',
-            'payment_method' => 'required|string|in:online,cash_on_delivery,bank_transfer',
-        ]);
-        
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
         }
         
         // Calculate order totals
