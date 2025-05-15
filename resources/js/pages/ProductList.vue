@@ -29,53 +29,6 @@
               
               <!-- Mobile filters -->
               <div class="mt-4 border-t border-gray-200">
-                <!-- Sort options - Mobile -->
-                <div class="p-4 border-t border-gray-200">
-                  <h3 class="font-medium text-gray-900">Sortowanie</h3>
-                  <div class="pt-4">
-                    <select 
-                      v-model="productStore.filters.sort"
-                      @change="applyFilters"
-                      class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    >
-                      <option value="newest">Najnowsze</option>
-                      <option value="price_asc">Cena: rosnąco</option>
-                      <option value="price_desc">Cena: malejąco</option>
-                      <option value="name_asc">Nazwa: A-Z</option>
-                      <option value="name_desc">Nazwa: Z-A</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <!-- Price range - Mobile -->
-                <div class="p-4 border-t border-gray-200">
-                  <h3 class="font-medium text-gray-900">Zakres cenowy</h3>
-                  <div class="pt-4 grid grid-cols-2 gap-4">
-                    <div>
-                      <label for="mobile-price-min" class="sr-only">Cena od</label>
-                      <input 
-                        type="number" 
-                        id="mobile-price-min" 
-                        v-model="priceRange[0]"
-                        placeholder="Od" 
-                        min="0" 
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                      >
-                    </div>
-                    <div>
-                      <label for="mobile-price-max" class="sr-only">Cena do</label>
-                      <input 
-                        type="number" 
-                        id="mobile-price-max" 
-                        v-model="priceRange[1]"
-                        placeholder="Do" 
-                        min="0" 
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                      >
-                    </div>
-                  </div>
-                </div>
-                
                 <!-- Action buttons - Mobile -->
                 <div class="p-4 flex space-x-4">
                   <button 
@@ -99,57 +52,6 @@
         <!-- Filters - Desktop -->
         <div class="hidden lg:block">
           <div class="divide-y divide-gray-200 space-y-10">
-            <!-- Sort options - Desktop -->
-            <div>
-              <fieldset>
-                <legend class="block text-sm font-medium text-gray-900">Sortowanie</legend>
-                <div class="pt-4">
-                  <select 
-                    v-model="productStore.filters.sort"
-                    @change="applyFilters"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  >
-                    <option value="newest">Najnowsze</option>
-                    <option value="price_asc">Cena: rosnąco</option>
-                    <option value="price_desc">Cena: malejąco</option>
-                    <option value="name_asc">Nazwa: A-Z</option>
-                    <option value="name_desc">Nazwa: Z-A</option>
-                  </select>
-                </div>
-              </fieldset>
-            </div>
-            
-            <!-- Price range - Desktop -->
-            <div class="pt-10">
-              <fieldset>
-                <legend class="block text-sm font-medium text-gray-900">Zakres cenowy</legend>
-                <div class="pt-4 grid grid-cols-2 gap-4">
-                  <div>
-                    <label for="price-min" class="sr-only">Cena od</label>
-                    <input 
-                      type="number" 
-                      id="price-min" 
-                      v-model="priceRange[0]"
-                      placeholder="Od" 
-                      min="0" 
-                      class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    >
-                  </div>
-                  <div>
-                    <label for="price-max" class="sr-only">Cena do</label>
-                    <input 
-                      type="number" 
-                      id="price-max" 
-                      v-model="priceRange[1]"
-                      placeholder="Do" 
-                      min="0" 
-                      class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    >
-                  </div>
-                </div>
-              </fieldset>
-            </div>
-            
             <!-- Action buttons - Desktop -->
             <div class="pt-10">
               <button 
@@ -170,23 +72,114 @@
 
         <!-- Product grid and sorting bar -->
         <div class="mt-8 lg:mt-0 lg:col-span-4">
-          <div class="flex justify-between items-center mb-6">
-            <div class="text-sm text-gray-600">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+            <div class="text-sm text-gray-600 mb-4 sm:mb-0">
               Wyświetlanie {{ productStore.products.length }} z {{ productStore.pagination.total }} produktów
+              <span class="ml-2 text-xs text-gray-500">
+                <template v-if="productStore.filters.sort === 'newest'">
+                  (sortowanie: najnowsze najpierw)
+                </template>
+                <template v-else-if="productStore.filters.sort === 'price_asc'">
+                  (sortowanie: od najtańszych)
+                </template>
+                <template v-else-if="productStore.filters.sort === 'price_desc'">
+                  (sortowanie: od najdroższych)
+                </template>
+                <template v-else-if="productStore.filters.sort === 'name_asc'">
+                  (sortowanie: A-Z)
+                </template>
+                <template v-else-if="productStore.filters.sort === 'name_desc'">
+                  (sortowanie: Z-A)
+                </template>
+              </span>
             </div>
-            <div class="flex items-center">
-              <span class="mr-2 text-sm text-gray-600">Sortuj według:</span>
-              <select 
-                v-model="productStore.filters.sort"
-                @change="applyFilters"
-                class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-              >
-                <option value="newest">Najnowsze</option>
-                <option value="price_asc">Cena: rosnąco</option>
-                <option value="price_desc">Cena: malejąco</option>
-                <option value="name_asc">Nazwa: A-Z</option>
-                <option value="name_desc">Nazwa: Z-A</option>
-              </select>
+            
+            <!-- Enhanced sorting interface -->
+            <div class="w-full sm:w-auto">
+              <div class="sm:flex items-center bg-white p-2 rounded-md shadow-sm mb-4">
+                <span class="block sm:inline mr-2 text-sm font-medium text-gray-700">Sortuj według:</span>
+                <div class="flex flex-wrap mt-2 sm:mt-0">
+                  <button 
+                    @click="setSorting('newest')" 
+                    class="px-3 py-1 mr-2 mb-2 sm:mb-0 rounded-md text-sm transition-colors duration-200"
+                    :class="{'bg-indigo-600 text-white hover:bg-indigo-700': productStore.filters.sort === 'newest', 'bg-gray-100 text-gray-700 hover:bg-gray-200': productStore.filters.sort !== 'newest'}"
+                  >
+                    Najnowsze
+                  </button>
+                  <button 
+                    @click="setSorting('price_asc')" 
+                    class="px-3 py-1 mr-2 mb-2 sm:mb-0 rounded-md text-sm transition-colors duration-200"
+                    :class="{'bg-indigo-600 text-white hover:bg-indigo-700': productStore.filters.sort === 'price_asc', 'bg-gray-100 text-gray-700 hover:bg-gray-200': productStore.filters.sort !== 'price_asc'}"
+                  >
+                    <span class="hidden sm:inline">Cena: </span>↑
+                  </button>
+                  <button 
+                    @click="setSorting('price_desc')" 
+                    class="px-3 py-1 mr-2 mb-2 sm:mb-0 rounded-md text-sm transition-colors duration-200"
+                    :class="{'bg-indigo-600 text-white hover:bg-indigo-700': productStore.filters.sort === 'price_desc', 'bg-gray-100 text-gray-700 hover:bg-gray-200': productStore.filters.sort !== 'price_desc'}"
+                  >
+                    <span class="hidden sm:inline">Cena: </span>↓
+                  </button>
+                  <button 
+                    @click="setSorting('name_asc')" 
+                    class="px-3 py-1 mr-2 mb-2 sm:mb-0 rounded-md text-sm transition-colors duration-200"
+                    :class="{'bg-indigo-600 text-white hover:bg-indigo-700': productStore.filters.sort === 'name_asc', 'bg-gray-100 text-gray-700 hover:bg-gray-200': productStore.filters.sort !== 'name_asc'}"
+                  >
+                    <span class="hidden sm:inline">Nazwa: </span>A-Z
+                  </button>
+                  <button 
+                    @click="setSorting('name_desc')" 
+                    class="px-3 py-1 mb-2 sm:mb-0 rounded-md text-sm transition-colors duration-200"
+                    :class="{'bg-indigo-600 text-white hover:bg-indigo-700': productStore.filters.sort === 'name_desc', 'bg-gray-100 text-gray-700 hover:bg-gray-200': productStore.filters.sort !== 'name_desc'}"
+                  >
+                    <span class="hidden sm:inline">Nazwa: </span>Z-A
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Zakres cenowy przeniesiony obok sortowania -->
+              <div class="bg-white p-3 rounded-md shadow-sm mb-4">
+                <div class="flex flex-col sm:flex-row items-center">
+                  <span class="block sm:inline mr-2 text-sm font-medium text-gray-700 mb-2 sm:mb-0">Zakres cen:</span>
+                  <div class="flex w-full sm:w-auto">
+                    <input 
+                      type="number" 
+                      v-model="priceRange[0]"
+                      placeholder="Od" 
+                      min="0" 
+                      class="w-20 sm:w-24 rounded-l-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                    >
+                    <span class="px-2 inline-flex items-center bg-gray-100">-</span>
+                    <input 
+                      type="number" 
+                      v-model="priceRange[1]"
+                      placeholder="Do" 
+                      min="0" 
+                      class="w-20 sm:w-24 rounded-r-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                    >
+                    <button 
+                      @click="applyPriceFilter"
+                      class="ml-2 px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors duration-200"
+                    >
+                      Filtruj
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="sm:hidden">
+                <select 
+                  v-model="productStore.filters.sort"
+                  @change="applyFilters"
+                  class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                >
+                  <option value="newest">Najnowsze</option>
+                  <option value="price_asc">Cena: rosnąco</option>
+                  <option value="price_desc">Cena: malejąco</option>
+                  <option value="name_asc">Nazwa: A-Z</option>
+                  <option value="name_desc">Nazwa: Z-A</option>
+                </select>
+              </div>
             </div>
           </div>
           
@@ -423,7 +416,16 @@ export default {
         });
     },
     applyFilters() {
-      this.productStore.filters.priceRange = this.priceRange;
+      // Zanim zastosujemy filtry, konwertujemy wartości priceRange na liczby
+      const minPrice = this.priceRange[0] !== '' && this.priceRange[0] !== undefined ? parseFloat(this.priceRange[0]) : null;
+      const maxPrice = this.priceRange[1] !== '' && this.priceRange[1] !== undefined ? parseFloat(this.priceRange[1]) : null;
+      
+      console.log('Applying filters with price range:', [minPrice, maxPrice]);
+      
+      // Przekazujemy zakres cen do filtrów
+      this.productStore.filters.priceRange = [minPrice, maxPrice];
+      
+      // Pobieramy produkty z zastosowanymi filtrami
       this.productStore.fetchProducts();
       this.mobileFiltersOpen = false;
     },
@@ -484,6 +486,14 @@ export default {
     },
     isInFavorites(productId) {
       return this.wishlistStore.isInWishlist(productId);
+    },
+    setSorting(sort) {
+      this.productStore.filters.sort = sort;
+      this.applyFilters();
+    },
+    applyPriceFilter() {
+      this.productStore.filters.priceRange = this.priceRange;
+      this.applyFilters();
     }
   }
 }

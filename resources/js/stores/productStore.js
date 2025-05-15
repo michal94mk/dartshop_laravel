@@ -47,6 +47,8 @@ export const useProductStore = defineStore('product', {
             category_id: this.filters.category,
             brand_id: this.filters.brand,
             search: this.filters.search,
+            price_min: this.filters.priceRange && this.filters.priceRange[0] ? parseFloat(this.filters.priceRange[0]) : null,
+            price_max: this.filters.priceRange && this.filters.priceRange[1] ? parseFloat(this.filters.priceRange[1]) : null,
             sort_by: this.filters.sort === 'newest' ? 'created_at' : 
                     this.filters.sort === 'price_asc' ? 'price' :
                     this.filters.sort === 'price_desc' ? 'price' :
