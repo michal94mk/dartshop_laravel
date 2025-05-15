@@ -9,10 +9,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * Order model representing customer orders in the e-commerce system.
+ * 
+ * This model stores all order information including customer details,
+ * shipping address, payment method, pricing details, and order status.
+ * It is linked to order items, payments, and users.
+ */
 class Order extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'user_id',
         'order_number',
@@ -35,12 +47,19 @@ class Order extends Model
         'promotion_code'
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
         'status' => OrderStatus::class,
     ];
 
     /**
      * Get the user that owns the order.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user(): BelongsTo
     {
@@ -49,6 +68,8 @@ class Order extends Model
 
     /**
      * Get the items for the order.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function items(): HasMany
     {
@@ -57,6 +78,8 @@ class Order extends Model
 
     /**
      * Get the payment for the order.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
     public function payment(): HasOne
     {
@@ -65,6 +88,10 @@ class Order extends Model
 
     /**
      * Generate a unique order number.
+     * 
+     * Creates an order number in the format ZAM-XXXXXX where X is a sequential number.
+     *
+     * @return string
      */
     public static function generateOrderNumber(): string
     {
@@ -75,6 +102,8 @@ class Order extends Model
 
     /**
      * Get the full name of the customer.
+     *
+     * @return string
      */
     public function getFullNameAttribute(): string
     {
@@ -83,6 +112,8 @@ class Order extends Model
 
     /**
      * Get the full address of the customer.
+     *
+     * @return string
      */
     public function getFullAddressAttribute(): string
     {

@@ -12,17 +12,30 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
+/**
+ * Frontend OrderController handles all order-related actions for customers.
+ * 
+ * This controller manages the complete order process flow including
+ * displaying the checkout page, processing the order, showing confirmation
+ * and order history.
+ */
 class OrderController extends Controller
 {
     /**
-     * Display the checkout page.
+     * Display the checkout page with cart items and pricing details.
+     *
+     * Shows the form for collecting customer shipping and payment information.
+     * Calculates all pricing including subtotals, discounts, and shipping costs.
+     * 
+     * @param Request $request The incoming request
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function checkout(Request $request)
     {
         $cart = session()->get('cart', []);
         
         if (empty($cart)) {
-            return redirect()->route('cart.view')->with('error', 'Twój koszyk jest pusty. Dodaj produkty przed przejściem do kasy.');
+            return redirect()->route('cart.view')->with('error', 'Your cart is empty. Add products before proceeding to checkout.');
         }
         
         $subtotal = 0;
@@ -63,14 +76,21 @@ class OrderController extends Controller
     }
     
     /**
-     * Process the order.
+     * Process the order submission and create all necessary records.
+     * 
+     * Validates customer input, creates the order record and associated items,
+     * calculates final pricing, and directs customer to appropriate payment method.
+     * Clears the cart on successful order placement.
+     *
+     * @param Request $request The incoming request with order details
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function placeOrder(Request $request)
     {
         $cart = session()->get('cart', []);
         
         if (empty($cart)) {
-            return redirect()->route('cart.view')->with('error', 'Twój koszyk jest pusty. Dodaj produkty przed złożeniem zamówienia.');
+            return redirect()->route('cart.view')->with('error', 'Your cart is empty. Add products before placing an order.');
         }
         
         // Validate customer details
@@ -132,7 +152,7 @@ class OrderController extends Controller
                 'address' => $request->address,
                 'city' => $request->city,
                 'postal_code' => $request->postal_code,
-                'country' => 'Polska',
+                'country' => 'Poland',
                 'notes' => $request->notes,
                 'subtotal' => $subtotal,
                 'shipping_cost' => $shippingCost,
@@ -148,7 +168,7 @@ class OrderController extends Controller
                 $product = Product::find($productId);
                 
                 if (!$product) {
-                    throw new \Exception("Produkt o ID {$productId} nie istnieje.");
+                    throw new \Exception("Product with ID {$productId} does not exist.");
                 }
                 
                 OrderItem::create([
@@ -175,18 +195,24 @@ class OrderController extends Controller
             }
             
             return redirect()->route('order.confirmation', ['order' => $order->id])
-                ->with('success', 'Twoje zamówienie zostało złożone pomyślnie!');
+                ->with('success', 'Your order has been placed successfully!');
                 
         } catch (\Exception $e) {
             DB::rollback();
             return redirect()->back()
-                ->with('error', 'Wystąpił błąd podczas składania zamówienia: ' . $e->getMessage())
+                ->with('error', 'An error occurred while placing your order: ' . $e->getMessage())
                 ->withInput();
         }
     }
     
     /**
-     * Show the order confirmation page.
+     * Show the order confirmation page after successful order placement.
+     *
+     * Displays a summary of the order details and next steps based on 
+     * payment method selected.
+     * 
+     * @param Order $order The order entity to display confirmation for
+     * @return \Illuminate\View\View
      */
     public function confirmation(Order $order)
     {
@@ -199,7 +225,13 @@ class OrderController extends Controller
     }
     
     /**
-     * Show the order details page.
+     * Show the detailed view of a specific order.
+     *
+     * Displays comprehensive information about the order including
+     * all line items, pricing, shipping address, and status.
+     * 
+     * @param Order $order The order entity to display
+     * @return \Illuminate\View\View
      */
     public function show(Order $order)
     {
@@ -212,13 +244,18 @@ class OrderController extends Controller
     }
     
     /**
-     * Show the user's orders history.
+     * Show the user's order history with all past orders.
+     *
+     * Provides a paginated list of all orders placed by the authenticated user,
+     * with links to view full details of each order.
+     * 
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function history()
     {
         if (!Auth::check()) {
             return redirect()->route('login')
-                ->with('info', 'Zaloguj się, aby zobaczyć historię zamówień.');
+                ->with('info', 'Please log in to view your order history.');
         }
         
         $orders = Order::where('user_id', Auth::id())

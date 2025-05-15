@@ -12,10 +12,23 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Frontend PaymentController handles all payment-related actions for customers.
+ * 
+ * This controller manages the complete payment flow including displaying
+ * the payment form, processing payment completion and cancellation,
+ * and handling payment gateway webhook notifications.
+ */
 class PaymentController extends Controller
 {
     /**
-     * Process payment for an order.
+     * Process payment for an order by showing the payment interface.
+     * 
+     * Presents the appropriate payment form based on the selected payment method
+     * during checkout. Verifies ownership of the order before proceeding.
+     *
+     * @param Order $order The order to process payment for
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function process(Order $order)
     {
@@ -27,7 +40,7 @@ class PaymentController extends Controller
         // Check if order has already been paid
         if ($order->payment && $order->payment->status === PaymentStatus::COMPLETED) {
             return redirect()->route('order.confirmation', ['order' => $order->id])
-                ->with('info', 'To zamówienie zostało już opłacone.');
+                ->with('info', 'This order has already been paid for.');
         }
         
         // This is a simplified example. In a real application, you would integrate with a payment gateway
@@ -37,7 +50,15 @@ class PaymentController extends Controller
     }
     
     /**
-     * Handle payment completion.
+     * Handle successful payment completion.
+     * 
+     * Creates or updates the payment record and marks it as completed.
+     * Updates the associated order status to processing. In a production
+     * environment, this would verify the payment with the payment gateway.
+     *
+     * @param Request $request The incoming request
+     * @param Order $order The order being paid for
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function complete(Request $request, Order $order)
     {
@@ -76,7 +97,7 @@ class PaymentController extends Controller
             DB::commit();
             
             return redirect()->route('order.confirmation', ['order' => $order->id])
-                ->with('success', 'Płatność została zakończona pomyślnie!');
+                ->with('success', 'Payment completed successfully!');
                 
         } catch (\Exception $e) {
             DB::rollback();
@@ -86,12 +107,20 @@ class PaymentController extends Controller
             ]);
             
             return redirect()->back()
-                ->with('error', 'Wystąpił błąd podczas przetwarzania płatności. Spróbuj ponownie później.');
+                ->with('error', 'An error occurred while processing your payment. Please try again later.');
         }
     }
     
     /**
-     * Handle payment cancellation.
+     * Handle payment cancellation by the customer.
+     * 
+     * Creates or updates the payment record with a failed status when
+     * a customer cancels the payment process. Redirects to the order
+     * detail page with appropriate messaging.
+     *
+     * @param Request $request The incoming request
+     * @param Order $order The order for which payment is being cancelled
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function cancel(Request $request, Order $order)
     {
@@ -117,11 +146,18 @@ class PaymentController extends Controller
         );
         
         return redirect()->route('order.show', ['order' => $order->id])
-            ->with('info', 'Płatność została anulowana.');
+            ->with('info', 'Payment has been cancelled.');
     }
     
     /**
      * Process webhook notifications from payment gateway.
+     * 
+     * Handles asynchronous notifications from payment providers regarding
+     * payment status changes. In a production environment, this would
+     * verify the webhook signature and update orders accordingly.
+     *
+     * @param Request $request The incoming webhook request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function webhook(Request $request)
     {
