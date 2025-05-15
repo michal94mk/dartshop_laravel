@@ -1,38 +1,27 @@
 <?php
 
-use App\Http\Controllers\Frontend\HomeController;
-use App\Http\Controllers\Frontend\ProfileController;
-use App\Http\Controllers\Frontend\CartController;
-use App\Http\Controllers\Frontend\OrderController;
-use App\Http\Controllers\Frontend\PaymentController;
-use App\Http\Controllers\Frontend\ContactController as FrontendContactController;
-use App\Http\Controllers\Frontend\PromotionController as FrontendPromotionController;
-use App\Http\Controllers\Frontend\PhotoController;
-use App\Http\Controllers\Frontend\ReviewController;
-use App\Http\Controllers\Frontend\TutorialController;
-
-use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\ProductController as APIProductController;
-use App\Http\Controllers\API\CategoryController as APICategoryController;
-
-use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\BrandController;
-use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ContactController;
-use App\Http\Controllers\Admin\PromotionController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
-use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
-use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\PromotionController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
-use App\Http\Controllers\Admin\TutorialController as AdminTutorialController;
-
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Frontend\CartController;
+use App\Http\Controllers\Frontend\ContactController as FrontendContactController;
+use App\Http\Controllers\Frontend\HomeController;
+use App\Http\Controllers\Frontend\OrderController;
+use App\Http\Controllers\Frontend\PaymentController;
+use App\Http\Controllers\Frontend\ProfileController;
+use App\Http\Controllers\Frontend\PromotionController as FrontendPromotionController;
+use App\Http\Controllers\Frontend\ReviewController;
 use App\Http\Middleware\RoleMiddleware;
-use App\Http\Controllers\Auth\EmailVerificationPromptController;
-use App\Http\Controllers\Auth\VerifyEmailController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,65 +34,17 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 |
 */
 
-// SPA route - will render the Vue.js SPA
-Route::get('/{any?}', function () {
-    return view('spa');
-})->where('any', '.*')->name('spa');
+// Auth routes
+require __DIR__.'/auth.php';
 
-// API routes for the Vue.js frontend
-Route::prefix('api')->group(function () {
-    // Products API
-    Route::get('/products', [APIProductController::class, 'index']);
-    Route::get('/products/featured', [APIProductController::class, 'featured']);
-    Route::get('/products/{id}', [APIProductController::class, 'show']);
-    
-    // Categories API
-    Route::get('/categories', [APICategoryController::class, 'index']);
-    Route::get('/categories/{id}', [APICategoryController::class, 'show']);
-    Route::get('/categories/{id}/products', [APICategoryController::class, 'products']);
-    
-    // Cart API
-    Route::middleware('api')->group(function () {
-        Route::get('/cart', [CartController::class, 'apiGetCart']);
-        Route::post('/cart/add', [CartController::class, 'apiAddToCart']);
-        Route::post('/cart/remove', [CartController::class, 'apiRemoveFromCart']);
-        Route::post('/cart/update', [CartController::class, 'apiUpdateCart']);
-        Route::post('/cart/clear', [CartController::class, 'apiClearCart']);
-    });
-
-    // Auth API
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::middleware('auth:api')->group(function () {
-        Route::post('/logout', [AuthController::class, 'logout']);
-        Route::get('/user', [AuthController::class, 'user']);
-    });
-    
-    // Orders API
-    Route::middleware('auth:api')->group(function () {
-        Route::get('/orders', [OrderController::class, 'apiIndex']);
-        Route::get('/orders/{id}', [OrderController::class, 'apiShow']);
-        Route::post('/orders', [OrderController::class, 'apiStore']);
-    });
-    
-    // Other API endpoints
-    Route::get('/promotions', [PromotionController::class, 'apiIndex']);
-    Route::get('/tutorials', [TutorialController::class, 'apiIndex']);
-    Route::get('/tutorials/{id}', [TutorialController::class, 'apiShow']);
-});
-
-/* 
-// Legacy routes - these will eventually be removed once the Vue SPA is complete
-// but are kept for backward compatibility during the transition
-// They are commented out to avoid conflicts with the SPA route
-
+// All traditional web routes - these will be handled by Laravel
 Route::get('/', [HomeController::class, 'indexNewestProductsForHomepage'])->name('home');
 Route::get('/tailwind', function () {
     return redirect()->route('home', ['tailwind' => 1]);
 })->name('tailwind.home');
 Route::get('/categories', [HomeController::class, 'indexForRegularUsers'])->name('frontend.categories.index');
 Route::get('/products/{id}', [HomeController::class, 'showProduct'])->name('frontend.products.show');
-Route::get('/filter/products', [ProductController::class, 'filterProducts'])->name('filter.products');
+Route::get('/filter/products', [AdminProductController::class, 'filterProducts'])->name('filter.products');
 
 // Promotions routes
 Route::get('/promotions', [FrontendPromotionController::class, 'showPromotions'])->name('frontend.promotions');
@@ -207,13 +148,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified', RoleMiddl
     Route::delete('/brands/{brand}', [BrandController::class, 'destroy'])->name('brands.destroy');
 
     // Products management
-    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-    Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
-    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
-    Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
-    Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
-    Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
-    Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+    Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
+    Route::get('/products/create', [AdminProductController::class, 'create'])->name('products.create');
+    Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
+    Route::get('/products/{product}', [AdminProductController::class, 'show'])->name('products.show');
+    Route::get('/products/{product}/edit', [AdminProductController::class, 'edit'])->name('products.edit');
+    Route::put('/products/{product}', [AdminProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.destroy');
 
     // Users management
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -299,5 +240,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified', RoleMiddl
     Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
 });
 
-require __DIR__.'/auth.php';
-*/
+// SPA route - will render the Vue.js SPA (ten route musi być na samym końcu)
+Route::get('/{any?}', function () {
+    return view('spa');
+})->where('any', '^(?!api).*')->name('spa');

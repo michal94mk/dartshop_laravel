@@ -21,7 +21,7 @@
                       Odkryj profesjonalne lotki, tarcze i akcesoria do dart. Sprzęt dla początkujących i zaawansowanych graczy.
                     </p>
                     <div class="mt-8 sm:mt-12">
-                      <router-link to="/categories" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                      <router-link to="/products" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
                         Przeglądaj produkty
                       </router-link>
                     </div>
@@ -164,7 +164,7 @@
           </div>
           
           <div class="mt-12 text-center">
-            <router-link to="/categories" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+            <router-link to="/products" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
               Zobacz wszystkie produkty
             </router-link>
           </div>
@@ -193,7 +193,7 @@
               <div class="absolute bottom-0 left-0 p-6">
                 <h3 class="text-xl font-bold text-white">{{ category.name }}</h3>
                 <p class="mt-2 text-sm text-gray-300">{{ category.description }}</p>
-                <router-link :to="`/categories?category=${category.id}`" class="mt-4 inline-flex items-center text-sm font-medium text-white">
+                <router-link :to="`/products?category=${category.id}`" class="mt-4 inline-flex items-center text-sm font-medium text-white">
                   Zobacz produkty
                   <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>

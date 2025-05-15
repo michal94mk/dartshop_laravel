@@ -236,4 +236,37 @@ class HomeController extends Controller
         $product = Product::with(['category', 'brand', 'reviews.user'])->find($id);
         return view('frontend.product', compact('product'));
     }
+
+    /**
+     * Display a listing of all products for regular users
+     *
+     * @param Request $request Query parameters for filtering and sorting
+     * @return \Illuminate\View\View
+     */
+    public function indexProductsForRegularUsers(Request $request)
+    {
+        $paginate = $request->input('paginate', 12);
+        $sort = $request->input('sort', 'name-asc');
+        
+        $query = Product::query()->with(['category', 'brand']);
+        
+        // Apply sorting based on request parameters
+        if ($sort === 'price-asc') {
+            $query = $query->orderBy('price', 'ASC');
+        } elseif ($sort === 'price-desc') {
+            $query = $query->orderBy('price', 'DESC');
+        } elseif ($sort === 'name-asc') {
+            $query = $query->orderBy('name', 'ASC');
+        } elseif ($sort === 'name-desc') {
+            $query = $query->orderBy('name', 'DESC');
+        } elseif ($sort === 'newest') {
+            $query = $query->orderBy('created_at', 'DESC');
+        }
+        
+        $products = $query->paginate($paginate);
+        $categories = Category::all();
+        $brands = Brand::all();
+        
+        return view('frontend.products.index', compact('products', 'categories', 'brands', 'sort'));
+    }
 } 

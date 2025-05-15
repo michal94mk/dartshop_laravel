@@ -15,6 +15,8 @@ class Product extends Model
         'price' => 'decimal:2',
         'weight' => 'decimal:2',
     ];
+    
+    protected $appends = ['image_url'];
 
     public function category()
     {
@@ -38,9 +40,28 @@ class Product extends Model
 
     public function getImageUrlAttribute()
     {
-        if (!$this->image) {
-            return asset('images/default-product.jpg');
+        // Sprawdź, czy produkt ma już pole image_url (np. z mock danych)
+        if (isset($this->attributes['image_url'])) {
+            return $this->attributes['image_url'];
         }
-        return asset('storage/images/' . $this->image);
+        
+        // Sprawdź, czy produkt ma pole image
+        if (!empty($this->image)) {
+            // Sprawdź, czy to pełny URL
+            if (filter_var($this->image, FILTER_VALIDATE_URL)) {
+                return $this->image;
+            }
+            
+            // Sprawdź, czy to ścieżka bezwzględna do pliku publicznego
+            if (strpos($this->image, '/') === 0) {
+                return $this->image;
+            }
+            
+            // W przeciwnym razie traktuj jako relatywny path w storage
+            return asset('storage/' . $this->image);
+        }
+        
+        // Domyślny obrazek, gdy brak zdjęcia
+        return asset('images/default-product.jpg');
     }
 }

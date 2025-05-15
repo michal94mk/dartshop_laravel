@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('user_favorite_products', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
+            // Tymczasowo usuwamy ograniczenie klucza obcego do tabeli products
+            $table->unsignedBigInteger('product_id');
             $table->timestamps();
             
             // Make sure a user can't favorite the same product twice

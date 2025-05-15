@@ -20,8 +20,8 @@ const routes = [
     component: Home,
   },
   {
-    path: '/categories',
-    name: 'categories',
+    path: '/products',
+    name: 'products',
     component: ProductList,
   },
   {
@@ -80,6 +80,12 @@ const router = createRouter({
     // Always scroll to top
     return { top: 0 };
   },
+});
+
+// Debug router navigation
+router.beforeEach((to, from, next) => {
+  console.log(`Router navigating from ${from.path} to ${to.path}`);
+  next();
 });
 
 export default router; 

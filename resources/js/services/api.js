@@ -6,7 +6,9 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
     'Accept': 'application/json'
-  }
+  },
+  // Add timeout to prevent hanging requests
+  timeout: 10000
 });
 
 // Add a request interceptor to include the CSRF token
@@ -15,13 +17,38 @@ api.interceptors.request.use(config => {
   if (token) {
     config.headers['X-CSRF-TOKEN'] = token.content;
   }
+  console.log(`API Request: ${config.method.toUpperCase()} ${config.url}`, config.params || {});
   return config;
+}, error => {
+  console.error('API Request Error:', error);
+  return Promise.reject(error);
 });
 
 // Add a response interceptor for error handling
 api.interceptors.response.use(
-  response => response,
+  response => {
+    console.log(`API Response: ${response.status} from ${response.config.url}`, {
+      data_type: typeof response.data,
+      is_array: Array.isArray(response.data),
+      has_data_prop: response.data && typeof response.data === 'object' && 'data' in response.data,
+      data_sample: response.data && typeof response.data === 'object' ? 
+        (Array.isArray(response.data) ? 
+          (response.data.length > 0 ? '(array with items)' : '(empty array)') : 
+          Object.keys(response.data).slice(0, 3)) : 
+        '(primitive value)'
+    });
+    return response;
+  },
   error => {
+    console.error('API Response Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message
+    });
+
     if (error.response) {
       // Authentication errors
       if (error.response.status === 401) {
@@ -33,100 +60,123 @@ api.interceptors.response.use(
       if (error.response.status === 422) {
         return Promise.reject(error.response.data);
       }
+      
+      // 5xx errors
+      if (error.response.status >= 500) {
+        console.error('Server error:', error.response.data);
+        // Could dispatch to a notification system or global error handler
+      }
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('No response received:', error.request);
+    } else {
+      // Something happened in setting up the request
+      console.error('Request setup error:', error.message);
     }
+    
     return Promise.reject(error);
   }
 );
 
-export default {
-  // Products
-  getProducts(params = {}) {
-    return api.get('/products', { params });
-  },
-  
-  getProduct(id) {
-    return api.get(`/products/${id}`);
-  },
-  
-  getFeaturedProducts() {
-    console.log('Calling featured products API endpoint');
-    return api.get('/products/featured')
+// Helper function to add logging to API calls
+const withLogging = (apiCall, name) => {
+  return (...args) => {
+    console.log(`Calling ${name} API endpoint with args:`, args);
+    const url = args[0] || '';
+    console.log(`Full URL for ${name}: ${window.location.origin}/api${url}`);
+    
+    return apiCall(...args)
       .then(response => {
-        console.log('Raw API response:', response);
+        console.log(`Success in ${name} API call:`, response);
         return response;
       })
       .catch(error => {
-        console.error('Error in featured products API call:', error);
+        console.error(`Error in ${name} API call:`, error);
         throw error;
       });
+  };
+};
+
+export default {
+  // Products
+  getProducts(params = {}) {
+    return withLogging(api.get, 'getProducts')('/products', { params });
+  },
+  
+  getProduct(id) {
+    return withLogging(api.get, 'getProduct')(`/products/${id}`);
+  },
+  
+  getFeaturedProducts() {
+    return withLogging(api.get, 'getFeaturedProducts')('/products/featured');
   },
   
   // Categories
   getCategories() {
-    return api.get('/categories');
+    return withLogging(api.get, 'getCategories')('/categories');
   },
   
   getCategory(id) {
-    return api.get(`/categories/${id}`);
+    return withLogging(api.get, 'getCategory')(`/categories/${id}`);
   },
   
   getCategoryProducts(id, params = {}) {
-    return api.get(`/categories/${id}/products`, { params });
+    return withLogging(api.get, 'getCategoryProducts')(`/categories/${id}/products`, { params });
   },
   
   // Cart
   getCart() {
-    return api.get('/cart');
+    return withLogging(api.get, 'getCart')('/cart');
   },
   
   addToCart(productId, quantity = 1) {
-    return api.post('/cart/add', { product_id: productId, quantity });
+    return withLogging(api.post, 'addToCart')('/cart/add', { product_id: productId, quantity });
   },
   
   removeFromCart(productId) {
-    return api.post('/cart/remove', { product_id: productId });
+    return withLogging(api.post, 'removeFromCart')('/cart/remove', { product_id: productId });
   },
   
   updateCart(items) {
-    return api.post('/cart/update', { items });
+    return withLogging(api.post, 'updateCart')('/cart/update', { items });
   },
   
   clearCart() {
-    return api.post('/cart/clear');
+    return withLogging(api.post, 'clearCart')('/cart/clear');
   },
   
   // Auth
   login(credentials) {
-    return api.post('/login', credentials);
+    return withLogging(api.post, 'login')('/login', credentials);
   },
   
   register(userData) {
-    return api.post('/register', userData);
+    return withLogging(api.post, 'register')('/register', userData);
   },
   
   logout() {
-    return api.post('/logout');
+    return withLogging(api.post, 'logout')('/logout');
   },
   
   getUser() {
-    return api.get('/user');
+    return withLogging(api.get, 'getUser')('/user');
   },
   
   // Other endpoints
   getPromotions() {
-    return api.get('/promotions');
+    return withLogging(api.get, 'getPromotions')('/promotions');
   },
   
   getTutorials() {
-    return api.get('/tutorials');
+    return withLogging(api.get, 'getTutorials')('/tutorials');
   },
   
   getTutorial(id) {
-    return api.get(`/tutorials/${id}`);
+    return withLogging(api.get, 'getTutorial')(`/tutorials/${id}`);
   },
   
   // Contact
   sendContactForm(formData) {
-    return api.post('/contact', formData);
+    return withLogging(api.post, 'sendContactForm')('/contact', formData);
   }
 }; 
