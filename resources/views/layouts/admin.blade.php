@@ -64,6 +64,14 @@
                                class="inline-flex items-center px-1 pt-1 border-b-2 {{ str_starts_with(request()->route()->getName(), 'admin.payments') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
                                 Płatności
                             </a>
+                            <a href="{{ route('admin.about-pages.index') }}" 
+                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ str_starts_with(request()->route()->getName(), 'admin.about-pages') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
+                                O nas
+                            </a>
+                            <a href="{{ route('admin.tutorials.index') }}" 
+                               class="inline-flex items-center px-1 pt-1 border-b-2 {{ str_starts_with(request()->route()->getName(), 'admin.tutorials') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
+                                Poradniki
+                            </a>
                             <a href="{{ route('admin.contact.index') }}" 
                                class="inline-flex items-center px-1 pt-1 border-b-2 {{ str_starts_with(request()->route()->getName(), 'admin.contact') ? 'border-white text-white' : 'border-transparent text-indigo-200 hover:text-white hover:border-indigo-300' }} text-sm font-medium leading-5">
                                 Kontakt
@@ -146,6 +154,12 @@
                     </a>
                     <a href="{{ route('admin.payments.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ str_starts_with(request()->route()->getName(), 'admin.payments') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
                         Płatności
+                    </a>
+                    <a href="{{ route('admin.about-pages.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ str_starts_with(request()->route()->getName(), 'admin.about-pages') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
+                        O nas
+                    </a>
+                    <a href="{{ route('admin.tutorials.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ str_starts_with(request()->route()->getName(), 'admin.tutorials') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
+                        Poradniki
                     </a>
                     <a href="{{ route('admin.contact.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ str_starts_with(request()->route()->getName(), 'admin.contact') ? 'border-white text-white bg-indigo-700' : 'border-transparent text-indigo-200 hover:text-white hover:bg-indigo-700 hover:border-indigo-300' }} text-base font-medium">
                         Kontakt
