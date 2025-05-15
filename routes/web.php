@@ -9,6 +9,11 @@ use App\Http\Controllers\Frontend\ContactController as FrontendContactController
 use App\Http\Controllers\Frontend\PromotionController as FrontendPromotionController;
 use App\Http\Controllers\Frontend\PhotoController;
 use App\Http\Controllers\Frontend\ReviewController;
+use App\Http\Controllers\Frontend\TutorialController;
+
+use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\ProductController as APIProductController;
+use App\Http\Controllers\API\CategoryController as APICategoryController;
 
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
@@ -22,6 +27,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
+use App\Http\Controllers\Admin\TutorialController as AdminTutorialController;
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\RoleMiddleware;
@@ -39,6 +45,57 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 |
 */
 
+// SPA route - will render the Vue.js SPA
+Route::get('/{any?}', function () {
+    return view('spa');
+})->where('any', '.*')->name('spa');
+
+// API routes for the Vue.js frontend
+Route::prefix('api')->group(function () {
+    // Products API
+    Route::get('/products', [APIProductController::class, 'index']);
+    Route::get('/products/featured', [APIProductController::class, 'featured']);
+    Route::get('/products/{id}', [APIProductController::class, 'show']);
+    
+    // Categories API
+    Route::get('/categories', [APICategoryController::class, 'index']);
+    Route::get('/categories/{id}', [APICategoryController::class, 'show']);
+    Route::get('/categories/{id}/products', [APICategoryController::class, 'products']);
+    
+    // Cart API
+    Route::middleware('api')->group(function () {
+        Route::get('/cart', [CartController::class, 'apiGetCart']);
+        Route::post('/cart/add', [CartController::class, 'apiAddToCart']);
+        Route::post('/cart/remove', [CartController::class, 'apiRemoveFromCart']);
+        Route::post('/cart/update', [CartController::class, 'apiUpdateCart']);
+        Route::post('/cart/clear', [CartController::class, 'apiClearCart']);
+    });
+
+    // Auth API
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::middleware('auth:api')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/user', [AuthController::class, 'user']);
+    });
+    
+    // Orders API
+    Route::middleware('auth:api')->group(function () {
+        Route::get('/orders', [OrderController::class, 'apiIndex']);
+        Route::get('/orders/{id}', [OrderController::class, 'apiShow']);
+        Route::post('/orders', [OrderController::class, 'apiStore']);
+    });
+    
+    // Other API endpoints
+    Route::get('/promotions', [PromotionController::class, 'apiIndex']);
+    Route::get('/tutorials', [TutorialController::class, 'apiIndex']);
+    Route::get('/tutorials/{id}', [TutorialController::class, 'apiShow']);
+});
+
+/* 
+// Legacy routes - these will eventually be removed once the Vue SPA is complete
+// but are kept for backward compatibility during the transition
+// They are commented out to avoid conflicts with the SPA route
 
 Route::get('/', [HomeController::class, 'indexNewestProductsForHomepage'])->name('home');
 Route::get('/tailwind', function () {
@@ -62,6 +119,11 @@ Route::post('/contact', [FrontendContactController::class, 'submitContactForm'])
 // About Us routes
 Route::get('/about', [App\Http\Controllers\Frontend\AboutPageController::class, 'index'])->name('frontend.about');
 Route::get('/about/{id}', [App\Http\Controllers\Frontend\AboutPageController::class, 'show'])->name('frontend.about.show');
+
+// Vue demo page
+Route::get('/vue-demo', function() {
+    return view('vue-test');
+})->name('vue.demo');
 
 // Tutorials routes
 Route::get('/tutorials', [App\Http\Controllers\Frontend\TutorialController::class, 'index'])->name('frontend.tutorials');
@@ -94,11 +156,9 @@ Route::post('/payment/{order}/complete', [PaymentController::class, 'complete'])
 Route::post('/payment/{order}/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
 Route::post('/payment/webhook', [PaymentController::class, 'webhook'])->name('payment.webhook');
 
-
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
-
 
 Route::middleware(['auth','verified'])->group(function () {
     // Profile management
@@ -240,3 +300,4 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified', RoleMiddl
 });
 
 require __DIR__.'/auth.php';
+*/
