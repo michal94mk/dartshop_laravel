@@ -176,28 +176,45 @@
 </template>
 
 <script>
+import { useAuthStore } from '../../stores/authStore';
+import { useCartStore } from '../../stores/cartStore';
+
 export default {
   name: 'SiteHeader',
   data() {
     return {
       userMenuOpen: false,
-      mobileMenuOpen: false,
-      isLoggedIn: false, // This will be determined by the auth store in a real app
-      isAdmin: false,
-      userName: '',
-      userEmail: '',
-      cartItemsCount: 0
+      mobileMenuOpen: false
     }
   },
   computed: {
+    isLoggedIn() {
+      return this.authStore.isLoggedIn;
+    },
+    isAdmin() {
+      return this.authStore.isAdmin;
+    },
+    userName() {
+      return this.authStore.userName;
+    },
+    userEmail() {
+      return this.authStore.userEmail;
+    },
     userInitial() {
-      return this.userName ? this.userName.charAt(0) : '';
+      return this.authStore.userInitial;
+    },
+    cartItemsCount() {
+      return this.cartStore.totalItems;
     }
   },
+  created() {
+    this.authStore = useAuthStore();
+    this.cartStore = useCartStore();
+  },
   mounted() {
-    // In a real app, we would check auth status from a store or API
-    this.checkAuthStatus();
-    this.getCartCount();
+    // Initialize the auth store and fetch cart data
+    this.authStore.initAuth();
+    this.cartStore.fetchCart();
     
     // Close dropdowns when clicking outside
     document.addEventListener('click', this.closeDropdowns);
@@ -218,25 +235,10 @@ export default {
         this.userMenuOpen = false;
       }
     },
-    checkAuthStatus() {
-      // For demo purposes, we'll just set some values
-      // In a real app, this would check an auth store or cookie
-      // Simulating a logged-in user for now
-      this.isLoggedIn = false;
-      this.isAdmin = false;
-      this.userName = 'Użytkownik';
-      this.userEmail = 'user@example.com';
-    },
-    getCartCount() {
-      // For demo purposes we'll just use a static value
-      // In a real app, this would fetch from a cart store or API
-      this.cartItemsCount = 0;
-    },
-    logout() {
-      // In a real app, this would call an API and clear the auth store
-      console.log('Logging out...');
-      // Then redirect to home
+    async logout() {
+      await this.authStore.logout();
       this.$router.push('/');
+      this.userMenuOpen = false;
     }
   }
 }

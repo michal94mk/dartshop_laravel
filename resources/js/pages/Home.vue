@@ -53,35 +53,56 @@
         </div>
 
         <div class="mt-10">
-          <div v-if="loading" class="text-center py-10">
+          <div v-if="productStore.loading" class="text-center py-10">
             <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
             <p class="mt-2 text-gray-500">Ładowanie produktów...</p>
           </div>
           
-          <div v-else-if="errorMessage" class="text-center py-10">
-            <p class="text-red-500">{{ errorMessage }}</p>
+          <div v-else-if="productStore.error" class="text-center py-10">
+            <p class="text-red-500">{{ productStore.error }}</p>
             <button @click="loadFeaturedProducts" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
               Spróbuj ponownie
             </button>
           </div>
           
           <div v-else class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <!-- For demo, using static products. In a real app, these would come from an API -->
-            <div v-for="product in featuredProducts" :key="product.id" class="bg-white overflow-hidden shadow rounded-lg">
-              <div class="relative pb-7/12">
-                <img :src="product.image" :alt="product.name" class="absolute h-full w-full object-cover">
-              </div>
-              <div class="p-6">
-                <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
-                <p class="mt-1 text-sm text-gray-500">{{ product.description }}</p>
-                <div class="mt-4 flex items-center justify-between">
-                  <span class="text-indigo-600 font-bold">{{ product.price }} zł</span>
-                  <router-link :to="`/products/${product.id}`" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
-                    Zobacz
-                  </router-link>
+            <!-- Display API products if available -->
+            <template v-if="productStore.featuredProducts && productStore.featuredProducts.length > 0">
+              <div v-for="product in productStore.featuredProducts" :key="product.id" class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="relative pb-7/12">
+                  <img :src="product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=' + product.name" :alt="product.name" class="absolute h-full w-full object-cover">
+                </div>
+                <div class="p-6">
+                  <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
+                  <p class="mt-1 text-sm text-gray-500">{{ product.short_description || product.description }}</p>
+                  <div class="mt-4 flex items-center justify-between">
+                    <span class="text-indigo-600 font-bold">{{ formatPrice(product.price) }} zł</span>
+                    <router-link :to="`/products/${product.id}`" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
+                      Zobacz
+                    </router-link>
+                  </div>
                 </div>
               </div>
-            </div>
+            </template>
+            
+            <!-- Fallback products if API fails -->
+            <template v-else>
+              <div v-for="product in fallbackProducts" :key="product.id" class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="relative pb-7/12">
+                  <img :src="product.image_url" :alt="product.name" class="absolute h-full w-full object-cover">
+                </div>
+                <div class="p-6">
+                  <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
+                  <p class="mt-1 text-sm text-gray-500">{{ product.description }}</p>
+                  <div class="mt-4 flex items-center justify-between">
+                    <span class="text-indigo-600 font-bold">{{ formatPrice(product.price) }} zł</span>
+                    <router-link :to="`/products/${product.id}`" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
+                      Zobacz
+                    </router-link>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
           
           <div class="mt-12 text-center">
@@ -165,42 +186,12 @@
 </template>
 
 <script>
+import { useProductStore } from '../stores/productStore';
+
 export default {
   name: 'HomePage',
   data() {
     return {
-      loading: false,
-      errorMessage: '',
-      featuredProducts: [
-        {
-          id: 1,
-          name: 'Lotki Target Vapor8 Black',
-          description: 'Profesjonalne lotki do dart Target Vapor8 z czarnym wykończeniem.',
-          price: 129.99,
-          image: 'https://via.placeholder.com/300x300/indigo/fff?text=Lotki'
-        },
-        {
-          id: 2,
-          name: 'Tarcza elektroniczna Winmau Blade 6',
-          description: 'Elektroniczna tarcza do dart z 6 segmentami i podświetleniem LED.',
-          price: 459.99,
-          image: 'https://via.placeholder.com/300x300/indigo/fff?text=Tarcza'
-        },
-        {
-          id: 3,
-          name: 'Zestaw do dart dla początkujących',
-          description: 'Kompletny zestaw startowy zawierający lotki, tarcze i akcesoria.',
-          price: 199.99,
-          image: 'https://via.placeholder.com/300x300/indigo/fff?text=Zestaw'
-        },
-        {
-          id: 4,
-          name: 'Uchwyt do lotek aluminiowy',
-          description: 'Wytrzymały aluminiowy uchwyt do przechowywania lotek.',
-          price: 45.99,
-          image: 'https://via.placeholder.com/300x300/indigo/fff?text=Uchwyt'
-        }
-      ],
       categories: [
         {
           id: 1,
@@ -219,6 +210,36 @@ export default {
           name: 'Akcesoria',
           description: 'Wszelkie akcesoria do gry w dart',
           image: 'https://via.placeholder.com/600x400/indigo/fff?text=Akcesoria'
+        }
+      ],
+      fallbackProducts: [
+        {
+          id: 1,
+          name: 'Lotki Target Agora A30',
+          description: 'Profesjonalne lotki ze stali wolframowej 90%',
+          price: 149.99,
+          image_url: 'https://via.placeholder.com/300x300/indigo/fff?text=Lotki+Target'
+        },
+        {
+          id: 2,
+          name: 'Tarcza elektroniczna Winmau Blade 6',
+          description: 'Zaawansowana tarcza dla profesjonalistów',
+          price: 299.99,
+          image_url: 'https://via.placeholder.com/300x300/indigo/fff?text=Tarcza+Winmau'
+        },
+        {
+          id: 3,
+          name: 'Zestaw punktowy XQ Max',
+          description: 'Zestaw do zapisywania punktów z kredą i ścierką',
+          price: 49.99,
+          image_url: 'https://via.placeholder.com/300x300/indigo/fff?text=Zestaw+XQ+Max'
+        },
+        {
+          id: 4,
+          name: 'Lotki Red Dragon Razor Edge',
+          description: 'Lotki z wysokiej jakości stali wolframowej',
+          price: 129.99,
+          image_url: 'https://via.placeholder.com/300x300/indigo/fff?text=Lotki+Red+Dragon'
         }
       ],
       testimonials: [
@@ -246,27 +267,22 @@ export default {
       ]
     }
   },
+  created() {
+    this.productStore = useProductStore();
+  },
   mounted() {
     this.loadFeaturedProducts();
   },
   methods: {
     loadFeaturedProducts() {
-      // In a real app, this would be an API call
-      // this.loading = true;
-      // axios.get('/api/featured-products')
-      //   .then(response => {
-      //     this.featuredProducts = response.data;
-      //     this.errorMessage = '';
-      //   })
-      //   .catch(error => {
-      //     this.errorMessage = 'Nie udało się załadować produktów. Spróbuj ponownie później.';
-      //     console.error('Error loading products:', error);
-      //   })
-      //   .finally(() => {
-      //     this.loading = false;
-      //   });
-      
-      // For now we'll use the static data
+      this.productStore.fetchFeaturedProducts();
+    },
+    formatPrice(price) {
+      // Check if price is a valid number
+      if (price === null || price === undefined || isNaN(price)) {
+        return '0.00';
+      }
+      return parseFloat(price).toFixed(2);
     }
   }
 }
