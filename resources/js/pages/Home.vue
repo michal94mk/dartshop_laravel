@@ -43,12 +43,12 @@
     <section class="bg-white py-12">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="lg:text-center">
-          <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Polecane produkty</h2>
+          <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Najnowsze produkty</h2>
           <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-            Najlepsze produkty w najlepszych cenach
+            Najnowsze produkty w naszym sklepie
           </p>
           <p class="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
-            Sprawdź nasze najnowsze i najpopularniejsze produkty.
+            Sprawdź nasze ostatnio dodane produkty.
           </p>
         </div>
 
@@ -71,15 +71,44 @@
               <div v-for="product in productStore.featuredProducts" :key="product.id" class="bg-white overflow-hidden shadow rounded-lg">
                 <div class="relative pb-7/12">
                   <img :src="product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=' + product.name" :alt="product.name" class="absolute h-full w-full object-cover">
+                  <button 
+                    @click.prevent="toggleFavorite(product)"
+                    class="absolute top-2 right-2 p-2 bg-white rounded-full shadow hover:bg-gray-100"
+                  >
+                    <svg 
+                      class="w-5 h-5" 
+                      :class="{ 'text-red-500 fill-current': isInFavorites(product.id), 'text-gray-400': !isInFavorites(product.id) }"
+                      xmlns="http://www.w3.org/2000/svg" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </button>
                 </div>
                 <div class="p-6">
                   <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
                   <p class="mt-1 text-sm text-gray-500">{{ product.short_description || product.description }}</p>
+                  <div v-if="product.id === cartMessageProductId" class="mt-2 p-2 rounded text-sm" :class="cartSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                    {{ cartMessage }}
+                  </div>
                   <div class="mt-4 flex items-center justify-between">
                     <span class="text-indigo-600 font-bold">{{ formatPrice(product.price) }} zł</span>
-                    <router-link :to="`/products/${product.id}`" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
-                      Zobacz
-                    </router-link>
+                    <div class="flex space-x-2">
+                      <button 
+                        @click="addToCart(product)"
+                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                        :disabled="cartStore.loading"
+                      >
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        Dodaj do koszyka
+                      </button>
+                      <router-link :to="`/products/${product.id}`" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
+                        Zobacz
+                      </router-link>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -90,15 +119,44 @@
               <div v-for="product in fallbackProducts" :key="product.id" class="bg-white overflow-hidden shadow rounded-lg">
                 <div class="relative pb-7/12">
                   <img :src="product.image_url" :alt="product.name" class="absolute h-full w-full object-cover">
+                  <button 
+                    @click.prevent="toggleFavorite(product)"
+                    class="absolute top-2 right-2 p-2 bg-white rounded-full shadow hover:bg-gray-100"
+                  >
+                    <svg 
+                      class="w-5 h-5" 
+                      :class="{ 'text-red-500 fill-current': isInFavorites(product.id), 'text-gray-400': !isInFavorites(product.id) }"
+                      xmlns="http://www.w3.org/2000/svg" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </button>
                 </div>
                 <div class="p-6">
                   <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
                   <p class="mt-1 text-sm text-gray-500">{{ product.description }}</p>
+                  <div v-if="product.id === cartMessageProductId" class="mt-2 p-2 rounded text-sm" :class="cartSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                    {{ cartMessage }}
+                  </div>
                   <div class="mt-4 flex items-center justify-between">
                     <span class="text-indigo-600 font-bold">{{ formatPrice(product.price) }} zł</span>
-                    <router-link :to="`/products/${product.id}`" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
-                      Zobacz
-                    </router-link>
+                    <div class="flex space-x-2">
+                      <button 
+                        @click="addToCart(product)"
+                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                        :disabled="cartStore.loading"
+                      >
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        Dodaj do koszyka
+                      </button>
+                      <router-link :to="`/products/${product.id}`" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
+                        Zobacz
+                      </router-link>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -187,6 +245,8 @@
 
 <script>
 import { useProductStore } from '../stores/productStore';
+import { useCartStore } from '../stores/cartStore';
+import { useWishlistStore } from '../stores/wishlistStore';
 
 export default {
   name: 'HomePage',
@@ -264,11 +324,16 @@ export default {
           rating: 5,
           text: 'Profesjonalna obsługa i świetne doradztwo. Polecam szczególnie początkującym graczom.'
         }
-      ]
+      ],
+      cartMessage: '',
+      cartSuccess: false,
+      cartMessageProductId: null
     }
   },
   created() {
     this.productStore = useProductStore();
+    this.cartStore = useCartStore();
+    this.wishlistStore = useWishlistStore();
   },
   mounted() {
     this.loadFeaturedProducts();
@@ -283,6 +348,41 @@ export default {
         return '0.00';
       }
       return parseFloat(price).toFixed(2);
+    },
+    addToCart(product) {
+      this.cartMessageProductId = product.id;
+      this.cartStore.addToCart(product.id)
+        .then(() => {
+          this.cartMessage = 'Produkt został dodany do koszyka';
+          this.cartSuccess = true;
+          
+          // Clear message after 3 seconds
+          setTimeout(() => {
+            if (this.cartMessageProductId === product.id) {
+              this.cartMessage = '';
+              this.cartMessageProductId = null;
+            }
+          }, 3000);
+        })
+        .catch(error => {
+          console.error('Failed to add to cart:', error);
+          this.cartMessage = 'Nie udało się dodać produktu do koszyka';
+          this.cartSuccess = false;
+          
+          // Clear message after 3 seconds
+          setTimeout(() => {
+            if (this.cartMessageProductId === product.id) {
+              this.cartMessage = '';
+              this.cartMessageProductId = null;
+            }
+          }, 3000);
+        });
+    },
+    toggleFavorite(product) {
+      this.wishlistStore.toggleWishlistItem(product);
+    },
+    isInFavorites(productId) {
+      return this.wishlistStore.isInWishlist(productId);
     }
   }
 }
