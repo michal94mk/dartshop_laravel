@@ -59,6 +59,14 @@ Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])->
 Route::get('/contact', [FrontendContactController::class, 'showContactForm'])->name('frontend.contact');
 Route::post('/contact', [FrontendContactController::class, 'submitContactForm'])->name('frontend.contact.submit');
 
+// About Us routes
+Route::get('/about', [App\Http\Controllers\Frontend\AboutPageController::class, 'index'])->name('frontend.about');
+Route::get('/about/{id}', [App\Http\Controllers\Frontend\AboutPageController::class, 'show'])->name('frontend.about.show');
+
+// Tutorials routes
+Route::get('/tutorials', [App\Http\Controllers\Frontend\TutorialController::class, 'index'])->name('frontend.tutorials');
+Route::get('/tutorials/{tutorial}', [App\Http\Controllers\Frontend\TutorialController::class, 'show'])->name('frontend.tutorials.show');
+
 // Cart routes
 Route::post('/cart/add/{product}', [CartController::class, 'addToCart'])->name('cart.add');
 Route::post('/cart/delete/{product}', [CartController::class, 'deleteFromCart'])->name('cart.delete');
@@ -182,6 +190,24 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified', RoleMiddl
     Route::get('/permissions/{permission}/edit', [PermissionController::class, 'edit'])->name('permissions.edit');
     Route::put('/permissions/{permission}', [PermissionController::class, 'update'])->name('permissions.update');
     Route::delete('/permissions/{permission}', [PermissionController::class, 'destroy'])->name('permissions.destroy');
+
+    // About Pages management
+    Route::get('/about-pages', [App\Http\Controllers\Admin\AboutPageController::class, 'index'])->name('about-pages.index');
+    Route::get('/about-pages/create', [App\Http\Controllers\Admin\AboutPageController::class, 'create'])->name('about-pages.create');
+    Route::post('/about-pages', [App\Http\Controllers\Admin\AboutPageController::class, 'store'])->name('about-pages.store');
+    Route::get('/about-pages/{aboutPage}', [App\Http\Controllers\Admin\AboutPageController::class, 'show'])->name('about-pages.show');
+    Route::get('/about-pages/{aboutPage}/edit', [App\Http\Controllers\Admin\AboutPageController::class, 'edit'])->name('about-pages.edit');
+    Route::put('/about-pages/{aboutPage}', [App\Http\Controllers\Admin\AboutPageController::class, 'update'])->name('about-pages.update');
+    Route::delete('/about-pages/{aboutPage}', [App\Http\Controllers\Admin\AboutPageController::class, 'destroy'])->name('about-pages.destroy');
+    
+    // Tutorials management
+    Route::get('/tutorials', [App\Http\Controllers\Admin\TutorialController::class, 'index'])->name('tutorials.index');
+    Route::get('/tutorials/create', [App\Http\Controllers\Admin\TutorialController::class, 'create'])->name('tutorials.create');
+    Route::post('/tutorials', [App\Http\Controllers\Admin\TutorialController::class, 'store'])->name('tutorials.store');
+    Route::get('/tutorials/{tutorial}', [App\Http\Controllers\Admin\TutorialController::class, 'show'])->name('tutorials.show');
+    Route::get('/tutorials/{tutorial}/edit', [App\Http\Controllers\Admin\TutorialController::class, 'edit'])->name('tutorials.edit');
+    Route::put('/tutorials/{tutorial}', [App\Http\Controllers\Admin\TutorialController::class, 'update'])->name('tutorials.update');
+    Route::delete('/tutorials/{tutorial}', [App\Http\Controllers\Admin\TutorialController::class, 'destroy'])->name('tutorials.destroy');
 
     // Reviews management
     Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');

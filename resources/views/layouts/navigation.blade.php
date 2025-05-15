@@ -21,6 +21,12 @@
                     <x-nav-link :href="route('admin.promotions.index')" :active="request()->routeIs('admin.promotions.index')">
                         {{ __('Promotions') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('admin.about-pages.index')" :active="request()->routeIs('admin.about-pages.index')">
+                        {{ __('About Pages') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('admin.tutorials.index')" :active="request()->routeIs('admin.tutorials.index')">
+                        {{ __('Tutorials') }}
+                    </x-nav-link>
                     <x-nav-link :href="route('admin.contact.index')" :active="request()->routeIs('admin.contact.index')">
                         {{ __('Contact') }}
                     </x-nav-link>
@@ -98,6 +104,12 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('admin.promotions.index')" :active="request()->routeIs('admin.promotions.index')">
                 {{ __('Promotions') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('admin.about-pages.index')" :active="request()->routeIs('admin.about-pages.index')">
+                {{ __('About Pages') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('admin.tutorials.index')" :active="request()->routeIs('admin.tutorials.index')">
+                {{ __('Tutorials') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('admin.contact.index')" :active="request()->routeIs('admin.contact.index')">
                 {{ __('Contact') }}
