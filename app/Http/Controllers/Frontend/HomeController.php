@@ -12,6 +12,7 @@ use Illuminate\Contracts\View\View;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Models\Promotion;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
@@ -68,12 +69,65 @@ class HomeController extends Controller
         
         // Pobieramy 3 recenzje do wyświetlenia
         $featuredReviews = $featuredReviews->take(3)->get();
+        
+        // Pobieramy najlepiej oceniane produkty
+        $topRatedProducts = $this->getTopRatedProducts(4);
             
         return view('frontend.home', [
             'newestProducts' => $newestProducts,
             'activePromotions' => $activePromotions,
-            'featuredReviews' => $featuredReviews
+            'featuredReviews' => $featuredReviews,
+            'topRatedProducts' => $topRatedProducts
         ]);
+    }
+
+    /**
+     * Get the top-rated products based on average review rating
+     * 
+     * @param int $limit Number of products to return
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    private function getTopRatedProducts($limit = 4)
+    {
+        // First, get product IDs with their average ratings in a subquery
+        $productRatings = DB::table('reviews')
+            ->select('product_id', 
+                DB::raw('AVG(rating) as average_rating'), 
+                DB::raw('COUNT(id) as review_count'))
+            ->where('is_approved', true)
+            ->groupBy('product_id')
+            ->having('review_count', '>', 0)
+            ->orderBy('average_rating', 'desc')
+            ->orderBy('review_count', 'desc')
+            ->take($limit)
+            ->get();
+        
+        // Extract just the product IDs in the right order
+        $productIds = $productRatings->pluck('product_id')->toArray();
+        
+        // If no products with reviews, return empty collection
+        if (empty($productIds)) {
+            return collect([]);
+        }
+        
+        // Get the full product models with eager loading
+        $products = Product::with(['category', 'brand'])
+            ->whereIn('id', $productIds)
+            ->get();
+        
+        // Sort products according to our ratings order and attach rating data
+        $orderedProducts = collect([]);
+        foreach ($productIds as $id) {
+            $product = $products->firstWhere('id', $id);
+            if ($product) {
+                $ratingData = $productRatings->firstWhere('product_id', $id);
+                $product->average_rating = $ratingData->average_rating;
+                $product->review_count = $ratingData->review_count;
+                $orderedProducts->push($product);
+            }
+        }
+        
+        return $orderedProducts;
     }
 
     /**
