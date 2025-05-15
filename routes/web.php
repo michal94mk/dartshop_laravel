@@ -3,6 +3,8 @@
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\ProfileController;
 use App\Http\Controllers\Frontend\CartController;
+use App\Http\Controllers\Frontend\OrderController;
+use App\Http\Controllers\Frontend\PaymentController;
 use App\Http\Controllers\Frontend\ContactController as FrontendContactController;
 use App\Http\Controllers\Frontend\PromotionController as FrontendPromotionController;
 use App\Http\Controllers\Frontend\PhotoController;
@@ -13,6 +15,8 @@ use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ContactController;
 use App\Http\Controllers\Admin\PromotionController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\AdminController;
@@ -58,6 +62,23 @@ Route::get('/cart/contents', [CartController::class, 'getCartContents'])->name('
 Route::get('/cart/view', [CartController::class, 'cartView'])->name('cart.view');
 Route::post('/cart/promotion/apply', [CartController::class, 'applyPromotion'])->name('cart.promotion.apply');
 Route::post('/cart/promotion/remove', [CartController::class, 'removePromotion'])->name('cart.promotion.remove');
+
+// Order routes
+Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
+Route::post('/order/place', [OrderController::class, 'placeOrder'])->name('order.place');
+Route::get('/order/{order}/confirmation', [OrderController::class, 'confirmation'])->name('order.confirmation');
+Route::get('/order/{order}', [OrderController::class, 'show'])->name('order.show');
+
+// Order history (requires authentication)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/orders/history', [OrderController::class, 'history'])->name('orders.history');
+});
+
+// Payment routes
+Route::get('/payment/{order}/process', [PaymentController::class, 'process'])->name('payment.process');
+Route::post('/payment/{order}/complete', [PaymentController::class, 'complete'])->name('payment.complete');
+Route::post('/payment/{order}/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
+Route::post('/payment/webhook', [PaymentController::class, 'webhook'])->name('payment.webhook');
 
 
 Route::get('/dashboard', function () {
@@ -124,6 +145,20 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified', RoleMiddl
     Route::post('/contact/{message}/reply', [ContactController::class, 'reply'])->name('contact.reply');
     Route::delete('/contact/{message}', [ContactController::class, 'destroy'])->name('contact.destroy');
 
+    // Orders management
+    Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+    Route::get('/orders/{order}/edit', [AdminOrderController::class, 'edit'])->name('orders.edit');
+    Route::put('/orders/{order}', [AdminOrderController::class, 'update'])->name('orders.update');
+    Route::get('/orders/{order}/invoice', [AdminOrderController::class, 'invoice'])->name('orders.invoice');
+    Route::get('/orders/export', [AdminOrderController::class, 'export'])->name('orders.export');
+
+    // Payments management
+    Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
+    Route::get('/payments/{payment}', [AdminPaymentController::class, 'show'])->name('payments.show');
+    Route::get('/payments/{payment}/edit', [AdminPaymentController::class, 'edit'])->name('payments.edit');
+    Route::put('/payments/{payment}', [AdminPaymentController::class, 'update'])->name('payments.update');
+    
     // Roles management
     Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
     Route::get('/roles/create', [RoleController::class, 'create'])->name('roles.create');

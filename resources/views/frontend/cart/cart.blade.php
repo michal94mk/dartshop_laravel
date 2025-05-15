@@ -152,9 +152,9 @@
                                 </div>
 
                                 <div class="mt-6">
-                                    <button type="button" class="w-full bg-indigo-600 border border-transparent rounded-md py-3 px-4 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <a href="{{ route('checkout') }}" class="block w-full bg-indigo-600 border border-transparent rounded-md py-3 px-4 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-center">
                                         Przejdź do zamówienia
-                                    </button>
+                                    </a>
                                 </div>
 
                                 <div class="mt-6 text-sm text-center">
