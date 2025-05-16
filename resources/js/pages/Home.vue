@@ -65,15 +65,20 @@
             </button>
           </div>
           
-          <div v-else class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <!-- Display API products if available -->
             <template v-if="productStore.featuredProducts && productStore.featuredProducts.length > 0">
-              <div v-for="product in productStore.featuredProducts" :key="product.id" class="bg-white overflow-hidden shadow rounded-lg">
-                <div class="relative pb-7/12">
-                  <img :src="product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=' + product.name" :alt="product.name" class="absolute h-full w-full object-cover">
+              <div v-for="product in productStore.featuredProducts" :key="product.id" class="bg-white overflow-hidden shadow-sm rounded-lg transition-all hover:shadow-md flex flex-col h-full">
+                <div class="relative aspect-square overflow-hidden">
+                  <img 
+                    :src="product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=' + product.name" 
+                    :alt="product.name" 
+                    class="h-full w-full object-cover hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  >
                   <button 
                     @click.prevent="toggleFavorite(product)"
-                    class="absolute top-2 right-2 p-2 bg-white rounded-full shadow hover:bg-gray-100"
+                    class="absolute top-2 right-2 p-2 bg-white rounded-full shadow hover:bg-gray-100 transition-colors duration-200"
                   >
                     <svg 
                       class="w-5 h-5" 
@@ -86,27 +91,27 @@
                     </svg>
                   </button>
                 </div>
-                <div class="p-6">
-                  <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
-                  <p class="mt-1 text-sm text-gray-500">{{ product.short_description || product.description }}</p>
+                <div class="p-5 flex-grow flex flex-col">
+                  <h3 class="text-lg font-medium text-gray-900 line-clamp-2 min-h-[3.5rem]">{{ product.name }}</h3>
+                  <p class="mt-2 text-sm text-gray-500 line-clamp-2 flex-grow min-h-[2.5rem]">{{ product.short_description || product.description }}</p>
                   <div v-if="product.id === cartMessageProductId" class="mt-2 p-2 rounded text-sm" :class="cartSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
                     {{ cartMessage }}
                   </div>
-                  <div class="mt-4 flex items-center justify-between">
-                    <span class="text-indigo-600 font-bold">{{ formatPrice(product.price) }} zł</span>
-                    <div class="flex space-x-2">
+                  <div class="mt-4 pt-3 border-t border-gray-100">
+                    <span class="text-indigo-600 font-bold text-xl block mb-3">{{ formatPrice(product.price) }} zł</span>
+                    <div class="grid grid-cols-2 gap-3">
                       <button 
                         @click="addToCart(product)"
-                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                        class="h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200"
                         :disabled="cartStore.loading"
                       >
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
-                        Dodaj do koszyka
+                        Koszyk
                       </button>
-                      <router-link :to="`/products/${product.id}`" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
-                        Zobacz
+                      <router-link :to="`/products/${product.id}`" class="h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors duration-200">
+                        Szczegóły
                       </router-link>
                     </div>
                   </div>
@@ -116,12 +121,17 @@
             
             <!-- Fallback products if API fails -->
             <template v-else>
-              <div v-for="product in fallbackProducts" :key="product.id" class="bg-white overflow-hidden shadow rounded-lg">
-                <div class="relative pb-7/12">
-                  <img :src="product.image_url" :alt="product.name" class="absolute h-full w-full object-cover">
+              <div v-for="product in fallbackProducts" :key="product.id" class="bg-white overflow-hidden shadow-sm rounded-lg transition-all hover:shadow-md flex flex-col h-full">
+                <div class="relative aspect-square overflow-hidden">
+                  <img 
+                    :src="product.image_url" 
+                    :alt="product.name" 
+                    class="h-full w-full object-cover hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  >
                   <button 
                     @click.prevent="toggleFavorite(product)"
-                    class="absolute top-2 right-2 p-2 bg-white rounded-full shadow hover:bg-gray-100"
+                    class="absolute top-2 right-2 p-2 bg-white rounded-full shadow hover:bg-gray-100 transition-colors duration-200"
                   >
                     <svg 
                       class="w-5 h-5" 
@@ -134,27 +144,27 @@
                     </svg>
                   </button>
                 </div>
-                <div class="p-6">
-                  <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
-                  <p class="mt-1 text-sm text-gray-500">{{ product.description }}</p>
+                <div class="p-5 flex-grow flex flex-col">
+                  <h3 class="text-lg font-medium text-gray-900 line-clamp-2 min-h-[3.5rem]">{{ product.name }}</h3>
+                  <p class="mt-2 text-sm text-gray-500 line-clamp-2 flex-grow min-h-[2.5rem]">{{ product.description }}</p>
                   <div v-if="product.id === cartMessageProductId" class="mt-2 p-2 rounded text-sm" :class="cartSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
                     {{ cartMessage }}
                   </div>
-                  <div class="mt-4 flex items-center justify-between">
-                    <span class="text-indigo-600 font-bold">{{ formatPrice(product.price) }} zł</span>
-                    <div class="flex space-x-2">
+                  <div class="mt-4 pt-3 border-t border-gray-100">
+                    <span class="text-indigo-600 font-bold text-xl block mb-3">{{ formatPrice(product.price) }} zł</span>
+                    <div class="grid grid-cols-2 gap-3">
                       <button 
                         @click="addToCart(product)"
-                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                        class="h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200"
                         :disabled="cartStore.loading"
                       >
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
-                        Dodaj do koszyka
+                        Koszyk
                       </button>
-                      <router-link :to="`/products/${product.id}`" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
-                        Zobacz
+                      <router-link :to="`/products/${product.id}`" class="h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors duration-200">
+                        Szczegóły
                       </router-link>
                     </div>
                   </div>
@@ -389,7 +399,7 @@ export default {
 </script>
 
 <style scoped>
-.pb-7\/12 {
-  padding-bottom: 58.333333%;
+.aspect-square {
+  aspect-ratio: 1 / 1;
 }
 </style> 

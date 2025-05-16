@@ -26,13 +26,13 @@
             <li>
               <div class="flex items-center">
                 <i class="fas fa-chevron-right text-gray-400 text-xs mx-1"></i>
-                <router-link to="/categories" class="text-gray-500 hover:text-gray-700">Produkty</router-link>
+                <router-link to="/products" class="text-gray-500 hover:text-gray-700">Produkty</router-link>
               </div>
             </li>
             <li v-if="product.category">
               <div class="flex items-center">
                 <i class="fas fa-chevron-right text-gray-400 text-xs mx-1"></i>
-                <router-link :to="`/categories?category=${product.category.id}`" class="text-gray-500 hover:text-gray-700">
+                <router-link :to="`/products?category=${product.category.id}`" class="text-gray-500 hover:text-gray-700">
                   {{ product.category.name }}
                 </router-link>
               </div>
@@ -131,7 +131,7 @@
                 </button>
               </div>
             </div>
-                          <div v-if="cartMessage" class="mt-4 p-3 rounded" :class="cartSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                          <div v-if="cartMessage" class="mt-4 p-3 rounded" :class="cartSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700">
               {{ cartMessage }}
             </div>
           </div>
@@ -141,7 +141,7 @@
     
     <div v-else class="text-center py-10">
       <p class="text-gray-500">Nie znaleziono produktu.</p>
-      <router-link to="/categories" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
+      <router-link to="/products" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
         Wróć do listy produktów
       </router-link>
     </div>

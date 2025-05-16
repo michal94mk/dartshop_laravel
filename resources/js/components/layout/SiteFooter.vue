@@ -12,13 +12,13 @@
           <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Kategorie</h3>
           <ul role="list" class="mt-4 space-y-4">
             <li>
-              <router-link to="/categories" class="text-base text-gray-500 hover:text-gray-900">Lotki</router-link>
+              <router-link to="/products" class="text-base text-gray-500 hover:text-gray-900">Lotki</router-link>
             </li>
             <li>
-              <router-link to="/categories" class="text-base text-gray-500 hover:text-gray-900">Tarcze</router-link>
+              <router-link to="/products" class="text-base text-gray-500 hover:text-gray-900">Tarcze</router-link>
             </li>
             <li>
-              <router-link to="/categories" class="text-base text-gray-500 hover:text-gray-900">Akcesoria</router-link>
+              <router-link to="/products" class="text-base text-gray-500 hover:text-gray-900">Akcesoria</router-link>
             </li>
           </ul>
         </div>
