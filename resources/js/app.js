@@ -6,10 +6,14 @@ import router from './router';
 import axios from 'axios';
 
 // Set Axios defaults
-axios.defaults.baseURL = '';  // Remove base URL to use relative paths correctly
+axios.defaults.baseURL = window.location.protocol + '//' + window.location.host;  // Używaj pełnego URL
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.headers.common['Accept'] = 'application/json';
-axios.defaults.withCredentials = true;
+axios.defaults.withCredentials = true; // Bardzo ważne dla cookies
+
+// Upewnij się, że axios używa pełnych adresów URL, aby uniknąć problemów z cookies
+const baseApiUrl = window.location.protocol + '//' + window.location.host;
+console.log('Base API URL:', baseApiUrl);
 
 // Add debugging
 console.log('Axios defaults set:', {
@@ -28,8 +32,17 @@ axios.interceptors.request.use(config => {
     config.params._nocache = new Date().getTime();
   }
   
+  // Dodaj nagłówek X-XSRF-TOKEN dla wszystkich żądań
+  const token = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)');
+  if (token) {
+    config.headers['X-XSRF-TOKEN'] = decodeURIComponent(token[2]);
+  }
+  
   return config;
 });
+
+// Dodaj interceptor do odświeżania CSRF tokenu przy błędach 401/419
+let isRefreshing = false;
 
 axios.interceptors.response.use(
   response => {
@@ -42,7 +55,35 @@ axios.interceptors.response.use(
     
     return response;
   },
-  error => {
+  async error => {
+    // Obsługa wygaśnięcia sesji/CSRF tokenu (419) lub błędów autoryzacji (401)
+    if (error.response && (error.response.status === 419 || error.response.status === 401) && !error.config._retry) {
+      if (!isRefreshing) {
+        console.log('Session expired or CSRF token mismatch. Refreshing...');
+        isRefreshing = true;
+        
+        try {
+          // Odśwież CSRF token
+          await axios.get('/sanctum/csrf-cookie', { _retry: true });
+          console.log('CSRF cookie refreshed');
+          
+          // Ponów oryginalne żądanie
+          error.config._retry = true;
+          isRefreshing = false;
+          return axios(error.config);
+        } catch (refreshError) {
+          console.error('Failed to refresh CSRF token:', refreshError);
+          // Jeśli nadal nie możemy odświeżyć tokenu, wyloguj użytkownika
+          const authStore = useAuthStore();
+          authStore.user = null;
+          authStore.authInitialized = true;
+          window.location.href = '/login';
+          isRefreshing = false;
+        }
+      }
+    }
+    
+    // Standardowe logowanie błędów
     console.error('Axios Error:', error);
     
     // More detailed error logging
@@ -95,6 +136,30 @@ const wishlistStore = useWishlistStore();
 const authStore = useAuthStore();
 
 // Mount the app when the DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // Inicjalizuj stan autoryzacji przed montowaniem aplikacji z mechanizmem ponownych prób
+  try {
+    await authStore.initAuthWithRetry(3, 1000);
+    console.log('Auth initialized before app mount:', authStore.isLoggedIn ? 'User is logged in' : 'User is not logged in');
+  } catch (error) {
+    console.error('Failed to initialize auth before app mount:', error);
+  }
+  
+  // Montuj aplikację po inicjalizacji stanu autoryzacji
   app.mount('#app');
+  
+  // Ustaw okresowe odświeżanie sesji (co 15 minut)
+  if (authStore.isLoggedIn) {
+    console.log('Setting up session refresh interval');
+    // Odświeżaj co 15 minut (900000 ms)
+    const sessionRefreshInterval = setInterval(async () => {
+      if (authStore.isLoggedIn) {
+        console.log('Refreshing session automatically');
+        await authStore.refreshSession();
+      } else {
+        // Jeśli użytkownik wylogował się, zatrzymaj interwał
+        clearInterval(sessionRefreshInterval);
+      }
+    }, 900000);
+  }
 });

@@ -199,15 +199,27 @@ router.beforeEach(async (to, from, next) => {
   
   const authStore = useAuthStore();
   
-  // Inicjalizacja stanu autoryzacji, jeśli jeszcze nie został zainicjalizowany
-  if (!authStore.user && !authStore.isLoading) {
-    await authStore.initAuth();
+  // Zawsze czekaj na inicjalizację auth state przed podjęciem decyzji o przekierowaniu
+  let authInitialized = false;
+  if (!authStore.authInitialized) {
+    console.log('Auth not initialized, initializing now...');
+    try {
+      await authStore.initAuth();
+      authInitialized = true;
+      console.log('Auth initialized successfully:', authStore.isLoggedIn ? 'User is logged in' : 'User is not logged in');
+    } catch (error) {
+      console.error('Failed to initialize auth:', error);
+    }
+  } else {
+    authInitialized = true;
+    console.log('Auth already initialized');
   }
   
   // Sprawdź, czy trasa wymaga autoryzacji
   if (to.matched.some(record => record.meta.requiresAuth)) {
     // Sprawdź, czy użytkownik jest zalogowany
     if (!authStore.isLoggedIn) {
+      console.log('Route requires auth but user is not logged in, redirecting to login');
       // Przekieruj na stronę logowania
       next({
         path: '/login',
@@ -217,17 +229,21 @@ router.beforeEach(async (to, from, next) => {
       // Sprawdź, czy trasa wymaga uprawnień administratora
       if (to.matched.some(record => record.meta.requiresAdmin)) {
         if (!authStore.isAdmin) {
+          console.log('Route requires admin but user is not admin, redirecting to home');
           // Przekieruj na stronę główną, jeśli użytkownik nie jest adminem
           next({ path: '/' });
         } else {
+          console.log('User is admin, proceeding to admin route');
           next();
         }
       }
       // Sprawdź, czy użytkownik zweryfikował email (jeśli wymagane)
       else if (to.matched.some(record => record.meta.requiresVerified) && 
           authStore.user && !authStore.user.email_verified_at) {
+        console.log('Route requires verified email but user email is not verified');
         next({ path: '/email/verify' });
       } else {
+        console.log('User is authenticated, proceeding to protected route');
         next();
       }
     }
@@ -236,8 +252,10 @@ router.beforeEach(async (to, from, next) => {
   else if (to.matched.some(record => record.meta.guest)) {
     // Jeśli użytkownik jest już zalogowany, przekieruj go na stronę główną
     if (authStore.isLoggedIn) {
+      console.log('Guest route but user is logged in, redirecting to home');
       next({ path: '/' });
     } else {
+      console.log('User is not logged in, proceeding to guest route');
       next();
     }
   } 
@@ -256,6 +274,7 @@ router.beforeEach(async (to, from, next) => {
     next();
   } 
   else {
+    console.log('No special route conditions, proceeding normally');
     next();
   }
 });

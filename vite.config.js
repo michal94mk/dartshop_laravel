@@ -43,5 +43,22 @@ export default defineConfig({
         headers: {
             'Cache-Control': 'no-store',
         },
+        // Dodaj konfigurację proxy dla API
+        proxy: {
+            '/api': {
+                target: 'http://localhost:8000',
+                changeOrigin: true,
+                secure: false,
+                ws: true, // Wsparcie dla WebSockets
+                cookieDomainRewrite: 'localhost',
+                xfwd: true, // Przekazuj nagłówki X-Forwarded-*
+            },
+            '/sanctum': {
+                target: 'http://localhost:8000',
+                changeOrigin: true,
+                secure: false,
+                cookieDomainRewrite: 'localhost',
+            },
+        },
     },
 });

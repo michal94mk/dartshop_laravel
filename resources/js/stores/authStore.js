@@ -9,6 +9,7 @@ export const useAuthStore = defineStore('auth', {
     hasError: false,
     errorMessage: '',
     permissions: [], // Lista uprawnień użytkownika
+    authInitialized: false // Flaga wskazująca, czy stan autoryzacji został zainicjalizowany
   }),
   
   getters: {
@@ -42,9 +43,54 @@ export const useAuthStore = defineStore('auth', {
   },
   
   actions: {
+    // Zapisz dane użytkownika do localStorage
+    saveUserToLocalStorage() {
+      if (this.user) {
+        localStorage.setItem('user', JSON.stringify(this.user));
+        localStorage.setItem('permissions', JSON.stringify(this.permissions));
+        localStorage.setItem('auth_time', Date.now().toString());
+      } else {
+        localStorage.removeItem('user');
+        localStorage.removeItem('permissions');
+        localStorage.removeItem('auth_time');
+      }
+    },
+    
+    // Załaduj dane użytkownika z localStorage
+    loadUserFromLocalStorage() {
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const permissions = JSON.parse(localStorage.getItem('permissions')) || [];
+        const authTime = parseInt(localStorage.getItem('auth_time') || '0');
+        
+        // Sprawdź, czy dane nie są zbyt stare (max 1 godzina)
+        const now = Date.now();
+        const isExpired = (now - authTime) > 3600000; // 1 godzina w milisekundach
+        
+        if (user && !isExpired) {
+          this.user = user;
+          this.permissions = permissions;
+          return true;
+        }
+        
+        return false;
+      } catch (error) {
+        console.error('Error loading user data from localStorage:', error);
+        return false;
+      }
+    },
+    
     // Inicjalizacja stanu autoryzacji na podstawie danych z serwera
     async initAuth() {
-      if (this.user) return;
+      if (this.authInitialized && this.user) return this.user;
+      
+      // Najpierw spróbuj załadować z localStorage
+      const loadedFromStorage = this.loadUserFromLocalStorage();
+      if (loadedFromStorage) {
+        console.log('User data loaded from localStorage');
+        this.authInitialized = true;
+        return this.user;
+      }
       
       this.isLoading = true;
       
@@ -57,11 +103,23 @@ export const useAuthStore = defineStore('auth', {
           if (response.data.permissions) {
             this.permissions = response.data.permissions;
           }
+          
+          // Zapisz dane do localStorage
+          this.saveUserToLocalStorage();
+          
+          console.log('User authenticated:', this.user);
         }
+        
+        this.authInitialized = true;
+        return this.user;
       } catch (error) {
         console.error('Failed to initialize auth state:', error);
         this.hasError = true;
         this.errorMessage = 'Nie udało się pobrać danych użytkownika';
+        
+        // Nawet w przypadku błędu oznacz, że próbowano zainicjalizować stan
+        this.authInitialized = true;
+        return null;
       } finally {
         this.isLoading = false;
       }
@@ -89,6 +147,9 @@ export const useAuthStore = defineStore('auth', {
         if (response.data.user.permissions) {
           this.permissions = response.data.user.permissions;
         }
+        
+        // Zapisz dane do localStorage
+        this.saveUserToLocalStorage();
         
         // Synchronizacja koszyka po zalogowaniu
         const cartStore = useCartStore();
@@ -130,6 +191,9 @@ export const useAuthStore = defineStore('auth', {
           this.permissions = response.data.user.permissions;
         }
         
+        // Zapisz dane do localStorage
+        this.saveUserToLocalStorage();
+        
         // Synchronizacja koszyka po rejestracji i automatycznym zalogowaniu
         const cartStore = useCartStore();
         await cartStore.syncCartAfterLogin();
@@ -153,6 +217,12 @@ export const useAuthStore = defineStore('auth', {
         await axios.post('/api/logout');
         this.user = null;
         this.permissions = [];
+        this.authInitialized = true; 
+        
+        // Usuń dane z localStorage
+        localStorage.removeItem('user');
+        localStorage.removeItem('permissions');
+        localStorage.removeItem('auth_time');
         
         // Zresetuj stan koszyka po wylogowaniu
         const cartStore = useCartStore();
@@ -167,6 +237,79 @@ export const useAuthStore = defineStore('auth', {
       } finally {
         this.isLoading = false;
       }
+    },
+    
+    // Metoda do odświeżania stanu sesji użytkownika
+    async refreshSession() {
+      // Nie odświeżaj, jeśli nie jesteśmy zalogowani
+      if (!this.user) return null;
+      
+      console.log('Refreshing user session...');
+      this.isLoading = true;
+      
+      try {
+        // Najpierw odśwież CSRF token
+        await axios.get('/sanctum/csrf-cookie');
+        
+        // Następnie pobierz aktualne dane użytkownika
+        const response = await axios.get('/api/user');
+        
+        if (response.data) {
+          this.user = response.data;
+          
+          // Pobierz uprawnienia użytkownika, jeśli istnieją
+          if (response.data.permissions) {
+            this.permissions = response.data.permissions;
+          }
+          
+          console.log('User session refreshed successfully');
+          return this.user;
+        }
+        
+        return null;
+      } catch (error) {
+        console.error('Failed to refresh user session:', error);
+        
+        // Jeśli otrzymamy błąd 401 lub 419, użytkownik nie jest już zalogowany
+        if (error.response && (error.response.status === 401 || error.response.status === 419)) {
+          this.user = null;
+          this.permissions = [];
+        }
+        
+        return null;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    
+    // Metoda do inicjalizacji stanu autoryzacji z ponawianiem próby
+    async initAuthWithRetry(maxRetries = 3, retryDelay = 1000) {
+      let retries = 0;
+      
+      while (retries < maxRetries) {
+        try {
+          const result = await this.initAuth();
+          if (result) return result;
+          
+          // Jeśli nie uzyskaliśmy danych użytkownika, ale nie było błędu, po prostu zwróć null
+          if (!this.hasError) return null;
+        } catch (error) {
+          console.error(`Auth initialization failed (attempt ${retries + 1}/${maxRetries}):`, error);
+        }
+        
+        // Jeśli jesteśmy tu, znaczy to, że wystąpił błąd - spróbuj ponownie po opóźnieniu
+        retries++;
+        
+        if (retries < maxRetries) {
+          console.log(`Retrying auth initialization in ${retryDelay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          // Zwiększ opóźnienie dla każdej kolejnej próby
+          retryDelay *= 1.5;
+        }
+      }
+      
+      console.error(`Failed to initialize auth after ${maxRetries} attempts`);
+      return null;
     },
     
     // Wysłanie ponownie linku do weryfikacji e-mail
