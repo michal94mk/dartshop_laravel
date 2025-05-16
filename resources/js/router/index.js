@@ -142,7 +142,8 @@ const routes = [
     component: AdminLayout,
     meta: { 
       requiresAuth: true,
-      requiresAdmin: true
+      requiresAdmin: true,
+      layout: 'admin'
     },
     children: [
       {
