@@ -10,6 +10,13 @@ use App\Http\Controllers\Api\DebugController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\Admin\BaseAdminController;
+use App\Http\Controllers\Api\Admin\DashboardController;
+use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Api\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Api\Admin\BrandController;
+use App\Http\Controllers\Api\Admin\UserController;
+use App\Http\Controllers\Api\Admin\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -86,4 +93,42 @@ Route::get('/test', function() {
         'message' => 'API test endpoint working correctly',
         'time' => now()->toDateTimeString()
     ]);
+});
+
+// Admin API Routes
+Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
+    // Dashboard statistics
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+    
+    // Products management
+    Route::apiResource('/products', AdminProductController::class);
+    
+    // Categories management
+    Route::apiResource('/categories', AdminCategoryController::class);
+    
+    // Brands management
+    Route::apiResource('/brands', BrandController::class);
+    
+    // Users management
+    Route::apiResource('/users', UserController::class);
+    
+    // Promotions management - using full path since controller doesn't exist yet
+    Route::apiResource('/promotions', App\Http\Controllers\Api\Admin\PromotionController::class);
+    
+    // Orders management
+    Route::apiResource('/orders', OrderController::class);
+    Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus']);
+    Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice']);
+    
+    // Reviews management - using full path since controller doesn't exist yet
+    Route::apiResource('/reviews', App\Http\Controllers\Api\Admin\ReviewController::class);
+    Route::post('/reviews/{review}/approve', [App\Http\Controllers\Api\Admin\ReviewController::class, 'approve']);
+    Route::post('/reviews/{review}/reject', [App\Http\Controllers\Api\Admin\ReviewController::class, 'reject']);
+    
+    // Payments management - using full path since controller doesn't exist yet
+    Route::apiResource('/payments', App\Http\Controllers\Api\Admin\PaymentController::class);
+    
+    // Roles and permissions - using full path since controllers don't exist yet
+    Route::apiResource('/roles', App\Http\Controllers\Api\Admin\RoleController::class);
+    Route::apiResource('/permissions', App\Http\Controllers\Api\Admin\PermissionController::class);
 });

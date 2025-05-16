@@ -21,6 +21,8 @@ class UserSeeder extends Seeder
             'name' => 'Admin',
             'email' => 'admin@example.com',
             'password' => Hash::make('password'),
+            'is_admin' => true,
+            'email_verified_at' => now(),
         ]);
 
         // Create regular users
@@ -28,12 +30,16 @@ class UserSeeder extends Seeder
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'password' => Hash::make('password'),
+            'is_admin' => false,
+            'email_verified_at' => now(),
         ]);
 
         $user2 = User::create([
             'name' => 'Jane Smith',
             'email' => 'jane@example.com',
             'password' => Hash::make('password'),
+            'is_admin' => false,
+            'email_verified_at' => now(),
         ]);
 
         // Role assignments will be handled by RolesAndPermissionsSeeder

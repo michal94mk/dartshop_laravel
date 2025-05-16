@@ -20,6 +20,13 @@ import Profile from '../pages/Profile.vue';
 import ForgotPassword from '../pages/ForgotPassword.vue';
 import ResetPassword from '../pages/ResetPassword.vue';
 import VerifyEmail from '../pages/VerifyEmail.vue';
+// Import admin components
+import AdminLayout from '../components/layouts/AdminLayout.vue';
+import AdminDashboard from '../pages/admin/Dashboard.vue';
+import AdminProducts from '../pages/admin/Products.vue';
+import AdminCategories from '../pages/admin/Categories.vue';
+import AdminUsers from '../pages/admin/Users.vue';
+import AdminOrders from '../pages/admin/Orders.vue';
 
 const routes = [
   {
@@ -129,6 +136,46 @@ const routes = [
     component: VerifyEmail,
     props: true
   },
+  // Admin routes
+  {
+    path: '/admin',
+    component: AdminLayout,
+    meta: { 
+      requiresAuth: true,
+      requiresAdmin: true
+    },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'admin-dashboard',
+        component: AdminDashboard
+      },
+      {
+        path: 'products',
+        name: 'admin-products',
+        component: AdminProducts
+      },
+      {
+        path: 'categories',
+        name: 'admin-categories',
+        component: AdminCategories
+      },
+      {
+        path: 'users',
+        name: 'admin-users',
+        component: AdminUsers
+      },
+      {
+        path: 'orders',
+        name: 'admin-orders',
+        component: AdminOrders
+      },
+      {
+        path: '', // Empty path redirects to dashboard
+        redirect: { name: 'admin-dashboard' }
+      }
+    ]
+  },
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
@@ -166,8 +213,17 @@ router.beforeEach(async (to, from, next) => {
         query: { redirect: to.fullPath }
       });
     } else {
+      // Sprawdź, czy trasa wymaga uprawnień administratora
+      if (to.matched.some(record => record.meta.requiresAdmin)) {
+        if (!authStore.isAdmin) {
+          // Przekieruj na stronę główną, jeśli użytkownik nie jest adminem
+          next({ path: '/' });
+        } else {
+          next();
+        }
+      }
       // Sprawdź, czy użytkownik zweryfikował email (jeśli wymagane)
-      if (to.matched.some(record => record.meta.requiresVerified) && 
+      else if (to.matched.some(record => record.meta.requiresVerified) && 
           authStore.user && !authStore.user.email_verified_at) {
         next({ path: '/email/verify' });
       } else {

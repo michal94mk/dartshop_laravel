@@ -23,7 +23,7 @@ export const useAuthStore = defineStore('auth', {
     },
     
     isAdmin: (state) => {
-      return state.user?.roles?.includes('admin') || false;
+      return state.user?.is_admin || (state.user?.roles?.includes('admin')) || false;
     },
     
     isEmailVerified: (state) => {
