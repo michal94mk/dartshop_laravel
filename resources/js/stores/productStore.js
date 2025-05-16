@@ -54,16 +54,53 @@ export const useProductStore = defineStore('product', {
                   this.filters.sort === 'name_desc' ? 'name' : 'created_at',
           sort_direction: this.filters.sort === 'price_desc' || this.filters.sort === 'name_desc' ? 'desc' : 
                          this.filters.sort === 'newest' ? 'desc' : 'asc',
-          ...params
+          ...params,
+          // Add a timestamp to prevent caching
+          _nocache: new Date().getTime()
         };
         
         console.log('Sending API request with params:', requestParams);
         
-        const response = await axios.get('/api/products', { params: requestParams });
+        // Get API URL (absolute or relative)
+        let apiUrl = '/api/products';
+        
+        // Use window.Laravel.apiUrl if available
+        if (window.Laravel && window.Laravel.apiUrl) {
+          apiUrl = `${window.Laravel.apiUrl}/products`;
+          console.log('Using full API URL from window.Laravel:', apiUrl);
+        } else {
+          // Try using a relative URL with explicit API prefix
+          apiUrl = '/api/products';
+          console.log('Using relative API URL:', apiUrl);
+        }
+        
+        // Try the simple test endpoint first to verify API connectivity
+        try {
+          console.log('Testing API connectivity...');
+          const testResponse = await axios.get('/api/test');
+          console.log('API test endpoint response:', testResponse.data);
+        } catch (error) {
+          console.error('API test endpoint failed:', error);
+        }
+        
+        const response = await axios.get(apiUrl, { 
+          params: requestParams,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
         
         console.log('Raw API response for products:', response);
         
         if (response && response.data) {
+          // Check if the response is HTML instead of JSON
+          if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
+            console.error('Received HTML instead of JSON. API route issue detected.');
+            throw new Error('API returned HTML instead of JSON. Check routes and CSRF configuration.');
+          }
+          
           // Handle standard Laravel pagination format
           if (response.data.data && Array.isArray(response.data.data)) {
             this.products = response.data.data.map(product => ({
@@ -77,7 +114,7 @@ export const useProductStore = defineStore('product', {
               currentPage: response.data.current_page || 1,
               totalPages: response.data.last_page || 1,
               perPage: response.data.per_page || 12,
-              total: response.data.total || response.data.data.length
+              total: response.data.total || 0
             };
           } 
           // Handle standard array response
@@ -95,16 +132,38 @@ export const useProductStore = defineStore('product', {
               perPage: this.pagination.perPage,
               total: response.data.length
             };
+          } else {
+            console.error('Unexpected API response format:', response.data);
+            throw new Error('Invalid API response format - Unexpected structure');
           }
           
           console.log('Processed products count:', this.products.length);
           console.log('First product sample:', this.products.length > 0 ? this.products[0] : 'No products found');
         } else {
-          throw new Error('Invalid API response format');
+          console.error('Invalid API response:', response);
+          throw new Error('Invalid API response format - Empty or null response data');
         }
       } catch (error) {
         console.error('Error fetching products:', error);
-        this.error = error.message || 'Failed to fetch products';
+        
+        // Add more detailed error information
+        let errorMessage = 'Failed to fetch products';
+        if (error.response) {
+          // The request was made and the server responded with a status code that falls out of the range of 2xx
+          console.error('API Error Status:', error.response.status);
+          console.error('API Error Data:', error.response.data);
+          errorMessage += ` - Server responded with ${error.response.status}`;
+        } else if (error.request) {
+          // The request was made but no response was received
+          console.error('API Error: No response received', error.request);
+          errorMessage += ' - No response from server';
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.error('API Request Setup Error:', error.message);
+          errorMessage += ` - ${error.message}`;
+        }
+        
+        this.error = errorMessage;
         
         // Use fallback mock products for demonstration
         this.products = [

@@ -20,6 +20,16 @@ export default defineConfig({
             },
         }),
     ],
+    clearScreen: false,
+    optimizeDeps: {
+        force: true
+    },
+    build: {
+        // Generate source maps for easier debugging
+        sourcemap: true,
+        // Clear the output directory on each build
+        emptyOutDir: true,
+    },
     resolve: {
         alias: {
             vue: 'vue/dist/vue.esm-bundler.js',
@@ -28,6 +38,10 @@ export default defineConfig({
     server: {
         hmr: {
             host: 'localhost',
+        },
+        // Add headers to prevent caching issues
+        headers: {
+            'Cache-Control': 'no-store',
         },
     },
 });

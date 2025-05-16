@@ -294,7 +294,7 @@
 </template>
 
 <script>
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useProductStore } from '../stores/productStore';
 import { useCartStore } from '../stores/cartStore';
 import { useWishlistStore } from '../stores/wishlistStore';
@@ -302,64 +302,28 @@ import axios from 'axios';
 
 export default {
   name: 'ProductList',
-  data() {
-    return {
-      mobileFiltersOpen: false,
-      priceRange: [0, 1000],
-      cartMessage: '',
-      cartSuccess: false,
-      cartMessageProductId: null,
-      loadingProductId: null,
-      fallbackProducts: [
-        {
-          id: 1,
-          name: 'Lotki Target Agora A30',
-          description: 'Profesjonalne lotki ze stali wolframowej 90%',
-          price: 149.99,
-          image_url: 'https://via.placeholder.com/300x300/indigo/fff?text=Lotki+Target'
-        },
-        {
-          id: 2,
-          name: 'Tarcza elektroniczna Winmau Blade 6',
-          description: 'Zaawansowana tarcza dla profesjonalistów',
-          price: 299.99,
-          image_url: 'https://via.placeholder.com/300x300/indigo/fff?text=Tarcza+Winmau'
-        },
-        {
-          id: 3,
-          name: 'Zestaw punktowy XQ Max',
-          description: 'Zestaw do zapisywania punktów z kredą i ścierką',
-          price: 49.99,
-          image_url: 'https://via.placeholder.com/300x300/indigo/fff?text=Zestaw+XQ+Max'
-        },
-        {
-          id: 4,
-          name: 'Lotki Red Dragon Razor Edge',
-          description: 'Lotki z wysokiej jakości stali wolframowej',
-          price: 129.99,
-          image_url: 'https://via.placeholder.com/300x300/indigo/fff?text=Lotki+Red+Dragon'
-        },
-        {
-          id: 5,
-          name: 'Oche treningowe',
-          description: 'Profesjonalne oche do treningu',
-          price: 89.99,
-          image_url: 'https://via.placeholder.com/300x300/indigo/fff?text=Oche'
-        },
-        {
-          id: 6,
-          name: 'Zestaw dart Unicorn',
-          description: 'Kompletny zestaw do gry w dart',
-          price: 199.99,
-          image_url: 'https://via.placeholder.com/300x300/indigo/fff?text=Zestaw+Unicorn'
-        }
-      ]
-    }
-  },
-  computed: {
-    paginationPages() {
-      const totalPages = this.productStore.pagination.totalPages;
-      const currentPage = this.productStore.pagination.currentPage;
+  setup() {
+    const productStore = useProductStore();
+    const cartStore = useCartStore();
+    const wishlistStore = useWishlistStore();
+    const mobileFiltersOpen = ref(false);
+    const priceRange = ref([null, null]);
+    const cartMessageProductId = ref(null);
+    const cartMessage = ref('');
+    const cartSuccess = ref(false);
+    const cartLoadingItems = ref(new Set());
+    
+    // Debugging information
+    console.log('ProductList component setup started');
+    
+    onMounted(async () => {
+      console.log('ProductList component mounted');
+      loadProducts();
+    });
+
+    const paginationPages = computed(() => {
+      const totalPages = productStore.pagination.totalPages;
+      const currentPage = productStore.pagination.currentPage;
       
       if (totalPages <= 7) {
         // If 7 or fewer pages, show all
@@ -386,126 +350,144 @@ export default {
         '...', 
         totalPages
       ];
-    }
-  },
-  created() {
-    this.productStore = useProductStore();
-    this.cartStore = useCartStore();
-    this.wishlistStore = useWishlistStore();
-  },
-  mounted() {
-    console.log('ProductList component mounted');
-    console.log('Starting to load products...');
-    this.loadProducts();
-  },
-  methods: {
-    loadProducts() {
+    });
+
+    const loadProducts = async () => {
       console.log('Loading products method called');
       
+      // Get the Laravel configuration
+      console.log('Laravel config:', window.Laravel);
+      
       // Add diagnostic request to check products API
-      axios.get('/api/debug/products')
-        .then(response => {
-          console.log('Debug info:', response.data);
-        })
-        .catch(error => {
-          console.error('Debug API error:', error);
-        });
-        
-      this.productStore.fetchProducts()
-        .then(() => {
-          console.log('Products loaded successfully:', this.productStore.products);
-        })
-        .catch(error => {
-          console.error('Failed to load products:', error);
-        });
-    },
-    applyFilters() {
+      try {
+        const response = await axios.get('/api/debug/products');
+        console.log('Debug info:', response.data);
+      } catch (error) {
+        console.error('Debug API error:', error);
+      }
+      
+      await productStore.fetchProducts();
+      console.log('Products loaded successfully:', productStore.products);
+    };
+
+    const applyFilters = () => {
       // Zanim zastosujemy filtry, konwertujemy wartości priceRange na liczby
-      const minPrice = this.priceRange[0] !== '' && this.priceRange[0] !== undefined ? parseFloat(this.priceRange[0]) : null;
-      const maxPrice = this.priceRange[1] !== '' && this.priceRange[1] !== undefined ? parseFloat(this.priceRange[1]) : null;
+      const minPrice = priceRange.value[0] !== '' && priceRange.value[0] !== undefined ? parseFloat(priceRange.value[0]) : null;
+      const maxPrice = priceRange.value[1] !== '' && priceRange.value[1] !== undefined ? parseFloat(priceRange.value[1]) : null;
       
       console.log('Applying filters with price range:', [minPrice, maxPrice]);
       
       // Przekazujemy zakres cen do filtrów
-      this.productStore.filters.priceRange = [minPrice, maxPrice];
+      productStore.filters.priceRange = [minPrice, maxPrice];
       
       // Pobieramy produkty z zastosowanymi filtrami
-      this.productStore.fetchProducts();
-      this.mobileFiltersOpen = false;
-    },
-    resetFilters() {
-      this.productStore.filters = {
+      productStore.fetchProducts();
+      mobileFiltersOpen.value = false;
+    };
+
+    const resetFilters = () => {
+      productStore.filters = {
         category: null,
         brand: null,
         search: '',
         priceRange: [0, 1000],
         sort: 'newest'
       };
-      this.priceRange = [0, 1000];
-      this.productStore.fetchProducts();
-      this.mobileFiltersOpen = false;
-    },
-    goToPage(page) {
-      if (typeof page === 'number' && page !== this.productStore.pagination.currentPage) {
-        this.productStore.setPage(page);
+      priceRange.value = [0, 1000];
+      productStore.fetchProducts();
+      mobileFiltersOpen.value = false;
+    };
+
+    const goToPage = (page) => {
+      if (typeof page === 'number' && page !== productStore.pagination.currentPage) {
+        productStore.setPage(page);
       }
-    },
-    formatPrice(price) {
+    };
+
+    const formatPrice = (price) => {
       if (price === null || price === undefined || isNaN(price)) {
         return '0.00';
       }
       return parseFloat(price).toFixed(2);
-    },
-    addToCart(product) {
-      this.cartMessageProductId = product.id;
-      this.loadingProductId = product.id;
-      this.cartMessage = '';
-      this.cartSuccess = false;
+    };
+
+    const addToCart = (product) => {
+      cartMessageProductId.value = product.id;
+      cartLoadingItems.value.add(product.id);
+      cartMessage.value = '';
+      cartSuccess.value = false;
       
-      this.cartStore.addToCart(product.id)
+      cartStore.addToCart(product.id)
         .then(() => {
-          this.cartMessage = `Produkt "${product.name}" został dodany do koszyka.`;
-          this.cartSuccess = true;
+          cartMessage.value = `Produkt "${product.name}" został dodany do koszyka.`;
+          cartSuccess.value = true;
           
           // Clear message after 5 seconds
           setTimeout(() => {
-            if (this.cartMessageProductId === product.id) {
-              this.cartMessage = '';
-              this.cartMessageProductId = null;
+            if (cartMessageProductId.value === product.id) {
+              cartMessage.value = '';
+              cartMessageProductId.value = null;
             }
           }, 5000);
         })
         .catch(error => {
           console.error('Failed to add to cart:', error);
-          this.cartMessage = 'Nie udało się dodać produktu do koszyka';
-          this.cartSuccess = false;
+          cartMessage.value = 'Nie udało się dodać produktu do koszyka';
+          cartSuccess.value = false;
           
           // Clear message after 3 seconds
           setTimeout(() => {
-            if (this.cartMessageProductId === product.id) {
-              this.cartMessage = '';
-              this.cartMessageProductId = null;
+            if (cartMessageProductId.value === product.id) {
+              cartMessage.value = '';
+              cartMessageProductId.value = null;
             }
           }, 3000);
         });
-    },
-    toggleFavorite(product) {
-      this.wishlistStore.toggleWishlistItem(product);
-    },
-    isInFavorites(productId) {
-      return this.wishlistStore.isInWishlist(productId);
-    },
-    setSorting(sort) {
-      this.productStore.filters.sort = sort;
-      this.applyFilters();
-    },
-    applyPriceFilter() {
-      this.productStore.filters.priceRange = this.priceRange;
-      this.applyFilters();
-    },
-    isCartLoading(productId) {
-      return this.cartStore.isLoadingProduct(productId);
-    }
+    };
+
+    const toggleFavorite = (product) => {
+      wishlistStore.toggleWishlistItem(product);
+    };
+
+    const isInFavorites = (productId) => {
+      return wishlistStore.isInWishlist(productId);
+    };
+
+    const setSorting = (sort) => {
+      productStore.filters.sort = sort;
+      applyFilters();
+    };
+
+    const applyPriceFilter = () => {
+      productStore.filters.priceRange = priceRange.value;
+      applyFilters();
+    };
+
+    const isCartLoading = (productId) => {
+      return cartStore.isLoadingProduct(productId);
+    };
+
+    return {
+      productStore,
+      mobileFiltersOpen,
+      priceRange,
+      cartMessageProductId,
+      cartMessage,
+      cartSuccess,
+      cartLoadingItems,
+      paginationPages,
+      loadProducts,
+      applyFilters,
+      resetFilters,
+      goToPage,
+      formatPrice,
+      addToCart,
+      toggleFavorite,
+      isInFavorites,
+      setSorting,
+      applyPriceFilter,
+      isCartLoading
+    };
   }
 }
 </script>

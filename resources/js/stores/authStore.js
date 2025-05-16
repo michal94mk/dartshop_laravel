@@ -8,6 +8,7 @@ export const useAuthStore = defineStore('auth', {
     isLoading: false,
     hasError: false,
     errorMessage: '',
+    permissions: [], // Lista uprawnień użytkownika
   }),
   
   getters: {
@@ -23,6 +24,20 @@ export const useAuthStore = defineStore('auth', {
     
     isAdmin: (state) => {
       return state.user?.roles?.includes('admin') || false;
+    },
+    
+    isEmailVerified: (state) => {
+      return !!state.user?.email_verified_at;
+    },
+    
+    // Sprawdzanie czy użytkownik ma dane uprawnienie
+    hasPermission: (state) => (permission) => {
+      return state.permissions.includes(permission);
+    },
+    
+    // Sprawdzanie czy użytkownik ma daną rolę
+    hasRole: (state) => (role) => {
+      return state.user?.roles?.includes(role) || false;
     }
   },
   
@@ -37,6 +52,11 @@ export const useAuthStore = defineStore('auth', {
         const response = await axios.get('/api/user');
         if (response.data) {
           this.user = response.data;
+          
+          // Pobierz uprawnienia użytkownika, jeśli istnieją
+          if (response.data.permissions) {
+            this.permissions = response.data.permissions;
+          }
         }
       } catch (error) {
         console.error('Failed to initialize auth state:', error);
@@ -64,6 +84,11 @@ export const useAuthStore = defineStore('auth', {
         });
         
         this.user = response.data.user;
+        
+        // Zapisz uprawnienia, jeśli istnieją
+        if (response.data.user.permissions) {
+          this.permissions = response.data.user.permissions;
+        }
         
         // Synchronizacja koszyka po zalogowaniu
         const cartStore = useCartStore();
@@ -100,6 +125,11 @@ export const useAuthStore = defineStore('auth', {
         
         this.user = response.data.user;
         
+        // Zapisz uprawnienia, jeśli istnieją
+        if (response.data.user.permissions) {
+          this.permissions = response.data.user.permissions;
+        }
+        
         // Synchronizacja koszyka po rejestracji i automatycznym zalogowaniu
         const cartStore = useCartStore();
         await cartStore.syncCartAfterLogin();
@@ -122,6 +152,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         await axios.post('/api/logout');
         this.user = null;
+        this.permissions = [];
         
         // Zresetuj stan koszyka po wylogowaniu
         const cartStore = useCartStore();
@@ -132,6 +163,85 @@ export const useAuthStore = defineStore('auth', {
         console.error('Logout failed:', error);
         this.hasError = true;
         this.errorMessage = 'Wylogowanie nie powiodło się';
+        return false;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    
+    // Wysłanie ponownie linku do weryfikacji e-mail
+    async resendVerificationEmail() {
+      this.isLoading = true;
+      this.hasError = false;
+      this.errorMessage = '';
+      
+      try {
+        // Uzyskaj CSRF token
+        await axios.get('/sanctum/csrf-cookie');
+        
+        // Wyślij żądanie ponownego wysłania weryfikacji
+        const response = await axios.post('/api/email/verification-notification');
+        
+        return response.data.message || 'Link weryfikacyjny został wysłany ponownie.';
+      } catch (error) {
+        console.error('Resend verification failed:', error);
+        this.hasError = true;
+        this.errorMessage = error.response?.data?.message || 'Nie udało się wysłać linku weryfikacyjnego.';
+        return false;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    
+    // Aktualizacja profilu użytkownika
+    async updateProfile(userData) {
+      this.isLoading = true;
+      this.hasError = false;
+      this.errorMessage = '';
+      
+      try {
+        // Uzyskaj CSRF token
+        await axios.get('/sanctum/csrf-cookie');
+        
+        // Wyślij żądanie aktualizacji profilu
+        const response = await axios.put('/api/user/profile', userData);
+        
+        // Aktualizuj dane użytkownika w store
+        this.user = response.data.user;
+        
+        return true;
+      } catch (error) {
+        console.error('Profile update failed:', error);
+        this.hasError = true;
+        this.errorMessage = error.response?.data?.message || 'Aktualizacja profilu nie powiodła się.';
+        return false;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    
+    // Zmiana hasła
+    async updatePassword(currentPassword, newPassword, newPasswordConfirmation) {
+      this.isLoading = true;
+      this.hasError = false;
+      this.errorMessage = '';
+      
+      try {
+        // Uzyskaj CSRF token
+        await axios.get('/sanctum/csrf-cookie');
+        
+        // Wyślij żądanie zmiany hasła
+        const response = await axios.put('/api/user/password', {
+          current_password: currentPassword,
+          password: newPassword,
+          password_confirmation: newPasswordConfirmation
+        });
+        
+        return true;
+      } catch (error) {
+        console.error('Password update failed:', error);
+        this.hasError = true;
+        this.errorMessage = error.response?.data?.message || 'Zmiana hasła nie powiodła się.';
         return false;
       } finally {
         this.isLoading = false;

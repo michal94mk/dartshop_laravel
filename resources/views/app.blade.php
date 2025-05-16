@@ -4,6 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <!-- Add base URL information for the JavaScript -->
+    <script>
+        window.Laravel = {
+            csrfToken: "{{ csrf_token() }}",
+            baseUrl: "{{ url('/') }}",
+            apiUrl: "{{ url('/api') }}"
+        };
+    </script>
 
     <title>{{ config('app.name', 'DartShop') }}</title>
 

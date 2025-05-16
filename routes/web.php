@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Auth routes
+// Auth routes for API
 require __DIR__.'/auth.php';
 
 // Admin routes - Admin panel nadal będzie działał w tradycyjnym trybie Blade
@@ -144,5 +144,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified', RoleMiddl
     Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
 });
 
-// SPA route - będzie obsługiwać wszystkie ścieżki, które nie są w /admin lub /api
-Route::get('/{any?}', [SPAController::class, 'index'])->where('any', '^(?!admin|api).*$')->name('spa');
+// Main entry point route - named route for SEO
+Route::get('/', [SPAController::class, 'index'])->name('home');
+
+// SPA catch-all route - all other routes should be handled by Vue Router
+// Exclude API routes from the catch-all
+Route::get('/{any}', [SPAController::class, 'index'])
+    ->where('any', '^(?!api).*$'); // Match any route that doesn't start with 'api'
