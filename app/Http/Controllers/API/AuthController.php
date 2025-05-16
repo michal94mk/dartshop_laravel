@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Enums\RoleEnum;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -29,7 +30,7 @@ class AuthController extends Controller
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
-                'user' => $user,
+                'user' => $this->getUserWithRolesAndPermissions($user),
                 'token' => $token,
                 'token_type' => 'Bearer',
             ]);
@@ -60,10 +61,13 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // Assign default user role
+        $user->assignRole(RoleEnum::User->value);
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'user' => $user,
+            'user' => $this->getUserWithRolesAndPermissions($user),
             'token' => $token,
             'token_type' => 'Bearer',
         ]);
@@ -77,7 +81,8 @@ class AuthController extends Controller
      */
     public function user(Request $request)
     {
-        return response()->json($request->user());
+        $user = $request->user();
+        return response()->json($this->getUserWithRolesAndPermissions($user));
     }
 
     /**
@@ -91,5 +96,20 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Successfully logged out']);
+    }
+
+    /**
+     * Get user with roles and permissions
+     *
+     * @param  \App\Models\User  $user
+     * @return array
+     */
+    protected function getUserWithRolesAndPermissions(User $user)
+    {
+        $userData = $user->toArray();
+        $userData['roles'] = $user->getRoleNames();
+        $userData['permissions'] = $user->getAllPermissions()->pluck('name');
+        
+        return $userData;
     }
 } 
