@@ -3,156 +3,185 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CartItem;
+use App\Models\Product;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class CartController extends Controller
 {
     /**
-     * Display the cart contents.
-     *
-     * @return \Illuminate\Http\Response
+     * Display the cart contents for the authenticated user.
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        // For now, return dummy data
-        return response()->json([
-            'items' => [
-                [
-                    'id' => 1,
-                    'product_id' => 1,
-                    'quantity' => 2,
-                    'product' => [
-                        'id' => 1,
-                        'name' => 'Lotki Target Agora A30',
-                        'price' => 149.99,
-                        'image_url' => 'https://via.placeholder.com/300x300/indigo/fff?text=Lotki+Target'
-                    ]
-                ],
-                [
-                    'id' => 2,
-                    'product_id' => 3,
-                    'quantity' => 1,
-                    'product' => [
-                        'id' => 3,
-                        'name' => 'Zestaw punktowy XQ Max',
-                        'price' => 49.99,
-                        'image_url' => 'https://via.placeholder.com/300x300/indigo/fff?text=Zestaw+XQ+Max'
-                    ]
-                ]
-            ],
-            'subtotal' => 349.97,
-            'discount' => 0,
-            'total' => 349.97
-        ]);
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+            
+            $cartItems = $user->cartItems()->with('product')->get();
+            
+            $subtotal = $cartItems->sum(function ($item) {
+                return $item->quantity * $item->product->price;
+            });
+            
+            return response()->json([
+                'items' => $cartItems,
+                'subtotal' => $subtotal,
+                'count' => $cartItems->sum('quantity'),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching cart items: ' . $e->getMessage());
+            return response()->json(['message' => 'Error fetching cart items', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
-     * Add a product to the cart.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Store a new cart item.
      */
-    public function add(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        // Validation would go here in a real app
-        return response()->json([
-            'items' => [
-                [
-                    'id' => 1,
-                    'product_id' => 1,
-                    'quantity' => 2,
-                    'product' => [
-                        'id' => 1,
-                        'name' => 'Lotki Target Agora A30',
-                        'price' => 149.99,
-                        'image_url' => 'https://via.placeholder.com/300x300/indigo/fff?text=Lotki+Target'
-                    ]
-                ],
-                [
-                    'id' => 2,
-                    'product_id' => 3,
-                    'quantity' => 1,
-                    'product' => [
-                        'id' => 3,
-                        'name' => 'Zestaw punktowy XQ Max',
-                        'price' => 49.99,
-                        'image_url' => 'https://via.placeholder.com/300x300/indigo/fff?text=Zestaw+XQ+Max'
-                    ]
-                ],
-                [
-                    'id' => 3,
-                    'product_id' => $request->product_id,
-                    'quantity' => $request->quantity,
-                    'product' => [
-                        'id' => $request->product_id,
-                        'name' => 'Dodany produkt',
-                        'price' => 99.99,
-                        'image_url' => 'https://via.placeholder.com/300x300/indigo/fff?text=Nowy+Produkt'
-                    ]
-                ]
-            ],
-            'subtotal' => 449.96,
-            'discount' => 0,
-            'total' => 449.96
-        ]);
+        try {
+            $validated = $request->validate([
+                'product_id' => 'required|exists:products,id',
+                'quantity' => 'required|integer|min:1',
+            ]);
+
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+
+            $product = Product::findOrFail($validated['product_id']);
+
+            // Check if the item already exists in the cart
+            $cartItem = CartItem::where('user_id', $user->id)
+                              ->where('product_id', $validated['product_id'])
+                              ->first();
+            
+            if ($cartItem) {
+                // Update existing cart item
+                $cartItem->update([
+                    'quantity' => $cartItem->quantity + $validated['quantity'],
+                ]);
+            } else {
+                // Create new cart item with explicit user_id
+                $cartItem = CartItem::create([
+                    'user_id' => $user->id,
+                    'product_id' => $validated['product_id'],
+                    'quantity' => $validated['quantity'],
+                ]);
+            }
+
+            return response()->json([
+                'message' => 'Product added to cart successfully',
+                'cart_item' => $cartItem->load('product'),
+            ], 201);
+        } catch (ValidationException $e) {
+            return response()->json(['message' => 'Validation error', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            Log::error('Error adding product to cart: ' . $e->getMessage());
+            return response()->json(['message' => 'Error adding product to cart', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
-     * Remove a product from the cart.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Update the specified cart item.
      */
-    public function remove(Request $request)
+    public function update(Request $request, CartItem $cartItem): JsonResponse
     {
-        return response()->json([
-            'items' => [
-                [
-                    'id' => 1,
-                    'product_id' => 1,
-                    'quantity' => 2,
-                    'product' => [
-                        'id' => 1,
-                        'name' => 'Lotki Target Agora A30',
-                        'price' => 149.99,
-                        'image_url' => 'https://via.placeholder.com/300x300/indigo/fff?text=Lotki+Target'
-                    ]
-                ]
-            ],
-            'subtotal' => 299.98,
-            'discount' => 0,
-            'total' => 299.98
-        ]);
+        try {
+            // Ensure the cart item belongs to the authenticated user
+            if ($cartItem->user_id !== Auth::id()) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            $validated = $request->validate([
+                'quantity' => 'required|integer|min:1',
+            ]);
+
+            $cartItem->update([
+                'quantity' => $validated['quantity'],
+            ]);
+
+            return response()->json([
+                'message' => 'Cart item updated successfully',
+                'cart_item' => $cartItem->load('product'),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error updating cart item: ' . $e->getMessage());
+            return response()->json(['message' => 'Error updating cart item', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
-     * Update cart items.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Remove the specified cart item.
      */
-    public function update(Request $request)
+    public function destroy(CartItem $cartItem): JsonResponse
     {
-        return response()->json([
-            'items' => $request->items,
-            'subtotal' => 299.98,
-            'discount' => 0,
-            'total' => 299.98
-        ]);
+        try {
+            // Ensure the cart item belongs to the authenticated user
+            if ($cartItem->user_id !== Auth::id()) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            $cartItem->delete();
+
+            return response()->json([
+                'message' => 'Item removed from cart successfully',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error removing cart item: ' . $e->getMessage());
+            return response()->json(['message' => 'Error removing cart item', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
-     * Clear the cart.
-     *
-     * @return \Illuminate\Http\Response
+     * Sync the frontend cart with the database after login.
      */
-    public function clear()
+    public function sync(Request $request): JsonResponse
     {
-        return response()->json([
-            'items' => [],
-            'subtotal' => 0,
-            'discount' => 0,
-            'total' => 0
-        ]);
+        try {
+            $validated = $request->validate([
+                'items' => 'required|array',
+                'items.*.product_id' => 'required|exists:products,id',
+                'items.*.quantity' => 'required|integer|min:1',
+            ]);
+
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+
+            // Clear current cart items
+            CartItem::where('user_id', $user->id)->delete();
+
+            // Add new items from frontend cart
+            foreach ($validated['items'] as $item) {
+                CartItem::create([
+                    'user_id' => $user->id,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                ]);
+            }
+
+            return response()->json([
+                'message' => 'Cart synchronized successfully',
+                'items' => $user->cartItems()->with('product')->get(),
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Error syncing cart: ' . $e->getMessage());
+            return response()->json(['message' => 'Error syncing cart', 'error' => $e->getMessage()], 500);
+        }
     }
 } 

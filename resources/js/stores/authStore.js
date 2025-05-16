@@ -1,129 +1,140 @@
 import { defineStore } from 'pinia';
-import api from '../services/api';
+import axios from 'axios';
+import { useCartStore } from './cartStore';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
-    token: localStorage.getItem('token') || null,
-    loading: false,
-    error: null,
-    isAdmin: false
+    isLoading: false,
+    hasError: false,
+    errorMessage: '',
   }),
   
   getters: {
-    isLoggedIn: (state) => {
-      return !!state.token && !!state.user;
-    },
+    isLoggedIn: (state) => !!state.user,
     
-    userName: (state) => {
-      return state.user ? state.user.name : '';
-    },
+    userName: (state) => state.user?.name || '',
     
-    userEmail: (state) => {
-      return state.user ? state.user.email : '';
-    },
+    userEmail: (state) => state.user?.email || '',
     
     userInitial: (state) => {
-      return state.user && state.user.name ? state.user.name.charAt(0).toUpperCase() : '';
+      return state.user?.name ? state.user.name.charAt(0).toUpperCase() : '';
+    },
+    
+    isAdmin: (state) => {
+      return state.user?.roles?.includes('admin') || false;
     }
   },
   
   actions: {
-    async login(credentials) {
-      this.loading = true;
-      this.error = null;
+    // Inicjalizacja stanu autoryzacji na podstawie danych z serwera
+    async initAuth() {
+      if (this.user) return;
+      
+      this.isLoading = true;
       
       try {
-        const response = await api.login(credentials);
-        const { user, token } = response.data;
-        
-        this.user = user;
-        this.token = token;
-        this.isAdmin = user.roles && user.roles.some(role => role.name === 'admin');
-        
-        localStorage.setItem('token', token);
-        
-        return true;
+        const response = await axios.get('/api/user');
+        if (response.data) {
+          this.user = response.data;
+        }
       } catch (error) {
-        this.error = error.message || 'Failed to login';
-        console.error('Login error:', error);
-        return false;
+        console.error('Failed to initialize auth state:', error);
+        this.hasError = true;
+        this.errorMessage = 'Nie udało się pobrać danych użytkownika';
       } finally {
-        this.loading = false;
+        this.isLoading = false;
       }
     },
     
-    async register(userData) {
-      this.loading = true;
-      this.error = null;
+    // Logowanie użytkownika
+    async login(email, password) {
+      this.isLoading = true;
+      this.hasError = false;
+      this.errorMessage = '';
       
       try {
-        const response = await api.register(userData);
-        const { user, token } = response.data;
+        // Uzyskaj CSRF token
+        await axios.get('/sanctum/csrf-cookie');
         
-        this.user = user;
-        this.token = token;
-        this.isAdmin = false; // New users are not admins by default
+        // Wykonaj logowanie
+        const response = await axios.post('/api/login', {
+          email,
+          password
+        });
         
-        localStorage.setItem('token', token);
+        this.user = response.data.user;
+        
+        // Synchronizacja koszyka po zalogowaniu
+        const cartStore = useCartStore();
+        await cartStore.syncCartAfterLogin();
         
         return true;
       } catch (error) {
-        this.error = error.message || 'Failed to register';
-        console.error('Registration error:', error);
+        console.error('Login failed:', error);
+        this.hasError = true;
+        this.errorMessage = error.response?.data?.message || 'Logowanie nie powiodło się';
         return false;
       } finally {
-        this.loading = false;
+        this.isLoading = false;
       }
     },
     
+    // Rejestracja użytkownika
+    async register(name, email, password, passwordConfirmation) {
+      this.isLoading = true;
+      this.hasError = false;
+      this.errorMessage = '';
+      
+      try {
+        // Uzyskaj CSRF token
+        await axios.get('/sanctum/csrf-cookie');
+        
+        // Wykonaj rejestrację
+        const response = await axios.post('/api/register', {
+          name,
+          email,
+          password,
+          password_confirmation: passwordConfirmation
+        });
+        
+        this.user = response.data.user;
+        
+        // Synchronizacja koszyka po rejestracji i automatycznym zalogowaniu
+        const cartStore = useCartStore();
+        await cartStore.syncCartAfterLogin();
+        
+        return true;
+      } catch (error) {
+        console.error('Registration failed:', error);
+        this.hasError = true;
+        this.errorMessage = error.response?.data?.message || 'Rejestracja nie powiodła się';
+        return false;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    
+    // Wylogowanie użytkownika
     async logout() {
-      this.loading = true;
+      this.isLoading = true;
       
       try {
-        if (this.token) {
-          await api.logout();
-        }
-      } catch (error) {
-        console.error('Logout error:', error);
-      } finally {
+        await axios.post('/api/logout');
         this.user = null;
-        this.token = null;
-        this.isAdmin = false;
-        localStorage.removeItem('token');
-        this.loading = false;
-      }
-    },
-    
-    async fetchUser() {
-      if (!this.token) {
-        return false;
-      }
-      
-      this.loading = true;
-      this.error = null;
-      
-      try {
-        const response = await api.getUser();
-        this.user = response.data;
-        this.isAdmin = this.user.roles && this.user.roles.some(role => role.name === 'admin');
+        
+        // Zresetuj stan koszyka po wylogowaniu
+        const cartStore = useCartStore();
+        cartStore.$reset();
+        
         return true;
       } catch (error) {
-        this.error = error.message || 'Failed to fetch user data';
-        console.error('Error fetching user data:', error);
-        // If we get a 401 error, the token is invalid or expired
-        if (error.response && error.response.status === 401) {
-          this.logout();
-        }
+        console.error('Logout failed:', error);
+        this.hasError = true;
+        this.errorMessage = 'Wylogowanie nie powiodło się';
         return false;
       } finally {
-        this.loading = false;
-      }
-    },
-    
-    initAuth() {
-      if (this.token) {
-        this.fetchUser();
+        this.isLoading = false;
       }
     }
   }

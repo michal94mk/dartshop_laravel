@@ -12,14 +12,7 @@ use App\Http\Controllers\Admin\PromotionController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Frontend\CartController;
-use App\Http\Controllers\Frontend\ContactController as FrontendContactController;
-use App\Http\Controllers\Frontend\HomeController;
-use App\Http\Controllers\Frontend\OrderController;
-use App\Http\Controllers\Frontend\PaymentController;
-use App\Http\Controllers\Frontend\ProfileController;
-use App\Http\Controllers\Frontend\PromotionController as FrontendPromotionController;
-use App\Http\Controllers\Frontend\ReviewController;
+use App\Http\Controllers\SPAController;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -37,96 +30,7 @@ use Illuminate\Support\Facades\Route;
 // Auth routes
 require __DIR__.'/auth.php';
 
-// All traditional web routes - these will be handled by Laravel
-Route::get('/', [HomeController::class, 'indexNewestProductsForHomepage'])->name('home');
-Route::get('/tailwind', function () {
-    return redirect()->route('home', ['tailwind' => 1]);
-})->name('tailwind.home');
-Route::get('/categories', [HomeController::class, 'indexForRegularUsers'])->name('frontend.categories.index');
-Route::get('/products/{id}', [HomeController::class, 'showProduct'])->name('frontend.products.show');
-Route::get('/filter/products', [AdminProductController::class, 'filterProducts'])->name('filter.products');
-
-// Promotions routes
-Route::get('/promotions', [FrontendPromotionController::class, 'showPromotions'])->name('frontend.promotions');
-
-// Reviews routes
-Route::get('/products/{product}/reviews/create', [ReviewController::class, 'create'])->name('frontend.reviews.create')->middleware('auth');
-Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])->name('frontend.reviews.store')->middleware('auth');
-
-// Contact routes
-Route::get('/contact', [FrontendContactController::class, 'showContactForm'])->name('frontend.contact');
-Route::post('/contact', [FrontendContactController::class, 'submitContactForm'])->name('frontend.contact.submit');
-
-// About Us routes
-Route::get('/about', [App\Http\Controllers\Frontend\AboutPageController::class, 'index'])->name('frontend.about');
-Route::get('/about/{id}', [App\Http\Controllers\Frontend\AboutPageController::class, 'show'])->name('frontend.about.show');
-
-// Vue demo page
-Route::get('/vue-demo', function() {
-    return view('vue-test');
-})->name('vue.demo');
-
-// Tutorials routes
-Route::get('/tutorials', [App\Http\Controllers\Frontend\TutorialController::class, 'index'])->name('frontend.tutorials');
-Route::get('/tutorials/{tutorial}', [App\Http\Controllers\Frontend\TutorialController::class, 'show'])->name('frontend.tutorials.show');
-
-// Cart routes
-Route::post('/cart/add/{product}', [CartController::class, 'addToCart'])->name('cart.add');
-Route::post('/cart/delete/{product}', [CartController::class, 'deleteFromCart'])->name('cart.delete');
-Route::post('/cart/update', [CartController::class, 'updateCart'])->name('cart.update');
-Route::post('/cart/empty', [CartController::class, 'emptyCart'])->name('cart.empty');
-Route::get('/cart/contents', [CartController::class, 'getCartContents'])->name('cart.contents');
-Route::get('/cart/view', [CartController::class, 'cartView'])->name('cart.view');
-Route::post('/cart/promotion/apply', [CartController::class, 'applyPromotion'])->name('cart.promotion.apply');
-Route::post('/cart/promotion/remove', [CartController::class, 'removePromotion'])->name('cart.promotion.remove');
-
-// Order routes
-Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
-Route::post('/order/place', [OrderController::class, 'placeOrder'])->name('order.place');
-Route::get('/order/{order}/confirmation', [OrderController::class, 'confirmation'])->name('order.confirmation');
-Route::get('/order/{order}', [OrderController::class, 'show'])->name('order.show');
-
-// Order history (requires authentication)
-Route::middleware(['auth'])->group(function () {
-    Route::get('/orders/history', [OrderController::class, 'history'])->name('orders.history');
-});
-
-// Payment routes
-Route::get('/payment/{order}/process', [PaymentController::class, 'process'])->name('payment.process');
-Route::post('/payment/{order}/complete', [PaymentController::class, 'complete'])->name('payment.complete');
-Route::post('/payment/{order}/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
-Route::post('/payment/webhook', [PaymentController::class, 'webhook'])->name('payment.webhook');
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::middleware(['auth','verified'])->group(function () {
-    // Profile management
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
-    // Orders history
-    Route::get('/profile/orders', [ProfileController::class, 'orders'])->name('profile.orders');
-    
-    // Payments history
-    Route::get('/profile/payments', [ProfileController::class, 'payments'])->name('profile.payments');
-    
-    // Favorite products
-    Route::get('/profile/favorites', [ProfileController::class, 'favorites'])->name('profile.favorites');
-    Route::post('/profile/favorites/{product}', [ProfileController::class, 'toggleFavorite'])->name('profile.favorites.toggle');
-    
-    // Shipping addresses
-    Route::get('/profile/addresses', [ProfileController::class, 'addresses'])->name('profile.addresses');
-    Route::get('/profile/addresses/create', [ProfileController::class, 'createAddress'])->name('profile.addresses.create');
-    Route::post('/profile/addresses', [ProfileController::class, 'storeAddress'])->name('profile.addresses.store');
-    Route::get('/profile/addresses/{address}/edit', [ProfileController::class, 'editAddress'])->name('profile.addresses.edit');
-    Route::put('/profile/addresses/{address}', [ProfileController::class, 'updateAddress'])->name('profile.addresses.update');
-    Route::delete('/profile/addresses/{address}', [ProfileController::class, 'destroyAddress'])->name('profile.addresses.destroy');
-});
-
-// Admin routes
+// Admin routes - Admin panel nadal będzie działał w tradycyjnym trybie Blade
 Route::prefix('admin')->name('admin.')->middleware(['auth','verified', RoleMiddleware::class.':admin'])->group(function () {
     // Admin dashboard
     Route::get('/', [AdminController::class, 'index'])->name('index');
@@ -240,7 +144,5 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified', RoleMiddl
     Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
 });
 
-// SPA route - will render the Vue.js SPA (ten route musi być na samym końcu)
-Route::get('/{any?}', function () {
-    return view('spa');
-})->where('any', '^(?!api).*')->name('spa');
+// SPA route - będzie obsługiwać wszystkie ścieżki, które nie są w /admin lub /api
+Route::get('/{any?}', [SPAController::class, 'index'])->where('any', '^(?!admin|api).*$')->name('spa');

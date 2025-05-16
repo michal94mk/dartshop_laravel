@@ -298,6 +298,7 @@ import { computed } from 'vue';
 import { useProductStore } from '../stores/productStore';
 import { useCartStore } from '../stores/cartStore';
 import { useWishlistStore } from '../stores/wishlistStore';
+import axios from 'axios';
 
 export default {
   name: 'ProductList',
@@ -400,14 +401,22 @@ export default {
   methods: {
     loadProducts() {
       console.log('Loading products method called');
+      
+      // Add diagnostic request to check products API
+      axios.get('/api/debug/products')
+        .then(response => {
+          console.log('Debug info:', response.data);
+        })
+        .catch(error => {
+          console.error('Debug API error:', error);
+        });
+        
       this.productStore.fetchProducts()
         .then(() => {
           console.log('Products loaded successfully:', this.productStore.products);
         })
         .catch(error => {
           console.error('Failed to load products:', error);
-          // Don't load fallback products anymore as we have real data
-          // this.loadFallbackProducts();
         });
     },
     applyFilters() {
@@ -495,7 +504,7 @@ export default {
       this.applyFilters();
     },
     isCartLoading(productId) {
-      return this.cartStore.isLoading(productId);
+      return this.cartStore.isLoadingProduct(productId);
     }
   }
 }

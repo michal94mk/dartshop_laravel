@@ -8,7 +8,17 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\CartItem[] $cartItems
+ * @method \Illuminate\Database\Eloquent\Relations\HasMany cartItems()
+ * @method \Illuminate\Database\Eloquent\Relations\HasMany reviews()
+ * @method \Illuminate\Database\Eloquent\Relations\HasMany orders()
+ * @method \Illuminate\Database\Eloquent\Relations\HasMany payments()
+ * @method \Illuminate\Database\Eloquent\Relations\HasMany shippingAddresses()
+ * @method \Illuminate\Database\Eloquent\Relations\BelongsToMany favoriteProducts()
+ */
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
@@ -44,11 +54,11 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
     
     /**
-     * Get the carts associated with the user.
+     * Get the cart items associated with the user.
      */
-    public function carts()
+    public function cartItems(): HasMany
     {
-        return $this->hasMany(Cart::class);
+        return $this->hasMany(CartItem::class);
     }
     
     /**

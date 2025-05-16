@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -33,13 +33,28 @@ class ProductController extends Controller
             'query_params' => $request->all(),
             'user_agent' => $request->header('User-Agent'),
             'request_path' => $request->path(),
-            'is_api' => $request->is('api/*')
+            'is_api' => $request->is('api/*'),
+            'request_headers' => $request->headers->all()
         ]);
         
         // Enable query logging for debugging
         DB::enableQueryLog();
         
         try {
+            // Simple approach first - get all products with minimal filtering
+            $products = Product::with(['category', 'brand'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+                
+            Log::info('Products query successful. Product count: ' . count($products));
+            
+            // If we have products, return them immediately
+            if (count($products) > 0) {
+                Log::info('Returning products directly without pagination');
+                return response()->json($products);
+            }
+            
+            // If we don't have products, try a more complex query with pagination
             $query = Product::with(['category', 'brand']);
             
             Log::info('Initial query created, checking for products in the database...');
