@@ -17,16 +17,53 @@ export const useCartStore = defineStore('cart', {
     },
     
     subtotal: (state) => {
-      return state.items.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+      return state.items.reduce((total, item) => {
+        // Ensure product.price exists and is a number
+        const price = item.product && item.product.price ? parseFloat(item.product.price) : 0;
+        return total + (price * item.quantity);
+      }, 0);
     },
     
     isEmpty: (state) => {
       return state.items.length === 0;
     },
     
+    // Add discount calculation (0 for now, can be expanded later)
+    discount: () => {
+      return 0;
+    },
+    
+    // Calculate total after discount
+    total: (state, getters) => {
+      return getters.subtotal - getters.discount;
+    },
+    
     // Add isLoading as a getter that takes a productId parameter
     isLoadingProduct: (state) => (productId) => {
       return state.loadingProductIds.includes(productId);
+    },
+    
+    // Add formatted price getters
+    formattedSubtotal: (state) => {
+      const subtotal = state.items.reduce((total, item) => {
+        const price = item.product && item.product.price ? parseFloat(item.product.price) : 0;
+        return total + (price * item.quantity);
+      }, 0);
+      return subtotal.toFixed(2) + ' zł';
+    },
+    
+    formattedDiscount: (state) => {
+      // For now, discount is always 0
+      return '0.00 zł';
+    },
+    
+    formattedTotal: (state) => {
+      const total = state.items.reduce((total, item) => {
+        const price = item.product && item.product.price ? parseFloat(item.product.price) : 0;
+        return total + (price * item.quantity);
+      }, 0);
+      // Discount is 0 for now
+      return total.toFixed(2) + ' zł';
     }
   },
   
@@ -51,15 +88,27 @@ export const useCartStore = defineStore('cart', {
           // Dla gościa pobierz z localStorage
           const savedCart = localStorage.getItem('cart');
           if (savedCart) {
-            this.items = JSON.parse(savedCart);
+            try {
+              this.items = JSON.parse(savedCart);
+            } catch (e) {
+              console.error('Error parsing cart from localStorage:', e);
+              this.items = [];
+              localStorage.removeItem('cart'); // Remove invalid data
+            }
+          } else {
+            // Initialize with empty cart
+            this.items = [];
           }
+          this.isLoading = false;
         }
       } catch (error) {
         console.error('Failed to initialize cart:', error);
         this.hasError = true;
         this.errorMessage = 'Nie udało się zainicjalizować koszyka';
-      } finally {
         this.isLoading = false;
+        
+        // Fallback to empty cart
+        this.items = [];
       }
     },
     
@@ -76,17 +125,44 @@ export const useCartStore = defineStore('cart', {
     async fetchCart() {
       const authStore = useAuthStore();
       
-      if (!authStore.isLoggedIn) return;
+      if (!authStore.isLoggedIn) {
+        // For guest users, load from localStorage instead
+        const savedCart = localStorage.getItem('cart');
+        if (savedCart) {
+          try {
+            this.items = JSON.parse(savedCart);
+          } catch (e) {
+            console.error('Error parsing cart from localStorage:', e);
+            this.items = [];
+          }
+        }
+        return;
+      }
       
       this.isLoading = true;
       
       try {
         const response = await axios.get('/api/cart');
-        this.items = response.data.items;
+        this.items = response.data.items || [];
       } catch (error) {
         console.error('Failed to fetch cart:', error);
-        this.hasError = true;
-        this.errorMessage = 'Nie udało się pobrać zawartości koszyka';
+        
+        // If unauthorized or forbidden, fall back to localStorage
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+          authStore.isLoggedIn = false; // Reset auth state
+          const savedCart = localStorage.getItem('cart');
+          if (savedCart) {
+            try {
+              this.items = JSON.parse(savedCart);
+            } catch (e) {
+              console.error('Error parsing cart from localStorage:', e);
+              this.items = [];
+            }
+          }
+        } else {
+          this.hasError = true;
+          this.errorMessage = 'Nie udało się pobrać zawartości koszyka';
+        }
       } finally {
         this.isLoading = false;
       }
@@ -129,16 +205,30 @@ export const useCartStore = defineStore('cart', {
           // Produkt już istnieje w koszyku, zwiększ ilość
           this.items[existingItemIndex].quantity += quantity;
         } else {
-          // Znajdź produkt lub użyj zaślepki
-          const product = { id: productId };
-          
-          // Dodaj nowy produkt do koszyka
-          this.items.push({
-            id: Date.now(), // Tymczasowe ID dla localStorage
-            product_id: productId,
-            quantity: quantity,
-            product: product
-          });
+          // Najpierw pobierz dane produktu z API
+          try {
+            const response = await axios.get(`/api/products/${productId}`);
+            const product = response.data;
+            
+            // Dodaj nowy produkt do koszyka z pełnymi danymi
+            this.items.push({
+              id: Date.now(), // Tymczasowe ID dla localStorage
+              product_id: productId,
+              quantity: quantity,
+              product: product
+            });
+          } catch (error) {
+            console.error('Failed to fetch product details:', error);
+            // Jeśli nie udało się pobrać danych produktu, użyj podstawowych informacji
+            const product = { id: productId, name: 'Produkt', price: 0 };
+            
+            this.items.push({
+              id: Date.now(),
+              product_id: productId,
+              quantity: quantity,
+              product: product
+            });
+          }
         }
         
         // Remove from loading products
@@ -150,7 +240,7 @@ export const useCartStore = defineStore('cart', {
     },
     
     // Zmień ilość produktu w koszyku
-    async updateCartItem(cartItemId, quantity) {
+    async updateCartItem(itemId, quantity) {
       const authStore = useAuthStore();
       
       if (authStore.isLoggedIn) {
@@ -158,7 +248,7 @@ export const useCartStore = defineStore('cart', {
         this.isLoading = true;
         
         try {
-          const response = await axios.put(`/api/cart/${cartItemId}`, {
+          const response = await axios.put(`/api/cart/${itemId}`, {
             quantity: quantity
           });
           
@@ -174,7 +264,10 @@ export const useCartStore = defineStore('cart', {
         }
       } else {
         // Dla gościa: obsługa w localStorage
-        const itemIndex = this.items.findIndex(item => item.id === cartItemId);
+        // Sprawdź czy itemId jest id produktu czy id koszyka
+        const itemIndex = this.items.findIndex(item => 
+          item.id === itemId || item.product_id === itemId || item.product.id === itemId
+        );
         
         if (itemIndex !== -1) {
           this.items[itemIndex].quantity = quantity;
@@ -184,7 +277,7 @@ export const useCartStore = defineStore('cart', {
     },
     
     // Usuń produkt z koszyka
-    async removeFromCart(cartItemId) {
+    async removeFromCart(itemId) {
       const authStore = useAuthStore();
       
       if (authStore.isLoggedIn) {
@@ -192,7 +285,7 @@ export const useCartStore = defineStore('cart', {
         this.isLoading = true;
         
         try {
-          const response = await axios.delete(`/api/cart/${cartItemId}`);
+          const response = await axios.delete(`/api/cart/${itemId}`);
           
           await this.fetchCart(); // Odśwież koszyk po usunięciu
           return response.data;
@@ -206,7 +299,16 @@ export const useCartStore = defineStore('cart', {
         }
       } else {
         // Dla gościa: obsługa w localStorage
-        this.items = this.items.filter(item => item.id !== cartItemId);
+        // Need to check all possible ID matches 
+        this.items = this.items.filter(item => {
+          // If none of these match, keep the item
+          return !(
+            item.id === itemId || 
+            item.product_id === itemId || 
+            (item.product && item.product.id === itemId)
+          );
+        });
+        
         this.saveToLocalStorage();
       }
     },

@@ -52,15 +52,17 @@
             <div class="md:col-span-6 flex items-center">
               <div class="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-md overflow-hidden">
                 <img 
-                  :src="item.product.image_url || 'https://via.placeholder.com/80x80/indigo/fff?text=' + item.product.name" 
-                  :alt="item.product.name" 
+                  :src="item.product && item.product.image_url 
+                    ? item.product.image_url 
+                    : `https://via.placeholder.com/80x80/indigo/fff?text=${item.product?.name || 'Produkt'}`" 
+                  :alt="item.product?.name || 'Produkt'" 
                   class="w-full h-full object-center object-cover"
                 >
               </div>
               <div class="ml-4 flex-1">
                 <h3 class="text-base font-medium text-gray-900">
                   <router-link :to="`/products/${item.product_id}`" class="hover:text-indigo-600">
-                    {{ item.product.name }}
+                    {{ item.product?.name || 'Produkt' }}
                   </router-link>
                 </h3>
                 <button 
@@ -190,6 +192,7 @@
 
 <script>
 import { useCartStore } from '../stores/cartStore';
+import { useAuthStore } from '../stores/authStore';
 
 export default {
   name: 'Cart',
@@ -201,9 +204,10 @@ export default {
   },
   created() {
     this.cartStore = useCartStore();
+    this.authStore = useAuthStore();
   },
   mounted() {
-    this.loadCart();
+    this.cartStore.initCart();
   },
   computed: {
     
@@ -214,13 +218,17 @@ export default {
     },
     
     formatPrice(price) {
+      if (price === undefined || price === null) {
+        return '0.00';
+      }
       return parseFloat(price).toFixed(2);
     },
     
     async increaseQuantity(item) {
       this.updatingItemId = item.product_id;
       try {
-        await this.cartStore.updateCartItem(item.product_id, item.quantity + 1);
+        const itemId = this.authStore.isLoggedIn ? item.id : item.product_id;
+        await this.cartStore.updateCartItem(itemId, item.quantity + 1);
       } catch (error) {
         console.error('Error increasing quantity:', error);
       } finally {
@@ -233,7 +241,8 @@ export default {
       
       this.updatingItemId = item.product_id;
       try {
-        await this.cartStore.updateCartItem(item.product_id, item.quantity - 1);
+        const itemId = this.authStore.isLoggedIn ? item.id : item.product_id;
+        await this.cartStore.updateCartItem(itemId, item.quantity - 1);
       } catch (error) {
         console.error('Error decreasing quantity:', error);
       } finally {
@@ -244,7 +253,9 @@ export default {
     async removeItem(productId) {
       this.removingItemId = productId;
       try {
-        await this.cartStore.removeFromCart(productId);
+        const itemToRemove = this.cartStore.items.find(item => item.product_id === productId);
+        const itemId = this.authStore.isLoggedIn && itemToRemove ? itemToRemove.id : productId;
+        await this.cartStore.removeFromCart(itemId);
       } catch (error) {
         console.error('Error removing item:', error);
       } finally {
