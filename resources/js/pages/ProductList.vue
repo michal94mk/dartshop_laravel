@@ -1,153 +1,114 @@
 <template>
-  <div class="bg-white">
-    <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-      <h1 class="text-3xl font-extrabold tracking-tight text-gray-900">Produkty</h1>
+  <div class="bg-gray-50">
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <h1 class="text-3xl font-extrabold tracking-tight text-gray-900 text-center mb-8">Produkty</h1>
       
-      <div class="mt-8 lg:grid lg:grid-cols-5 lg:gap-x-8">
-        <!-- Mobile filter dialog -->
-        <div class="relative z-40 lg:hidden">
-          <button @click="mobileFiltersOpen = true" class="w-full bg-gray-100 p-3 rounded-md flex items-center justify-center text-gray-700 hover:bg-gray-200">
-            <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-            </svg>
-            Filtry i sortowanie
-          </button>
+      <!-- Mobile filter dialog -->
+      <div class="relative z-40 lg:hidden mb-4">
+        <button @click="mobileFiltersOpen = true" class="w-full bg-white p-3 rounded-md shadow-sm flex items-center justify-center text-gray-700 hover:bg-gray-100 transition duration-150">
+          <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+          </svg>
+          Filtry i sortowanie
+        </button>
+        
+        <div v-if="mobileFiltersOpen" class="fixed inset-0 flex z-40">
+          <div class="fixed inset-0 bg-black bg-opacity-25" @click="mobileFiltersOpen = false"></div>
           
-          <div v-if="mobileFiltersOpen" class="fixed inset-0 flex z-40">
-            <div class="fixed inset-0 bg-black bg-opacity-25" @click="mobileFiltersOpen = false"></div>
+          <div class="ml-auto relative max-w-xs w-full h-full bg-white shadow-xl py-4 pb-12 flex flex-col overflow-y-auto">
+            <div class="px-4 flex items-center justify-between">
+              <h2 class="text-lg font-medium text-gray-900">Filtry</h2>
+              <button @click="mobileFiltersOpen = false" class="-mr-2 w-10 h-10 bg-white p-2 rounded-md flex items-center justify-center text-gray-400">
+                <span class="sr-only">Zamknij menu</span>
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
             
-            <div class="ml-auto relative max-w-xs w-full h-full bg-white shadow-xl py-4 pb-12 flex flex-col overflow-y-auto">
-              <div class="px-4 flex items-center justify-between">
-                <h2 class="text-lg font-medium text-gray-900">Filtry</h2>
-                <button @click="mobileFiltersOpen = false" class="-mr-2 w-10 h-10 bg-white p-2 rounded-md flex items-center justify-center text-gray-400">
-                  <span class="sr-only">Zamknij menu</span>
-                  <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+            <!-- Mobile filters -->
+            <div class="mt-4 border-t border-gray-200">
+              <!-- Action buttons - Mobile -->
+              <div class="p-4 flex space-x-4">
+                <button 
+                  @click="applyFilters"
+                  class="flex-1 bg-indigo-600 border border-transparent rounded-md py-2 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Zastosuj
+                </button>
+                <button 
+                  @click="resetFilters"
+                  class="flex-1 bg-gray-200 border border-transparent rounded-md py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                >
+                  Wyczyść
                 </button>
               </div>
-              
-              <!-- Mobile filters -->
-              <div class="mt-4 border-t border-gray-200">
-                <!-- Action buttons - Mobile -->
-                <div class="p-4 flex space-x-4">
-                  <button 
-                    @click="applyFilters"
-                    class="flex-1 bg-indigo-600 border border-transparent rounded-md py-2 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    Zastosuj
-                  </button>
-                  <button 
-                    @click="resetFilters"
-                    class="flex-1 bg-gray-200 border border-transparent rounded-md py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                  >
-                    Wyczyść
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Filters - Desktop -->
-        <div class="hidden lg:block">
-          <div class="divide-y divide-gray-200 space-y-10">
-            <!-- Action buttons - Desktop -->
-            <div class="pt-10">
-              <button 
-                @click="applyFilters"
-                class="w-full bg-indigo-600 border border-transparent rounded-md py-2 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                Zastosuj filtry
-              </button>
-              <button 
-                @click="resetFilters"
-                class="mt-4 w-full bg-gray-200 border border-transparent rounded-md py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-              >
-                Wyczyść filtry
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Product grid and sorting bar -->
-        <div class="mt-8 lg:mt-0 lg:col-span-4">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-            <div class="text-sm text-gray-600 mb-4 sm:mb-0">
-              Wyświetlanie {{ productStore.products.length }} z {{ productStore.pagination.total }} produktów
-              <span class="ml-2 text-xs text-gray-500">
-                <template v-if="productStore.filters.sort === 'newest'">
-                  (sortowanie: najnowsze najpierw)
-                </template>
-                <template v-else-if="productStore.filters.sort === 'price_asc'">
-                  (sortowanie: od najtańszych)
-                </template>
-                <template v-else-if="productStore.filters.sort === 'price_desc'">
-                  (sortowanie: od najdroższych)
-                </template>
-                <template v-else-if="productStore.filters.sort === 'name_asc'">
-                  (sortowanie: A-Z)
-                </template>
-                <template v-else-if="productStore.filters.sort === 'name_desc'">
-                  (sortowanie: Z-A)
-                </template>
-              </span>
-            </div>
-            
+      <!-- Product grid and sorting bar -->
+      <div>
+        <!-- Filters and sorting interface -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <!-- Enhanced sorting interface -->
-            <div class="w-full sm:w-auto">
-              <div class="sm:flex items-center bg-white p-2 rounded-md shadow-sm mb-4">
-                <span class="block sm:inline mr-2 text-sm font-medium text-gray-700">Sortuj według:</span>
-                <div class="flex flex-wrap mt-2 sm:mt-0">
+            <div class="bg-gray-50 rounded-md p-4 flex-grow">
+              <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span class="text-sm font-medium text-gray-700">Sortuj według:</span>
+                <div class="flex flex-wrap gap-2">
                   <button 
                     @click="setSorting('newest')" 
-                    class="px-3 py-1 mr-2 mb-2 sm:mb-0 rounded-md text-sm transition-colors duration-200"
-                    :class="{'bg-indigo-600 text-white hover:bg-indigo-700': productStore.filters.sort === 'newest', 'bg-gray-100 text-gray-700 hover:bg-gray-200': productStore.filters.sort !== 'newest'}"
+                    class="px-3 py-1.5 rounded-md text-sm transition-colors duration-200"
+                    :class="{'bg-indigo-600 text-white hover:bg-indigo-700': productStore.filters.sort === 'newest', 'bg-white text-gray-700 hover:bg-gray-200': productStore.filters.sort !== 'newest'}"
                   >
                     Najnowsze
                   </button>
                   <button 
                     @click="setSorting('price_asc')" 
-                    class="px-3 py-1 mr-2 mb-2 sm:mb-0 rounded-md text-sm transition-colors duration-200"
-                    :class="{'bg-indigo-600 text-white hover:bg-indigo-700': productStore.filters.sort === 'price_asc', 'bg-gray-100 text-gray-700 hover:bg-gray-200': productStore.filters.sort !== 'price_asc'}"
+                    class="px-3 py-1.5 rounded-md text-sm transition-colors duration-200"
+                    :class="{'bg-indigo-600 text-white hover:bg-indigo-700': productStore.filters.sort === 'price_asc', 'bg-white text-gray-700 hover:bg-gray-200': productStore.filters.sort !== 'price_asc'}"
                   >
                     <span class="hidden sm:inline">Cena: </span>↑
                   </button>
                   <button 
                     @click="setSorting('price_desc')" 
-                    class="px-3 py-1 mr-2 mb-2 sm:mb-0 rounded-md text-sm transition-colors duration-200"
-                    :class="{'bg-indigo-600 text-white hover:bg-indigo-700': productStore.filters.sort === 'price_desc', 'bg-gray-100 text-gray-700 hover:bg-gray-200': productStore.filters.sort !== 'price_desc'}"
+                    class="px-3 py-1.5 rounded-md text-sm transition-colors duration-200"
+                    :class="{'bg-indigo-600 text-white hover:bg-indigo-700': productStore.filters.sort === 'price_desc', 'bg-white text-gray-700 hover:bg-gray-200': productStore.filters.sort !== 'price_desc'}"
                   >
                     <span class="hidden sm:inline">Cena: </span>↓
                   </button>
                   <button 
                     @click="setSorting('name_asc')" 
-                    class="px-3 py-1 mr-2 mb-2 sm:mb-0 rounded-md text-sm transition-colors duration-200"
-                    :class="{'bg-indigo-600 text-white hover:bg-indigo-700': productStore.filters.sort === 'name_asc', 'bg-gray-100 text-gray-700 hover:bg-gray-200': productStore.filters.sort !== 'name_asc'}"
+                    class="px-3 py-1.5 rounded-md text-sm transition-colors duration-200"
+                    :class="{'bg-indigo-600 text-white hover:bg-indigo-700': productStore.filters.sort === 'name_asc', 'bg-white text-gray-700 hover:bg-gray-200': productStore.filters.sort !== 'name_asc'}"
                   >
                     <span class="hidden sm:inline">Nazwa: </span>A-Z
                   </button>
                   <button 
                     @click="setSorting('name_desc')" 
-                    class="px-3 py-1 mb-2 sm:mb-0 rounded-md text-sm transition-colors duration-200"
-                    :class="{'bg-indigo-600 text-white hover:bg-indigo-700': productStore.filters.sort === 'name_desc', 'bg-gray-100 text-gray-700 hover:bg-gray-200': productStore.filters.sort !== 'name_desc'}"
+                    class="px-3 py-1.5 rounded-md text-sm transition-colors duration-200"
+                    :class="{'bg-indigo-600 text-white hover:bg-indigo-700': productStore.filters.sort === 'name_desc', 'bg-white text-gray-700 hover:bg-gray-200': productStore.filters.sort !== 'name_desc'}"
                   >
                     <span class="hidden sm:inline">Nazwa: </span>Z-A
                   </button>
                 </div>
               </div>
-              
-              <!-- Zakres cenowy przeniesiony obok sortowania -->
-              <div class="bg-white p-3 rounded-md shadow-sm mb-4">
-                <div class="flex flex-col sm:flex-row items-center">
-                  <span class="block sm:inline mr-2 text-sm font-medium text-gray-700 mb-2 sm:mb-0">Zakres cen:</span>
-                  <div class="flex w-full sm:w-auto">
+            </div>
+
+            <!-- Price range filter -->
+            <div class="bg-gray-50 rounded-md p-4">
+              <div class="grid grid-cols-1 gap-2">
+                <span class="text-sm font-medium text-gray-700">Zakres cen:</span>
+                <div class="flex items-center gap-2">
+                  <div class="flex">
                     <input 
                       type="number" 
                       v-model="priceRange[0]"
                       placeholder="Od" 
                       min="0" 
-                      class="w-20 sm:w-24 rounded-l-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                      class="w-24 rounded-l-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                     >
                     <span class="px-2 inline-flex items-center bg-gray-100">-</span>
                     <input 
@@ -155,144 +116,158 @@
                       v-model="priceRange[1]"
                       placeholder="Do" 
                       min="0" 
-                      class="w-20 sm:w-24 rounded-r-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                      class="w-24 rounded-r-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                     >
-                    <button 
-                      @click="applyPriceFilter"
-                      class="ml-2 px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors duration-200"
-                    >
-                      Filtruj
-                    </button>
                   </div>
-                </div>
-              </div>
-              
-              <div class="sm:hidden">
-                <select 
-                  v-model="productStore.filters.sort"
-                  @change="applyFilters"
-                  class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                >
-                  <option value="newest">Najnowsze</option>
-                  <option value="price_asc">Cena: rosnąco</option>
-                  <option value="price_desc">Cena: malejąco</option>
-                  <option value="name_asc">Nazwa: A-Z</option>
-                  <option value="name_desc">Nazwa: Z-A</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          
-          <div v-if="productStore.loading" class="text-center py-10">
-            <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p class="mt-2 text-gray-500">Ładowanie produktów...</p>
-          </div>
-          
-          <div v-else-if="productStore.error" class="text-center py-10">
-            <p class="text-red-500">{{ productStore.error }}</p>
-            <button 
-              @click="loadProducts" 
-              class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200"
-            >
-              Spróbuj ponownie
-            </button>
-          </div>
-          
-          <div v-else-if="productStore.products.length === 0" class="text-center py-10">
-            <p class="text-gray-500">Nie znaleziono produktów spełniających podane kryteria.</p>
-            <button 
-              @click="resetFilters" 
-              class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200"
-            >
-              Wyczyść filtry
-            </button>
-          </div>
-          
-          <div v-else class="grid grid-cols-1 gap-y-8 gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
-            <div v-for="product in productStore.products" :key="product.id" class="bg-white overflow-hidden shadow rounded-lg">
-              <div class="relative pb-7/12">
-                <img 
-                  :src="product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=' + product.name" 
-                  :alt="product.name" 
-                  class="absolute h-full w-full object-cover"
-                >
-                <button 
-                  @click.prevent="toggleFavorite(product)"
-                  class="absolute top-2 right-2 p-2 bg-white rounded-full shadow hover:bg-gray-100"
-                >
-                  <svg 
-                    class="w-5 h-5" 
-                    :class="{ 'text-red-500 fill-current': isInFavorites(product.id), 'text-gray-400': !isInFavorites(product.id) }"
-                    xmlns="http://www.w3.org/2000/svg" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor"
+                  <button 
+                    @click="applyPriceFilter"
+                    class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors duration-200"
                   >
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                </button>
-              </div>
-              <div class="p-6">
-                <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
-                <p class="mt-1 text-sm text-gray-500">{{ product.short_description || product.description }}</p>
-                <div v-if="product.id === cartMessageProductId" class="mt-2 p-2 rounded text-sm" :class="cartSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
-                  {{ cartMessage }}
-                </div>
-                <div class="mt-4 flex items-center justify-between">
-                  <span class="text-indigo-600 font-bold">{{ formatPrice(product.price) }} zł</span>
-                  <div class="flex space-x-2">
-                    <button 
-                      @click="addToCart(product)"
-                      class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-                      :disabled="cartStore.loading"
-                    >
-                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                      </svg>
-                      Dodaj do koszyka
-                    </button>
-                    <router-link :to="`/products/${product.id}`" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
-                      Zobacz
-                    </router-link>
-                  </div>
+                    Filtruj
+                  </button>
+                  <button 
+                    @click="resetFilters"
+                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors duration-200"
+                  >
+                    Reset
+                  </button>
                 </div>
               </div>
             </div>
           </div>
           
-          <!-- Pagination -->
-          <div v-if="productStore.pagination.totalPages > 1" class="mt-10 flex justify-center">
-            <nav class="flex items-center">
-              <button 
-                @click="goToPage(productStore.pagination.currentPage - 1)"
-                :disabled="productStore.pagination.currentPage === 1"
-                class="px-3 py-1 rounded-md mr-2 border border-gray-300 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                &laquo; Poprzednia
-              </button>
-              
-              <div v-for="page in paginationPages" :key="page" class="mx-1">
-                <button 
-                  @click="goToPage(page)"
-                  :class="[
-                    'px-3 py-1 rounded-md border',
-                    page === productStore.pagination.currentPage 
-                      ? 'bg-indigo-600 text-white border-indigo-600' 
-                      : 'bg-white text-gray-700 border-gray-300'
-                  ]"
-                >
-                  {{ page }}
-                </button>
-              </div>
-              
-              <button 
-                @click="goToPage(productStore.pagination.currentPage + 1)"
-                :disabled="productStore.pagination.currentPage === productStore.pagination.totalPages"
-                class="px-3 py-1 rounded-md ml-2 border border-gray-300 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Następna &raquo;
-              </button>
-            </nav>
+          <div class="mt-4 text-sm text-gray-600">
+            Wyświetlanie {{ productStore.products.length }} z {{ productStore.pagination.total }} produktów
+            <span class="ml-2 text-xs text-gray-500">
+              <template v-if="productStore.filters.sort === 'newest'">
+                (sortowanie: najnowsze najpierw)
+              </template>
+              <template v-else-if="productStore.filters.sort === 'price_asc'">
+                (sortowanie: od najtańszych)
+              </template>
+              <template v-else-if="productStore.filters.sort === 'price_desc'">
+                (sortowanie: od najdroższych)
+              </template>
+              <template v-else-if="productStore.filters.sort === 'name_asc'">
+                (sortowanie: A-Z)
+              </template>
+              <template v-else-if="productStore.filters.sort === 'name_desc'">
+                (sortowanie: Z-A)
+              </template>
+            </span>
           </div>
+        </div>
+        
+        <div v-if="productStore.loading" class="text-center py-10">
+          <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p class="mt-2 text-gray-500">Ładowanie produktów...</p>
+        </div>
+        
+        <div v-else-if="productStore.error" class="text-center py-10">
+          <p class="text-red-500">{{ productStore.error }}</p>
+          <button 
+            @click="loadProducts" 
+            class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200"
+          >
+            Spróbuj ponownie
+          </button>
+        </div>
+        
+        <div v-else-if="productStore.products.length === 0" class="text-center py-10">
+          <p class="text-gray-500">Nie znaleziono produktów spełniających podane kryteria.</p>
+          <button 
+            @click="resetFilters" 
+            class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200"
+          >
+            Wyczyść filtry
+          </button>
+        </div>
+        
+        <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div v-for="product in productStore.products" :key="product.id" class="bg-white overflow-hidden shadow-sm rounded-lg transition-all hover:shadow-md flex flex-col h-full">
+            <div class="relative aspect-square overflow-hidden">
+              <img 
+                :src="product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=' + product.name" 
+                :alt="product.name" 
+                class="h-full w-full object-cover hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+              >
+              <button 
+                @click.prevent="toggleFavorite(product)"
+                class="absolute top-2 right-2 p-2 bg-white rounded-full shadow hover:bg-gray-100 transition-colors duration-200"
+              >
+                <svg 
+                  class="w-5 h-5" 
+                  :class="{ 'text-red-500 fill-current': isInFavorites(product.id), 'text-gray-400': !isInFavorites(product.id) }"
+                  xmlns="http://www.w3.org/2000/svg" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </button>
+            </div>
+            <div class="p-5 flex-grow flex flex-col">
+              <h3 class="text-lg font-medium text-gray-900 line-clamp-2 min-h-[3.5rem]">{{ product.name }}</h3>
+              <p class="mt-2 text-sm text-gray-500 line-clamp-2 flex-grow min-h-[2.5rem]">{{ product.short_description || product.description }}</p>
+              <div v-if="product.id === cartMessageProductId" class="mt-2 p-2 rounded text-sm" :class="cartSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                {{ cartMessage }}
+              </div>
+              <div class="mt-4 pt-3 border-t border-gray-100">
+                <span class="text-indigo-600 font-bold text-xl block mb-3">{{ formatPrice(product.price) }} zł</span>
+                <div class="grid grid-cols-2 gap-3">
+                  <button 
+                    @click="addToCart(product)"
+                    class="h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200"
+                    :disabled="cartStore.loading"
+                  >
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    Koszyk
+                  </button>
+                  <router-link :to="`/products/${product.id}`" class="h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors duration-200">
+                    Szczegóły
+                  </router-link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Pagination -->
+        <div v-if="productStore.pagination.totalPages > 1" class="mt-10 flex justify-center">
+          <nav class="flex items-center">
+            <button 
+              @click="goToPage(productStore.pagination.currentPage - 1)"
+              :disabled="productStore.pagination.currentPage === 1"
+              class="px-3 py-1 rounded-md mr-2 border border-gray-300 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              &laquo; Poprzednia
+            </button>
+            
+            <div v-for="page in paginationPages" :key="page" class="mx-1">
+              <button 
+                @click="goToPage(page)"
+                :class="[
+                  'px-3 py-1 rounded-md border',
+                  page === productStore.pagination.currentPage 
+                    ? 'bg-indigo-600 text-white border-indigo-600' 
+                    : 'bg-white text-gray-700 border-gray-300'
+                ]"
+              >
+                {{ page }}
+              </button>
+            </div>
+            
+            <button 
+              @click="goToPage(productStore.pagination.currentPage + 1)"
+              :disabled="productStore.pagination.currentPage === productStore.pagination.totalPages"
+              class="px-3 py-1 rounded-md ml-2 border border-gray-300 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Następna &raquo;
+            </button>
+          </nav>
         </div>
       </div>
     </div>
