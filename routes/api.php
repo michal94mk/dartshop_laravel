@@ -34,11 +34,11 @@ Route::get('/categories/{id}/products', [CategoryController::class, 'products'])
 
 // Cart API
 Route::middleware('api')->group(function () {
-    Route::get('/cart', [CartController::class, 'apiGetCart']);
-    Route::post('/cart/add', [CartController::class, 'apiAddToCart']);
-    Route::post('/cart/remove', [CartController::class, 'apiRemoveFromCart']);
-    Route::post('/cart/update', [CartController::class, 'apiUpdateCart']);
-    Route::post('/cart/clear', [CartController::class, 'apiClearCart']);
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::post('/cart/add', [CartController::class, 'add']);
+    Route::post('/cart/remove', [CartController::class, 'remove']);
+    Route::post('/cart/update', [CartController::class, 'update']);
+    Route::post('/cart/clear', [CartController::class, 'clear']);
 });
 
 // Auth API

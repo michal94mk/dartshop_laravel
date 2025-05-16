@@ -5,6 +5,7 @@ export const useCartStore = defineStore('cart', {
   state: () => ({
     items: [],
     loading: false,
+    loadingProductIds: [],
     error: null,
     subtotal: 0,
     discount: 0,
@@ -54,6 +55,7 @@ export const useCartStore = defineStore('cart', {
     
     async addToCart(productId, quantity = 1) {
       this.loading = true;
+      this.loadingProductIds.push(productId);
       this.error = null;
       
       try {
@@ -67,11 +69,13 @@ export const useCartStore = defineStore('cart', {
         return false;
       } finally {
         this.loading = false;
+        this.loadingProductIds = this.loadingProductIds.filter(id => id !== productId);
       }
     },
     
     async removeFromCart(productId) {
       this.loading = true;
+      this.loadingProductIds.push(productId);
       this.error = null;
       
       try {
@@ -85,11 +89,13 @@ export const useCartStore = defineStore('cart', {
         return false;
       } finally {
         this.loading = false;
+        this.loadingProductIds = this.loadingProductIds.filter(id => id !== productId);
       }
     },
     
     async updateCartItem(productId, quantity) {
       this.loading = true;
+      this.loadingProductIds.push(productId);
       this.error = null;
       
       try {
@@ -110,6 +116,7 @@ export const useCartStore = defineStore('cart', {
         return false;
       } finally {
         this.loading = false;
+        this.loadingProductIds = this.loadingProductIds.filter(id => id !== productId);
       }
     },
     
@@ -162,6 +169,10 @@ export const useCartStore = defineStore('cart', {
       this.discount = cartData.discount || 0;
       this.total = cartData.total || 0;
       this.appliedPromo = cartData.applied_promo || null;
+    },
+    
+    isLoading(productId) {
+      return this.loadingProductIds.includes(productId);
     }
   }
 }); 

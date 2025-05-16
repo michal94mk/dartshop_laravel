@@ -99,11 +99,8 @@
           
           <div class="mb-6">
             <h2 class="text-lg font-medium text-gray-900">Dostępność</h2>
-            <p v-if="product.in_stock" class="mt-1 text-green-600">
+            <p class="mt-1 text-green-600">
               <i class="fas fa-check-circle mr-1"></i> Produkt dostępny
-            </p>
-            <p v-else class="mt-1 text-red-600">
-              <i class="fas fa-times-circle mr-1"></i> Produkt niedostępny
             </p>
           </div>
           
@@ -123,16 +120,36 @@
               <div class="flex-1 flex items-end">
                 <button 
                   @click="addToCart"
-                  :disabled="!product.in_stock"
+                  :disabled="cartLoading"
                   class="w-full bg-indigo-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <i class="fas fa-shopping-cart mr-2"></i>
-                  Dodaj do koszyka
+                  <template v-if="cartLoading">
+                    <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Dodawanie...
+                  </template>
+                  <template v-else>
+                    <i class="fas fa-shopping-cart mr-2"></i>
+                    Dodaj do koszyka
+                  </template>
                 </button>
               </div>
             </div>
-                          <div v-if="cartMessage" class="mt-4 p-3 rounded" :class="cartSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700">
-              {{ cartMessage }}
+            <div v-if="cartMessage" class="mt-4 p-3 rounded" :class="cartSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+              <div v-if="cartSuccess" class="flex flex-col">
+                <span>{{ cartMessage }}</span>
+                <div class="mt-2 flex justify-between items-center">
+                  <router-link to="/cart" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                    Przejdź do koszyka
+                  </router-link>
+                  <span class="text-sm">Ilość: {{ quantity }}</span>
+                </div>
+              </div>
+              <div v-else>
+                {{ cartMessage }}
+              </div>
             </div>
           </div>
         </div>
@@ -167,7 +184,8 @@ export default {
       error: null,
       quantity: 1,
       cartMessage: '',
-      cartSuccess: false
+      cartSuccess: false,
+      cartLoading: false
     }
   },
   created() {
@@ -213,22 +231,20 @@ export default {
     },
     
     async addToCart() {
-      if (!this.product || !this.product.in_stock) {
-        this.cartMessage = 'Produkt jest niedostępny.';
-        this.cartSuccess = false;
-        return;
-      }
+      this.cartLoading = true;
+      this.cartMessage = '';
+      this.cartSuccess = false;
       
       try {
         const success = await this.cartStore.addToCart(this.product.id, this.quantity);
         if (success) {
-          this.cartMessage = 'Produkt został dodany do koszyka.';
+          this.cartMessage = `Produkt "${this.product.name}" został dodany do koszyka.`;
           this.cartSuccess = true;
           
-          // Reset the message after a few seconds
+          // Reset the message after a longer time since we have a cart link
           setTimeout(() => {
             this.cartMessage = '';
-          }, 3000);
+          }, 5000);
         } else {
           this.cartMessage = 'Nie udało się dodać produktu do koszyka.';
           this.cartSuccess = false;
@@ -237,6 +253,8 @@ export default {
         this.cartMessage = 'Wystąpił błąd podczas dodawania produktu do koszyka.';
         this.cartSuccess = false;
         console.error('Error adding product to cart:', error);
+      } finally {
+        this.cartLoading = false;
       }
     }
   }
