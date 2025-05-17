@@ -161,9 +161,21 @@ export default {
       }
     },
     logout() {
-      this.authStore.logout();
-      this.userMenuOpen = false;
-      this.router.push('/');
+      try {
+        console.log('Starting logout from SiteHeader...');
+        this.authStore.logout().then(() => {
+          this.userMenuOpen = false;
+          
+          // Użyj routera zamiast window.location
+          this.$router.push('/');
+        }).catch(error => {
+          console.error('Logout error in SiteHeader:', error);
+          alert('Wystąpił błąd podczas wylogowywania.');
+        });
+      } catch (error) {
+        console.error('Logout error in SiteHeader:', error);
+        alert('Wystąpił błąd podczas wylogowywania.');
+      }
     },
     navigateTo(path, event) {
       // Prevent default behavior

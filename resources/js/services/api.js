@@ -155,7 +155,17 @@ export default {
   },
   
   logout() {
-    return withLogging(api.post, 'logout')('/logout');
+    // Use the full API path to ensure we're hitting the API route
+    // Add a query parameter for debugging to ensure we're hitting the right endpoint
+    return axios.post('/api/logout', {}, {
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      withCredentials: true
+    });
   },
   
   getUser() {

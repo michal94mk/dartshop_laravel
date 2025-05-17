@@ -235,8 +235,16 @@ export default {
     
     // Logout function
     const logout = async () => {
-      await authStore.logout()
-      router.push('/')
+      try {
+        // Rozpocznij wylogowanie
+        await authStore.logout()
+        
+        // Użyj routera zamiast window.location
+        router.push('/');
+      } catch (error) {
+        console.error('Logout error:', error);
+        alert('Wystąpił błąd podczas wylogowywania.');
+      }
     }
     
     // Add event listener on mount

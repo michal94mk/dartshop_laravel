@@ -214,7 +214,9 @@ export const useAuthStore = defineStore('auth', {
       this.isLoading = true;
       
       try {
-        await axios.post('/api/logout');
+        console.log('Starting logout process...');
+
+        // Niezależnie od wyniku API, wyczyść dane lokalnie
         this.user = null;
         this.permissions = [];
         this.authInitialized = true; 
@@ -223,17 +225,45 @@ export const useAuthStore = defineStore('auth', {
         localStorage.removeItem('user');
         localStorage.removeItem('permissions');
         localStorage.removeItem('auth_time');
+        console.log('Local storage cleared');
         
         // Zresetuj stan koszyka po wylogowaniu
         const cartStore = useCartStore();
         cartStore.$reset();
+        console.log('Cart store reset');
+        
+        // Pobierz CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
+        // Wywołaj API wylogowania w tle, ale nie czekaj na odpowiedź
+        fetch('/api/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'same-origin'
+        }).catch(error => {
+          console.error('Logout API error (non-blocking):', error);
+        });
         
         return true;
       } catch (error) {
         console.error('Logout failed:', error);
+        
+        // Mimo błędu, wyczyść dane lokalnie
+        this.user = null;
+        this.permissions = [];
+        this.authInitialized = true;
+        localStorage.removeItem('user');
+        localStorage.removeItem('permissions');
+        localStorage.removeItem('auth_time');
+        
         this.hasError = true;
-        this.errorMessage = 'Wylogowanie nie powiodło się';
-        return false;
+        this.errorMessage = 'Wylogowanie nie powiodło się w API, ale dane zostały wyczyszczone lokalnie';
+        return true; // Zwróć true, aby przekierować użytkownika mimo błędu API
       } finally {
         this.isLoading = false;
       }
