@@ -33,13 +33,17 @@ const routes = [
     path: '/',
     name: 'home',
     component: Home,
+    meta: {
+      layout: 'default'
+    }
   },
   {
     path: '/products',
     name: 'products',
     component: ProductList,
     meta: { 
-      reloadAlways: true 
+      reloadAlways: true,
+      layout: 'default'
     }
   },
   {
@@ -47,42 +51,66 @@ const routes = [
     name: 'product-details',
     component: ProductDetails,
     props: true,
+    meta: {
+      layout: 'default'
+    }
   },
   {
     path: '/cart',
     name: 'cart',
     component: Cart,
+    meta: {
+      layout: 'default'
+    }
   },
   {
     path: '/checkout',
     name: 'checkout',
     component: Checkout,
+    meta: {
+      layout: 'default'
+    }
   },
   {
     path: '/about',
     name: 'about',
     component: About,
+    meta: {
+      layout: 'default'
+    }
   },
   {
     path: '/contact',
     name: 'contact',
     component: Contact,
+    meta: {
+      layout: 'default'
+    }
   },
   {
     path: '/promotions',
     name: 'promotions',
     component: Promotions,
+    meta: {
+      layout: 'default'
+    }
   },
   {
     path: '/tutorials',
     name: 'tutorials',
     component: Tutorials,
+    meta: {
+      layout: 'default'
+    }
   },
   {
     path: '/tutorials/:id',
     name: 'tutorial-details',
     component: TutorialDetails,
     props: true,
+    meta: {
+      layout: 'default'
+    }
   },
   // Auth routes
   {
@@ -90,7 +118,8 @@ const routes = [
     name: 'login',
     component: Login,
     meta: {
-      guest: true
+      guest: true,
+      layout: 'default'
     }
   },
   {
@@ -98,7 +127,8 @@ const routes = [
     name: 'register',
     component: Register,
     meta: {
-      guest: true
+      guest: true,
+      layout: 'default'
     }
   },
   {
@@ -106,7 +136,8 @@ const routes = [
     name: 'profile',
     component: Profile,
     meta: {
-      requiresAuth: true
+      requiresAuth: true,
+      layout: 'default'
     }
   },
   {
@@ -114,7 +145,8 @@ const routes = [
     name: 'forgot-password',
     component: ForgotPassword,
     meta: {
-      guest: true
+      guest: true,
+      layout: 'default'
     }
   },
   {
@@ -122,30 +154,43 @@ const routes = [
     name: 'reset-password',
     component: ResetPassword,
     meta: {
-      guest: true
+      guest: true,
+      layout: 'default'
     }
   },
   {
     path: '/email/verify',
     name: 'verify-email',
-    component: VerifyEmail
+    component: VerifyEmail,
+    meta: {
+      layout: 'default'
+    }
   },
   {
     path: '/email/verify/:id',
     name: 'verify-email-with-id',
     component: VerifyEmail,
-    props: true
+    props: true,
+    meta: {
+      layout: 'default'
+    }
   },
   // Admin routes
   {
     path: '/admin',
-    component: AdminLayout,
+    component: {
+      template: '<router-view></router-view>'
+    },
     meta: { 
       requiresAuth: true,
       requiresAdmin: true,
       layout: 'admin'
     },
     children: [
+      {
+        path: '',
+        redirect: { name: 'admin-dashboard' }
+      },
       {
         path: 'dashboard',
         name: 'admin-dashboard',
@@ -170,17 +215,17 @@ const routes = [
         path: 'orders',
         name: 'admin-orders',
         component: AdminOrders
-      },
-      {
-        path: '', // Empty path redirects to dashboard
-        redirect: { name: 'admin-dashboard' }
       }
     ]
   },
+  // 404 strona - zawsze jako ostatnia
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     component: NotFound,
+    meta: {
+      layout: 'default'
+    }
   },
 ];
 

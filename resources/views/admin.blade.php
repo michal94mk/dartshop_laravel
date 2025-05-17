@@ -11,11 +11,11 @@
             csrfToken: "{{ csrf_token() }}",
             baseUrl: "{{ url('/') }}",
             apiUrl: "{{ url('/api') }}",
-            isAdmin: false
+            isAdmin: true
         };
     </script>
 
-    <title>{{ config('app.name', 'DartShop') }}</title>
+    <title>Admin Panel | {{ config('app.name', 'DartShop') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,16 +25,16 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="font-sans antialiased bg-gray-50 text-gray-800">
+<body class="font-sans antialiased bg-gray-100 text-gray-800">
     <div id="app">
         <!-- Fallback content if Vue.js doesn't load -->
-        <div class="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+        <div class="min-h-screen flex items-center justify-center bg-gray-100 p-6">
             <div class="max-w-md w-full bg-white shadow-md rounded-lg p-6">
                 <div class="text-center">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Ładowanie aplikacji...</h2>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Ładowanie panelu administracyjnego...</h2>
                     <p class="text-gray-600">Jeśli ta strona nie znika, mogą występować problemy z JavaScript. Sprawdź konsolę przeglądarki.</p>
                     <div class="mt-4">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-700 mx-auto"></div>
                     </div>
                 </div>
             </div>

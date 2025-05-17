@@ -2,28 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Additional custom styles */
-@layer components {
-    /* Custom aspect ratios for product images */
-    .aspect-square {
-        aspect-ratio: 1 / 1;
-    }
-    
-    /* Transitions */
-    .transition-shadow {
-        transition-property: box-shadow;
-        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-        transition-duration: 300ms;
-    }
-    
-    /* Form focus rings */
-    .focus-ring {
-        @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500;
-    }
+/* Podstawowe klasy układu */
+@layer base {
+  html, body {
+    @apply h-full;
+  }
+  
+  body {
+    @apply antialiased text-gray-800 bg-gray-50 flex flex-col;
+  }
+  
+  #app {
+    @apply flex flex-col flex-grow;
+  }
 }
 
-/* Display tooltip on hover */
-[data-tooltip]:hover:after {
+/* Komponenty UI */
+@layer components {
+  /* Custom aspect ratios for product images */
+  .aspect-square {
+    aspect-ratio: 1 / 1;
+  }
+  
+  /* Form focus rings */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500;
+  }
+  
+  /* Layout helpers */
+  .page-container {
+    @apply flex flex-col flex-grow;
+  }
+  
+  .content-section {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col;
+  }
+  
+  /* Alert styles */
+  .alert {
+    @apply mb-6 p-4 rounded-md shadow-sm relative;
+  }
+  
+  .alert-success {
+    @apply bg-green-100 border-l-4 border-green-500 text-green-700;
+  }
+  
+  .alert-error {
+    @apply bg-red-100 border-l-4 border-red-500 text-red-700;
+  }
+  
+  /* Transitions */
+  .transition-shadow {
+    transition-property: box-shadow;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+  }
+}
+
+/* Utilities */
+@layer utilities {
+  /* Tooltip */
+  [data-tooltip]:hover:after {
     content: attr(data-tooltip);
     position: absolute;
     bottom: 100%;
@@ -36,4 +75,41 @@
     font-size: 0.75rem;
     white-space: nowrap;
     z-index: 10;
+  }
+}
+
+/* Global layout fixes */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 100vh;
+}
+
+.flex-col > * {
+    width: 100%;
+}
+
+/* Ensure sections stack vertically */
+.min-h-screen {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Force sections to take up full width */
+main, header, footer, nav {
+    width: 100%;
+    display: block;
+}
+
+/* Make sure router views take up full width */
+.router-view {
+    width: 100%;
+    max-width: 100%;
 }

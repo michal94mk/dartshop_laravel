@@ -11,7 +11,14 @@
         
         <!-- Navigation Links -->
         <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                    <router-link             to="/"             class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"            :class="[$route.path === '/' ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']"            @click.prevent="navigateTo('/', $event)"          >            Home          </router-link>
+          <router-link 
+            to="/" 
+            class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            :class="[$route.path === '/' ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']"
+            @click.prevent="navigateTo('/', $event)"
+          >
+            Home
+          </router-link>
           <router-link 
             to="/products" 
             class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
@@ -20,15 +27,53 @@
           >
             Produkty
           </router-link>
-                    <router-link             to="/promotions"             class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"            :class="[$route.path === '/promotions' ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']"            @click.prevent="navigateTo('/promotions', $event)"          >            Promocje          </router-link>
-                    <router-link             to="/about"             class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"            :class="[$route.path === '/about' ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']"            @click.prevent="navigateTo('/about', $event)"          >            O nas          </router-link>
-                    <router-link             to="/tutorials"             class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"            :class="[$route.path.includes('/tutorials') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']"            @click.prevent="navigateTo('/tutorials', $event)"          >            Poradniki          </router-link>
-                    <router-link             to="/contact"             class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"            :class="[$route.path === '/contact' ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']"            @click.prevent="navigateTo('/contact', $event)"          >            Kontakt          </router-link>
+          <router-link 
+            to="/promotions" 
+            class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            :class="[$route.path === '/promotions' ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']"
+            @click.prevent="navigateTo('/promotions', $event)"
+          >
+            Promocje
+          </router-link>
+          <router-link 
+            to="/about" 
+            class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            :class="[$route.path === '/about' ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']"
+            @click.prevent="navigateTo('/about', $event)"
+          >
+            O nas
+          </router-link>
+          <router-link 
+            to="/tutorials" 
+            class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            :class="[$route.path.includes('/tutorials') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']"
+            @click.prevent="navigateTo('/tutorials', $event)"
+          >
+            Poradniki
+          </router-link>
+          <router-link 
+            to="/contact" 
+            class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            :class="[$route.path === '/contact' ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']"
+            @click.prevent="navigateTo('/contact', $event)"
+          >
+            Kontakt
+          </router-link>
         </div>
 
         <!-- Right side buttons -->
         <div class="flex items-center">
-                    <!-- Cart -->          <router-link to="/cart" class="ml-4 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 flex items-center" @click.prevent="navigateTo('/cart', $event)">            <i class="fas fa-shopping-cart mr-1"></i>            <span class="bg-indigo-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">              {{ cartItemsCount }}            </span>          </router-link>
+          <!-- Cart -->
+          <router-link 
+            to="/cart" 
+            class="ml-4 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 flex items-center" 
+            @click.prevent="navigateTo('/cart', $event)"
+          >
+            <i class="fas fa-shopping-cart mr-1"></i>
+            <span class="bg-indigo-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+              {{ cartItemsCount }}
+            </span>
+          </router-link>
           
           <!-- User menu -->
           <div v-if="isLoggedIn" class="ml-3 relative">
@@ -69,9 +114,54 @@
     <!-- Mobile menu -->
     <div v-show="mobileMenuOpen" class="sm:hidden z-40" id="mobile-menu">
       <div class="pt-2 pb-3 space-y-1">
-                <router-link           to="/"           class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"          :class="[$route.path === '/' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']"          @click.prevent="navigateTo('/', $event)"        >          Home        </router-link>
-                <router-link           to="/products"           class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"          :class="[$route.path.includes('/categories') || $route.path.includes('/products') ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']"          @click.prevent="navigateTo('/products', $event)"        >          Produkty        </router-link>
-                <router-link           to="/promotions"           class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"          :class="[$route.path === '/promotions' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']"          @click.prevent="navigateTo('/promotions', $event)"        >          Promocje        </router-link>        <router-link           to="/about"           class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"          :class="[$route.path === '/about' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']"          @click.prevent="navigateTo('/about', $event)"        >          O nas        </router-link>        <router-link           to="/tutorials"           class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"          :class="[$route.path.includes('/tutorials') ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']"          @click.prevent="navigateTo('/tutorials', $event)"        >          Poradniki        </router-link>        <router-link           to="/contact"           class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"          :class="[$route.path === '/contact' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']"          @click.prevent="navigateTo('/contact', $event)"        >          Kontakt        </router-link>
+        <router-link
+          to="/"
+          class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+          :class="[$route.path === '/' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']"
+          @click.prevent="navigateTo('/', $event)"
+        >
+          Home
+        </router-link>
+        <router-link
+          to="/products"
+          class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+          :class="[$route.path.includes('/categories') || $route.path.includes('/products') ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']"
+          @click.prevent="navigateTo('/products', $event)"
+        >
+          Produkty
+        </router-link>
+        <router-link
+          to="/promotions"
+          class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+          :class="[$route.path === '/promotions' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']"
+          @click.prevent="navigateTo('/promotions', $event)"
+        >
+          Promocje
+        </router-link>
+        <router-link
+          to="/about"
+          class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+          :class="[$route.path === '/about' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']"
+          @click.prevent="navigateTo('/about', $event)"
+        >
+          O nas
+        </router-link>
+        <router-link
+          to="/tutorials"
+          class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+          :class="[$route.path.includes('/tutorials') ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']"
+          @click.prevent="navigateTo('/tutorials', $event)"
+        >
+          Poradniki
+        </router-link>
+        <router-link
+          to="/contact"
+          class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+          :class="[$route.path === '/contact' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']"
+          @click.prevent="navigateTo('/contact', $event)"
+        >
+          Kontakt
+        </router-link>
       </div>
       <div class="pt-4 pb-3 border-t border-gray-200">
         <div v-if="isLoggedIn">

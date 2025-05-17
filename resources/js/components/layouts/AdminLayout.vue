@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-100">
+  <div class="flex flex-col min-h-screen bg-gray-100">
     <!-- Alerts Container -->
     <alerts-container />
     
@@ -149,9 +149,9 @@
     </nav>
 
     <!-- Page Content -->
-    <main>
+    <main class="flex-grow">
       <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col">
           <div v-if="successMessage" class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
             <strong class="font-bold">Sukces!</strong>
             <span class="block sm:inline">{{ successMessage }}</span>
@@ -174,11 +174,23 @@
             </button>
           </div>
 
-          <router-view v-slot="{ Component }">
-            <transition name="fade" mode="out-in">
-              <component :is="Component" :key="$route.fullPath" />
-            </transition>
-          </router-view>
+          <!-- Router-view w kontenerze z przejściami -->
+          <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+            <router-view v-slot="{ Component }">
+              <transition 
+                name="fade" 
+                mode="out-in"
+                enter-active-class="transition ease-out duration-200"
+                enter-from-class="opacity-0 transform scale-95"
+                enter-to-class="opacity-100 transform scale-100"
+                leave-active-class="transition ease-in duration-150"
+                leave-from-class="opacity-100 transform scale-100"
+                leave-to-class="opacity-0 transform scale-95"
+              >
+                <component :is="Component" :key="$route.fullPath" />
+              </transition>
+            </router-view>
+          </div>
         </div>
       </div>
     </main>
@@ -201,6 +213,30 @@ export default {
     const authStore = useAuthStore()
     const alertStore = useAlertStore()
     const router = useRouter()
+    
+    // Sprawdź, czy używamy admin view na podstawie window.Laravel
+    const isAdminView = computed(() => {
+      return window.Laravel && window.Laravel.isAdmin === true;
+    });
+
+    // Sprawdź, czy użytkownik jest zalogowany i czy jest administratorem
+    const isAdmin = computed(() => {
+      return authStore.isAdmin;
+    });
+
+    // Jeśli nie jesteśmy w widoku admina lub użytkownik nie jest adminem, przekieruj
+    onMounted(() => {
+      console.log('AdminLayout mounted, isAdminView:', isAdminView.value, 'isAdmin:', isAdmin.value);
+      
+      // Trochę czasu na zainicjalizowanie Auth Store
+      setTimeout(() => {
+        if (!isAdmin.value) {
+          console.warn('Non-admin user tries to access admin layout, redirecting to home');
+          alertStore.error('Nie masz dostępu do panelu administracyjnego.');
+          router.push('/');
+        }
+      }, 100);
+    });
     
     // Menu state
     const userMenuOpen = ref(false)
@@ -228,46 +264,37 @@ export default {
     
     // Click outside handler to close dropdown
     const closeDropdowns = (event) => {
-      if (userMenuOpen.value && !event.target.closest('button')) {
+      if (userMenuOpen.value && !event.target.closest('button') && !event.target.closest('[role="menuitem"]')) {
         userMenuOpen.value = false
       }
     }
     
-    // Logout function
-    const logout = async () => {
-      try {
-        // Rozpocznij wylogowanie
-        await authStore.logout()
-        
-        // Użyj routera zamiast window.location
-        router.push('/');
-      } catch (error) {
-        console.error('Logout error:', error);
-        alert('Wystąpił błąd podczas wylogowywania.');
-      }
-    }
-    
-    // Add event listener on mount
     onMounted(() => {
       document.addEventListener('click', closeDropdowns)
-      
-      // Check if user is admin
-      if (!authStore.isAdmin) {
-        router.push('/')
-      }
     })
     
-    // Remove event listener before unmount
     onBeforeUnmount(() => {
       document.removeEventListener('click', closeDropdowns)
     })
     
+    // Logout function
+    const logout = async () => {
+      try {
+        await authStore.logout()
+        router.push('/')
+      } catch (error) {
+        console.error('Logout error:', error)
+        alertStore.error('Wystąpił błąd podczas wylogowywania.')
+      }
+    }
+    
     return {
-      userMenuOpen,
-      mobileMenuOpen,
+      isAdmin,
       userName,
       userEmail,
       userInitial,
+      userMenuOpen,
+      mobileMenuOpen,
       successMessage,
       errorMessage,
       toggleUserMenu,
@@ -282,7 +309,7 @@ export default {
 <style scoped>
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.15s ease;
+  transition: opacity 0.2s ease;
 }
 
 .fade-enter-from,

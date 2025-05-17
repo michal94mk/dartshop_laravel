@@ -12,13 +12,10 @@ class SPAController extends Controller
      */
     public function index(Request $request)
     {
-        Log::info('SPA route accessed', [
-            'path' => $request->path(),
-            'method' => $request->method(),
-            'user_agent' => $request->header('User-Agent'),
-            'referrer' => $request->header('Referer'),
-            'query' => $request->query(),
-        ]);
+        // Sprawdź, czy jesteśmy w sekcji administracyjnej
+        if (str_starts_with($request->path(), 'admin')) {
+            return view('admin');
+        }
         
         return view('app');
     }
