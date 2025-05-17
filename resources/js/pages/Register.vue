@@ -114,7 +114,7 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 
@@ -129,8 +129,18 @@ export default {
     const router = useRouter();
     const authStore = useAuthStore();
     
+    // Clear error messages when component is mounted
+    onMounted(() => {
+      authStore.hasError = false;
+      authStore.errorMessage = '';
+    });
+    
     const handleRegister = async () => {
       try {
+        // Clear any previous errors
+        authStore.hasError = false;
+        authStore.errorMessage = '';
+        
         const success = await authStore.register(
           name.value,
           email.value,

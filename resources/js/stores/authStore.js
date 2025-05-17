@@ -111,11 +111,21 @@ export const useAuthStore = defineStore('auth', {
         }
         
         this.authInitialized = true;
+        this.hasError = false;
+        this.errorMessage = '';
         return this.user;
       } catch (error) {
         console.error('Failed to initialize auth state:', error);
-        this.hasError = true;
-        this.errorMessage = 'Nie udało się pobrać danych użytkownika';
+        
+        // Ustaw błąd tylko jeśli nie jest to 401 Unauthorized (użytkownik nie zalogowany)
+        if (error.response && error.response.status !== 401) {
+          this.hasError = true;
+          this.errorMessage = 'Nie udało się pobrać danych użytkownika';
+        } else {
+          // Jeśli użytkownik nie jest zalogowany (401), to nie ustawiaj błędu
+          this.hasError = false;
+          this.errorMessage = '';
+        }
         
         // Nawet w przypadku błędu oznacz, że próbowano zainicjalizować stan
         this.authInitialized = true;
@@ -128,6 +138,7 @@ export const useAuthStore = defineStore('auth', {
     // Logowanie użytkownika
     async login(email, password) {
       this.isLoading = true;
+      // Reset error state before attempting login
       this.hasError = false;
       this.errorMessage = '';
       
@@ -155,6 +166,11 @@ export const useAuthStore = defineStore('auth', {
         const cartStore = useCartStore();
         await cartStore.syncCartAfterLogin();
         
+        // Ustaw auth init na true i wyczyść status błędu
+        this.authInitialized = true;
+        this.hasError = false;
+        this.errorMessage = '';
+        
         return true;
       } catch (error) {
         console.error('Login failed:', error);
@@ -169,6 +185,7 @@ export const useAuthStore = defineStore('auth', {
     // Rejestracja użytkownika
     async register(name, email, password, passwordConfirmation) {
       this.isLoading = true;
+      // Reset error state before attempting registration
       this.hasError = false;
       this.errorMessage = '';
       
@@ -197,6 +214,11 @@ export const useAuthStore = defineStore('auth', {
         // Synchronizacja koszyka po rejestracji i automatycznym zalogowaniu
         const cartStore = useCartStore();
         await cartStore.syncCartAfterLogin();
+        
+        // Ustaw auth init na true i wyczyść status błędu
+        this.authInitialized = true;
+        this.hasError = false;
+        this.errorMessage = '';
         
         return true;
       } catch (error) {
