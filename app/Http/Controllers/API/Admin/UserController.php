@@ -19,31 +19,43 @@ class UserController extends BaseAdminController
     public function index(Request $request)
     {
         try {
+            // Log request and auth info
+            \Illuminate\Support\Facades\Log::info('UserController@index called', [
+                'user_id' => \Illuminate\Support\Facades\Auth::id(),
+                'request' => $request->all()
+            ]);
+            
             $query = User::query();
             
+            // Log initial query count
+            \Illuminate\Support\Facades\Log::info('Initial query count: ' . $query->count());
+            
             // Apply filters
-            if ($request->has('search')) {
+            if ($request->has('search') && !empty($request->search)) {
                 $search = $request->search;
                 $query->where(function($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                       ->orWhere('email', 'like', "%{$search}%");
                 });
+                \Illuminate\Support\Facades\Log::info('After search filter count: ' . $query->count());
             }
             
-            if ($request->has('role')) {
+            if ($request->has('role') && !empty($request->role)) {
                 if ($request->role === 'admin') {
                     $query->where('is_admin', true);
                 } else if ($request->role === 'user') {
                     $query->where('is_admin', false);
                 }
+                \Illuminate\Support\Facades\Log::info('After role filter count: ' . $query->count());
             }
             
-            if ($request->has('verified')) {
+            if ($request->has('verified') && $request->verified !== null) {
                 if ($request->verified == 1) {
                     $query->whereNotNull('email_verified_at');
                 } else if ($request->verified == 0) {
                     $query->whereNull('email_verified_at');
                 }
+                \Illuminate\Support\Facades\Log::info('After verified filter count: ' . $query->count());
             }
             
             // Apply sorting
@@ -51,12 +63,25 @@ class UserController extends BaseAdminController
             $sortDirection = $request->sort_direction ?? 'desc';
             $query->orderBy($sortField, $sortDirection);
             
+            // Get SQL for debugging
+            \Illuminate\Support\Facades\Log::info('Final SQL', [
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings()
+            ]);
+            
             // Paginate results
             $perPage = $this->getPerPage($request);
             $users = $query->paginate($perPage);
             
+            \Illuminate\Support\Facades\Log::info('Final results', [
+                'total' => $users->total(),
+                'per_page' => $users->perPage(),
+                'current_page' => $users->currentPage()
+            ]);
+            
             return response()->json($users);
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error in UserController@index: ' . $e->getMessage());
             return $this->errorResponse('Error fetching users: ' . $e->getMessage(), 500);
         }
     }
