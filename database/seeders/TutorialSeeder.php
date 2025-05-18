@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Tutorial;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 
@@ -15,6 +16,14 @@ class TutorialSeeder extends Seeder
     {
         // Usuwamy wszystkie istniejące poradniki przed dodaniem nowych
         Tutorial::truncate();
+        
+        // Get admin users to assign as authors
+        $adminUsers = User::where('is_admin', true)->get();
+        
+        if ($adminUsers->isEmpty()) {
+            $this->command->error('No admin users found. Run UserSeeder first.');
+            return;
+        }
 
         $tutorials = [
             [
@@ -391,9 +400,14 @@ class TutorialSeeder extends Seeder
                 'excerpt' => 'Gra 501 na poziomie profesjonalnym wymaga nie tylko precyzji, ale także doskonałego zrozumienia strategii. Ten poradnik omawia zaawansowane koncepcje, które mogą podnieść Twoją grę na najwyższy poziom.',
             ]
         ];
-
-        foreach ($tutorials as $tutorial) {
-            Tutorial::create($tutorial);
+        
+        foreach ($tutorials as $tutorialData) {
+            // Assign a random admin user as the author
+            $tutorialData['user_id'] = $adminUsers->random()->id;
+            
+            Tutorial::create($tutorialData);
         }
+        
+        $this->command->info('Tutorials created successfully!');
     }
 }

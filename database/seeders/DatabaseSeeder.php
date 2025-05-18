@@ -17,13 +17,18 @@ class DatabaseSeeder extends Seeder
         // Always run the roles and permissions seeder first
         $this->call(RolesAndPermissionsSeeder::class);
 
-        // Then seed other data
+        // Then seed other data in order of dependencies
         $this->call([
             CategorySeeder::class,
             BrandSeeder::class,
             ProductSeeder::class,
             UserSeeder::class,
+            ShippingAddressSeeder::class,
+            ContactMessageSeeder::class,
             AboutPageSeeder::class,
+            PromotionSeeder::class,
+            ReviewsTableSeeder::class,
+            OrderSeeder::class,
             TutorialSeeder::class,
         ]);
     }

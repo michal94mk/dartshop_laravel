@@ -69,23 +69,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Tabela tutoriali
-        Schema::create('tutorials', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->string('slug')->unique();
-            $table->text('content');
-            $table->text('short_description');
-            $table->string('image')->nullable();
-            $table->unsignedBigInteger('product_id')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->unsignedBigInteger('author_id');
-            $table->integer('views')->default(0);
-            $table->timestamps();
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('set null');
-            $table->foreign('author_id')->references('id')->on('users')->onDelete('cascade');
-        });
-
         // Tabela stron informacyjnych
         Schema::create('about_pages', function (Blueprint $table) {
             $table->id();
@@ -137,7 +120,6 @@ return new class extends Migration
         Schema::dropIfExists('failed_jobs');
         Schema::dropIfExists('password_resets');
         Schema::dropIfExists('about_pages');
-        Schema::dropIfExists('tutorials');
         Schema::dropIfExists('promotions');
         Schema::dropIfExists('contact_messages');
         Schema::dropIfExists('shipping_addresses');

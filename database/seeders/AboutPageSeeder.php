@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\AboutPage;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class AboutPageSeeder extends Seeder
 {
@@ -28,9 +29,7 @@ class AboutPageSeeder extends Seeder
                     <li>Części zamienne</li>
                     <li>Gadżety związane z darts</li>
                 </ul>',
-                'meta_title' => 'O nas | DartShop - Sklep z wyposażeniem do gry w rzutki',
-                'meta_description' => 'Poznaj historię i misję sklepu DartShop - twojego kompletnego źródła wyposażenia do gry w rzutki. Szeroki wybór lotek, tarcz i akcesoriów.',
-                'display_order' => 1,
+                'order' => 1,
                 'is_active' => true,
             ],
             [
@@ -45,9 +44,7 @@ class AboutPageSeeder extends Seeder
                     <li>Wspieranie polskich zawodników i wydarzeń związanych z rzutkami</li>
                 </ul>
                 <p>Codziennie pracujemy nad tym, aby zapewnić naszym klientom nie tylko najlepszy sprzęt, ale również wiedzę i inspirację do doskonalenia swoich umiejętności.</p>',
-                'meta_title' => 'Nasza misja | DartShop - Pasja do rzutków',
-                'meta_description' => 'Poznaj misję DartShop - popularyzacja darta, edukacja i dostarczanie najlepszego sprzętu do gry w rzutki. Wspieramy rozwój społeczności darta w Polsce.',
-                'display_order' => 2,
+                'order' => 2,
                 'is_active' => true,
             ],
             [
@@ -71,9 +68,7 @@ class AboutPageSeeder extends Seeder
                 </div>
                 
                 <p>Nasz zespół jest do Twojej dyspozycji. Zawsze chętnie doradzimy i pomożemy w wyborze odpowiedniego sprzętu.</p>',
-                'meta_title' => 'Zespół DartShop | Poznaj nas bliżej',
-                'meta_description' => 'Poznaj zespół DartShop - grupę pasjonatów i ekspertów gry w rzutki, którzy stoją za naszym sklepem. Profesjonalne doradztwo i obsługa.',
-                'display_order' => 3,
+                'order' => 3,
                 'is_active' => true,
             ],
             [
@@ -91,9 +86,7 @@ class AboutPageSeeder extends Seeder
                 <p>Dziś DartShop to jeden z wiodących sklepów z wyposażeniem do gry w rzutki w Polsce. Nadal kierujemy się tymi samymi wartościami co na początku: pasją, jakością i autentycznością. Cieszymy się, że możemy być częścią rosnącej społeczności darterów w Polsce i przyczynić się do popularyzacji tego sportu.</p>
                 
                 <p>Dziękujemy, że jesteś z nami!</p>',
-                'meta_title' => 'Historia DartShop | Od pasji do profesjonalnego sklepu',
-                'meta_description' => 'Poznaj historię DartShop - od małego projektu pasjonatów do wiodącego sklepu z wyposażeniem do gry w rzutki w Polsce.',
-                'display_order' => 4,
+                'order' => 4,
                 'is_active' => true,
             ],
             [
@@ -129,14 +122,14 @@ class AboutPageSeeder extends Seeder
                 </div>
                 
                 <p>Dołącz do tysięcy zadowolonych klientów, którzy zaufali DartShop!</p>',
-                'meta_title' => 'Dlaczego DartShop | Twój zaufany sklep z akcesoriami do rzutków',
-                'meta_description' => 'Sprawdź, dlaczego warto wybrać DartShop - wiedza, wyselekcjonowany asortyment, profesjonalne doradztwo i społeczność pasjonatów rzutków.',
-                'display_order' => 5,
+                'order' => 5,
                 'is_active' => true,
             ],
         ];
 
         foreach ($aboutPages as $page) {
+            // Generate slug from title
+            $page['slug'] = Str::slug($page['title']);
             AboutPage::create($page);
         }
     }
