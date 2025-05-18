@@ -10,6 +10,17 @@ use Illuminate\Support\Str;
 class CategoryController extends BaseAdminController
 {
     /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        \Illuminate\Support\Facades\Log::info('Admin CategoryController initialized');
+    }
+
+    /**
      * Display a listing of the categories.
      *
      * @return \Illuminate\Http\JsonResponse
@@ -17,9 +28,32 @@ class CategoryController extends BaseAdminController
     public function index()
     {
         try {
+            \Illuminate\Support\Facades\Log::info('Admin CategoryController@index called');
+            \Illuminate\Support\Facades\Log::info('Request URI: ' . request()->getRequestUri());
+            \Illuminate\Support\Facades\Log::info('Request method: ' . request()->method());
+            \Illuminate\Support\Facades\Log::info('Request headers: ' . json_encode(request()->headers->all()));
+            
+            // Check authentication
+            \Illuminate\Support\Facades\Log::info('Auth check: ' . (\Illuminate\Support\Facades\Auth::check() ? 'true' : 'false'));
+            if (\Illuminate\Support\Facades\Auth::check()) {
+                $user = \Illuminate\Support\Facades\Auth::user();
+                \Illuminate\Support\Facades\Log::info('Auth user: ' . $user->email);
+                \Illuminate\Support\Facades\Log::info('User roles: ' . json_encode($user->roles));
+            } else {
+                \Illuminate\Support\Facades\Log::info('User not authenticated');
+            }
+            
+            \Illuminate\Support\Facades\Log::info('Session data: ' . json_encode(session()->all()));
+            
             $categories = Category::withCount('products')->get();
+            
+            \Illuminate\Support\Facades\Log::info('Admin CategoryController@index success. Categories count: ' . $categories->count());
+            
             return response()->json($categories);
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('CategoryController@index error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             return $this->errorResponse('Error fetching categories: ' . $e->getMessage(), 500);
         }
     }

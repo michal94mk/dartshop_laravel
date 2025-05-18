@@ -9,10 +9,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ProductController extends BaseAdminController
 {
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        \Illuminate\Support\Facades\Log::info('Admin ProductController initialized');
+    }
+
     /**
      * Display a listing of the products.
      *
@@ -22,44 +34,24 @@ class ProductController extends BaseAdminController
     public function index(Request $request)
     {
         try {
+            \Illuminate\Support\Facades\Log::info('Admin ProductController@index called with filters:', $request->all());
+            \Illuminate\Support\Facades\Log::info('Request URI: ' . $request->getRequestUri());
+            \Illuminate\Support\Facades\Log::info('Request method: ' . $request->method());
+            
+            // Simplified product query for testing
             $query = Product::with(['category', 'brand']);
-            
-            // Apply filters
-            if ($request->has('search')) {
-                $search = $request->search;
-                $query->where(function($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('description', 'like', "%{$search}%");
-                });
-            }
-            
-            if ($request->has('category_id')) {
-                $query->where('category_id', $request->category_id);
-            }
-            
-            if ($request->has('brand_id')) {
-                $query->where('brand_id', $request->brand_id);
-            }
-            
-            if ($request->has('min_price')) {
-                $query->where('price', '>=', $request->min_price);
-            }
-            
-            if ($request->has('max_price')) {
-                $query->where('price', '<=', $request->max_price);
-            }
-            
-            // Apply sorting
-            $sortField = $request->sort_field ?? 'created_at';
-            $sortDirection = $request->sort_direction ?? 'desc';
-            $query->orderBy($sortField, $sortDirection);
             
             // Paginate results
             $perPage = $this->getPerPage($request);
             $products = $query->paginate($perPage);
             
+            \Illuminate\Support\Facades\Log::info('Admin ProductController@index success. Product count: ' . $products->count());
+            
             return response()->json($products);
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Admin ProductController@index error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             return $this->errorResponse('Error fetching products: ' . $e->getMessage(), 500);
         }
     }
@@ -80,8 +72,6 @@ class ProductController extends BaseAdminController
             'brand_id' => 'required|exists:brands,id',
             'image' => 'nullable|image|max:2048', // 2MB max
             'weight' => 'nullable|numeric|min:0',
-            'stock' => 'nullable|integer|min:0',
-            'featured' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -156,8 +146,6 @@ class ProductController extends BaseAdminController
             'brand_id' => 'sometimes|required|exists:brands,id',
             'image' => 'nullable|image|max:2048', // 2MB max
             'weight' => 'nullable|numeric|min:0',
-            'stock' => 'nullable|integer|min:0',
-            'featured' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -240,14 +228,21 @@ class ProductController extends BaseAdminController
     public function getFormData()
     {
         try {
-            $categories = Category::select('id', 'name')->orderBy('name')->get();
-            $brands = Brand::select('id', 'name')->orderBy('name')->get();
+            \Illuminate\Support\Facades\Log::info('ProductController@getFormData called');
+            
+            $categories = Category::all();
+            $brands = Brand::all();
+            
+            \Illuminate\Support\Facades\Log::info('ProductController@getFormData success. Categories: ' . $categories->count() . ', Brands: ' . $brands->count());
             
             return response()->json([
                 'categories' => $categories,
                 'brands' => $brands
             ]);
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('ProductController@getFormData error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             return $this->errorResponse('Error fetching form data: ' . $e->getMessage(), 500);
         }
     }

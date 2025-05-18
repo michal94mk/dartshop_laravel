@@ -9,11 +9,12 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'description', 'price', 'weight', 'category_id', 'brand_id', 'image'];
+    protected $fillable = ['name', 'description', 'price', 'weight', 'category_id', 'brand_id', 'image', 'stock', 'featured'];
 
     protected $casts = [
         'price' => 'decimal:2',
         'weight' => 'decimal:2',
+        'featured' => 'boolean',
     ];
     
     protected $appends = ['image_url'];
@@ -40,28 +41,28 @@ class Product extends Model
 
     public function getImageUrlAttribute()
     {
-        // Sprawdź, czy produkt ma już pole image_url (np. z mock danych)
+        // Check if the product already has an image_url attribute (e.g., from mock data)
         if (isset($this->attributes['image_url'])) {
             return $this->attributes['image_url'];
         }
         
-        // Sprawdź, czy produkt ma pole image
+        // Check if the product has an image field
         if (!empty($this->image)) {
-            // Sprawdź, czy to pełny URL
+            // Check if it's a full URL
             if (filter_var($this->image, FILTER_VALIDATE_URL)) {
                 return $this->image;
             }
             
-            // Sprawdź, czy to ścieżka bezwzględna do pliku publicznego
+            // Check if it's an absolute path to a public file
             if (strpos($this->image, '/') === 0) {
                 return $this->image;
             }
             
-            // W przeciwnym razie traktuj jako relatywny path w storage
+            // Otherwise, treat it as a relative path in storage
             return asset('storage/' . $this->image);
         }
         
-        // Domyślny obrazek, gdy brak zdjęcia
+        // Default image when no image is provided
         return asset('images/default-product.jpg');
-    }
+    }    
 }

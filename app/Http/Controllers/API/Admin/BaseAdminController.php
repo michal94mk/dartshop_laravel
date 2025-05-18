@@ -15,18 +15,27 @@ class BaseAdminController extends Controller
      */
     public function __construct()
     {
-        $this->middleware(['auth:sanctum', 'role:admin']);
+        // Middleware już zdefiniowane w routach
     }
     
     /**
-     * Get the default pagination size
-     * 
-     * @param Request $request
+     * Get the per page count from the request.
+     *
+     * @param  \Illuminate\Http\Request  $request
      * @return int
      */
-    protected function getPerPage(Request $request): int
+    protected function getPerPage(Request $request)
     {
-        return $request->per_page ?? 15;
+        $perPage = (int) $request->get('per_page', 10);
+        
+        // Limit per page to between 5 and 100
+        if ($perPage < 5) {
+            $perPage = 5;
+        } elseif ($perPage > 100) {
+            $perPage = 100;
+        }
+        
+        return $perPage;
     }
     
     /**
@@ -61,21 +70,39 @@ class BaseAdminController extends Controller
     }
     
     /**
-     * Log and return an error response
-     * 
-     * @param string $message
-     * @param int $code
-     * @param array $data
+     * Return error response.
+     *
+     * @param  string  $message
+     * @param  int  $statusCode
+     * @param  array  $errors
      * @return \Illuminate\Http\JsonResponse
      */
-    protected function errorResponse($message, $code = 400, $data = [])
+    protected function errorResponse($message, $statusCode = 500, $errors = [])
     {
-        Log::error('Admin API Error: ' . $message, $data);
+        // Log error for debugging
+        \Log::error('Admin API Error: ' . $message);
         
-        return response()->json([
+        $response = [
             'success' => false,
             'message' => $message,
-            'errors' => $data,
-        ], $code);
+        ];
+        
+        if (!empty($errors)) {
+            $response['errors'] = $errors;
+        }
+        
+        if ($statusCode === 500) {
+            // In development, show more details about the error
+            if (config('app.debug')) {
+                $e = new \Exception($message);
+                $response['debug'] = [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ];
+            }
+        }
+        
+        return response()->json($response, $statusCode);
     }
 } 

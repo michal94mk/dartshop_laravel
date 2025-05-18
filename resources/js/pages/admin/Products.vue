@@ -74,7 +74,6 @@
             <option value="created_at">Data dodania</option>
             <option value="name">Nazwa</option>
             <option value="price">Cena</option>
-            <option value="stock">Stan magazynowy</option>
           </select>
         </div>
         
@@ -114,8 +113,6 @@
                   <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Kategoria</th>
                   <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Marka</th>
                   <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Cena</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Stan magazynowy</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Wyróżniony</th>
                   <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
                     <span class="sr-only">Akcje</span>
                   </th>
@@ -146,15 +143,6 @@
                     {{ product.brand ? product.brand.name : '-' }}
                   </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ product.price }} PLN</td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ product.stock || 0 }}</td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    <span v-if="product.featured" class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                      TAK
-                    </span>
-                    <span v-else class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
-                      NIE
-                    </span>
-                  </td>
                   <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                     <button @click="openModal(product)" class="text-indigo-600 hover:text-indigo-900 mr-3">Edytuj</button>
                     <button @click="deleteProduct(product.id)" class="text-red-600 hover:text-red-900">Usuń</button>
@@ -267,17 +255,6 @@
                           class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                         />
                       </div>
-                      
-                      <div>
-                        <label for="stock" class="block text-sm font-medium text-gray-700">Stan magazynowy</label>
-                        <input
-                          type="number"
-                          id="stock"
-                          v-model="currentProduct.stock"
-                          min="0"
-                          class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-4">
@@ -307,20 +284,6 @@
                             {{ brand.name }}
                           </option>
                         </select>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div class="flex items-center">
-                        <input
-                          id="featured"
-                          type="checkbox"
-                          v-model="currentProduct.featured"
-                          class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                        />
-                        <label for="featured" class="ml-2 block text-sm text-gray-900">
-                          Wyróżniony produkt
-                        </label>
                       </div>
                     </div>
                     
@@ -456,10 +419,8 @@ export default {
       name: '',
       description: '',
       price: 0,
-      stock: 0,
       category_id: '',
       brand_id: '',
-      featured: false,
       image: null
     })
     
@@ -490,13 +451,15 @@ export default {
     const fetchProducts = async () => {
       try {
         loading.value = true
-        const params = { ...filters }
         
-        const response = await axios.get('/api/admin/products', { params })
+        // Simplifying to match Categories component
+        const response = await axios.get('/api/admin/products')
+        console.log('Products response:', response)
         products.value = response.data
       } catch (error) {
         console.error('Error fetching products:', error)
-        alertStore.setErrorMessage('Wystąpił błąd podczas pobierania produktów.')
+        console.error('Error details:', error.response?.data)
+        alertStore.error('Wystąpił błąd podczas pobierania produktów.')
       } finally {
         loading.value = false
       }
@@ -506,12 +469,16 @@ export default {
     
     const fetchFormData = async () => {
       try {
+        console.log('Fetching form data')
+        
         const response = await axios.get('/api/admin/products/form-data')
+        console.log('Form data response:', response)
         categories.value = response.data.categories
         brands.value = response.data.brands
       } catch (error) {
         console.error('Error fetching form data:', error)
-        alertStore.setErrorMessage('Wystąpił błąd podczas pobierania danych formularza.')
+        console.error('Error details:', error.response?.data)
+        alertStore.error('Wystąpił błąd podczas pobierania danych formularza.')
       }
     }
     
@@ -530,10 +497,8 @@ export default {
           name: '',
           description: '',
           price: 0,
-          stock: 0,
           category_id: categories.value.length ? categories.value[0].id : '',
           brand_id: brands.value.length ? brands.value[0].id : '',
-          featured: false,
           image: null
         }
       }
@@ -545,18 +510,18 @@ export default {
         if (currentProduct.value.id) {
           // Update existing product
           await axios.put(`/api/admin/products/${currentProduct.value.id}`, currentProduct.value)
-          alertStore.setSuccessMessage('Produkt został zaktualizowany.')
+          alertStore.success('Produkt został zaktualizowany.')
         } else {
           // Create new product
           await axios.post('/api/admin/products', currentProduct.value)
-          alertStore.setSuccessMessage('Produkt został dodany.')
+          alertStore.success('Produkt został dodany.')
         }
         
         showModal.value = false
         fetchProducts()
       } catch (error) {
         console.error('Error saving product:', error)
-        alertStore.setErrorMessage('Wystąpił błąd podczas zapisywania produktu.')
+        alertStore.error('Wystąpił błąd podczas zapisywania produktu.')
       }
     }
     
@@ -568,12 +533,12 @@ export default {
     const confirmDelete = async () => {
       try {
         await axios.delete(`/api/admin/products/${productToDelete.value}`)
-        alertStore.setSuccessMessage('Produkt został usunięty.')
+        alertStore.success('Produkt został usunięty.')
         showDeleteModal.value = false
         fetchProducts()
       } catch (error) {
         console.error('Error deleting product:', error)
-        alertStore.setErrorMessage('Wystąpił błąd podczas usuwania produktu.')
+        alertStore.error('Wystąpił błąd podczas usuwania produktu.')
       }
     }
     

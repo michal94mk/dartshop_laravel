@@ -36,6 +36,9 @@ axios.interceptors.request.use(config => {
   const token = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)');
   if (token) {
     config.headers['X-XSRF-TOKEN'] = decodeURIComponent(token[2]);
+    console.log('XSRF Token found and added to headers');
+  } else {
+    console.warn('No XSRF Token found in cookies');
   }
   
   return config;

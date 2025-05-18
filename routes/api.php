@@ -77,9 +77,21 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Other API endpoints
-Route::get('/promotions', [App\Http\Controllers\Frontend\PromotionController::class, 'apiIndex']);
-Route::get('/tutorials', [App\Http\Controllers\Frontend\TutorialController::class, 'apiIndex']);
-Route::get('/tutorials/{id}', [App\Http\Controllers\Frontend\TutorialController::class, 'apiShow']);
+Route::get('/promotions', function() {
+    return response()->json([
+        'data' => []
+    ]);
+});
+Route::get('/tutorials', function() {
+    return response()->json([
+        'data' => []
+    ]);
+});
+Route::get('/tutorials/{id}', function($id) {
+    return response()->json([
+        'data' => null
+    ]);
+});
 
 // Debug routes
 Route::get('/debug/products', [DebugController::class, 'checkProducts']);
@@ -95,12 +107,39 @@ Route::get('/test', function() {
     ]);
 });
 
+// Test products endpoint
+Route::get('/test-products', function() {
+    return response()->json([
+        'success' => true,
+        'products' => \App\Models\Product::with(['category', 'brand'])->take(5)->get()
+    ]);
+});
+
+// Test auth endpoints
+Route::get('/test-auth', function() {
+    return response()->json([
+        'success' => true,
+        'message' => 'You are authenticated',
+        'user' => \Illuminate\Support\Facades\Auth::user()
+    ]);
+})->middleware('auth:sanctum');
+
+Route::get('/test-admin', function() {
+    return response()->json([
+        'success' => true,
+        'message' => 'You are an admin',
+        'user' => \Illuminate\Support\Facades\Auth::user()
+    ]);
+})->middleware(['auth:sanctum', 'role:admin']);
+
 // Admin API Routes
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
     // Dashboard statistics
     Route::get('/dashboard', [DashboardController::class, 'index']);
     
-    // Products management
+    // Products management - custom routes must be defined BEFORE the resource route
+    Route::get('/products/form-data', [AdminProductController::class, 'getFormData']);
+    // Standard CRUD routes for products
     Route::apiResource('/products', AdminProductController::class);
     
     // Categories management
@@ -113,7 +152,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::apiResource('/users', UserController::class);
     
     // Promotions management - using full path since controller doesn't exist yet
-    Route::apiResource('/promotions', App\Http\Controllers\Api\Admin\PromotionController::class);
+    // Route::apiResource('/promotions', App\Http\Controllers\Api\Admin\PromotionController::class);
     
     // Orders management
     Route::apiResource('/orders', OrderController::class);
@@ -121,14 +160,14 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice']);
     
     // Reviews management - using full path since controller doesn't exist yet
-    Route::apiResource('/reviews', App\Http\Controllers\Api\Admin\ReviewController::class);
-    Route::post('/reviews/{review}/approve', [App\Http\Controllers\Api\Admin\ReviewController::class, 'approve']);
-    Route::post('/reviews/{review}/reject', [App\Http\Controllers\Api\Admin\ReviewController::class, 'reject']);
+    // Route::apiResource('/reviews', App\Http\Controllers\Api\Admin\ReviewController::class);
+    // Route::post('/reviews/{review}/approve', [App\Http\Controllers\Api\Admin\ReviewController::class, 'approve']);
+    // Route::post('/reviews/{review}/reject', [App\Http\Controllers\Api\Admin\ReviewController::class, 'reject']);
     
     // Payments management - using full path since controller doesn't exist yet
-    Route::apiResource('/payments', App\Http\Controllers\Api\Admin\PaymentController::class);
+    // Route::apiResource('/payments', App\Http\Controllers\Api\Admin\PaymentController::class);
     
     // Roles and permissions - using full path since controllers don't exist yet
-    Route::apiResource('/roles', App\Http\Controllers\Api\Admin\RoleController::class);
-    Route::apiResource('/permissions', App\Http\Controllers\Api\Admin\PermissionController::class);
+    // Route::apiResource('/roles', App\Http\Controllers\Api\Admin\RoleController::class);
+    // Route::apiResource('/permissions', App\Http\Controllers\Api\Admin\PermissionController::class);
 });

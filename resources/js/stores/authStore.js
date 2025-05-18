@@ -87,7 +87,23 @@ export const useAuthStore = defineStore('auth', {
       // Najpierw spróbuj załadować z localStorage
       const loadedFromStorage = this.loadUserFromLocalStorage();
       if (loadedFromStorage) {
-        console.log('User data loaded from localStorage');
+        console.log('User data loaded from localStorage:', this.user);
+        
+        // Sprawdź czy token jest ważny
+        try {
+          await axios.get('/sanctum/csrf-cookie');
+          console.log('CSRF token refreshed during init');
+          
+          const testResponse = await axios.get('/api/test-auth');
+          console.log('Auth verification successful:', testResponse.data);
+        } catch (error) {
+          console.error('Token verification failed, will try to refresh authentication:', error);
+          this.user = null;
+          localStorage.removeItem('user');
+          localStorage.removeItem('permissions');
+          localStorage.removeItem('auth_time');
+        }
+        
         this.authInitialized = true;
         return this.user;
       }
@@ -95,7 +111,13 @@ export const useAuthStore = defineStore('auth', {
       this.isLoading = true;
       
       try {
+        // Zawsze odśwież CSRF token przed próbą autoryzacji
+        await axios.get('/sanctum/csrf-cookie');
+        console.log('CSRF token refreshed before auth check');
+        
         const response = await axios.get('/api/user');
+        console.log('User API response:', response);
+        
         if (response.data) {
           this.user = response.data;
           
@@ -116,6 +138,12 @@ export const useAuthStore = defineStore('auth', {
         return this.user;
       } catch (error) {
         console.error('Failed to initialize auth state:', error);
+        
+        // Debug response
+        if (error.response) {
+          console.error('Error status:', error.response.status);
+          console.error('Error data:', error.response.data);
+        }
         
         // Ustaw błąd tylko jeśli nie jest to 401 Unauthorized (użytkownik nie zalogowany)
         if (error.response && error.response.status !== 401) {
@@ -145,6 +173,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         // Uzyskaj CSRF token
         await axios.get('/sanctum/csrf-cookie');
+        console.log('CSRF cookie refreshed before login');
         
         // Wykonaj logowanie
         const response = await axios.post('/api/login', {
