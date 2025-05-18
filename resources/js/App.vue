@@ -54,16 +54,14 @@ export default {
       // Sprawdź, czy użytkownik jest zalogowany i czy jest administratorem
       const isUserAdmin = authStore.isAdmin;
       
-      // Jeśli trasa wymaga layoutu admin...
-      if (isAdminRoute.value || isAdminView.value) {
+      // Jeśli ścieżka zaczyna się od /admin, używamy layoutu admin
+      if (route.path.startsWith('/admin')) {
         // ...ale użytkownik nie jest adminem - przekieruj do głównego layoutu
         if (!isUserAdmin) {
           console.warn('User is not admin but tries to access admin layout, using default layout instead');
           setTimeout(() => {
             // Przekieruj na stronę główną, jeśli próbuje uzyskać dostęp do panelu admina
-            if (route.path.startsWith('/admin')) {
-              router.push('/');
-            }
+            router.push('/');
           }, 100);
           return 'DefaultLayout';
         }
@@ -72,14 +70,8 @@ export default {
         return 'AdminLayout';
       }
       
-      // Jeśli trasa ma zdefiniowany layout 'default' lub nie ma zdefiniowanego layoutu
-      const routeLayout = route.meta && route.meta.layout;
-      if (!routeLayout || routeLayout === 'default') {
-        return 'DefaultLayout';
-      }
-      
-      // W przypadku nieznanego layoutu, używamy DefaultLayout
-      console.warn(`Unknown layout: ${routeLayout}, using DefaultLayout`);
+      // Dla wszystkich innych ścieżek, nawet jeśli użytkownik jest adminem, 
+      // używamy domyślnego layoutu aplikacji
       return 'DefaultLayout';
     });
     
