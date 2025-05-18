@@ -23,63 +23,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Tabela adresów dostawy
-        Schema::create('shipping_addresses', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->string('name');
-            $table->string('address_line1');
-            $table->string('address_line2')->nullable();
-            $table->string('city');
-            $table->string('postal_code');
-            $table->string('country')->default('Polska');
-            $table->string('phone')->nullable();
-            $table->boolean('is_default')->default(false);
-            $table->timestamps();
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-        });
-
-        // Tabela wiadomości kontaktowych
-        Schema::create('contact_messages', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email');
-            $table->string('subject');
-            $table->text('message');
-            $table->boolean('is_read')->default(false);
-            $table->text('reply')->nullable();
-            $table->timestamp('replied_at')->nullable();
-            $table->timestamps();
-        });
-
-        // Tabela promocji
-        Schema::create('promotions', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('code')->unique();
-            $table->text('description')->nullable();
-            $table->enum('type', ['percentage', 'fixed_amount']);
-            $table->decimal('value', 10, 2);
-            $table->decimal('minimum_order_amount', 10, 2)->nullable();
-            $table->integer('usage_limit')->nullable();
-            $table->integer('usage_count')->default(0);
-            $table->dateTime('start_date');
-            $table->dateTime('end_date');
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
-
-        // Tabela stron informacyjnych
-        Schema::create('about_pages', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->string('slug')->unique();
-            $table->text('content');
-            $table->boolean('is_active')->default(true);
-            $table->integer('order')->default(0);
-            $table->timestamps();
-        });
-
         // Tabela resetowania haseł
         Schema::create('password_resets', function (Blueprint $table) {
             $table->string('email')->primary();
@@ -119,10 +62,6 @@ return new class extends Migration
         Schema::dropIfExists('personal_access_tokens');
         Schema::dropIfExists('failed_jobs');
         Schema::dropIfExists('password_resets');
-        Schema::dropIfExists('about_pages');
-        Schema::dropIfExists('promotions');
-        Schema::dropIfExists('contact_messages');
-        Schema::dropIfExists('shipping_addresses');
         Schema::dropIfExists('users');
     }
 };

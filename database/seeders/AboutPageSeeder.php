@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\AboutPage;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class AboutPageSeeder extends Seeder
 {
@@ -29,7 +28,9 @@ class AboutPageSeeder extends Seeder
                     <li>Części zamienne</li>
                     <li>Gadżety związane z darts</li>
                 </ul>',
-                'order' => 1,
+                'meta_title' => 'O firmie DartShop',
+                'meta_description' => 'DartShop - specjalistyczny sklep z wyposażeniem do gry w rzutki.',
+                'display_order' => 1,
                 'is_active' => true,
             ],
             [
@@ -44,92 +45,23 @@ class AboutPageSeeder extends Seeder
                     <li>Wspieranie polskich zawodników i wydarzeń związanych z rzutkami</li>
                 </ul>
                 <p>Codziennie pracujemy nad tym, aby zapewnić naszym klientom nie tylko najlepszy sprzęt, ale również wiedzę i inspirację do doskonalenia swoich umiejętności.</p>',
-                'order' => 2,
+                'meta_title' => 'Nasza misja',
+                'meta_description' => 'Misja DartShop - popularyzacja darta, edukacja i wspieranie pasjonatów rzutków w Polsce.',
+                'display_order' => 2,
                 'is_active' => true,
             ],
             [
                 'title' => 'Zespół DartShop',
                 'content' => '<h2>Nasz zespół</h2>
-                <p>Za DartShop stoi zespół pasjonatów gry w rzutki, którzy łączą swoją pasję z profesjonalizmem w obsłudze klienta.</p>
-                
-                <div class="team-member">
-                    <h3>Adam Nowak - Założyciel</h3>
-                    <p>Pasjonat rzutków z 15-letnim doświadczeniem. Uczestnik wielu turniejów krajowych i międzynarodowych. Jego misją jest dzielenie się wiedzą i pasją z innymi graczami.</p>
-                </div>
-                
-                <div class="team-member">
-                    <h3>Katarzyna Kowalska - Specjalista ds. Produktów</h3>
-                    <p>Odpowiedzialna za dobór asortymentu i kontakty z dostawcami. Dba o to, by w naszej ofercie znajdowały się tylko sprawdzone i wysokiej jakości produkty.</p>
-                </div>
-                
-                <div class="team-member">
-                    <h3>Michał Wiśniewski - Ekspert Techniczny</h3>
-                    <p>Doradza klientom w doborze sprzętu dopasowanego do ich umiejętności i stylu gry. Prowadzi również poradniki i szkolenia z technik rzutu.</p>
-                </div>
-                
-                <p>Nasz zespół jest do Twojej dyspozycji. Zawsze chętnie doradzimy i pomożemy w wyborze odpowiedniego sprzętu.</p>',
-                'order' => 3,
-                'is_active' => true,
-            ],
-            [
-                'title' => 'Historia firmy',
-                'content' => '<h2>Historia DartShop</h2>
-                <p>Historia DartShop rozpoczęła się w 2022 roku, gdy grupa przyjaciół i pasjonatów rzutków postanowiła stworzyć miejsce, gdzie każdy miłośnik tego sportu znajdzie wszystko, czego potrzebuje.</p>
-                
-                <h3>Początki</h3>
-                <p>Początkowo działaliśmy jako mały sklep internetowy prowadzony po godzinach, oferując podstawowy asortyment lotek i akcesoriów. Szybko jednak zyskaliśmy uznanie klientów dzięki naszej wiedzy, pasji i zaangażowaniu.</p>
-                
-                <h3>Rozwój</h3>
-                <p>W ciągu kolejnych miesięcy systematycznie rozszerzaliśmy naszą ofertę, nawiązywaliśmy współpracę z czołowymi producentami sprzętu do darta i budowaliśmy społeczność wokół naszej marki. Uruchomiliśmy blog z poradami, zaczęliśmy organizować małe turnieje i warsztaty dla początkujących.</p>
-                
-                <h3>Obecnie</h3>
-                <p>Dziś DartShop to jeden z wiodących sklepów z wyposażeniem do gry w rzutki w Polsce. Nadal kierujemy się tymi samymi wartościami co na początku: pasją, jakością i autentycznością. Cieszymy się, że możemy być częścią rosnącej społeczności darterów w Polsce i przyczynić się do popularyzacji tego sportu.</p>
-                
-                <p>Dziękujemy, że jesteś z nami!</p>',
-                'order' => 4,
-                'is_active' => true,
-            ],
-            [
-                'title' => 'Dlaczego warto nam zaufać',
-                'content' => '<h2>Dlaczego warto wybrać DartShop?</h2>
-                <p>Wybierając DartShop, stawiasz na sklep prowadzony przez prawdziwych pasjonatów rzutków, którzy rozumieją potrzeby graczy na każdym poziomie zaawansowania.</p>
-                
-                <h3>Co nas wyróżnia:</h3>
-                
-                <div class="feature">
-                    <h4>Wiedza i doświadczenie</h4>
-                    <p>Nasz zespół to aktywni gracze z wieloletnim doświadczeniem. Znamy każdy produkt z naszej oferty, ponieważ sami ich używamy.</p>
-                </div>
-                
-                <div class="feature">
-                    <h4>Wyselekcjonowany asortyment</h4>
-                    <p>W naszej ofercie znajdziesz tylko sprawdzony i wysokiej jakości sprzęt. Współpracujemy z renomowanymi producentami i osobiście testujemy produkty przed włączeniem ich do oferty.</p>
-                </div>
-                
-                <div class="feature">
-                    <h4>Profesjonalne doradztwo</h4>
-                    <p>Pomagamy w doborze sprzętu dopasowanego do Twoich potrzeb, stylu gry i budżetu. Zawsze udzielamy szczerych i merytorycznych porad.</p>
-                </div>
-                
-                <div class="feature">
-                    <h4>Społeczność</h4>
-                    <p>Kupując w DartShop, stajesz się częścią społeczności pasjonatów. Organizujemy wydarzenia, prowadzimy blog z poradami i budujemy miejsce, gdzie miłośnicy rzutków mogą się spotykać i wymieniać doświadczeniami.</p>
-                </div>
-                
-                <div class="feature">
-                    <h4>Obsługa klienta</h4>
-                    <p>Dbamy o satysfakcję naszych klientów na każdym etapie zakupów - od wyboru produktu, przez szybką wysyłkę, po wsparcie posprzedażowe.</p>
-                </div>
-                
-                <p>Dołącz do tysięcy zadowolonych klientów, którzy zaufali DartShop!</p>',
-                'order' => 5,
+                <p>Za DartShop stoi zespół pasjonatów gry w rzutki, którzy łączą swoją pasję z profesjonalizmem w obsłudze klienta.</p>',
+                'meta_title' => 'Nasz zespół',
+                'meta_description' => 'Poznaj zespół DartShop - pasjonatów gry w rzutki z wieloletnim doświadczeniem.',
+                'display_order' => 3,
                 'is_active' => true,
             ],
         ];
 
         foreach ($aboutPages as $page) {
-            // Generate slug from title
-            $page['slug'] = Str::slug($page['title']);
             AboutPage::create($page);
         }
     }

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -34,13 +35,6 @@ class OrderSeeder extends Seeder
         
         // Order statuses
         $statuses = ['pending', 'processing', 'completed', 'cancelled'];
-        $paymentStatuses = [
-            PaymentStatus::PENDING->value, 
-            PaymentStatus::COMPLETED->value, 
-            PaymentStatus::FAILED->value, 
-            PaymentStatus::REFUNDED->value
-        ];
-        $shippingStatuses = ['pending', 'shipped', 'delivered'];
         $paymentMethods = ['credit_card', 'paypal', 'bank_transfer', 'blik'];
         
         // Create 20-30 orders
@@ -49,44 +43,36 @@ class OrderSeeder extends Seeder
         for ($i = 0; $i < $orderCount; $i++) {
             $user = $users->random();
             $status = $statuses[array_rand($statuses)];
-            $paymentStatus = $paymentStatuses[array_rand($paymentStatuses)];
-            $shippingStatus = $shippingStatuses[array_rand($shippingStatuses)];
             
             // Create date in the past 6 months
             $orderDate = $faker->dateTimeBetween('-6 months', 'now');
             
             // Calculate totals
-            $totalAmount = 0;
-            $taxAmount = 0;
-            $shippingAmount = rand(0, 20);
-            $discountAmount = rand(0, 50);
-            
-            // Create shipping and billing addresses
-            $shippingAddress = $faker->name . "\n" . 
-                              $faker->streetAddress . "\n" . 
-                              $faker->postcode . ' ' . $faker->city . "\n" . 
-                              'Poland';
-                              
-            $billingAddress = rand(0, 5) > 0 ? $shippingAddress : 
-                             $faker->name . "\n" . 
-                             $faker->streetAddress . "\n" . 
-                             $faker->postcode . ' ' . $faker->city . "\n" . 
-                             'Poland';
+            $subtotal = 0;
+            $shippingCost = rand(0, 20);
+            $discount = rand(0, 50);
             
             // Create order
             $order = Order::create([
                 'user_id' => $user->id,
                 'order_number' => 'ORD-' . Carbon::parse($orderDate)->format('Ymd') . '-' . strtoupper(Str::random(5)),
-                'total_amount' => 0, // Will update after adding items
-                'tax_amount' => 0, // Will update after adding items
-                'shipping_amount' => $shippingAmount,
-                'discount_amount' => $discountAmount,
                 'status' => $status,
-                'payment_status' => $paymentStatus,
-                'shipping_status' => $shippingStatus,
-                'shipping_address' => $shippingAddress,
-                'billing_address' => $billingAddress,
+                'first_name' => $faker->firstName,
+                'last_name' => $faker->lastName,
+                'email' => $faker->email,
+                'phone' => $faker->phoneNumber,
+                'address' => $faker->streetAddress,
+                'city' => $faker->city,
+                'postal_code' => $faker->postcode,
+                'country' => 'Polska',
                 'notes' => rand(0, 1) ? $faker->sentence : null,
+                'subtotal' => 0, // Will update after adding items
+                'shipping_cost' => $shippingCost,
+                'discount' => $discount,
+                'total' => 0, // Will update after adding items
+                'payment_method' => $paymentMethods[array_rand($paymentMethods)],
+                'session_id' => Str::random(32),
+                'promotion_code' => rand(0, 1) ? strtoupper(Str::random(8)) : null,
                 'created_at' => $orderDate,
                 'updated_at' => $orderDate
             ]);
@@ -111,27 +97,27 @@ class OrderSeeder extends Seeder
                     'updated_at' => $orderDate
                 ]);
                 
-                $totalAmount += $total;
+                $subtotal += $total;
             }
             
-            // Calculate tax (23% VAT)
-            $taxAmount = round($totalAmount * 0.23, 2);
-            
             // Update order with correct totals
+            $total = $subtotal + $shippingCost - $discount;
             $order->update([
-                'total_amount' => $totalAmount + $taxAmount + $shippingAmount - $discountAmount,
-                'tax_amount' => $taxAmount
+                'subtotal' => $subtotal,
+                'total' => $total
             ]);
             
             // Create payment for the order
-            if ($paymentStatus !== PaymentStatus::PENDING->value) {
-                $paymentMethod = $paymentMethods[array_rand($paymentMethods)];
+            if ($status !== 'pending') {
+                $paymentStatus = ($status == 'completed') ? PaymentStatus::COMPLETED->value : 
+                                 ($status == 'cancelled' ? PaymentStatus::FAILED->value : PaymentStatus::PENDING->value);
                 
                 Payment::create([
                     'order_id' => $order->id,
-                    'payment_method' => $paymentMethod,
+                    'user_id' => $user->id,
+                    'payment_method' => $order->payment_method,
                     'transaction_id' => strtoupper(Str::random(10)),
-                    'amount' => $order->total_amount,
+                    'amount' => $total,
                     'status' => $paymentStatus,
                     'notes' => rand(0, 1) ? $faker->sentence : null,
                     'created_at' => $orderDate,

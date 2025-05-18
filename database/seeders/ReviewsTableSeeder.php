@@ -27,31 +27,36 @@ class ReviewsTableSeeder extends Seeder
         // Przykładowe recenzje
         $reviews = [
             [
-                'comment' => 'Najlepsze lotki na rynku! Kupiłem te lotki miesiąc temu i jestem zachwycony. Lot jest stabilny, a wykonanie na najwyższym poziomie. Polecam każdemu, kto szuka profesjonalnego sprzętu.',
+                'title' => 'Najlepsze lotki na rynku!',
+                'content' => 'Kupiłem te lotki miesiąc temu i jestem zachwycony. Lot jest stabilny, a wykonanie na najwyższym poziomie. Polecam każdemu, kto szuka profesjonalnego sprzętu.',
                 'rating' => 5,
                 'is_approved' => true,
                 'is_featured' => true
             ],
             [
-                'comment' => 'Bardzo dobra jakość. Tarcza jest wykonana z solidnych materiałów, które wytrzymają lata użytkowania. Polecam początkującym i średniozaawansowanym graczom.',
+                'title' => 'Bardzo dobra jakość',
+                'content' => 'Tarcza jest wykonana z solidnych materiałów, które wytrzymają lata użytkowania. Polecam początkującym i średniozaawansowanym graczom.',
                 'rating' => 4,
                 'is_approved' => true,
                 'is_featured' => true
             ],
             [
-                'comment' => 'Idealny zestaw do nauki. Kupiłem ten zestaw, aby nauczyć moje dzieci gry w darta. Świetny stosunek jakości do ceny. Polecam wszystkim początkującym!',
+                'title' => 'Idealny zestaw do nauki',
+                'content' => 'Kupiłem ten zestaw, aby nauczyć moje dzieci gry w darta. Świetny stosunek jakości do ceny. Polecam wszystkim początkującym!',
                 'rating' => 5,
                 'is_approved' => true,
                 'is_featured' => true
             ],
             [
-                'comment' => 'Świetny design i funkcjonalność. To już mój drugi zakup w tym sklepie i ponownie jestem bardzo zadowolony. Szybka dostawa, produkty zgodne z opisem. DartShop to mój ulubiony sklep z akcesoriami do darta!',
+                'title' => 'Świetny design i funkcjonalność',
+                'content' => 'To już mój drugi zakup w tym sklepie i ponownie jestem bardzo zadowolony. Szybka dostawa, produkty zgodne z opisem. DartShop to mój ulubiony sklep z akcesoriami do darta!',
                 'rating' => 5,
                 'is_approved' => true,
                 'is_featured' => true
             ],
             [
-                'comment' => 'Dobry stosunek jakości do ceny. Nie spodziewałem się tak dobrej jakości w tej cenie. Polecam każdemu, kto szuka solidnego sprzętu bez wydawania fortuny.',
+                'title' => 'Dobry stosunek jakości do ceny',
+                'content' => 'Nie spodziewałem się tak dobrej jakości w tej cenie. Polecam każdemu, kto szuka solidnego sprzętu bez wydawania fortuny.',
                 'rating' => 4,
                 'is_approved' => true,
                 'is_featured' => false
@@ -73,7 +78,8 @@ class ReviewsTableSeeder extends Seeder
                 Review::create([
                     'user_id' => $user->id,
                     'product_id' => $product->id,
-                    'comment' => $reviewData['comment'],
+                    'title' => $reviewData['title'],
+                    'content' => $reviewData['content'],
                     'rating' => $reviewData['rating'],
                     'is_approved' => $reviewData['is_approved'],
                     'is_featured' => $reviewData['is_featured']

@@ -30,8 +30,7 @@ class BrandSeeder extends Seeder
 
         foreach ($brands as $brandName) {
             Brand::create([
-                'name' => $brandName,
-                'slug' => Str::slug($brandName)
+                'name' => $brandName
             ]);
         }
     }

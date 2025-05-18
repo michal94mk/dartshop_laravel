@@ -36,9 +36,9 @@ class ShippingAddressSeeder extends Seeder
                 ShippingAddress::create([
                     'user_id' => $user->id,
                     'name' => $user->name,
-                    'address_line1' => $streets[array_rand($streets)] . ' ' . rand(1, 100),
-                    'address_line2' => rand(0, 1) ? 'm. ' . rand(1, 100) : null,
+                    'address' => $streets[array_rand($streets)] . ' ' . rand(1, 100),
                     'city' => $cities[array_rand($cities)],
+                    'state' => rand(0, 1) ? 'Województwo ' . $cities[array_rand($cities)] : null,
                     'postal_code' => rand(10, 99) . '-' . str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT),
                     'country' => 'Polska',
                     'phone' => '+48 ' . rand(500, 899) . ' ' . str_pad(rand(100000, 999999), 6, '0', STR_PAD_LEFT),

@@ -14,20 +14,32 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // Always run the roles and permissions seeder first
+        // 1. Zawsze rozpoczynamy od ról i uprawnień
         $this->call(RolesAndPermissionsSeeder::class);
-
-        // Then seed other data in order of dependencies
+        
+        // 2. Najpierw seedujemy tabele bez zależności
         $this->call([
             CategorySeeder::class,
             BrandSeeder::class,
-            ProductSeeder::class,
-            UserSeeder::class,
-            ShippingAddressSeeder::class,
-            ContactMessageSeeder::class,
             AboutPageSeeder::class,
-            PromotionSeeder::class,
+        ]);
+        
+        // 3. Seedujemy tabele z podstawowymi zależnościami
+        $this->call([
+            UserSeeder::class,
+            ProductSeeder::class,
+        ]);
+        
+        // 4. Seedujemy tabele z zależnościami do powyższych tabel
+        $this->call([
+            ShippingAddressSeeder::class,
             ReviewsTableSeeder::class,
+            ContactMessageSeeder::class,
+            PromotionSeeder::class,
+        ]);
+        
+        // 5. Na koniec seedujemy tabele z najbardziej złożonymi zależnościami
+        $this->call([
             OrderSeeder::class,
             TutorialSeeder::class,
         ]);

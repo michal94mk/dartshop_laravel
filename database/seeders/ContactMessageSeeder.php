@@ -18,17 +18,17 @@ class ContactMessageSeeder extends Seeder
         
         // Create 15 sample contact messages
         for ($i = 0; $i < 15; $i++) {
-            $isRead = (bool)rand(0, 1);
-            $hasReply = $isRead && (bool)rand(0, 1);
+            // Losowy status wiadomości
+            $statuses = ['unread', 'read', 'replied'];
+            $status = $statuses[array_rand($statuses)];
             
             ContactMessage::create([
                 'name' => $faker->name,
                 'email' => $faker->email,
                 'subject' => $faker->realText(30),
                 'message' => $faker->realText(200),
-                'is_read' => $isRead,
-                'reply' => $hasReply ? $faker->realText(150) : null,
-                'replied_at' => $hasReply ? $faker->dateTimeBetween('-2 months', 'now') : null,
+                'reply' => $status === 'replied' ? $faker->realText(150) : null,
+                'status' => $status,
                 'created_at' => $faker->dateTimeBetween('-3 months', '-1 week')
             ]);
         }
