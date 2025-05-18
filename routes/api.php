@@ -132,6 +132,27 @@ Route::get('/test-admin', function() {
     ]);
 })->middleware(['auth:sanctum', 'role:admin']);
 
+// Debug route for users
+Route::get('/debug-users', function() {
+    $users = \App\Models\User::all();
+    $usersArray = $users->map(function($user) {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'is_admin' => $user->is_admin,
+            'email_verified_at' => $user->email_verified_at,
+            'created_at' => $user->created_at
+        ];
+    });
+    
+    return response()->json([
+        'success' => true,
+        'total_users' => $users->count(),
+        'users' => $usersArray
+    ]);
+})->middleware(['auth:sanctum', 'role:admin']);
+
 // Admin API Routes
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
     // Dashboard statistics
