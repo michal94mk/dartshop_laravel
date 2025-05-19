@@ -115,4 +115,12 @@ class Tutorial extends Model
         }
         return asset('storage/images/' . $this->thumbnail_image);
     }
+
+    /**
+     * Get the user that authored the tutorial.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

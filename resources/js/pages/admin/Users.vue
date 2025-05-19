@@ -1,35 +1,24 @@
 <template>
-  <div>
-    <div class="sm:flex sm:items-center p-6">
-      <div class="sm:flex-auto">
-        <h1 class="text-2xl font-semibold text-gray-900">Zarządzanie użytkownikami</h1>
-        <p class="mt-2 text-sm text-gray-700">Lista wszystkich użytkowników z możliwością edycji, zmiany roli i usuwania kont.</p>
-      </div>
-      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-        <button @click="openModal({id: null, name: '', email: '', role: 'user', verified: false, password: ''})" type="button" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700 transition-colors">
-          Dodaj użytkownika
-        </button>
-      </div>
-    </div>
+  <div class="p-6">
+    <!-- Page Header -->
+    <page-header 
+      title="Zarządzanie użytkownikami"
+      subtitle="Lista wszystkich użytkowników z możliwością edycji, zmiany roli i usuwania kont."
+      add-button-label="Dodaj użytkownika"
+      @add="openModal({id: null, name: '', email: '', role: 'user', verified: false, password: ''})"
+    />
 
     <!-- Search and filters -->
-    <div class="mt-6 bg-white shadow px-4 py-5 sm:rounded-lg sm:px-6">
-      <div class="flex flex-wrap gap-4">
-        <div class="flex-1 min-w-[200px]">
-          <label for="search" class="block text-sm font-medium text-gray-700">Wyszukaj</label>
-          <div class="mt-1">
-            <input
-              type="text"
-              name="search"
-              id="search"
-              v-model="filters.search"
-              @input="debouncedFetchUsers"
-              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-              placeholder="Imię, nazwisko lub email..."
-            />
-          </div>
-        </div>
-        
+    <search-filters
+      v-if="!loading"
+      :filters="filters"
+      :sort-options="sortOptions"
+      search-label="Wyszukaj"
+      search-placeholder="Imię, nazwisko lub email..."
+      @update:filters="filters = $event"
+      @filter-change="fetchUsers"
+    >
+      <template v-slot:filters>
         <div class="w-full sm:w-auto">
           <label for="role" class="block text-sm font-medium text-gray-700">Rola</label>
           <select
@@ -59,48 +48,14 @@
             <option value="0">Niezweryfikowani</option>
           </select>
         </div>
-        
-        <div class="w-full sm:w-auto">
-          <label for="sort" class="block text-sm font-medium text-gray-700">Sortuj</label>
-          <select
-            id="sort"
-            name="sort"
-            v-model="filters.sort_field"
-            @change="fetchUsers"
-            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="created_at">Data rejestracji</option>
-            <option value="name">Imię i nazwisko</option>
-            <option value="email">Email</option>
-          </select>
-        </div>
-        
-        <div class="w-full sm:w-auto">
-          <label for="direction" class="block text-sm font-medium text-gray-700">Kierunek</label>
-          <select
-            id="direction"
-            name="direction"
-            v-model="filters.sort_direction"
-            @change="fetchUsers"
-            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="desc">Malejąco</option>
-            <option value="asc">Rosnąco</option>
-          </select>
-        </div>
-      </div>
-    </div>
+      </template>
+    </search-filters>
 
     <!-- Loading indicator -->
-    <div v-if="loading" class="flex justify-center my-12">
-      <svg class="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-    </div>
+    <loading-spinner v-if="loading" />
 
     <!-- Users list -->
-    <div v-else class="mt-8 flex flex-col">
+    <div v-else-if="users.data && users.data.length > 0" class="mt-8 flex flex-col">
       <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
           <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
@@ -166,57 +121,18 @@
           </div>
         </div>
       </div>
-      
-      <!-- Pagination -->
-      <div v-if="users.data && users.data.length > 0" class="mt-5 flex justify-between items-center p-6">
-        <div class="text-sm text-gray-700">
-          Pokazuje {{ users.from }} do {{ users.to }} z {{ users.total }} użytkowników
-        </div>
-        <div>
-          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-            <button
-              @click="goToPage(users.current_page - 1)"
-              :disabled="users.current_page === 1"
-              :class="[
-                users.current_page === 1 ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50',
-                'relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500'
-              ]"
-            >
-              <span class="sr-only">Poprzednia</span>
-              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-              </svg>
-            </button>
-            <button
-              v-for="page in paginationPages"
-              :key="page"
-              @click="goToPage(page)"
-              :class="[
-                page === users.current_page
-                  ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
-                'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
-              ]"
-            >
-              {{ page }}
-            </button>
-            <button
-              @click="goToPage(users.current_page + 1)"
-              :disabled="users.current_page === users.last_page"
-              :class="[
-                users.current_page === users.last_page ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50',
-                'relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500'
-              ]"
-            >
-              <span class="sr-only">Następna</span>
-              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-              </svg>
-            </button>
-          </nav>
-        </div>
-      </div>
     </div>
+    
+    <!-- No data message -->
+    <no-data-message v-else-if="!loading" message="Brak użytkowników do wyświetlenia" />
+    
+    <!-- Pagination -->
+    <pagination 
+      v-if="!loading && users.data && users.data.length > 0" 
+      :pagination="users" 
+      items-label="użytkowników" 
+      @page-change="goToPage" 
+    />
 
     <!-- User Modal -->
     <div v-if="showModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -403,6 +319,14 @@ export default {
       last_page: 1,
       per_page: 10
     })
+    
+    // Sort options for the filter component
+    const sortOptions = [
+      { value: 'created_at', label: 'Data rejestracji' },
+      { value: 'name', label: 'Imię i nazwisko' },
+      { value: 'email', label: 'Email' }
+    ]
+    
     const filters = reactive({
       search: '',
       role: '',
@@ -565,11 +489,12 @@ export default {
       loading,
       users,
       filters,
+      sortOptions,
       currentUserId,
-      paginationPages,
       showModal,
       showDeleteModal,
       currentUser,
+      paginationPages,
       fetchUsers,
       debouncedFetchUsers,
       goToPage,

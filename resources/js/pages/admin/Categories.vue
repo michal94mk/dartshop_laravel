@@ -1,77 +1,32 @@
 <template>
   <div>
-    <div class="sm:flex sm:items-center p-6">
-      <div class="sm:flex-auto">
-        <h1 class="text-2xl font-semibold text-gray-900">Zarządzanie kategoriami</h1>
-        <p class="mt-2 text-sm text-gray-700">Lista wszystkich kategorii produktów z możliwością dodawania, edycji i usuwania.</p>
-      </div>
-      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-        <button @click="openModal()" type="button" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700 transition-colors">
-          Dodaj kategorię
-        </button>
-      </div>
-    </div>
+    <!-- Page Header -->
+    <page-header 
+      title="Zarządzanie kategoriami"
+      subtitle="Lista wszystkich kategorii produktów z możliwością dodawania, edycji i usuwania."
+      add-button-label="Dodaj kategorię"
+      @add="openModal()"
+    />
     
     <!-- Search and filters -->
-    <div class="mt-6 bg-white shadow px-4 py-5 sm:rounded-lg sm:px-6">
-      <div class="flex flex-wrap gap-4">
-        <div class="flex-1 min-w-[200px]">
-          <label for="search" class="block text-sm font-medium text-gray-700">Wyszukaj</label>
-          <div class="mt-1">
-            <input
-              type="text"
-              name="search"
-              id="search"
-              v-model="filters.search"
-              @input="onSearchChange"
-              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-              placeholder="Nazwa kategorii..."
-            />
-          </div>
-        </div>
-        
-        <div class="w-full sm:w-auto">
-          <label for="sort" class="block text-sm font-medium text-gray-700">Sortuj</label>
-          <select
-            id="sort"
-            name="sort"
-            v-model="filters.sort_field"
-            @change="fetchCategories"
-            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="id">ID</option>
-            <option value="name">Nazwa</option>
-            <option value="created_at">Data utworzenia</option>
-            <option value="products_count">Liczba produktów</option>
-          </select>
-        </div>
-        
-        <div class="w-full sm:w-auto">
-          <label for="direction" class="block text-sm font-medium text-gray-700">Kierunek</label>
-          <select
-            id="direction"
-            name="direction"
-            v-model="filters.sort_direction"
-            @change="fetchCategories"
-            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="desc">Malejąco</option>
-            <option value="asc">Rosnąco</option>
-          </select>
-        </div>
-      </div>
-    </div>
+    <search-filters
+      v-if="!loading"
+      :filters.sync="filters"
+      :sort-options="sortOptions"
+      search-label="Wyszukaj"
+      search-placeholder="Nazwa kategorii..."
+      @filter-change="fetchCategories"
+    >
+      <template v-slot:filters>
+        <!-- No additional filters needed -->
+      </template>
+    </search-filters>
     
     <!-- Loading indicator -->
-    <div v-if="loading" class="flex justify-center my-12">
-      <svg class="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-    </div>
+    <loading-spinner v-if="loading" />
     
     <!-- Categories list -->
-    <div v-else class="mt-8 flex flex-col">
+    <div v-else-if="categories.data && categories.data.length > 0" class="mt-8 flex flex-col">
       <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
           <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
@@ -102,12 +57,12 @@
                     {{ formatDate(category.created_at) }}
                   </td>
                   <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                    <button @click="openModal(category)" class="px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700 transition-colors mr-2">Edytuj</button>
-                    <button @click="deleteCategory(category.id)" class="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors">Usuń</button>
+                    <action-buttons
+                      :item="category"
+                      @edit="openModal"
+                      @delete="deleteCategory"
+                    />
                   </td>
-                </tr>
-                <tr v-if="categories.data && categories.data.length === 0">
-                  <td colspan="5" class="px-3 py-4 text-sm text-gray-500 text-center">Brak kategorii</td>
                 </tr>
               </tbody>
             </table>
@@ -116,55 +71,16 @@
       </div>
     </div>
     
+    <!-- No data message -->
+    <no-data-message v-else-if="!loading" message="Brak kategorii do wyświetlenia" />
+    
     <!-- Pagination -->
-    <div v-if="categories.last_page > 1" class="mt-5 flex justify-between items-center p-6">
-      <div class="text-sm text-gray-700">
-        Pokazuje {{ categories.from }} do {{ categories.to }} z {{ categories.total }} kategorii
-      </div>
-      <div>
-        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-          <button
-            @click="goToPage(categories.current_page - 1)"
-            :disabled="categories.current_page === 1"
-            :class="[
-              categories.current_page === 1 ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50',
-              'relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500'
-            ]"
-          >
-            <span class="sr-only">Poprzednia</span>
-            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-          </button>
-          <button
-            v-for="page in paginationPages"
-            :key="page"
-            @click="goToPage(page)"
-            :class="[
-              page === categories.current_page
-                ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
-              'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
-            ]"
-          >
-            {{ page }}
-          </button>
-          <button
-            @click="goToPage(categories.current_page + 1)"
-            :disabled="categories.current_page === categories.last_page"
-            :class="[
-              categories.current_page === categories.last_page ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50',
-              'relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500'
-            ]"
-          >
-            <span class="sr-only">Następna</span>
-            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-            </svg>
-          </button>
-        </nav>
-      </div>
-    </div>
+    <pagination 
+      v-if="categories.data && categories.data.length > 0"
+      :pagination="categories" 
+      items-label="kategorii" 
+      @page-change="goToPage" 
+    />
     
     <!-- Category Modal -->
     <div v-if="showModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -215,7 +131,7 @@
       </div>
     </div>
     
-    <!-- Delete confirmation modal -->
+    <!-- Delete Confirmation Modal -->
     <div v-if="showDeleteModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
       <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="showDeleteModal = false"></div>
@@ -230,11 +146,11 @@
               </div>
               <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                 <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                  Usuń kategorię
+                  Potwierdź usunięcie
                 </h3>
                 <div class="mt-2">
                   <p class="text-sm text-gray-500">
-                    Czy na pewno chcesz usunąć tę kategorię? Wszystkie produkty w tej kategorii zostaną pozbawione kategorii.
+                    Czy na pewno chcesz usunąć tę kategorię? Tej operacji nie da się cofnąć.
                   </p>
                 </div>
               </div>
@@ -283,6 +199,14 @@ export default {
       last_page: 1,
       per_page: 10
     })
+    
+    // Sort options for the filter component
+    const sortOptions = [
+      { value: 'id', label: 'ID' },
+      { value: 'name', label: 'Nazwa' },
+      { value: 'created_at', label: 'Data utworzenia' },
+      { value: 'products_count', label: 'Liczba produktów' }
+    ]
     
     // Filters and pagination
     const filters = reactive({
@@ -441,7 +365,8 @@ export default {
       confirmDelete,
       formatDate,
       onSearchChange,
-      goToPage
+      goToPage,
+      sortOptions
     }
   }
 }

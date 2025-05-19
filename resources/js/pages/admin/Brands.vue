@@ -1,75 +1,26 @@
 <template>
   <div class="p-6">
-    <div class="flex justify-between items-center mb-6">
-      <div>
-        <h1 class="text-2xl font-semibold text-gray-900">Zarządzanie markami</h1>
-        <p class="mt-2 text-sm text-gray-700">Lista wszystkich marek produktów z możliwością dodawania, edycji i usuwania.</p>
-      </div>
-      <button 
-        @click="showAddForm = true" 
-        class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-      >
-        Dodaj markę
-      </button>
-    </div>
+    <!-- Page Header -->
+    <page-header 
+      title="Zarządzanie markami"
+      subtitle="Lista wszystkich marek produktów z możliwością dodawania, edycji i usuwania."
+      add-button-label="Dodaj markę"
+      @add="showAddForm = true"
+    />
     
     <!-- Search and filters -->
-    <div class="mt-6 bg-white shadow px-4 py-5 sm:rounded-lg sm:px-6">
-      <div class="flex flex-wrap gap-4">
-        <div class="flex-1 min-w-[200px]">
-          <label for="search" class="block text-sm font-medium text-gray-700">Wyszukaj</label>
-          <div class="mt-1">
-            <input
-              type="text"
-              name="search"
-              id="search"
-              v-model="filters.search"
-              @input="onSearchChange"
-              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-              placeholder="Nazwa marki..."
-            />
-          </div>
-        </div>
-        
-        <div class="w-full sm:w-auto">
-          <label for="sort" class="block text-sm font-medium text-gray-700">Sortuj</label>
-          <select
-            id="sort"
-            name="sort"
-            v-model="filters.sort_field"
-            @change="fetchBrands"
-            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="id">ID</option>
-            <option value="name">Nazwa</option>
-            <option value="created_at">Data utworzenia</option>
-            <option value="products_count">Liczba produktów</option>
-          </select>
-        </div>
-        
-        <div class="w-full sm:w-auto">
-          <label for="direction" class="block text-sm font-medium text-gray-700">Kierunek</label>
-          <select
-            id="direction"
-            name="direction"
-            v-model="filters.sort_direction"
-            @change="fetchBrands"
-            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="desc">Malejąco</option>
-            <option value="asc">Rosnąco</option>
-          </select>
-        </div>
-      </div>
-    </div>
+    <search-filters
+      v-if="!loading"
+      :filters="filters"
+      :sort-options="sortOptions"
+      search-label="Wyszukaj"
+      search-placeholder="Nazwa marki..."
+      @update:filters="filters = $event"
+      @filter-change="fetchBrands"
+    />
     
     <!-- Loading indicator -->
-    <div v-if="loading" class="flex justify-center my-12">
-      <svg class="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-    </div>
+    <loading-spinner v-if="loading" />
     
     <!-- Brands Table -->
     <div v-else-if="brands.data && brands.data.length" class="bg-white shadow overflow-hidden sm:rounded-md mt-4">
@@ -90,76 +41,27 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ brand.products_count }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(brand.created_at) }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <button 
-                @click="editBrand(brand)" 
-                class="text-indigo-600 hover:text-indigo-900 mr-4"
-              >
-                Edytuj
-              </button>
-              <button 
-                @click="confirmDelete(brand)" 
-                class="text-red-600 hover:text-red-900"
-              >
-                Usuń
-              </button>
+              <action-buttons 
+                :item="brand" 
+                @edit="editBrand" 
+                @delete="confirmDelete"
+              />
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div v-else class="bg-white shadow overflow-hidden sm:rounded-md p-6 text-center text-gray-500 mt-4">
-      Brak marek do wyświetlenia
-    </div>
+    
+    <!-- No data message -->
+    <no-data-message v-else-if="!loading" message="Brak marek do wyświetlenia" />
     
     <!-- Pagination -->
-    <div v-if="brands.last_page > 1" class="mt-5 flex justify-between items-center">
-      <div class="text-sm text-gray-700">
-        Pokazuje {{ brands.from }} do {{ brands.to }} z {{ brands.total }} marek
-      </div>
-      <div>
-        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-          <button
-            @click="goToPage(brands.current_page - 1)"
-            :disabled="brands.current_page === 1"
-            :class="[
-              brands.current_page === 1 ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50',
-              'relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500'
-            ]"
-          >
-            <span class="sr-only">Poprzednia</span>
-            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-          </button>
-          <button
-            v-for="page in paginationPages"
-            :key="page"
-            @click="goToPage(page)"
-            :class="[
-              page === brands.current_page
-                ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
-              'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
-            ]"
-          >
-            {{ page }}
-          </button>
-          <button
-            @click="goToPage(brands.current_page + 1)"
-            :disabled="brands.current_page === brands.last_page"
-            :class="[
-              brands.current_page === brands.last_page ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50',
-              'relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500'
-            ]"
-          >
-            <span class="sr-only">Następna</span>
-            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-            </svg>
-          </button>
-        </nav>
-      </div>
-    </div>
+    <pagination 
+      v-if="!loading && brands.last_page > 1" 
+      :pagination="brands" 
+      items-label="marek"
+      @page-change="goToPage" 
+    />
     
     <!-- Add/Edit Modal -->
     <div v-if="showAddForm || showEditForm" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
@@ -260,7 +162,14 @@ export default {
     const showEditForm = ref(false)
     const showDeleteModal = ref(false)
     const brandToDelete = ref({})
-    let searchTimeout = null
+    
+    // Sort options for the filter component
+    const sortOptions = [
+      { value: 'id', label: 'ID' },
+      { value: 'name', label: 'Nazwa' },
+      { value: 'created_at', label: 'Data utworzenia' },
+      { value: 'products_count', label: 'Liczba produktów' }
+    ]
     
     // Filters and pagination
     const filters = reactive({
@@ -272,29 +181,6 @@ export default {
     
     const form = ref({
       name: ''
-    })
-    
-    // Computed
-    const paginationPages = computed(() => {
-      const total = brands.value.last_page
-      const current = brands.value.current_page
-      const pages = []
-      
-      if (total <= 7) {
-        for (let i = 1; i <= total; i++) {
-          pages.push(i)
-        }
-      } else {
-        if (current <= 3) {
-          pages.push(1, 2, 3, 4, '...', total)
-        } else if (current >= total - 2) {
-          pages.push(1, '...', total - 3, total - 2, total - 1, total)
-        } else {
-          pages.push(1, '...', current - 1, current, current + 1, '...', total)
-        }
-      }
-      
-      return pages
     })
     
     // Fetch all brands with pagination and filters
@@ -318,18 +204,6 @@ export default {
       } finally {
         loading.value = false
       }
-    }
-    
-    // Debounced search
-    const onSearchChange = () => {
-      if (searchTimeout) {
-        clearTimeout(searchTimeout)
-      }
-      
-      searchTimeout = setTimeout(() => {
-        filters.page = 1 // Reset to first page on new search
-        fetchBrands()
-      }, 300)
     }
     
     // Pagination
@@ -423,8 +297,7 @@ export default {
       brandToDelete,
       form,
       filters,
-      paginationPages,
-      onSearchChange,
+      sortOptions,
       fetchBrands,
       addBrand,
       editBrand,

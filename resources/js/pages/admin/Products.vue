@@ -1,35 +1,23 @@
 <template>
   <div>
-    <div class="sm:flex sm:items-center p-6">
-      <div class="sm:flex-auto">
-        <h1 class="text-2xl font-semibold text-gray-900">Zarządzanie produktami</h1>
-        <p class="mt-2 text-sm text-gray-700">Lista wszystkich produktów w sklepie z możliwością dodawania, edycji i usuwania.</p>
-      </div>
-      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-        <button @click="openModal()" type="button" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700 transition-colors">
-          Dodaj produkt
-        </button>
-      </div>
-    </div>
+    <!-- Page Header -->
+    <page-header 
+      title="Zarządzanie produktami"
+      subtitle="Lista wszystkich produktów w sklepie z możliwością dodawania, edycji i usuwania."
+      add-button-label="Dodaj produkt"
+      @add="openModal()"
+    />
 
     <!-- Search and filters -->
-    <div class="mt-6 bg-white shadow px-4 py-5 sm:rounded-lg sm:px-6">
-      <div class="flex flex-wrap gap-4">
-        <div class="flex-1 min-w-[200px]">
-          <label for="search" class="block text-sm font-medium text-gray-700">Wyszukaj</label>
-          <div class="mt-1">
-            <input
-              type="text"
-              name="search"
-              id="search"
-              v-model="filters.search"
-              @input="debouncedFetchProducts"
-              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-              placeholder="Nazwa produktu..."
-            />
-          </div>
-        </div>
-        
+    <search-filters
+      v-if="!loading"
+      :filters.sync="filters"
+      :sort-options="sortOptions"
+      search-label="Wyszukaj"
+      search-placeholder="Nazwa produktu..."
+      @filter-change="fetchProducts"
+    >
+      <template v-slot:filters>
         <div class="w-full sm:w-auto">
           <label for="category" class="block text-sm font-medium text-gray-700">Kategoria</label>
           <select
@@ -61,48 +49,14 @@
             </option>
           </select>
         </div>
-        
-        <div class="w-full sm:w-auto">
-          <label for="sort" class="block text-sm font-medium text-gray-700">Sortuj</label>
-          <select
-            id="sort"
-            name="sort"
-            v-model="filters.sort_field"
-            @change="fetchProducts"
-            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="created_at">Data dodania</option>
-            <option value="name">Nazwa</option>
-            <option value="price">Cena</option>
-          </select>
-        </div>
-        
-        <div class="w-full sm:w-auto">
-          <label for="direction" class="block text-sm font-medium text-gray-700">Kierunek</label>
-          <select
-            id="direction"
-            name="direction"
-            v-model="filters.sort_direction"
-            @change="fetchProducts"
-            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="desc">Malejąco</option>
-            <option value="asc">Rosnąco</option>
-          </select>
-        </div>
-      </div>
-    </div>
+      </template>
+    </search-filters>
 
     <!-- Loading indicator -->
-    <div v-if="loading" class="flex justify-center my-12">
-      <svg class="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-    </div>
+    <loading-spinner v-if="loading" />
 
     <!-- Products list -->
-    <div v-else class="mt-8 flex flex-col">
+    <div v-else-if="products.data && products.data.length > 0" class="mt-8 flex flex-col">
       <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
           <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
@@ -150,8 +104,11 @@
                   </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ product.price }} PLN</td>
                   <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                    <button @click="openModal(product)" class="px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700 transition-colors mr-2">Edytuj</button>
-                    <button @click="deleteProduct(product.id)" class="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors">Usuń</button>
+                    <action-buttons 
+                      :item="product"
+                      @edit="openModal"
+                      @delete="deleteProduct(product.id)"
+                    />
                   </td>
                 </tr>
               </tbody>
@@ -161,55 +118,15 @@
       </div>
       
       <!-- Pagination -->
-      <div v-if="products.data && products.data.length > 0" class="mt-5 flex justify-between items-center p-6">
-        <div class="text-sm text-gray-700">
-          Pokazuje {{ products.from }} do {{ products.to }} z {{ products.total }} produktów
-        </div>
-        <div>
-          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-            <button
-              @click="goToPage(products.current_page - 1)"
-              :disabled="products.current_page === 1"
-              :class="[
-                products.current_page === 1 ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50',
-                'relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500'
-              ]"
-            >
-              <span class="sr-only">Poprzednia</span>
-              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-              </svg>
-            </button>
-            <button
-              v-for="page in paginationPages"
-              :key="page"
-              @click="goToPage(page)"
-              :class="[
-                page === products.current_page
-                  ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
-                'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
-              ]"
-            >
-              {{ page }}
-            </button>
-            <button
-              @click="goToPage(products.current_page + 1)"
-              :disabled="products.current_page === products.last_page"
-              :class="[
-                products.current_page === products.last_page ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50',
-                'relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500'
-              ]"
-            >
-              <span class="sr-only">Następna</span>
-              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-              </svg>
-            </button>
-          </nav>
-        </div>
-      </div>
+      <pagination 
+        :pagination="products" 
+        items-label="produktów" 
+        @page-change="goToPage" 
+      />
     </div>
+    
+    <!-- No data message -->
+    <no-data-message v-else-if="!loading" message="Brak produktów do wyświetlenia" />
 
     <!-- Product Modal -->
     <div v-if="showModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -427,6 +344,14 @@ export default {
     })
     const categories = ref([])
     const brands = ref([])
+    
+    // Sort options for the filter component
+    const sortOptions = [
+      { value: 'created_at', label: 'Data dodania' },
+      { value: 'name', label: 'Nazwa' },
+      { value: 'price', label: 'Cena' }
+    ]
+    
     const filters = reactive({
       search: '',
       category_id: '',

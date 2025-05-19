@@ -17,9 +17,27 @@ class TutorialController extends BaseAdminController
      */
     public function index()
     {
-        $tutorials = Tutorial::with('author')
+        $tutorials = Tutorial::with('user:id,name')
             ->latest()
-            ->get();
+            ->get()
+            ->map(function ($tutorial) {
+                return [
+                    'id' => $tutorial->id,
+                    'title' => $tutorial->title,
+                    'slug' => $tutorial->slug,
+                    'excerpt' => $tutorial->excerpt,
+                    'content' => $tutorial->content,
+                    'image_url' => $tutorial->featured_image ? asset('storage/images/' . $tutorial->featured_image) : null,
+                    'published_at' => $tutorial->published_at,
+                    'status' => $tutorial->is_published ? 'published' : 'draft',
+                    'author' => $tutorial->user,
+                    'meta_title' => $tutorial->meta_title,
+                    'meta_description' => $tutorial->meta_description,
+                    'featured' => false, // Default value as it's not in the schema
+                    'created_at' => $tutorial->created_at,
+                    'updated_at' => $tutorial->updated_at
+                ];
+            });
             
         return response()->json($tutorials);
     }
@@ -40,7 +58,6 @@ class TutorialController extends BaseAdminController
             'image_url' => 'nullable|url',
             'published_at' => 'nullable|date',
             'status' => 'required|string|in:draft,published,scheduled',
-            'author_id' => 'required|exists:users,id',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
             'featured' => 'boolean'
@@ -55,8 +72,53 @@ class TutorialController extends BaseAdminController
             $request->merge(['slug' => Str::slug($request->title)]);
         }
 
-        $tutorial = Tutorial::create($request->all());
-        return response()->json($tutorial, 201);
+        // Transform the input data to match the database schema
+        $tutorialData = [
+            'title' => $request->title,
+            'slug' => $request->slug,
+            'excerpt' => $request->excerpt,
+            'content' => $request->content,
+            'meta_title' => $request->meta_title,
+            'meta_description' => $request->meta_description,
+            'user_id' => $request->user()->id, // Correct way to get authenticated user ID
+        ];
+        
+        // Handle status
+        $tutorialData['is_published'] = $request->status === 'published';
+        
+        // Handle published date
+        if ($request->status === 'published' && !$request->published_at) {
+            $tutorialData['published_at'] = now();
+        } elseif ($request->status === 'scheduled') {
+            $tutorialData['published_at'] = $request->published_at;
+        }
+        
+        // Handle image URL
+        if ($request->image_url) {
+            // This would typically involve image processing/storage
+            // For now, just store the URL or filename
+            $tutorialData['featured_image'] = basename($request->image_url);
+        }
+
+        $tutorial = Tutorial::create($tutorialData);
+        
+        // Return the transformed tutorial data
+        return response()->json([
+            'id' => $tutorial->id,
+            'title' => $tutorial->title,
+            'slug' => $tutorial->slug,
+            'excerpt' => $tutorial->excerpt,
+            'content' => $tutorial->content,
+            'image_url' => $tutorial->featured_image ? asset('storage/images/' . $tutorial->featured_image) : null,
+            'published_at' => $tutorial->published_at,
+            'status' => $tutorial->is_published ? 'published' : 'draft',
+            'author' => $tutorial->user,
+            'meta_title' => $tutorial->meta_title,
+            'meta_description' => $tutorial->meta_description,
+            'featured' => false, // Default value
+            'created_at' => $tutorial->created_at,
+            'updated_at' => $tutorial->updated_at
+        ], 201);
     }
 
     /**
@@ -90,7 +152,6 @@ class TutorialController extends BaseAdminController
             'image_url' => 'nullable|url',
             'published_at' => 'nullable|date',
             'status' => 'sometimes|string|in:draft,published,scheduled',
-            'author_id' => 'sometimes|exists:users,id',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
             'featured' => 'boolean'
@@ -105,8 +166,53 @@ class TutorialController extends BaseAdminController
             $request->merge(['slug' => Str::slug($request->title)]);
         }
 
-        $tutorial->update($request->all());
-        return response()->json($tutorial);
+        // Transform the input data to match the database schema
+        $updateData = [
+            'title' => $request->title ?? $tutorial->title,
+            'slug' => $request->slug ?? $tutorial->slug,
+            'excerpt' => $request->excerpt,
+            'content' => $request->content ?? $tutorial->content,
+            'meta_title' => $request->meta_title,
+            'meta_description' => $request->meta_description,
+        ];
+        
+        // Handle status conversion
+        if ($request->has('status')) {
+            $updateData['is_published'] = $request->status === 'published';
+            if ($request->status === 'published' && !$tutorial->published_at) {
+                $updateData['published_at'] = now();
+            } elseif ($request->status === 'scheduled') {
+                $updateData['published_at'] = $request->published_at;
+                $updateData['is_published'] = false;
+            }
+        }
+        
+        // Handle image URL
+        if ($request->has('image_url') && $request->image_url) {
+            // This would typically involve image processing/storage
+            // For now, just store the URL or filename
+            $updateData['featured_image'] = basename($request->image_url);
+        }
+
+        $tutorial->update($updateData);
+        
+        // Return the transformed tutorial data
+        return response()->json([
+            'id' => $tutorial->id,
+            'title' => $tutorial->title,
+            'slug' => $tutorial->slug,
+            'excerpt' => $tutorial->excerpt,
+            'content' => $tutorial->content,
+            'image_url' => $tutorial->featured_image ? asset('storage/images/' . $tutorial->featured_image) : null,
+            'published_at' => $tutorial->published_at,
+            'status' => $tutorial->is_published ? 'published' : 'draft',
+            'author' => $tutorial->user,
+            'meta_title' => $tutorial->meta_title,
+            'meta_description' => $tutorial->meta_description,
+            'featured' => false, // Default value
+            'created_at' => $tutorial->created_at,
+            'updated_at' => $tutorial->updated_at
+        ]);
     }
 
     /**

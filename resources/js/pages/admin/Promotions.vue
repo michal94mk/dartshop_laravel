@@ -1,33 +1,24 @@
 <template>
   <div class="p-6">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-semibold text-gray-900">Zarządzanie promocjami</h1>
-      <button 
-        @click="showAddForm = true" 
-        class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-      >
-        Dodaj promocję
-      </button>
-    </div>
+    <!-- Page Header -->
+    <page-header 
+      title="Zarządzanie promocjami"
+      subtitle="Lista wszystkich promocji w sklepie z możliwością dodawania, edycji i usuwania."
+      add-button-label="Dodaj promocję"
+      @add="showAddForm = true"
+    />
     
     <!-- Search and filters -->
-    <div v-if="!loading" class="mt-6 bg-white shadow px-4 py-5 sm:rounded-lg sm:px-6">
-      <div class="flex flex-wrap gap-4">
-        <div class="flex-1 min-w-[200px]">
-          <label for="search" class="block text-sm font-medium text-gray-700">Wyszukaj</label>
-          <div class="mt-1">
-            <input
-              type="text"
-              name="search"
-              id="search"
-              v-model="filters.search"
-              @input="debouncedFilterPromotions"
-              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-              placeholder="Nazwa lub kod promocji..."
-            />
-          </div>
-        </div>
-        
+    <search-filters
+      v-if="!loading"
+      :filters="filters"
+      :sort-options="sortOptions"
+      search-label="Wyszukaj"
+      search-placeholder="Nazwa lub kod promocji..."
+      @update:filters="filters = $event"
+      @filter-change="filterPromotions"
+    >
+      <template v-slot:filters>
         <div class="w-full sm:w-auto">
           <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
           <select
@@ -57,46 +48,11 @@
             <option value="fixed">Kwotowe</option>
           </select>
         </div>
-        
-        <div class="w-full sm:w-auto">
-          <label for="sort" class="block text-sm font-medium text-gray-700">Sortuj</label>
-          <select
-            id="sort"
-            name="sort"
-            v-model="filters.sort_field"
-            @change="filterPromotions"
-            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="created_at">Data dodania</option>
-            <option value="expires_at">Data ważności</option>
-            <option value="name">Nazwa</option>
-            <option value="value">Wartość</option>
-          </select>
-        </div>
-        
-        <div class="w-full sm:w-auto">
-          <label for="direction" class="block text-sm font-medium text-gray-700">Kierunek</label>
-          <select
-            id="direction"
-            name="direction"
-            v-model="filters.sort_direction"
-            @change="filterPromotions"
-            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="desc">Malejąco</option>
-            <option value="asc">Rosnąco</option>
-          </select>
-        </div>
-      </div>
-    </div>
+      </template>
+    </search-filters>
     
     <!-- Loading indicator -->
-    <div v-if="loading" class="flex justify-center my-12">
-      <svg class="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-    </div>
+    <loading-spinner v-if="loading" />
     
     <!-- Promotions Table -->
     <div v-else-if="filteredPromotions.length" class="bg-white shadow overflow-hidden sm:rounded-md mt-6">
@@ -132,26 +88,19 @@
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <button 
-                @click="editPromotion(promotion)" 
-                class="text-indigo-600 hover:text-indigo-900 mr-4"
-              >
-                Edytuj
-              </button>
-              <button 
-                @click="confirmDelete(promotion)" 
-                class="text-red-600 hover:text-red-900"
-              >
-                Usuń
-              </button>
+              <action-buttons 
+                :item="promotion" 
+                @edit="editPromotion" 
+                @delete="confirmDelete"
+              />
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div v-else class="bg-white shadow overflow-hidden sm:rounded-md p-6 text-center text-gray-500 mt-6">
-      Brak promocji do wyświetlenia
-    </div>
+    
+    <!-- No data message -->
+    <no-data-message v-else message="Brak promocji do wyświetlenia" />
     
     <!-- Add/Edit Modal -->
     <div v-if="showAddForm || showEditForm" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">

@@ -88,3 +88,119 @@ Aby zainstalować i uruchomić nowy interfejs:
 npm install
 npm run build
 ```
+
+# Standardizing Admin Panel Search and Sorting Components
+
+This guide provides instructions for standardizing the search, filtering and sorting components across all admin panel pages in the application.
+
+## Available Components
+
+The following reusable components have been created:
+
+1. **SearchFilters** - A standardized search and filtering component
+2. **LoadingSpinner** - A consistent loading indicator
+3. **Pagination** - A standardized pagination component
+4. **ActionButtons** - Standardized action buttons for tables (edit/delete)
+5. **PageHeader** - A consistent page header with title and add button
+6. **NoDataMessage** - A standardized message for when there's no data to display
+
+These components are registered globally in `resources/js/app.js` and can be used in any Vue component.
+
+## How to Standardize an Admin Page
+
+For each admin page (`resources/js/pages/admin/*.vue`), follow these steps:
+
+### 1. Update the Page Header
+
+Replace the custom page header with the standardized component:
+
+```vue
+<page-header 
+  title="Your Page Title"
+  subtitle="Optional subtitle for the page"
+  add-button-label="Add Item"
+  @add="yourAddMethod"
+/>
+```
+
+### 2. Replace Search and Filters
+
+Replace the custom search and filter section with the standardized component:
+
+```vue
+<search-filters
+  v-if="!loading"
+  :filters.sync="filters"
+  :sort-options="sortOptions"
+  search-label="Wyszukaj"
+  search-placeholder="Your placeholder..."
+  @filter-change="yourFilterMethod"
+>
+  <template v-slot:filters>
+    <!-- Your custom filter elements go here -->
+  </template>
+</search-filters>
+```
+
+Define your sort options in the setup/data section:
+
+```js
+const sortOptions = [
+  { value: 'created_at', label: 'Data dodania' },
+  { value: 'name', label: 'Nazwa' },
+  // Add more options as needed
+]
+```
+
+### 3. Replace Loading Indicator
+
+Replace custom loading indicators with the standardized component:
+
+```vue
+<loading-spinner v-if="loading" />
+```
+
+### 4. Replace Action Buttons
+
+Replace custom action buttons in tables with the standardized component:
+
+```vue
+<action-buttons 
+  :item="item"
+  @edit="editItem"
+  @delete="confirmDelete"
+/>
+```
+
+### 5. Add No Data Message
+
+Replace custom "no data" messages with the standardized component:
+
+```vue
+<no-data-message v-else message="Brak danych do wyświetlenia" />
+```
+
+### 6. Replace Pagination
+
+If your page has pagination, replace it with the standardized component:
+
+```vue
+<pagination 
+  :pagination="paginationObject" 
+  items-label="elementów" 
+  @page-change="goToPage" 
+/>
+```
+
+## Example
+
+See `resources/js/pages/admin/Tutorials.vue` for a complete example of how to implement these standardized components.
+
+## Benefits
+
+Standardizing these UI elements provides several benefits:
+
+1. Consistent user experience across the admin panel
+2. Easier maintenance and updates
+3. Reduced code duplication
+4. Faster development of new admin pages

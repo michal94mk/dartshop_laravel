@@ -111,6 +111,14 @@ axios.interceptors.response.use(
 // Import FontAwesome
 import '@fortawesome/fontawesome-free/css/all.css';
 
+// Import admin components
+import SearchFilters from './components/admin/SearchFilters.vue';
+import LoadingSpinner from './components/admin/LoadingSpinner.vue';
+import Pagination from './components/admin/Pagination.vue';
+import ActionButtons from './components/admin/ActionButtons.vue';
+import PageHeader from './components/admin/PageHeader.vue';
+import NoDataMessage from './components/admin/NoDataMessage.vue';
+
 // Initialize Alpine.js for any legacy code that might still use it
 import Alpine from 'alpinejs';
 window.Alpine = Alpine;
@@ -127,6 +135,14 @@ const pinia = createPinia();
 
 // Create Vue App
 const app = createApp(App);
+
+// Register global components
+app.component('SearchFilters', SearchFilters);
+app.component('LoadingSpinner', LoadingSpinner);
+app.component('Pagination', Pagination);
+app.component('ActionButtons', ActionButtons);
+app.component('PageHeader', PageHeader);
+app.component('NoDataMessage', NoDataMessage);
 
 // Use Plugins
 app.use(router);
