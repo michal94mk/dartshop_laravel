@@ -43,7 +43,18 @@ class CategoryController extends BaseAdminController
             // Apply sorting
             $sortField = $request->sort_field ?? 'created_at';
             $sortDirection = $request->sort_direction ?? 'desc';
-            $query->orderBy($sortField, $sortDirection);
+            
+            // Handle special case for products_count which is not a direct database column
+            if ($sortField === 'products_count') {
+                $query->orderBy('products_count', $sortDirection);
+            } else {
+                // Make sure the column exists in the categories table to prevent SQL errors
+                if (in_array($sortField, ['id', 'name', 'created_at', 'updated_at'])) {
+                    $query->orderBy($sortField, $sortDirection);
+                } else {
+                    $query->orderBy('created_at', 'desc'); // Default fallback
+                }
+            }
             
             // Paginate results
             $perPage = $request->per_page ?? 10;
@@ -54,7 +65,8 @@ class CategoryController extends BaseAdminController
             return response()->json($categories);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('CategoryController@index error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all()
             ]);
             return $this->errorResponse('Error fetching categories: ' . $e->getMessage(), 500);
         }

@@ -12,25 +12,52 @@
       </div>
     </div>
     
-    <!-- Search bar -->
-    <div class="mt-4 flex justify-between px-6">
-      <div class="w-full max-w-lg lg:max-w-xs">
-        <label for="search" class="sr-only">Szukaj</label>
-        <div class="relative">
-          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-            </svg>
+    <!-- Search and filters -->
+    <div class="mt-6 bg-white shadow px-4 py-5 sm:rounded-lg sm:px-6">
+      <div class="flex flex-wrap gap-4">
+        <div class="flex-1 min-w-[200px]">
+          <label for="search" class="block text-sm font-medium text-gray-700">Wyszukaj</label>
+          <div class="mt-1">
+            <input
+              type="text"
+              name="search"
+              id="search"
+              v-model="filters.search"
+              @input="onSearchChange"
+              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              placeholder="Nazwa kategorii..."
+            />
           </div>
-          <input
-            id="search"
-            name="search"
-            class="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 leading-5 placeholder-gray-500 focus:border-indigo-500 focus:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
-            placeholder="Szukaj kategorii..."
-            type="search"
-            v-model="filters.search"
-            @input="onSearchChange"
-          />
+        </div>
+        
+        <div class="w-full sm:w-auto">
+          <label for="sort" class="block text-sm font-medium text-gray-700">Sortuj</label>
+          <select
+            id="sort"
+            name="sort"
+            v-model="filters.sort_field"
+            @change="fetchCategories"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="id">ID</option>
+            <option value="name">Nazwa</option>
+            <option value="created_at">Data utworzenia</option>
+            <option value="products_count">Liczba produktów</option>
+          </select>
+        </div>
+        
+        <div class="w-full sm:w-auto">
+          <label for="direction" class="block text-sm font-medium text-gray-700">Kierunek</label>
+          <select
+            id="direction"
+            name="direction"
+            v-model="filters.sort_direction"
+            @change="fetchCategories"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="desc">Malejąco</option>
+            <option value="asc">Rosnąco</option>
+          </select>
         </div>
       </div>
     </div>
@@ -51,6 +78,7 @@
             <table class="min-w-full divide-y divide-gray-300">
               <thead class="bg-gray-50">
                 <tr>
+                  <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">ID</th>
                   <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Nazwa</th>
                   <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Liczba produktów</th>
                   <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Data utworzenia</th>
@@ -61,6 +89,9 @@
               </thead>
               <tbody class="divide-y divide-gray-200 bg-white">
                 <tr v-for="category in categories.data" :key="category.id">
+                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                    {{ category.id }}
+                  </td>
                   <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                     {{ category.name }}
                   </td>
@@ -76,7 +107,7 @@
                   </td>
                 </tr>
                 <tr v-if="categories.data && categories.data.length === 0">
-                  <td colspan="4" class="px-3 py-4 text-sm text-gray-500 text-center">Brak kategorii</td>
+                  <td colspan="5" class="px-3 py-4 text-sm text-gray-500 text-center">Brak kategorii</td>
                 </tr>
               </tbody>
             </table>

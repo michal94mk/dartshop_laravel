@@ -5,21 +5,55 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Models\Brand;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class BrandController extends BaseAdminController
 {
     /**
      * Display a listing of the brands.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $brands = Brand::withCount('products')->get();
+            $query = Brand::withCount('products');
+            
+            // Apply search filter
+            if ($request->has('search') && !empty($request->search)) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                });
+            }
+            
+            // Apply sorting
+            $sortField = $request->sort_field ?? 'id';
+            $sortDirection = $request->sort_direction ?? 'asc';
+            
+            // Handle special case for products_count which is not a direct database column
+            if ($sortField === 'products_count') {
+                $query->orderBy('products_count', $sortDirection);
+            } else {
+                // Make sure the column exists in the brands table to prevent SQL errors
+                if (in_array($sortField, ['id', 'name', 'created_at', 'updated_at'])) {
+                    $query->orderBy($sortField, $sortDirection);
+                } else {
+                    $query->orderBy('id', 'asc'); // Default fallback
+                }
+            }
+            
+            // Paginate results
+            $perPage = $request->per_page ?? 10;
+            $brands = $query->paginate($perPage);
+            
             return response()->json($brands);
         } catch (\Exception $e) {
+            Log::error('Error fetching brands: ' . $e->getMessage(), [
+                'exception' => $e,
+                'request' => $request->all()
+            ]);
             return $this->errorResponse('Error fetching brands: ' . $e->getMessage(), 500);
         }
     }
@@ -34,24 +68,16 @@ class BrandController extends BaseAdminController
     {
         try {
             $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'logo' => 'nullable|string',
-                'slug' => 'nullable|string|max:255|unique:brands,slug',
+                'name' => 'required|string|max:255|unique:brands,name',
             ]);
 
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $data = $request->all();
-            
-            // Generate slug if not provided
-            if (empty($data['slug'])) {
-                $data['slug'] = Str::slug($data['name']);
-            }
-
-            $brand = Brand::create($data);
+            $brand = Brand::create([
+                'name' => $request->name
+            ]);
 
             return $this->successResponse('Brand created successfully', $brand, 201);
         } catch (\Exception $e) {
@@ -88,24 +114,16 @@ class BrandController extends BaseAdminController
             $brand = Brand::findOrFail($id);
 
             $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'logo' => 'nullable|string',
-                'slug' => 'nullable|string|max:255|unique:brands,slug,' . $id,
+                'name' => 'required|string|max:255|unique:brands,name,' . $id,
             ]);
 
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $data = $request->all();
-            
-            // Generate slug if not provided
-            if (empty($data['slug'])) {
-                $data['slug'] = Str::slug($data['name']);
-            }
-
-            $brand->update($data);
+            $brand->update([
+                'name' => $request->name
+            ]);
 
             return $this->successResponse('Brand updated successfully', $brand);
         } catch (\Exception $e) {
