@@ -119,11 +119,17 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200 bg-white">
-                <tr v-for="product in products.data" :key="product.id">
+                <tr v-for="product in products.data" :key="product.id" :data-product-id="product.id">
                   <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                     <div class="flex items-center">
                       <div class="h-10 w-10 flex-shrink-0">
-                        <img v-if="product.image" :src="product.image" class="h-10 w-10 rounded-full object-cover" />
+                        <img 
+                          v-if="product.image && !product.imageError" 
+                          :src="product.fallbackSrc || getImageSrc(product.image)" 
+                          class="h-10 w-10 rounded-full object-cover" 
+                          @error="tryFallbackImage(product)"
+                          alt="Product image" 
+                        />
                         <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
                           <svg class="h-6 w-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -290,11 +296,20 @@
                     <div>
                       <label class="block text-sm font-medium text-gray-700">Zdjęcie produktu</label>
                       <div class="mt-1 flex items-center">
-                        <span v-if="currentProduct.image && !isFileObject(currentProduct.image)" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
-                          <img :src="currentProduct.image" class="h-full w-full object-cover" />
+                        <span v-if="currentProduct.image && !isFileObject(currentProduct.image) && !currentProductImageError" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
+                          <img 
+                            :src="currentProduct.fallbackSrc || getImageSrc(currentProduct.image)" 
+                            class="h-full w-full object-cover modal-product-image" 
+                            @error="tryModalFallbackImage()" 
+                            alt="Product image"
+                          />
                         </span>
                         <span v-else-if="currentProduct.image && isFileObject(currentProduct.image)" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
-                          <img :src="getImagePreviewUrl(currentProduct.image)" class="h-full w-full object-cover" />
+                          <img 
+                            :src="getImagePreviewUrl(currentProduct.image)" 
+                            class="h-full w-full object-cover"
+                            alt="Uploaded image"
+                          />
                         </span>
                         <span v-else class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
                           <svg class="h-full w-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
@@ -303,14 +318,14 @@
                         </span>
                         <input
                           type="file"
-                          ref="fileInput"
+                          id="file-upload"
                           class="hidden"
                           accept="image/*"
                           @change="handleFileChange"
                         />
                         <button
                           type="button"
-                          @click="fileInput.value.click()"
+                          @click="triggerFileUpload"
                           class="ml-5 bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         >
                           {{ currentProduct.image ? 'Zmień zdjęcie' : 'Dodaj zdjęcie' }}
@@ -402,39 +417,6 @@ import { useAlertStore } from '../../stores/alertStore'
 import axios from 'axios'
 import debounce from 'lodash/debounce'
 
-// Add axios interceptors for debugging
-axios.interceptors.request.use(config => {
-  console.log('Axios Request:', {
-    url: config.url,
-    method: config.method,
-    data: config.data,
-    params: config.params,
-    headers: config.headers
-  })
-  return config
-}, error => {
-  console.error('Axios Request Error:', error)
-  return Promise.reject(error)
-})
-
-axios.interceptors.response.use(response => {
-  console.log('Axios Response:', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    headers: response.headers
-  })
-  return response
-}, error => {
-  console.error('Axios Response Error:', error.response ? {
-    status: error.response.status,
-    statusText: error.response.statusText,
-    data: error.response.data,
-    headers: error.response.headers
-  } : error)
-  return Promise.reject(error)
-})
-
 export default {
   name: 'AdminProducts',
   setup() {
@@ -476,6 +458,12 @@ export default {
       image: null
     })
     
+    // Flag to track if the current product image failed to load
+    const currentProductImageError = ref(false)
+    
+    // File input ref
+    const fileInput = ref(null)
+    
     // Computed
     const paginationPages = computed(() => {
       const total = products.value.last_page
@@ -514,7 +502,24 @@ export default {
         }
         
         const response = await axios.get('/api/admin/products', { params })
-        console.log('Products response:', response)
+        
+        // Initialize imageError property for each product
+        if (response.data && response.data.data) {
+          response.data.data.forEach(product => {
+            // Add the imageError property to track image loading failures
+            product.imageError = false;
+            
+            // Pre-transform image paths for directly uploaded files
+            if (product.image && (
+                product.image.includes('/storage/products/') || 
+                product.image.includes('storage/products/')
+            )) {
+              // This is a directly uploaded file, should work with the /storage symlink
+              product.fallbackSrc = getApiBaseUrl() + (product.image.startsWith('/') ? product.image : `/${product.image}`);
+            }
+          });
+        }
+        
         products.value = response.data
       } catch (error) {
         console.error('Error fetching products:', error)
@@ -527,10 +532,72 @@ export default {
     
     const debouncedFetchProducts = debounce(fetchProducts, 300)
     
-    // File input ref
-    const fileInput = ref(null)
+    const getImagePreviewUrl = (file) => {
+      // Create a URL for File objects
+      if (isFileObject(file) && typeof URL !== 'undefined') {
+        return URL.createObjectURL(file);
+      }
+      return '';
+    }
     
-    // Helper methods for handling files
+    // Setup API base URL for image references
+    const getApiBaseUrl = () => {
+      // Get from axios defaults if available
+      if (axios.defaults.baseURL) {
+        // Remove the /api part if present
+        return axios.defaults.baseURL.replace(/\/api$/, '');
+      }
+      
+      // Fallback to window.location origin
+      return window.location.origin;
+    };
+    
+    // Array of possible paths to try for product images
+    const imageFallbackPaths = [
+      // For user-uploaded images (which have /storage/products/ paths)
+      (imageName) => `/storage/products/${imageName}`,
+      
+      // For the default product images (either directly in storage or in img)
+      (imageName) => `/img/${imageName}`,
+      (imageName) => `/storage/${imageName}`,
+      
+      // Less likely but worth trying
+      (imageName) => `/images/${imageName}`,
+      (imageName) => `/${imageName}`
+    ];
+    
+    const getImageSrc = (imagePath) => {
+      if (!imagePath) return '';
+      
+      // Get the API base URL (without /api) for full URLs
+      const apiBaseUrl = getApiBaseUrl();
+      
+      // If it's already a full URL, return it as is
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+      }
+      
+      // If it starts with '/storage/' already, make it absolute
+      if (imagePath.startsWith('/storage/')) {
+        // Ensure the path is absolute by prefixing with API base URL if needed
+        return imagePath.startsWith('http') ? imagePath : `${apiBaseUrl}${imagePath}`;
+      }
+      
+      // If it starts with a slash, make it absolute
+      if (imagePath.startsWith('/')) {
+        return `${apiBaseUrl}${imagePath}`;
+      }
+      
+      // Check if it starts with 'storage/' (without leading slash)
+      if (imagePath.startsWith('storage/')) {
+        return `${apiBaseUrl}/${imagePath}`;
+      }
+      
+      // For "simple" filenames like "product.jpg" try the img directory first
+      const imgPath = `${apiBaseUrl}/img/${imagePath}`;
+      return imgPath;
+    };
+    
     const isFileObject = (obj) => {
       // Check if it's a File object by looking for typical File properties
       return obj && 
@@ -540,12 +607,11 @@ export default {
         typeof obj.type === 'string';
     }
     
-    const getImagePreviewUrl = (file) => {
-      // Create a URL for File objects
-      if (isFileObject(file) && typeof URL !== 'undefined') {
-        return URL.createObjectURL(file);
+    const triggerFileUpload = () => {
+      const fileInputElement = document.getElementById('file-upload');
+      if (fileInputElement) {
+        fileInputElement.click();
       }
-      return '';
     }
     
     const handleFileChange = (event) => {
@@ -556,18 +622,23 @@ export default {
     }
     
     const removeImage = () => {
-      currentProduct.value.image = null
-      if (fileInput.value) {
-        fileInput.value.value = ''
+      // Reset the image in the currentProduct
+      currentProduct.value.image = null;
+      
+      // Reset the file input safely
+      const fileInputElement = document.getElementById('file-upload');
+      if (fileInputElement) {
+        try {
+          fileInputElement.value = '';
+        } catch (e) {
+          console.error('Error resetting file input:', e);
+        }
       }
     }
     
     const fetchFormData = async () => {
       try {
-        console.log('Fetching form data')
-        
         const response = await axios.get('/api/admin/products/form-data')
-        console.log('Form data response:', response)
         categories.value = response.data.categories
         brands.value = response.data.brands
       } catch (error) {
@@ -584,7 +655,9 @@ export default {
     }
     
     const openModal = (product = null) => {
-      console.log('Opening modal with product:', product)
+      // Reset the image error flag and fallback index
+      currentProductImageError.value = false
+      modalFallbackPathIndex.value = 0
       
       if (product) {
         // Make a deep copy of the product to prevent reactivity issues
@@ -595,9 +668,9 @@ export default {
           price: product.price,
           category_id: product.category_id,
           brand_id: product.brand_id,
-          image: product.image
+          image: product.image,
+          fallbackSrc: product.fallbackSrc // Keep the fallback source if already found
         }
-        console.log('Set currentProduct to:', currentProduct.value)
       } else {
         // Default values for new product
         currentProduct.value = {
@@ -609,7 +682,6 @@ export default {
           brand_id: brands.value.length ? brands.value[0].id : '',
           image: null
         }
-        console.log('Set new product defaults:', currentProduct.value)
       }
       
       showModal.value = true
@@ -621,7 +693,6 @@ export default {
         
         // Check if we're dealing with a file upload
         const hasFileUpload = isFileObject(currentProduct.value.image);
-        console.log('Has file upload:', hasFileUpload);
         
         let response;
         
@@ -634,8 +705,6 @@ export default {
           formData.append('category_id', parseInt(currentProduct.value.category_id));
           formData.append('brand_id', parseInt(currentProduct.value.brand_id));
           formData.append('image', currentProduct.value.image);
-          
-          console.log('Saving product with FormData (file upload)');
           
           if (currentProduct.value.id) {
             // Update with file upload
@@ -664,16 +733,12 @@ export default {
             brand_id: parseInt(currentProduct.value.brand_id)
           };
           
-          console.log('Saving product with JSON data (no file upload):', productData);
-          
           // Ensure CSRF token is available
           const csrfToken = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)');
-          console.log('CSRF Token available:', !!csrfToken);
           
           if (currentProduct.value.id) {
             // Update existing product
             const url = `/api/admin/products/${currentProduct.value.id}`;
-            console.log('PUT request to:', url);
             
             // Try with explicit headers and X-HTTP-Method-Override
             response = await axios({
@@ -691,12 +756,9 @@ export default {
             });
           } else {
             // Create new product
-            console.log('Creating new product');
             response = await axios.post('/api/admin/products', productData);
           }
         }
-        
-        console.log('Product saved successfully:', response.data);
         
         if (currentProduct.value.id) {
           alertStore.success('Produkt został zaktualizowany.');
@@ -726,7 +788,6 @@ export default {
     }
     
     const deleteProduct = (id) => {
-      console.log('Requesting delete for product ID:', id)
       productToDelete.value = id
       showDeleteModal.value = true
     }
@@ -734,7 +795,6 @@ export default {
     const confirmDelete = async () => {
       try {
         loading.value = true
-        console.log('Confirming delete for product ID:', productToDelete.value)
         
         // Ensure we have a product ID to delete
         if (!productToDelete.value) {
@@ -745,11 +805,9 @@ export default {
         
         // Ensure CSRF token is available
         const csrfToken = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)')
-        console.log('CSRF Token available:', !!csrfToken)
         
         // Send delete request with method spoofing for better compatibility
         const url = `/api/admin/products/${productToDelete.value}`
-        console.log('DELETE request to:', url)
         
         const response = await axios({
           method: 'post',
@@ -763,8 +821,6 @@ export default {
             'Accept': 'application/json'
           }
         })
-        
-        console.log('Product deleted successfully:', response.data)
         
         // Show success message
         alertStore.success('Produkt został usunięty.')
@@ -798,6 +854,97 @@ export default {
       return text.length > length ? text.substring(0, length) + '...' : text
     }
     
+    // Track which fallback path we're trying for each product
+    const fallbackPathIndex = new Map();
+    
+    // Try fallback image paths when the primary one fails
+    const tryFallbackImage = (product) => {
+      if (!product.image) {
+        product.imageError = true;
+        return;
+      }
+      
+      // Extract just the filename without any path
+      let imageName = product.image;
+      if (imageName.includes('/')) {
+        imageName = imageName.substring(imageName.lastIndexOf('/') + 1);
+      }
+      
+      // Initialize fallback index if not already set
+      if (!fallbackPathIndex.has(product.id)) {
+        fallbackPathIndex.set(product.id, 0);
+      }
+      
+      // Get current index and increment for next fallback
+      const currentIndex = fallbackPathIndex.get(product.id);
+      fallbackPathIndex.set(product.id, currentIndex + 1);
+      
+      // If we've tried all fallbacks, give up and show placeholder
+      if (currentIndex >= imageFallbackPaths.length) {
+        product.imageError = true;
+        return;
+      }
+      
+      // Try the next fallback path
+      const fallbackPathRelative = imageFallbackPaths[currentIndex](imageName);
+      const apiBaseUrl = getApiBaseUrl();
+      const fallbackPath = `${apiBaseUrl}${fallbackPathRelative}`;
+      
+      // Update the product's image path to use fallback
+      product.fallbackSrc = fallbackPath;
+      
+      // Slight delay to prevent immediate error trigger again
+      setTimeout(() => {
+        const img = document.querySelector(`[data-product-id="${product.id}"] img`);
+        if (img) {
+          img.src = fallbackPath;
+        }
+      }, 100); // Increased timeout for more reliable loading
+    }
+    
+    // Track which fallback path we're trying for the modal
+    const modalFallbackPathIndex = ref(0);
+    
+    // Try fallback image paths for the current product in the modal
+    const tryModalFallbackImage = () => {
+      if (!currentProduct.value.image) {
+        currentProductImageError.value = true;
+        return;
+      }
+      
+      // Extract just the filename without any path
+      let imageName = currentProduct.value.image;
+      if (imageName.includes('/')) {
+        imageName = imageName.substring(imageName.lastIndexOf('/') + 1);
+      }
+      
+      // Get current index and increment for next fallback
+      const currentIndex = modalFallbackPathIndex.value;
+      modalFallbackPathIndex.value++;
+      
+      // If we've tried all fallbacks, give up and show placeholder
+      if (currentIndex >= imageFallbackPaths.length) {
+        currentProductImageError.value = true;
+        return;
+      }
+      
+      // Try the next fallback path
+      const fallbackPathRelative = imageFallbackPaths[currentIndex](imageName);
+      const apiBaseUrl = getApiBaseUrl();
+      const fallbackPath = `${apiBaseUrl}${fallbackPathRelative}`;
+      
+      // Update the current product's fallback source
+      currentProduct.value.fallbackSrc = fallbackPath;
+      
+      // Slight delay to prevent immediate error trigger again
+      setTimeout(() => {
+        const img = document.querySelector('.modal-product-image');
+        if (img) {
+          img.src = fallbackPath;
+        }
+      }, 100);
+    }
+    
     // Watch for filter changes
     watch(() => filters.page, () => {
       fetchProducts()
@@ -819,6 +966,7 @@ export default {
       showModal,
       showDeleteModal,
       currentProduct,
+      currentProductImageError,
       fetchProducts,
       debouncedFetchProducts,
       goToPage,
@@ -831,6 +979,10 @@ export default {
       removeImage,
       isFileObject,
       getImagePreviewUrl,
+      getImageSrc,
+      triggerFileUpload,
+      tryFallbackImage,
+      tryModalFallbackImage
     }
   }
 }
