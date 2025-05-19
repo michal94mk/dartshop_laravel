@@ -10,6 +10,86 @@
       </button>
     </div>
     
+    <!-- Search and filters -->
+    <div v-if="!loading" class="mt-6 bg-white shadow px-4 py-5 sm:rounded-lg sm:px-6">
+      <div class="flex flex-wrap gap-4">
+        <div class="flex-1 min-w-[200px]">
+          <label for="search" class="block text-sm font-medium text-gray-700">Wyszukaj</label>
+          <div class="mt-1">
+            <input
+              type="text"
+              name="search"
+              id="search"
+              v-model="filters.search"
+              @input="debouncedFilterPromotions"
+              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              placeholder="Nazwa lub kod promocji..."
+            />
+          </div>
+        </div>
+        
+        <div class="w-full sm:w-auto">
+          <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+          <select
+            id="status"
+            name="status"
+            v-model="filters.status"
+            @change="filterPromotions"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="">Wszystkie</option>
+            <option value="active">Aktywne</option>
+            <option value="inactive">Nieaktywne</option>
+          </select>
+        </div>
+        
+        <div class="w-full sm:w-auto">
+          <label for="type" class="block text-sm font-medium text-gray-700">Typ</label>
+          <select
+            id="type"
+            name="type"
+            v-model="filters.type"
+            @change="filterPromotions"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="">Wszystkie</option>
+            <option value="percentage">Procentowe</option>
+            <option value="fixed">Kwotowe</option>
+          </select>
+        </div>
+        
+        <div class="w-full sm:w-auto">
+          <label for="sort" class="block text-sm font-medium text-gray-700">Sortuj</label>
+          <select
+            id="sort"
+            name="sort"
+            v-model="filters.sort_field"
+            @change="filterPromotions"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="created_at">Data dodania</option>
+            <option value="expires_at">Data ważności</option>
+            <option value="name">Nazwa</option>
+            <option value="value">Wartość</option>
+          </select>
+        </div>
+        
+        <div class="w-full sm:w-auto">
+          <label for="direction" class="block text-sm font-medium text-gray-700">Kierunek</label>
+          <select
+            id="direction"
+            name="direction"
+            v-model="filters.sort_direction"
+            @change="filterPromotions"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="desc">Malejąco</option>
+            <option value="asc">Rosnąco</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    
     <!-- Loading indicator -->
     <div v-if="loading" class="flex justify-center my-12">
       <svg class="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -19,7 +99,7 @@
     </div>
     
     <!-- Promotions Table -->
-    <div v-else-if="promotions.length" class="bg-white shadow overflow-hidden sm:rounded-md">
+    <div v-else-if="filteredPromotions.length" class="bg-white shadow overflow-hidden sm:rounded-md mt-6">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -34,7 +114,7 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="promotion in promotions" :key="promotion.id">
+          <tr v-for="promotion in filteredPromotions" :key="promotion.id">
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ promotion.id }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ promotion.name }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -69,7 +149,7 @@
         </tbody>
       </table>
     </div>
-    <div v-else class="bg-white shadow overflow-hidden sm:rounded-md p-6 text-center text-gray-500">
+    <div v-else class="bg-white shadow overflow-hidden sm:rounded-md p-6 text-center text-gray-500 mt-6">
       Brak promocji do wyświetlenia
     </div>
     
@@ -256,7 +336,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
 
@@ -270,16 +350,15 @@ export default {
     const showEditForm = ref(false)
     const showDeleteModal = ref(false)
     const promotionToDelete = ref({})
-    const form = ref({
-      name: '',
-      code: '',
-      description: '',
-      type: 'percentage',
-      value: 0,
-      min_order_value: 0,
-      max_uses: null,
-      expires_at: '',
-      active: true
+    const searchTimeout = ref(null)
+    
+    // Filters
+    const filters = ref({
+      search: '',
+      status: '',
+      type: '',
+      sort_field: 'expires_at',
+      sort_direction: 'asc'
     })
     
     // Fetch all promotions
@@ -295,6 +374,73 @@ export default {
         loading.value = false
       }
     }
+    
+    // Filter promotions
+    const filterPromotions = () => {
+      // This is just a UI function to trigger the filteredPromotions computed property
+      console.log('Filtering with:', filters.value)
+    }
+    
+    // Debounced filter promotions
+    const debouncedFilterPromotions = () => {
+      if (searchTimeout.value) {
+        clearTimeout(searchTimeout.value)
+      }
+      
+      searchTimeout.value = setTimeout(() => {
+        filterPromotions()
+      }, 300)
+    }
+    
+    // Sort function
+    const sortPromotions = (a, b) => {
+      const direction = filters.value.sort_direction === 'asc' ? 1 : -1
+      
+      switch (filters.value.sort_field) {
+        case 'name':
+          return a.name.localeCompare(b.name) * direction
+        case 'value':
+          return (a.value - b.value) * direction
+        case 'expires_at':
+          return (new Date(a.expires_at) - new Date(b.expires_at)) * direction
+        case 'created_at':
+        default:
+          return (new Date(a.created_at) - new Date(b.created_at)) * direction
+      }
+    }
+    
+    // Filtered promotions
+    const filteredPromotions = computed(() => {
+      return promotions.value
+        .filter(promotion => {
+          // Filter by status
+          if (filters.value.status === 'active' && !promotion.active) {
+            return false
+          }
+          if (filters.value.status === 'inactive' && promotion.active) {
+            return false
+          }
+          
+          // Filter by type
+          if (filters.value.type && promotion.type !== filters.value.type) {
+            return false
+          }
+          
+          // Filter by search text (name or code)
+          if (filters.value.search) {
+            const searchText = filters.value.search.toLowerCase()
+            const name = promotion.name.toLowerCase()
+            const code = promotion.code.toLowerCase()
+            
+            if (!name.includes(searchText) && !code.includes(searchText)) {
+              return false
+            }
+          }
+          
+          return true
+        })
+        .sort(sortPromotions)
+    })
     
     // Add new promotion
     const addPromotion = async () => {
@@ -380,7 +526,7 @@ export default {
     
     // Format date
     const formatDate = (dateString) => {
-      if (!dateString) return 'Bezterminowa'
+      if (!dateString) return 'Brak'
       const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
       return new Date(dateString).toLocaleDateString('pl-PL', options)
     }
@@ -395,8 +541,8 @@ export default {
     // Get promotion type display name
     const getPromotionTypeName = (type) => {
       switch (type) {
-        case 'percentage': return 'Procentowy'
-        case 'fixed': return 'Kwotowy'
+        case 'percentage': return 'Procentowa'
+        case 'fixed': return 'Kwotowa'
         default: return type
       }
     }
@@ -419,11 +565,13 @@ export default {
     return {
       loading,
       promotions,
+      filteredPromotions,
       showAddForm,
       showEditForm,
       showDeleteModal,
       promotionToDelete,
-      form,
+      filters,
+      form: ref({}),
       fetchPromotions,
       addPromotion,
       editPromotion,
@@ -431,9 +579,11 @@ export default {
       confirmDelete,
       deletePromotion,
       closeForm,
-      formatDate,
       getPromotionTypeName,
-      generateCode
+      formatDate,
+      generateCode,
+      filterPromotions,
+      debouncedFilterPromotions
     }
   }
 }

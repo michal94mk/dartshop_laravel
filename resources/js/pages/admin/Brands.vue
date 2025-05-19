@@ -10,6 +10,29 @@
       </button>
     </div>
     
+    <!-- Search bar -->
+    <div class="mt-4 flex justify-between">
+      <div class="w-full max-w-lg lg:max-w-xs">
+        <label for="search" class="sr-only">Szukaj</label>
+        <div class="relative">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <input
+            id="search"
+            name="search"
+            class="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 leading-5 placeholder-gray-500 focus:border-indigo-500 focus:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+            placeholder="Szukaj marek..."
+            type="search"
+            v-model="searchQuery"
+            @input="onSearchChange"
+          />
+        </div>
+      </div>
+    </div>
+    
     <!-- Loading indicator -->
     <div v-if="loading" class="flex justify-center my-12">
       <svg class="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -19,7 +42,7 @@
     </div>
     
     <!-- Brands Table -->
-    <div v-else-if="brands.length" class="bg-white shadow overflow-hidden sm:rounded-md">
+    <div v-else-if="filteredBrands.length" class="bg-white shadow overflow-hidden sm:rounded-md mt-4">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -31,7 +54,7 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="brand in brands" :key="brand.id">
+          <tr v-for="brand in filteredBrands" :key="brand.id">
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ brand.id }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ brand.name }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ brand.slug }}</td>
@@ -54,7 +77,7 @@
         </tbody>
       </table>
     </div>
-    <div v-else class="bg-white shadow overflow-hidden sm:rounded-md p-6 text-center text-gray-500">
+    <div v-else class="bg-white shadow overflow-hidden sm:rounded-md p-6 text-center text-gray-500 mt-4">
       Brak marek do wyświetlenia
     </div>
     
@@ -146,7 +169,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
 
@@ -160,10 +183,35 @@ export default {
     const showEditForm = ref(false)
     const showDeleteModal = ref(false)
     const brandToDelete = ref({})
+    const searchQuery = ref('')
+    const searchTimeout = ref(null)
     const form = ref({
       name: '',
       slug: ''
     })
+    
+    // Computed property for filtered brands
+    const filteredBrands = computed(() => {
+      if (!searchQuery.value) return brands.value
+      
+      const query = searchQuery.value.toLowerCase()
+      return brands.value.filter(brand => 
+        brand.name.toLowerCase().includes(query) || 
+        brand.slug.toLowerCase().includes(query)
+      )
+    })
+    
+    // Debounced search
+    const onSearchChange = () => {
+      if (searchTimeout.value) {
+        clearTimeout(searchTimeout.value)
+      }
+      
+      searchTimeout.value = setTimeout(() => {
+        // We're filtering client-side, so no need to fetch
+        // Just let the computed property handle it
+      }, 300)
+    }
     
     // Fetch all brands
     const fetchBrands = async () => {
@@ -261,11 +309,14 @@ export default {
     return {
       loading,
       brands,
+      filteredBrands,
       showAddForm,
       showEditForm,
       showDeleteModal,
       brandToDelete,
       form,
+      searchQuery,
+      onSearchChange,
       fetchBrands,
       addBrand,
       editBrand,

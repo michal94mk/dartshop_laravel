@@ -12,16 +12,32 @@
       </svg>
     </div>
     
-    <!-- Filter Controls -->
-    <div v-else class="mb-6 bg-white p-4 rounded-md shadow-sm">
-      <div class="flex flex-wrap gap-4 items-center">
-        <div>
-          <label for="status-filter" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-          <select 
-            id="status-filter"
+    <!-- Search and Filters -->
+    <div v-else class="mt-6 bg-white shadow px-4 py-5 sm:rounded-lg sm:px-6">
+      <div class="flex flex-wrap gap-4">
+        <div class="flex-1 min-w-[200px]">
+          <label for="search" class="block text-sm font-medium text-gray-700">Wyszukaj</label>
+          <div class="mt-1">
+            <input
+              type="text"
+              name="search"
+              id="search"
+              v-model="filters.search"
+              @input="debouncedFilterReviews"
+              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              placeholder="Szukaj recenzji..."
+            />
+          </div>
+        </div>
+        
+        <div class="w-full sm:w-auto">
+          <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+          <select
+            id="status"
+            name="status"
             v-model="filters.status"
-            @change="applyFilters"
-            class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            @change="filterReviews"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">Wszystkie</option>
             <option value="pending">Oczekujące</option>
@@ -29,24 +45,15 @@
             <option value="rejected">Odrzucone</option>
           </select>
         </div>
-        <div>
-          <label for="product-filter" class="block text-sm font-medium text-gray-700 mb-1">Produkt</label>
-          <input 
-            type="text"
-            id="product-filter"
-            v-model="filters.product"
-            @input="applyFilters"
-            placeholder="Wyszukaj produkt..."
-            class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          >
-        </div>
-        <div>
-          <label for="rating-filter" class="block text-sm font-medium text-gray-700 mb-1">Min. Ocena</label>
-          <select 
-            id="rating-filter"
+        
+        <div class="w-full sm:w-auto">
+          <label for="rating" class="block text-sm font-medium text-gray-700">Min. Ocena</label>
+          <select
+            id="rating"
+            name="rating"
             v-model="filters.minRating"
-            @change="applyFilters"
-            class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            @change="filterReviews"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">Wszystkie</option>
             <option value="1">1 gwiazdka</option>
@@ -56,19 +63,40 @@
             <option value="5">5 gwiazdek</option>
           </select>
         </div>
-        <div class="flex-1 text-right self-end">
-          <button 
-            @click="clearFilters"
-            class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md"
+        
+        <div class="w-full sm:w-auto">
+          <label for="sort" class="block text-sm font-medium text-gray-700">Sortuj</label>
+          <select
+            id="sort"
+            name="sort"
+            v-model="filters.sort_field"
+            @change="filterReviews"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
-            Wyczyść filtry
-          </button>
+            <option value="created_at">Data dodania</option>
+            <option value="rating">Ocena</option>
+            <option value="product">Produkt</option>
+          </select>
+        </div>
+        
+        <div class="w-full sm:w-auto">
+          <label for="direction" class="block text-sm font-medium text-gray-700">Kierunek</label>
+          <select
+            id="direction"
+            name="direction"
+            v-model="filters.sort_direction"
+            @change="filterReviews"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="desc">Malejąco</option>
+            <option value="asc">Rosnąco</option>
+          </select>
         </div>
       </div>
     </div>
     
     <!-- Reviews Table -->
-    <div v-if="!loading && filteredReviews.length" class="bg-white shadow overflow-hidden sm:rounded-md">
+    <div v-if="!loading && filteredReviews.length" class="bg-white shadow overflow-hidden sm:rounded-md mt-6">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -146,7 +174,7 @@
         </tbody>
       </table>
     </div>
-    <div v-else-if="!loading" class="bg-white shadow overflow-hidden sm:rounded-md p-6 text-center text-gray-500">
+    <div v-else-if="!loading" class="bg-white shadow overflow-hidden sm:rounded-md p-6 text-center text-gray-500 mt-6">
       Brak recenzji do wyświetlenia
     </div>
     
@@ -262,12 +290,15 @@ export default {
     const reviews = ref([])
     const showDetailsModal = ref(false)
     const selectedReview = ref(null)
+    const searchTimeout = ref(null)
     
     // Filters
     const filters = ref({
       status: '',
-      product: '',
-      minRating: ''
+      search: '',
+      minRating: '',
+      sort_field: 'created_at',
+      sort_direction: 'desc'
     })
     
     // Fetch all reviews
@@ -342,41 +373,66 @@ export default {
       }
     }
     
-    // Apply filters
-    const applyFilters = () => {
-      // This is just a UI function to trigger the filteredReviews computed property
-      console.log('Applying filters:', filters.value)
+    // Filter reviews
+    const filterReviews = () => {
+      // Just triggers computed property updates
+      console.log('Filtering with:', filters.value)
     }
     
-    // Clear filters
-    const clearFilters = () => {
-      filters.value = {
-        status: '',
-        product: '',
-        minRating: ''
+    // Debounced filter reviews
+    const debouncedFilterReviews = () => {
+      if (searchTimeout.value) {
+        clearTimeout(searchTimeout.value)
+      }
+      
+      searchTimeout.value = setTimeout(() => {
+        filterReviews()
+      }, 300)
+    }
+    
+    // Sort function
+    const sortReviews = (a, b) => {
+      const direction = filters.value.sort_direction === 'asc' ? 1 : -1
+      
+      switch (filters.value.sort_field) {
+        case 'rating':
+          return (a.rating - b.rating) * direction
+        case 'product':
+          return a.product.name.localeCompare(b.product.name) * direction
+        case 'created_at':
+        default:
+          return (new Date(a.created_at) - new Date(b.created_at)) * direction
       }
     }
     
     // Filtered reviews
     const filteredReviews = computed(() => {
-      return reviews.value.filter(review => {
-        // Filter by status
-        if (filters.value.status && review.status !== filters.value.status) {
-          return false
-        }
-        
-        // Filter by product name
-        if (filters.value.product && !review.product.name.toLowerCase().includes(filters.value.product.toLowerCase())) {
-          return false
-        }
-        
-        // Filter by minimum rating
-        if (filters.value.minRating && review.rating < parseInt(filters.value.minRating)) {
-          return false
-        }
-        
-        return true
-      })
+      return reviews.value
+        .filter(review => {
+          // Filter by status
+          if (filters.value.status && review.status !== filters.value.status) {
+            return false
+          }
+          
+          // Filter by search text (product name or comment)
+          if (filters.value.search) {
+            const searchText = filters.value.search.toLowerCase()
+            const productName = review.product.name.toLowerCase()
+            const comment = review.comment.toLowerCase()
+            
+            if (!productName.includes(searchText) && !comment.includes(searchText)) {
+              return false
+            }
+          }
+          
+          // Filter by minimum rating
+          if (filters.value.minRating && review.rating < parseInt(filters.value.minRating)) {
+            return false
+          }
+          
+          return true
+        })
+        .sort(sortReviews)
     })
     
     onMounted(() => {
@@ -396,8 +452,8 @@ export default {
       showReviewDetails,
       formatDate,
       getStatusName,
-      applyFilters,
-      clearFilters
+      filterReviews,
+      debouncedFilterReviews
     }
   }
 }

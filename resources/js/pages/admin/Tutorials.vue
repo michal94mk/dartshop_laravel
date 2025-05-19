@@ -10,6 +10,86 @@
       </button>
     </div>
     
+    <!-- Search and filters -->
+    <div v-if="!loading" class="mt-6 bg-white shadow px-4 py-5 sm:rounded-lg sm:px-6">
+      <div class="flex flex-wrap gap-4">
+        <div class="flex-1 min-w-[200px]">
+          <label for="search" class="block text-sm font-medium text-gray-700">Wyszukaj</label>
+          <div class="mt-1">
+            <input
+              type="text"
+              name="search"
+              id="search"
+              v-model="filters.search"
+              @input="debouncedFilterTutorials"
+              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              placeholder="Szukaj poradników..."
+            />
+          </div>
+        </div>
+        
+        <div class="w-full sm:w-auto">
+          <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+          <select
+            id="status"
+            name="status"
+            v-model="filters.status"
+            @change="filterTutorials"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="">Wszystkie</option>
+            <option value="draft">Szkice</option>
+            <option value="published">Opublikowane</option>
+            <option value="scheduled">Zaplanowane</option>
+          </select>
+        </div>
+        
+        <div class="w-full sm:w-auto">
+          <label for="featured" class="block text-sm font-medium text-gray-700">Wyróżniony</label>
+          <select
+            id="featured"
+            name="featured"
+            v-model="filters.featured"
+            @change="filterTutorials"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="">Wszystkie</option>
+            <option value="true">Wyróżnione</option>
+            <option value="false">Zwykłe</option>
+          </select>
+        </div>
+        
+        <div class="w-full sm:w-auto">
+          <label for="sort" class="block text-sm font-medium text-gray-700">Sortuj</label>
+          <select
+            id="sort"
+            name="sort"
+            v-model="filters.sort_field"
+            @change="filterTutorials"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="created_at">Data dodania</option>
+            <option value="published_at">Data publikacji</option>
+            <option value="title">Tytuł</option>
+          </select>
+        </div>
+        
+        <div class="w-full sm:w-auto">
+          <label for="direction" class="block text-sm font-medium text-gray-700">Kierunek</label>
+          <select
+            id="direction"
+            name="direction"
+            v-model="filters.sort_direction"
+            @change="filterTutorials"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="desc">Malejąco</option>
+            <option value="asc">Rosnąco</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    
     <!-- Loading indicator -->
     <div v-if="loading" class="flex justify-center my-12">
       <svg class="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -19,7 +99,7 @@
     </div>
     
     <!-- Tutorials Table -->
-    <div v-else-if="tutorials.length" class="bg-white shadow overflow-hidden sm:rounded-md">
+    <div v-else-if="filteredTutorials.length" class="bg-white shadow overflow-hidden sm:rounded-md mt-6">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -33,7 +113,7 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="tutorial in tutorials" :key="tutorial.id">
+          <tr v-for="tutorial in filteredTutorials" :key="tutorial.id">
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ tutorial.id }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ tutorial.title }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -65,7 +145,7 @@
         </tbody>
       </table>
     </div>
-    <div v-else class="bg-white shadow overflow-hidden sm:rounded-md p-6 text-center text-gray-500">
+    <div v-else class="bg-white shadow overflow-hidden sm:rounded-md p-6 text-center text-gray-500 mt-6">
       Brak poradników do wyświetlenia
     </div>
     
@@ -246,7 +326,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
 import { useAuthStore } from '../../stores/authStore'
@@ -262,6 +342,17 @@ export default {
     const showEditForm = ref(false)
     const showDeleteModal = ref(false)
     const tutorialToDelete = ref({})
+    const searchTimeout = ref(null)
+    
+    // Filters
+    const filters = ref({
+      search: '',
+      status: '',
+      featured: '',
+      sort_field: 'published_at',
+      sort_direction: 'desc'
+    })
+    
     const form = ref({
       title: '',
       slug: '',
@@ -288,6 +379,73 @@ export default {
         loading.value = false
       }
     }
+    
+    // Filter tutorials
+    const filterTutorials = () => {
+      // This is just a UI function to trigger the filteredTutorials computed property
+      console.log('Filtering with:', filters.value)
+    }
+    
+    // Debounced filter tutorials
+    const debouncedFilterTutorials = () => {
+      if (searchTimeout.value) {
+        clearTimeout(searchTimeout.value)
+      }
+      
+      searchTimeout.value = setTimeout(() => {
+        filterTutorials()
+      }, 300)
+    }
+    
+    // Sort function
+    const sortTutorials = (a, b) => {
+      const direction = filters.value.sort_direction === 'asc' ? 1 : -1
+      
+      switch (filters.value.sort_field) {
+        case 'title':
+          return a.title.localeCompare(b.title) * direction
+        case 'published_at':
+          const aDate = a.published_at ? new Date(a.published_at) : new Date(0)
+          const bDate = b.published_at ? new Date(b.published_at) : new Date(0)
+          return (aDate - bDate) * direction
+        case 'created_at':
+        default:
+          return (new Date(a.created_at) - new Date(b.created_at)) * direction
+      }
+    }
+    
+    // Filtered tutorials
+    const filteredTutorials = computed(() => {
+      return tutorials.value
+        .filter(tutorial => {
+          // Filter by status
+          if (filters.value.status && tutorial.status !== filters.value.status) {
+            return false
+          }
+          
+          // Filter by featured
+          if (filters.value.featured === 'true' && !tutorial.featured) {
+            return false
+          }
+          if (filters.value.featured === 'false' && tutorial.featured) {
+            return false
+          }
+          
+          // Filter by search text (title or excerpt)
+          if (filters.value.search) {
+            const searchText = filters.value.search.toLowerCase()
+            const title = tutorial.title.toLowerCase()
+            const excerpt = tutorial.excerpt ? tutorial.excerpt.toLowerCase() : ''
+            
+            if (!title.includes(searchText) && !excerpt.includes(searchText)) {
+              return false
+            }
+          }
+          
+          return true
+        })
+        .sort(sortTutorials)
+    })
     
     // Add new tutorial
     const addTutorial = async () => {
@@ -446,10 +604,12 @@ export default {
     return {
       loading,
       tutorials,
+      filteredTutorials,
       showAddForm,
       showEditForm,
       showDeleteModal,
       tutorialToDelete,
+      filters,
       form,
       fetchTutorials,
       addTutorial,
@@ -459,9 +619,12 @@ export default {
       deleteTutorial,
       closeForm,
       formatDate,
+      formatDateForInput,
       generateSlug,
       getStatusLabel,
-      getStatusClass
+      getStatusClass,
+      filterTutorials,
+      debouncedFilterTutorials
     }
   }
 }
