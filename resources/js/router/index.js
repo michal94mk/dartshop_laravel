@@ -27,6 +27,13 @@ import AdminProducts from '../pages/admin/Products.vue';
 import AdminCategories from '../pages/admin/Categories.vue';
 import AdminUsers from '../pages/admin/Users.vue';
 import AdminOrders from '../pages/admin/Orders.vue';
+// Import remaining admin components
+import AdminBrands from '../pages/admin/Brands.vue';
+import AdminReviews from '../pages/admin/Reviews.vue';
+import AdminPromotions from '../pages/admin/Promotions.vue';
+import AdminTutorials from '../pages/admin/Tutorials.vue';
+import AdminContactMessages from '../pages/admin/ContactMessages.vue';
+import AdminAbout from '../pages/admin/About.vue';
 
 const routes = [
   {
@@ -215,6 +222,36 @@ const routes = [
         path: 'orders',
         name: 'admin-orders',
         component: AdminOrders
+      },
+      {
+        path: 'brands',
+        name: 'admin-brands',
+        component: AdminBrands
+      },
+      {
+        path: 'reviews',
+        name: 'admin-reviews',
+        component: AdminReviews
+      },
+      {
+        path: 'promotions',
+        name: 'admin-promotions',
+        component: AdminPromotions
+      },
+      {
+        path: 'tutorials',
+        name: 'admin-tutorials',
+        component: AdminTutorials
+      },
+      {
+        path: 'contact-messages',
+        name: 'admin-contact-messages',
+        component: AdminContactMessages
+      },
+      {
+        path: 'about',
+        name: 'admin-about',
+        component: AdminAbout
       }
     ]
   },

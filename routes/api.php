@@ -17,6 +17,11 @@ use App\Http\Controllers\Api\Admin\CategoryController as AdminCategoryController
 use App\Http\Controllers\Api\Admin\BrandController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\OrderController;
+use App\Http\Controllers\Api\Admin\ReviewController;
+use App\Http\Controllers\Api\Admin\PromotionController;
+use App\Http\Controllers\Api\Admin\TutorialController;
+use App\Http\Controllers\Api\Admin\ContactMessageController;
+use App\Http\Controllers\Api\Admin\AboutPageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -172,23 +177,30 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     // Users management
     Route::apiResource('/users', UserController::class);
     
-    // Promotions management - using full path since controller doesn't exist yet
-    // Route::apiResource('/promotions', App\Http\Controllers\Api\Admin\PromotionController::class);
+    // Promotions management
+    Route::apiResource('/promotions', PromotionController::class);
+    Route::get('/promotions/generate-code', [PromotionController::class, 'generateCode']);
     
     // Orders management
     Route::apiResource('/orders', OrderController::class);
     Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus']);
     Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice']);
     
-    // Reviews management - using full path since controller doesn't exist yet
-    // Route::apiResource('/reviews', App\Http\Controllers\Api\Admin\ReviewController::class);
-    // Route::post('/reviews/{review}/approve', [App\Http\Controllers\Api\Admin\ReviewController::class, 'approve']);
-    // Route::post('/reviews/{review}/reject', [App\Http\Controllers\Api\Admin\ReviewController::class, 'reject']);
+    // Reviews management
+    Route::apiResource('/reviews', ReviewController::class);
+    Route::post('/reviews/{review}/approve', [ReviewController::class, 'approve']);
+    Route::post('/reviews/{review}/reject', [ReviewController::class, 'reject']);
     
-    // Payments management - using full path since controller doesn't exist yet
-    // Route::apiResource('/payments', App\Http\Controllers\Api\Admin\PaymentController::class);
+    // Tutorials management
+    Route::apiResource('/tutorials', TutorialController::class);
     
-    // Roles and permissions - using full path since controllers don't exist yet
-    // Route::apiResource('/roles', App\Http\Controllers\Api\Admin\RoleController::class);
-    // Route::apiResource('/permissions', App\Http\Controllers\Api\Admin\PermissionController::class);
+    // Contact messages management
+    Route::apiResource('/contact-messages', ContactMessageController::class)->only(['index', 'show', 'destroy']);
+    Route::patch('/contact-messages/{id}/status', [ContactMessageController::class, 'updateStatus']);
+    Route::patch('/contact-messages/{id}/mark-as-read', [ContactMessageController::class, 'markAsRead']);
+    Route::patch('/contact-messages/{id}/notes', [ContactMessageController::class, 'updateNotes']);
+    
+    // About page management
+    Route::get('/about', [AboutPageController::class, 'index']);
+    Route::put('/about', [AboutPageController::class, 'update']);
 });
