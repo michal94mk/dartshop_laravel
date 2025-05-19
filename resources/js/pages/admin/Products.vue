@@ -290,19 +290,38 @@
                     <div>
                       <label class="block text-sm font-medium text-gray-700">Zdjęcie produktu</label>
                       <div class="mt-1 flex items-center">
-                        <span v-if="currentProduct.image" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
+                        <span v-if="currentProduct.image && !isFileObject(currentProduct.image)" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
                           <img :src="currentProduct.image" class="h-full w-full object-cover" />
+                        </span>
+                        <span v-else-if="currentProduct.image && isFileObject(currentProduct.image)" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
+                          <img :src="getImagePreviewUrl(currentProduct.image)" class="h-full w-full object-cover" />
                         </span>
                         <span v-else class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
                           <svg class="h-full w-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
                           </svg>
                         </span>
+                        <input
+                          type="file"
+                          ref="fileInput"
+                          class="hidden"
+                          accept="image/*"
+                          @change="handleFileChange"
+                        />
                         <button
                           type="button"
+                          @click="fileInput.value.click()"
                           class="ml-5 bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         >
-                          Zmień
+                          {{ currentProduct.image ? 'Zmień zdjęcie' : 'Dodaj zdjęcie' }}
+                        </button>
+                        <button
+                          v-if="currentProduct.image"
+                          type="button"
+                          @click="removeImage"
+                          class="ml-2 bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-red-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        >
+                          Usuń
                         </button>
                       </div>
                     </div>
@@ -383,6 +402,39 @@ import { useAlertStore } from '../../stores/alertStore'
 import axios from 'axios'
 import debounce from 'lodash/debounce'
 
+// Add axios interceptors for debugging
+axios.interceptors.request.use(config => {
+  console.log('Axios Request:', {
+    url: config.url,
+    method: config.method,
+    data: config.data,
+    params: config.params,
+    headers: config.headers
+  })
+  return config
+}, error => {
+  console.error('Axios Request Error:', error)
+  return Promise.reject(error)
+})
+
+axios.interceptors.response.use(response => {
+  console.log('Axios Response:', {
+    status: response.status,
+    statusText: response.statusText,
+    data: response.data,
+    headers: response.headers
+  })
+  return response
+}, error => {
+  console.error('Axios Response Error:', error.response ? {
+    status: error.response.status,
+    statusText: error.response.statusText,
+    data: error.response.data,
+    headers: error.response.headers
+  } : error)
+  return Promise.reject(error)
+})
+
 export default {
   name: 'AdminProducts',
   setup() {
@@ -452,8 +504,16 @@ export default {
       try {
         loading.value = true
         
-        // Simplifying to match Categories component
-        const response = await axios.get('/api/admin/products')
+        const params = {
+          page: filters.page,
+          search: filters.search,
+          category_id: filters.category_id,
+          brand_id: filters.brand_id,
+          sort_field: filters.sort_field,
+          sort_direction: filters.sort_direction
+        }
+        
+        const response = await axios.get('/api/admin/products', { params })
         console.log('Products response:', response)
         products.value = response.data
       } catch (error) {
@@ -466,6 +526,41 @@ export default {
     }
     
     const debouncedFetchProducts = debounce(fetchProducts, 300)
+    
+    // File input ref
+    const fileInput = ref(null)
+    
+    // Helper methods for handling files
+    const isFileObject = (obj) => {
+      // Check if it's a File object by looking for typical File properties
+      return obj && 
+        typeof obj === 'object' && 
+        typeof obj.name === 'string' && 
+        typeof obj.size === 'number' && 
+        typeof obj.type === 'string';
+    }
+    
+    const getImagePreviewUrl = (file) => {
+      // Create a URL for File objects
+      if (isFileObject(file) && typeof URL !== 'undefined') {
+        return URL.createObjectURL(file);
+      }
+      return '';
+    }
+    
+    const handleFileChange = (event) => {
+      const file = event.target.files[0]
+      if (file) {
+        currentProduct.value.image = file
+      }
+    }
+    
+    const removeImage = () => {
+      currentProduct.value.image = null
+      if (fileInput.value) {
+        fileInput.value.value = ''
+      }
+    }
     
     const fetchFormData = async () => {
       try {
@@ -489,9 +584,22 @@ export default {
     }
     
     const openModal = (product = null) => {
+      console.log('Opening modal with product:', product)
+      
       if (product) {
-        currentProduct.value = { ...product }
+        // Make a deep copy of the product to prevent reactivity issues
+        currentProduct.value = {
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          price: product.price,
+          category_id: product.category_id,
+          brand_id: product.brand_id,
+          image: product.image
+        }
+        console.log('Set currentProduct to:', currentProduct.value)
       } else {
+        // Default values for new product
         currentProduct.value = {
           id: null,
           name: '',
@@ -501,44 +609,187 @@ export default {
           brand_id: brands.value.length ? brands.value[0].id : '',
           image: null
         }
+        console.log('Set new product defaults:', currentProduct.value)
       }
+      
       showModal.value = true
     }
     
     const saveProduct = async () => {
       try {
-        if (currentProduct.value.id) {
-          // Update existing product
-          await axios.put(`/api/admin/products/${currentProduct.value.id}`, currentProduct.value)
-          alertStore.success('Produkt został zaktualizowany.')
+        loading.value = true
+        
+        // Check if we're dealing with a file upload
+        const hasFileUpload = isFileObject(currentProduct.value.image);
+        console.log('Has file upload:', hasFileUpload);
+        
+        let response;
+        
+        if (hasFileUpload) {
+          // Use FormData for file uploads
+          const formData = new FormData();
+          formData.append('name', currentProduct.value.name);
+          formData.append('description', currentProduct.value.description);
+          formData.append('price', parseFloat(currentProduct.value.price));
+          formData.append('category_id', parseInt(currentProduct.value.category_id));
+          formData.append('brand_id', parseInt(currentProduct.value.brand_id));
+          formData.append('image', currentProduct.value.image);
+          
+          console.log('Saving product with FormData (file upload)');
+          
+          if (currentProduct.value.id) {
+            // Update with file upload
+            formData.append('_method', 'PUT'); // Laravel method spoofing
+            
+            response = await axios.post(`/api/admin/products/${currentProduct.value.id}`, formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              }
+            });
+          } else {
+            // Create with file upload
+            response = await axios.post('/api/admin/products', formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              }
+            });
+          }
         } else {
-          // Create new product
-          await axios.post('/api/admin/products', currentProduct.value)
-          alertStore.success('Produkt został dodany.')
+          // Regular JSON update (no file)
+          const productData = { 
+            name: currentProduct.value.name,
+            description: currentProduct.value.description,
+            price: parseFloat(currentProduct.value.price),
+            category_id: parseInt(currentProduct.value.category_id),
+            brand_id: parseInt(currentProduct.value.brand_id)
+          };
+          
+          console.log('Saving product with JSON data (no file upload):', productData);
+          
+          // Ensure CSRF token is available
+          const csrfToken = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)');
+          console.log('CSRF Token available:', !!csrfToken);
+          
+          if (currentProduct.value.id) {
+            // Update existing product
+            const url = `/api/admin/products/${currentProduct.value.id}`;
+            console.log('PUT request to:', url);
+            
+            // Try with explicit headers and X-HTTP-Method-Override
+            response = await axios({
+              method: 'post',
+              url: url,
+              data: { 
+                ...productData,
+                _method: 'PUT'  // Laravel method spoofing
+              },
+              headers: {
+                'Content-Type': 'application/json',
+                'X-HTTP-Method-Override': 'PUT',
+                'Accept': 'application/json'
+              }
+            });
+          } else {
+            // Create new product
+            console.log('Creating new product');
+            response = await axios.post('/api/admin/products', productData);
+          }
         }
         
-        showModal.value = false
-        fetchProducts()
+        console.log('Product saved successfully:', response.data);
+        
+        if (currentProduct.value.id) {
+          alertStore.success('Produkt został zaktualizowany.');
+        } else {
+          alertStore.success('Produkt został dodany.');
+        }
+        
+        // Close modal and refresh products
+        showModal.value = false;
+        await fetchProducts();
       } catch (error) {
-        console.error('Error saving product:', error)
-        alertStore.error('Wystąpił błąd podczas zapisywania produktu.')
+        console.error('Error saving product:', error);
+        console.error('Error details:', error.response?.data);
+        
+        if (error.response?.data?.errors) {
+          // Display validation errors
+          const errors = Object.values(error.response.data.errors).flat();
+          errors.forEach(err => alertStore.error(err));
+        } else if (error.response?.data?.message) {
+          alertStore.error(error.response.data.message);
+        } else {
+          alertStore.error('Wystąpił błąd podczas zapisywania produktu: ' + (error.message || 'Unknown error'));
+        }
+      } finally {
+        loading.value = false;
       }
     }
     
     const deleteProduct = (id) => {
+      console.log('Requesting delete for product ID:', id)
       productToDelete.value = id
       showDeleteModal.value = true
     }
     
     const confirmDelete = async () => {
       try {
-        await axios.delete(`/api/admin/products/${productToDelete.value}`)
+        loading.value = true
+        console.log('Confirming delete for product ID:', productToDelete.value)
+        
+        // Ensure we have a product ID to delete
+        if (!productToDelete.value) {
+          alertStore.error('Nie można usunąć produktu: brak ID.')
+          showDeleteModal.value = false
+          return
+        }
+        
+        // Ensure CSRF token is available
+        const csrfToken = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)')
+        console.log('CSRF Token available:', !!csrfToken)
+        
+        // Send delete request with method spoofing for better compatibility
+        const url = `/api/admin/products/${productToDelete.value}`
+        console.log('DELETE request to:', url)
+        
+        const response = await axios({
+          method: 'post',
+          url: url,
+          data: { 
+            _method: 'DELETE'  // Laravel method spoofing
+          },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-HTTP-Method-Override': 'DELETE',
+            'Accept': 'application/json'
+          }
+        })
+        
+        console.log('Product deleted successfully:', response.data)
+        
+        // Show success message
         alertStore.success('Produkt został usunięty.')
+        
+        // Close modal and refresh data
         showDeleteModal.value = false
-        fetchProducts()
+        productToDelete.value = null
+        await fetchProducts()
       } catch (error) {
         console.error('Error deleting product:', error)
-        alertStore.error('Wystąpił błąd podczas usuwania produktu.')
+        console.error('Error details:', error.response?.data)
+        
+        // Handle different error cases
+        if (error.response?.status === 404) {
+          alertStore.error('Produkt nie został znaleziony.')
+        } else if (error.response?.data?.message) {
+          alertStore.error(error.response.data.message)
+        } else {
+          alertStore.error('Wystąpił błąd podczas usuwania produktu: ' + (error.message || 'Unknown error'))
+        }
+        
+        // Close modal
+        showDeleteModal.value = false
+      } finally {
+        loading.value = false
       }
     }
     
@@ -575,7 +826,11 @@ export default {
       saveProduct,
       deleteProduct,
       confirmDelete,
-      truncate
+      truncate,
+      handleFileChange,
+      removeImage,
+      isFileObject,
+      getImagePreviewUrl,
     }
   }
 }

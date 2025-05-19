@@ -38,8 +38,37 @@ class ProductController extends BaseAdminController
             \Illuminate\Support\Facades\Log::info('Request URI: ' . $request->getRequestUri());
             \Illuminate\Support\Facades\Log::info('Request method: ' . $request->method());
             
-            // Simplified product query for testing
             $query = Product::with(['category', 'brand']);
+            
+            // Apply search filter
+            if ($request->has('search') && !empty($request->search)) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+            
+            // Apply category filter
+            if ($request->has('category_id') && !empty($request->category_id)) {
+                $query->where('category_id', $request->category_id);
+            }
+            
+            // Apply brand filter
+            if ($request->has('brand_id') && !empty($request->brand_id)) {
+                $query->where('brand_id', $request->brand_id);
+            }
+            
+            // Apply sorting
+            $sortField = $request->sort_field ?? 'created_at';
+            $sortDirection = $request->sort_direction ?? 'desc';
+            $query->orderBy($sortField, $sortDirection);
+            
+            // Log query for debugging
+            \Illuminate\Support\Facades\Log::info('Query SQL:', [
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings()
+            ]);
             
             // Paginate results
             $perPage = $this->getPerPage($request);
@@ -64,6 +93,15 @@ class ProductController extends BaseAdminController
      */
     public function store(Request $request)
     {
+        \Illuminate\Support\Facades\Log::info('ProductController@store called with data:', $request->except('image'));
+        if ($request->hasFile('image')) {
+            \Illuminate\Support\Facades\Log::info('Image file received:', [
+                'original_name' => $request->file('image')->getClientOriginalName(),
+                'mime_type' => $request->file('image')->getMimeType(),
+                'size' => $request->file('image')->getSize()
+            ]);
+        }
+        
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'description' => 'required|string',
@@ -75,6 +113,7 @@ class ProductController extends BaseAdminController
         ]);
 
         if ($validator->fails()) {
+            \Illuminate\Support\Facades\Log::warning('ProductController@store validation failed:', $validator->errors()->toArray());
             return $this->errorResponse(
                 'Validation error',
                 422,
@@ -86,16 +125,19 @@ class ProductController extends BaseAdminController
             DB::beginTransaction();
             
             $productData = $request->except('image');
+            \Illuminate\Support\Facades\Log::info('Creating product with data:', $productData);
             
             // Handle the image upload
             if ($request->hasFile('image') && $request->file('image')->isValid()) {
                 $file = $request->file('image');
                 $imageName = Str::slug($request->name) . '-' . time() . '.' . $file->getClientOriginalExtension();
                 $imagePath = $file->storeAs('products', $imageName, 'public');
-                $productData['image'] = 'storage/' . $imagePath;
+                $productData['image'] = '/storage/' . $imagePath;
+                \Illuminate\Support\Facades\Log::info('Image saved:', ['path' => $productData['image']]);
             }
             
             $product = Product::create($productData);
+            \Illuminate\Support\Facades\Log::info('Product created with ID: ' . $product->id);
             
             DB::commit();
             
@@ -106,6 +148,9 @@ class ProductController extends BaseAdminController
             );
         } catch (\Exception $e) {
             DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('Error creating product: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             return $this->errorResponse('Error creating product: ' . $e->getMessage(), 500);
         }
     }
@@ -138,54 +183,87 @@ class ProductController extends BaseAdminController
      */
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|required|string',
-            'price' => 'sometimes|required|numeric|min:0',
-            'category_id' => 'sometimes|required|exists:categories,id',
-            'brand_id' => 'sometimes|required|exists:brands,id',
-            'image' => 'nullable|image|max:2048', // 2MB max
-            'weight' => 'nullable|numeric|min:0',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->errorResponse(
-                'Validation error',
-                422,
-                $validator->errors()
-            );
-        }
-
         try {
+            \Illuminate\Support\Facades\Log::info('ProductController@update called for ID: ' . $id . ' with data:', $request->all());
+            \Illuminate\Support\Facades\Log::info('Content-Type: ' . $request->header('Content-Type'));
+            \Illuminate\Support\Facades\Log::info('Request method: ' . $request->method());
+            
             $product = Product::findOrFail($id);
+            \Illuminate\Support\Facades\Log::info('Found product to update:', ['id' => $product->id, 'name' => $product->name]);
+            
+            $validator = Validator::make($request->all(), [
+                'name' => 'sometimes|required|string|max:255',
+                'description' => 'sometimes|required|string',
+                'price' => 'sometimes|required|numeric|min:0',
+                'category_id' => 'sometimes|required|exists:categories,id',
+                'brand_id' => 'sometimes|required|exists:brands,id',
+                'image' => 'nullable|image|max:2048', // 2MB max
+                'weight' => 'nullable|numeric|min:0',
+            ]);
+
+            if ($validator->fails()) {
+                \Illuminate\Support\Facades\Log::warning('ProductController@update validation failed:', $validator->errors()->toArray());
+                return $this->errorResponse(
+                    'Validation error',
+                    422,
+                    $validator->errors()
+                );
+            }
             
             DB::beginTransaction();
             
-            $productData = $request->except('image');
+            // If the request is json, log that specifically
+            if ($request->isJson()) {
+                \Illuminate\Support\Facades\Log::info('Request is JSON');
+            }
             
-            // Handle the image upload
+            // Get all product data except image and method
+            $productData = $request->except(['image', '_method']);
+            \Illuminate\Support\Facades\Log::info('Updating product with data:', $productData);
+            
+            // Handle the image upload if it exists
             if ($request->hasFile('image') && $request->file('image')->isValid()) {
                 // Delete the old image if it exists
-                if ($product->image && Storage::disk('public')->exists(str_replace('storage/', '', $product->image))) {
-                    Storage::disk('public')->delete(str_replace('storage/', '', $product->image));
+                if ($product->image && Storage::disk('public')->exists(str_replace('/storage/', '', $product->image))) {
+                    Storage::disk('public')->delete(str_replace('/storage/', '', $product->image));
+                    \Illuminate\Support\Facades\Log::info('Deleted previous image: ' . $product->image);
                 }
                 
                 $file = $request->file('image');
                 $imageName = Str::slug($request->name ?? $product->name) . '-' . time() . '.' . $file->getClientOriginalExtension();
                 $imagePath = $file->storeAs('products', $imageName, 'public');
-                $productData['image'] = 'storage/' . $imagePath;
+                $productData['image'] = '/storage/' . $imagePath;
+                \Illuminate\Support\Facades\Log::info('New image saved:', ['path' => $productData['image']]);
+            } elseif ($request->has('image') && $request->image === null) {
+                // If image is explicitly set to null, remove the existing image
+                if ($product->image && Storage::disk('public')->exists(str_replace('/storage/', '', $product->image))) {
+                    Storage::disk('public')->delete(str_replace('/storage/', '', $product->image));
+                    \Illuminate\Support\Facades\Log::info('Deleted image on nullify: ' . $product->image);
+                }
+                $productData['image'] = null;
             }
             
+            \Illuminate\Support\Facades\Log::info('Final product data for update:', $productData);
+            
+            // Perform the update
             $product->update($productData);
+            \Illuminate\Support\Facades\Log::info('Product updated successfully', ['id' => $product->id]);
             
             DB::commit();
             
+            // Return the updated product with relationships
+            $updatedProduct = $product->fresh(['category', 'brand']);
+            \Illuminate\Support\Facades\Log::info('Returning updated product data:', $updatedProduct->toArray());
+            
             return $this->successResponse(
                 'Product updated successfully',
-                $product->fresh(['category', 'brand'])
+                $updatedProduct
             );
         } catch (\Exception $e) {
             DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('Error updating product: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
                 return $this->errorResponse('Product not found', 404);
             }
@@ -202,17 +280,27 @@ class ProductController extends BaseAdminController
     public function destroy($id)
     {
         try {
+            \Illuminate\Support\Facades\Log::info('ProductController@destroy called for ID: ' . $id);
+            
             $product = Product::findOrFail($id);
+            \Illuminate\Support\Facades\Log::info('Found product to delete:', ['id' => $product->id, 'name' => $product->name]);
             
             // Delete the image if it exists
-            if ($product->image && Storage::disk('public')->exists(str_replace('storage/', '', $product->image))) {
-                Storage::disk('public')->delete(str_replace('storage/', '', $product->image));
+            if ($product->image && Storage::disk('public')->exists(str_replace('/storage/', '', $product->image))) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $product->image));
+                \Illuminate\Support\Facades\Log::info('Deleted product image: ' . $product->image);
             }
             
             $product->delete();
+            \Illuminate\Support\Facades\Log::info('Product deleted successfully', ['id' => $id]);
             
             return $this->successResponse('Product deleted successfully');
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error deleting product: ' . $e->getMessage(), [
+                'id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
                 return $this->errorResponse('Product not found', 404);
             }
