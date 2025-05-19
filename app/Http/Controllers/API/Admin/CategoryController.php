@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class CategoryController extends BaseAdminController
 {
@@ -23,29 +22,32 @@ class CategoryController extends BaseAdminController
     /**
      * Display a listing of the categories.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            \Illuminate\Support\Facades\Log::info('Admin CategoryController@index called');
-            \Illuminate\Support\Facades\Log::info('Request URI: ' . request()->getRequestUri());
-            \Illuminate\Support\Facades\Log::info('Request method: ' . request()->method());
-            \Illuminate\Support\Facades\Log::info('Request headers: ' . json_encode(request()->headers->all()));
+            \Illuminate\Support\Facades\Log::info('Admin CategoryController@index called with filters:', $request->all());
             
-            // Check authentication
-            \Illuminate\Support\Facades\Log::info('Auth check: ' . (\Illuminate\Support\Facades\Auth::check() ? 'true' : 'false'));
-            if (\Illuminate\Support\Facades\Auth::check()) {
-                $user = \Illuminate\Support\Facades\Auth::user();
-                \Illuminate\Support\Facades\Log::info('Auth user: ' . $user->email);
-                \Illuminate\Support\Facades\Log::info('User roles: ' . json_encode($user->roles));
-            } else {
-                \Illuminate\Support\Facades\Log::info('User not authenticated');
+            $query = Category::withCount('products');
+            
+            // Apply search filter
+            if ($request->has('search') && !empty($request->search)) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                });
             }
             
-            \Illuminate\Support\Facades\Log::info('Session data: ' . json_encode(session()->all()));
+            // Apply sorting
+            $sortField = $request->sort_field ?? 'created_at';
+            $sortDirection = $request->sort_direction ?? 'desc';
+            $query->orderBy($sortField, $sortDirection);
             
-            $categories = Category::withCount('products')->get();
+            // Paginate results
+            $perPage = $request->per_page ?? 10;
+            $categories = $query->paginate($perPage);
             
             \Illuminate\Support\Facades\Log::info('Admin CategoryController@index success. Categories count: ' . $categories->count());
             
@@ -68,24 +70,16 @@ class CategoryController extends BaseAdminController
     {
         try {
             $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'parent_id' => 'nullable|exists:categories,id',
-                'slug' => 'nullable|string|max:255|unique:categories,slug',
+                'name' => 'required|string|max:255|unique:categories,name',
             ]);
 
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $data = $request->all();
-            
-            // Generate slug if not provided
-            if (empty($data['slug'])) {
-                $data['slug'] = Str::slug($data['name']);
-            }
-
-            $category = Category::create($data);
+            $category = Category::create([
+                'name' => $request->name
+            ]);
 
             return $this->successResponse('Category created successfully', $category, 201);
         } catch (\Exception $e) {
@@ -122,24 +116,16 @@ class CategoryController extends BaseAdminController
             $category = Category::findOrFail($id);
 
             $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'parent_id' => 'nullable|exists:categories,id',
-                'slug' => 'nullable|string|max:255|unique:categories,slug,' . $id,
+                'name' => 'required|string|max:255|unique:categories,name,' . $id,
             ]);
 
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $data = $request->all();
-            
-            // Generate slug if not provided
-            if (empty($data['slug'])) {
-                $data['slug'] = Str::slug($data['name']);
-            }
-
-            $category->update($data);
+            $category->update([
+                'name' => $request->name
+            ]);
 
             return $this->successResponse('Category updated successfully', $category);
         } catch (\Exception $e) {

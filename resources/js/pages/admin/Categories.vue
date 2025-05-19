@@ -12,6 +12,29 @@
       </div>
     </div>
     
+    <!-- Search bar -->
+    <div class="mt-4 flex justify-between">
+      <div class="w-full max-w-lg lg:max-w-xs">
+        <label for="search" class="sr-only">Szukaj</label>
+        <div class="relative">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <input
+            id="search"
+            name="search"
+            class="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 leading-5 placeholder-gray-500 focus:border-indigo-500 focus:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+            placeholder="Szukaj kategorii..."
+            type="search"
+            v-model="filters.search"
+            @input="onSearchChange"
+          />
+        </div>
+      </div>
+    </div>
+    
     <!-- Loading indicator -->
     <div v-if="loading" class="flex justify-center my-12">
       <svg class="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -37,7 +60,7 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200 bg-white">
-                <tr v-for="category in categories" :key="category.id">
+                <tr v-for="category in categories.data" :key="category.id">
                   <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                     {{ category.name }}
                   </td>
@@ -52,7 +75,7 @@
                     <button @click="deleteCategory(category.id)" class="text-red-600 hover:text-red-900">Usuń</button>
                   </td>
                 </tr>
-                <tr v-if="categories.length === 0">
+                <tr v-if="categories.data && categories.data.length === 0">
                   <td colspan="4" class="px-3 py-4 text-sm text-gray-500 text-center">Brak kategorii</td>
                 </tr>
               </tbody>
@@ -60,6 +83,51 @@
           </div>
         </div>
       </div>
+    </div>
+    
+    <!-- Pagination -->
+    <div v-if="categories.last_page > 1" class="mt-6 flex justify-center">
+      <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+        <button
+          @click="goToPage(categories.current_page - 1)"
+          :disabled="categories.current_page === 1"
+          :class="[
+            categories.current_page === 1 ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50',
+            'relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500'
+          ]"
+        >
+          <span class="sr-only">Poprzednia</span>
+          <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <button
+          v-for="page in paginationPages"
+          :key="page"
+          @click="goToPage(page)"
+          :class="[
+            page === categories.current_page
+              ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
+            'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
+          ]"
+        >
+          {{ page }}
+        </button>
+        <button
+          @click="goToPage(categories.current_page + 1)"
+          :disabled="categories.current_page === categories.last_page"
+          :class="[
+            categories.current_page === categories.last_page ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50',
+            'relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500'
+          ]"
+        >
+          <span class="sr-only">Następna</span>
+          <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </nav>
     </div>
     
     <!-- Category Modal -->
@@ -159,7 +227,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import { useAlertStore } from '../../stores/alertStore'
 import axios from 'axios'
 
@@ -170,7 +238,26 @@ export default {
     
     // Data
     const loading = ref(true)
-    const categories = ref([])
+    const categories = ref({
+      data: [],
+      current_page: 1,
+      from: 1,
+      to: 0,
+      total: 0,
+      last_page: 1,
+      per_page: 10
+    })
+    
+    // Filters and pagination
+    const filters = reactive({
+      search: '',
+      sort_field: 'created_at',
+      sort_direction: 'desc',
+      page: 1
+    })
+    
+    // Debounce timer
+    let searchTimeout = null
     
     // Modals
     const showModal = ref(false)
@@ -181,11 +268,34 @@ export default {
       name: ''
     })
     
+    // Computed
+    const paginationPages = computed(() => {
+      const total = categories.value.last_page
+      const current = categories.value.current_page
+      const pages = []
+      
+      if (total <= 7) {
+        for (let i = 1; i <= total; i++) {
+          pages.push(i)
+        }
+      } else {
+        if (current <= 3) {
+          pages.push(1, 2, 3, 4, '...', total)
+        } else if (current >= total - 2) {
+          pages.push(1, '...', total - 3, total - 2, total - 1, total)
+        } else {
+          pages.push(1, '...', current - 1, current, current + 1, '...', total)
+        }
+      }
+      
+      return pages
+    })
+    
     // Methods
     const fetchCategories = async () => {
       try {
         loading.value = true
-        const response = await axios.get('/api/admin/categories')
+        const response = await axios.get('/api/admin/categories', { params: filters })
         categories.value = response.data
       } catch (error) {
         console.error('Error fetching categories:', error)
@@ -193,6 +303,25 @@ export default {
       } finally {
         loading.value = false
       }
+    }
+    
+    const onSearchChange = () => {
+      // Debounce search input to prevent too many requests
+      if (searchTimeout) {
+        clearTimeout(searchTimeout)
+      }
+      
+      searchTimeout = setTimeout(() => {
+        filters.page = 1 // Reset to first page on new search
+        fetchCategories()
+      }, 300)
+    }
+    
+    const goToPage = (page) => {
+      if (page === '...') return
+      
+      filters.page = page
+      fetchCategories()
     }
     
     const openModal = (category = null) => {
@@ -264,15 +393,19 @@ export default {
     return {
       loading,
       categories,
+      filters,
       showModal,
       showDeleteModal,
       currentCategory,
+      paginationPages,
       fetchCategories,
       openModal,
       saveCategory,
       deleteCategory,
       confirmDelete,
-      formatDate
+      formatDate,
+      onSearchChange,
+      goToPage
     }
   }
 }
