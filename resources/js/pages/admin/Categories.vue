@@ -29,7 +29,6 @@
               <thead class="bg-gray-50">
                 <tr>
                   <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Nazwa</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Opis</th>
                   <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Liczba produktów</th>
                   <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Data utworzenia</th>
                   <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
@@ -41,9 +40,6 @@
                 <tr v-for="category in categories" :key="category.id">
                   <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                     {{ category.name }}
-                  </td>
-                  <td class="px-3 py-4 text-sm text-gray-500">
-                    <div class="max-w-xs truncate">{{ category.description || 'Brak opisu' }}</div>
                   </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                     {{ category.products_count || 0 }}
@@ -57,7 +53,7 @@
                   </td>
                 </tr>
                 <tr v-if="categories.length === 0">
-                  <td colspan="5" class="px-3 py-4 text-sm text-gray-500 text-center">Brak kategorii</td>
+                  <td colspan="4" class="px-3 py-4 text-sm text-gray-500 text-center">Brak kategorii</td>
                 </tr>
               </tbody>
             </table>
@@ -90,73 +86,6 @@
                         required
                         class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                       />
-                    </div>
-                    
-                    <div>
-                      <label for="description" class="block text-sm font-medium text-gray-700">Opis (opcjonalnie)</label>
-                      <textarea
-                        id="description"
-                        v-model="currentCategory.description"
-                        rows="3"
-                        class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                      ></textarea>
-                    </div>
-                    
-                    <div>
-                      <label for="slug" class="block text-sm font-medium text-gray-700">Slug (opcjonalnie)</label>
-                      <div class="mt-1 flex rounded-md shadow-sm">
-                        <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-                          /kategoria/
-                        </span>
-                        <input
-                          type="text"
-                          id="slug"
-                          v-model="currentCategory.slug"
-                          class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300"
-                          placeholder="nazwa-kategorii"
-                        />
-                      </div>
-                      <p class="mt-1 text-sm text-gray-500">
-                        Pozostaw puste, aby automatycznie wygenerować na podstawie nazwy.
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <label for="parent_id" class="block text-sm font-medium text-gray-700">Kategoria nadrzędna (opcjonalnie)</label>
-                      <select
-                        id="parent_id"
-                        v-model="currentCategory.parent_id"
-                        class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      >
-                        <option :value="null">Brak (kategoria główna)</option>
-                        <option 
-                          v-for="category in availableParentCategories" 
-                          :key="category.id" 
-                          :value="category.id"
-                        >
-                          {{ category.name }}
-                        </option>
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700">Ikona kategorii (opcjonalnie)</label>
-                      <div class="mt-1 flex items-center">
-                        <span v-if="currentCategory.icon" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
-                          <img :src="currentCategory.icon" class="h-full w-full object-cover" />
-                        </span>
-                        <span v-else class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
-                          <svg class="h-full w-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                          </svg>
-                        </span>
-                        <button
-                          type="button"
-                          class="ml-5 bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                          Zmień
-                        </button>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -197,7 +126,7 @@
               </div>
               <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                 <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                  Usuń kategorię
+                  Usuń kategori
                 </h3>
                 <div class="mt-2">
                   <p class="text-sm text-gray-500">
@@ -230,7 +159,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAlertStore } from '../../stores/alertStore'
 import axios from 'axios'
 
@@ -249,23 +178,7 @@ export default {
     const categoryToDelete = ref(null)
     const currentCategory = ref({
       id: null,
-      name: '',
-      description: '',
-      slug: '',
-      parent_id: null,
-      icon: null
-    })
-    
-    // Computed properties
-    const availableParentCategories = computed(() => {
-      // Filter out current category and its children to prevent circular references
-      if (!currentCategory.value.id) {
-        return categories.value
-      }
-      
-      return categories.value.filter(category => {
-        return category.id !== currentCategory.value.id
-      })
+      name: ''
     })
     
     // Methods
@@ -276,7 +189,7 @@ export default {
         categories.value = response.data
       } catch (error) {
         console.error('Error fetching categories:', error)
-        alertStore.setErrorMessage('Wystąpił błąd podczas pobierania kategorii.')
+        alertStore.error('Wystąpił błąd podczas pobierania kategorii.')
       } finally {
         loading.value = false
       }
@@ -284,15 +197,14 @@ export default {
     
     const openModal = (category = null) => {
       if (category) {
-        currentCategory.value = { ...category }
+        currentCategory.value = { 
+          id: category.id,
+          name: category.name
+        }
       } else {
         currentCategory.value = {
           id: null,
-          name: '',
-          description: '',
-          slug: '',
-          parent_id: null,
-          icon: null
+          name: ''
         }
       }
       showModal.value = true
@@ -302,19 +214,23 @@ export default {
       try {
         if (currentCategory.value.id) {
           // Update existing category
-          await axios.put(`/api/admin/categories/${currentCategory.value.id}`, currentCategory.value)
-          alertStore.setSuccessMessage('Kategoria została zaktualizowana.')
+          await axios.put(`/api/admin/categories/${currentCategory.value.id}`, { 
+            name: currentCategory.value.name 
+          })
+          alertStore.success('Kategoria została zaktualizowana.')
         } else {
           // Create new category
-          await axios.post('/api/admin/categories', currentCategory.value)
-          alertStore.setSuccessMessage('Kategoria została dodana.')
+          await axios.post('/api/admin/categories', { 
+            name: currentCategory.value.name 
+          })
+          alertStore.success('Kategoria została dodana.')
         }
         
         showModal.value = false
         fetchCategories()
       } catch (error) {
         console.error('Error saving category:', error)
-        alertStore.setErrorMessage('Wystąpił błąd podczas zapisywania kategorii.')
+        alertStore.error('Wystąpił błąd podczas zapisywania kategorii.')
       }
     }
     
@@ -326,12 +242,12 @@ export default {
     const confirmDelete = async () => {
       try {
         await axios.delete(`/api/admin/categories/${categoryToDelete.value}`)
-        alertStore.setSuccessMessage('Kategoria została usunięta.')
+        alertStore.success('Kategoria została usunięta.')
         showDeleteModal.value = false
         fetchCategories()
       } catch (error) {
         console.error('Error deleting category:', error)
-        alertStore.setErrorMessage('Wystąpił błąd podczas usuwania kategorii.')
+        alertStore.error('Wystąpił błąd podczas usuwania kategorii.')
       }
     }
     
@@ -348,7 +264,6 @@ export default {
     return {
       loading,
       categories,
-      availableParentCategories,
       showModal,
       showDeleteModal,
       currentCategory,
