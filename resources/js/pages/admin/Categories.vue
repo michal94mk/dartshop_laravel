@@ -1,19 +1,19 @@
 <template>
   <div>
-    <div class="sm:flex sm:items-center">
+    <div class="sm:flex sm:items-center p-6">
       <div class="sm:flex-auto">
         <h1 class="text-2xl font-semibold text-gray-900">Zarządzanie kategoriami</h1>
         <p class="mt-2 text-sm text-gray-700">Lista wszystkich kategorii produktów z możliwością dodawania, edycji i usuwania.</p>
       </div>
       <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-        <button @click="openModal()" type="button" class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto">
+        <button @click="openModal()" type="button" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700 transition-colors">
           Dodaj kategorię
         </button>
       </div>
     </div>
     
     <!-- Search bar -->
-    <div class="mt-4 flex justify-between">
+    <div class="mt-4 flex justify-between px-6">
       <div class="w-full max-w-lg lg:max-w-xs">
         <label for="search" class="sr-only">Szukaj</label>
         <div class="relative">
@@ -71,8 +71,8 @@
                     {{ formatDate(category.created_at) }}
                   </td>
                   <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                    <button @click="openModal(category)" class="text-indigo-600 hover:text-indigo-900 mr-3">Edytuj</button>
-                    <button @click="deleteCategory(category.id)" class="text-red-600 hover:text-red-900">Usuń</button>
+                    <button @click="openModal(category)" class="px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700 transition-colors mr-2">Edytuj</button>
+                    <button @click="deleteCategory(category.id)" class="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors">Usuń</button>
                   </td>
                 </tr>
                 <tr v-if="categories.data && categories.data.length === 0">
@@ -86,48 +86,53 @@
     </div>
     
     <!-- Pagination -->
-    <div v-if="categories.last_page > 1" class="mt-6 flex justify-center">
-      <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-        <button
-          @click="goToPage(categories.current_page - 1)"
-          :disabled="categories.current_page === 1"
-          :class="[
-            categories.current_page === 1 ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50',
-            'relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500'
-          ]"
-        >
-          <span class="sr-only">Poprzednia</span>
-          <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-          </svg>
-        </button>
-        <button
-          v-for="page in paginationPages"
-          :key="page"
-          @click="goToPage(page)"
-          :class="[
-            page === categories.current_page
-              ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
-            'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
-          ]"
-        >
-          {{ page }}
-        </button>
-        <button
-          @click="goToPage(categories.current_page + 1)"
-          :disabled="categories.current_page === categories.last_page"
-          :class="[
-            categories.current_page === categories.last_page ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50',
-            'relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500'
-          ]"
-        >
-          <span class="sr-only">Następna</span>
-          <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-          </svg>
-        </button>
-      </nav>
+    <div v-if="categories.last_page > 1" class="mt-5 flex justify-between items-center p-6">
+      <div class="text-sm text-gray-700">
+        Pokazuje {{ categories.from }} do {{ categories.to }} z {{ categories.total }} kategorii
+      </div>
+      <div>
+        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+          <button
+            @click="goToPage(categories.current_page - 1)"
+            :disabled="categories.current_page === 1"
+            :class="[
+              categories.current_page === 1 ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50',
+              'relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500'
+            ]"
+          >
+            <span class="sr-only">Poprzednia</span>
+            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <button
+            v-for="page in paginationPages"
+            :key="page"
+            @click="goToPage(page)"
+            :class="[
+              page === categories.current_page
+                ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
+              'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
+            ]"
+          >
+            {{ page }}
+          </button>
+          <button
+            @click="goToPage(categories.current_page + 1)"
+            :disabled="categories.current_page === categories.last_page"
+            :class="[
+              categories.current_page === categories.last_page ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50',
+              'relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500'
+            ]"
+          >
+            <span class="sr-only">Następna</span>
+            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </nav>
+      </div>
     </div>
     
     <!-- Category Modal -->
@@ -194,7 +199,7 @@
               </div>
               <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                 <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                  Usuń kategori
+                  Usuń kategorię
                 </h3>
                 <div class="mt-2">
                   <p class="text-sm text-gray-500">
@@ -210,7 +215,7 @@
               @click="confirmDelete"
               class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
             >
-              Usuń
+              Usuń kategorię
             </button>
             <button
               type="button"

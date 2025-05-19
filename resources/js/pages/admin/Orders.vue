@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="sm:flex sm:items-center">
+    <div class="sm:flex sm:items-center p-6">
       <div class="sm:flex-auto">
         <h1 class="text-2xl font-semibold text-gray-900">Zarządzanie zamówieniami</h1>
         <p class="mt-2 text-sm text-gray-700">Lista wszystkich zamówień z możliwością wyświetlania szczegółów, zmiany statusu i generowania faktur.</p>
@@ -146,9 +146,9 @@
                     </span>
                   </td>
                   <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                    <button @click="openOrderDetails(order)" class="text-indigo-600 hover:text-indigo-900 mr-3">Szczegóły</button>
-                    <button @click="openStatusModal(order)" class="text-blue-600 hover:text-blue-900 mr-3">Status</button>
-                    <a :href="`/api/admin/orders/${order.id}/invoice`" target="_blank" class="text-green-600 hover:text-green-900">Faktura</a>
+                    <button @click="openOrderDetails(order)" class="px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700 transition-colors mr-2">Szczegóły</button>
+                    <button @click="openStatusModal(order)" class="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors mr-2">Status</button>
+                    <a :href="`/api/admin/orders/${order.id}/invoice`" target="_blank" class="px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 transition-colors">Faktura</a>
                   </td>
                 </tr>
                 <tr v-if="orders.data.length === 0">
@@ -161,7 +161,7 @@
       </div>
       
       <!-- Pagination -->
-      <div v-if="orders.data && orders.data.length > 0" class="mt-5 flex justify-between items-center">
+      <div v-if="orders.data && orders.data.length > 0" class="mt-5 flex justify-between items-center p-6">
         <div class="text-sm text-gray-700">
           Pokazuje {{ orders.from }} do {{ orders.to }} z {{ orders.total }} zamówień
         </div>
