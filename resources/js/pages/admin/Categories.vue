@@ -175,6 +175,14 @@
         </div>
       </div>
     </div>
+    
+    <!-- Detailed Error Modal -->
+    <detailed-error-modal
+      :show="showErrorModal"
+      :message="errorMessage"
+      title="Nie można usunąć kategorii"
+      @close="showErrorModal = false"
+    />
   </div>
 </template>
 
@@ -182,9 +190,13 @@
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useAlertStore } from '../../stores/alertStore'
 import axios from 'axios'
+import DetailedErrorModal from '../../components/ui/DetailedErrorModal.vue'
 
 export default {
   name: 'AdminCategories',
+  components: {
+    DetailedErrorModal
+  },
   setup() {
     const alertStore = useAlertStore()
     
@@ -227,6 +239,10 @@ export default {
       id: null,
       name: ''
     })
+    
+    // Detailed Error Modal
+    const showErrorModal = ref(false)
+    const errorMessage = ref('')
     
     // Computed
     const paginationPages = computed(() => {
@@ -324,19 +340,75 @@ export default {
     }
     
     const deleteCategory = (id) => {
-      categoryToDelete.value = id
-      showDeleteModal.value = true
+      console.log('Delete category called with ID:', id); // Debug the ID being passed
+      categoryToDelete.value = typeof id === 'object' && id.id ? id.id : id;
+      showDeleteModal.value = true;
     }
     
     const confirmDelete = async () => {
+      if (!categoryToDelete.value) {
+        alertStore.error('Brak ID kategorii do usunięcia.')
+        showDeleteModal.value = false
+        return
+      }
+      
+      // Ensure categoryToDelete is a number or string, not an object
+      const categoryId = typeof categoryToDelete.value === 'object' 
+                        ? categoryToDelete.value.id 
+                        : categoryToDelete.value;
+      
+      console.log('Attempting to delete category with ID:', categoryId); // Debug the ID
+      
       try {
-        await axios.delete(`/api/admin/categories/${categoryToDelete.value}`)
+        const response = await axios.delete(`/api/admin/categories/${categoryId}`)
+        console.log('Delete response:', response)
         alertStore.success('Kategoria została usunięta.')
         showDeleteModal.value = false
         fetchCategories()
       } catch (error) {
+        // Close the delete confirmation modal
+        showDeleteModal.value = false
+        
+        // Complete debugging of the error
         console.error('Error deleting category:', error)
-        alertStore.error('Wystąpił błąd podczas usuwania kategorii.')
+        console.dir(error, { depth: null }) // Full error object dump
+        
+        if (error.response) {
+          console.group('Error Response Details:')
+          console.log('Status:', error.response.status)
+          console.log('Status Text:', error.response.statusText)
+          console.log('Full Response Data:', error.response.data)
+          console.log('Headers:', error.response.headers)
+          console.groupEnd()
+          
+          // Always show the error in the detailed modal
+          if (error.response.status === 422) {
+            // For database constraint errors
+            if (error.response.data.message) {
+              errorMessage.value = error.response.data.message
+            } else {
+              // If there's no message, stringify the entire response
+              errorMessage.value = JSON.stringify(error.response.data, null, 2)
+            }
+            showErrorModal.value = true
+          } else if (error.response.status === 404) {
+            alertStore.error('Nie znaleziono kategorii.')
+          } else {
+            // For any other error, also show detailed error
+            if (error.response.data && error.response.data.message) {
+              errorMessage.value = error.response.data.message
+            } else {
+              errorMessage.value = 'Wystąpił błąd: ' + error.message
+            }
+            showErrorModal.value = true
+          }
+        } else {
+          // Network error or something else
+          alertStore.error('Wystąpił błąd podczas komunikacji z serwerem.')
+        }
+        
+        // Always refresh the categories list
+        fetchCategories()
       }
     }
     
@@ -366,7 +438,9 @@ export default {
       formatDate,
       onSearchChange,
       goToPage,
-      sortOptions
+      sortOptions,
+      showErrorModal,
+      errorMessage
     }
   }
 }

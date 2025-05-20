@@ -80,8 +80,9 @@ class BaseAdminController extends Controller
     protected function errorResponse($message, $statusCode = 500, $errors = [])
     {
         // Log error for debugging
-        \Log::error('Admin API Error: ' . $message);
+        \Illuminate\Support\Facades\Log::error('Admin API Error: ' . $message);
         
+        // Create base response array
         $response = [
             'success' => false,
             'message' => $message,
@@ -101,6 +102,14 @@ class BaseAdminController extends Controller
                     'trace' => $e->getTraceAsString()
                 ];
             }
+        }
+        
+        // Extra debug logging for 422 errors
+        if ($statusCode === 422) {
+            \Illuminate\Support\Facades\Log::debug('Sending 422 error response', [
+                'response' => $response,
+                'status_code' => $statusCode
+            ]);
         }
         
         return response()->json($response, $statusCode);

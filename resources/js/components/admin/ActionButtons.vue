@@ -9,7 +9,7 @@
     </button>
     <button 
       v-if="showDelete"
-      @click="$emit('delete', item)"
+      @click="handleDelete"
       class="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors"
       :disabled="disableDelete"
       :class="{ 'opacity-50 cursor-not-allowed': disableDelete }"
@@ -47,6 +47,18 @@ export default {
     deleteLabel: {
       type: String,
       default: 'Usuń'
+    }
+  },
+  methods: {
+    handleDelete() {
+      // Always emit the ID itself, not the entire object
+      if (this.item && this.item.id !== undefined) {
+        console.log('ActionButtons: Emitting delete with ID:', this.item.id);
+        this.$emit('delete', this.item.id);
+      } else {
+        console.error('ActionButtons: Item has no ID property', this.item);
+        this.$emit('delete', this.item);
+      }
     }
   }
 }

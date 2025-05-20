@@ -32,6 +32,12 @@ class CategoryController extends BaseAdminController
             
             $query = Category::withCount('products');
             
+            // Apply active/inactive filter
+            if ($request->has('is_active')) {
+                $isActive = filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN);
+                $query->where('is_active', $isActive);
+            }
+            
             // Apply search filter
             if ($request->has('search') && !empty($request->search)) {
                 $search = $request->search;
@@ -83,6 +89,7 @@ class CategoryController extends BaseAdminController
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255|unique:categories,name',
+                'is_active' => 'nullable|boolean',
             ]);
 
             if ($validator->fails()) {
@@ -90,7 +97,8 @@ class CategoryController extends BaseAdminController
             }
 
             $category = Category::create([
-                'name' => $request->name
+                'name' => $request->name,
+                'is_active' => $request->has('is_active') ? $request->is_active : true,
             ]);
 
             return $this->successResponse('Category created successfully', $category, 201);
@@ -129,6 +137,7 @@ class CategoryController extends BaseAdminController
 
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255|unique:categories,name,' . $id,
+                'is_active' => 'nullable|boolean',
             ]);
 
             if ($validator->fails()) {
@@ -136,7 +145,8 @@ class CategoryController extends BaseAdminController
             }
 
             $category->update([
-                'name' => $request->name
+                'name' => $request->name,
+                'is_active' => $request->has('is_active') ? $request->is_active : $category->is_active,
             ]);
 
             return $this->successResponse('Category updated successfully', $category);
@@ -153,13 +163,87 @@ class CategoryController extends BaseAdminController
      */
     public function destroy($id)
     {
+        \Illuminate\Support\Facades\Log::info('CategoryController@destroy called for ID: ' . $id);
+        
         try {
-            $category = Category::findOrFail($id);
+            // First check if the category exists and load it
+            if (!$category = Category::find($id)) {
+                \Illuminate\Support\Facades\Log::warning('Category not found during deletion attempt:', ['id' => $id]);
+                
+                // Build and log response for debugging
+                $response = [
+                    'success' => false,
+                    'message' => 'Nie znaleziono kategorii o ID: ' . $id
+                ];
+                \Illuminate\Support\Facades\Log::debug('Sending 404 not found response', ['response' => $response]);
+                
+                return response()->json($response, 404);
+            }
+            
+            // Load product count
+            $category->loadCount('products');
+            \Illuminate\Support\Facades\Log::info('Found category to delete:', [
+                'id' => $category->id, 
+                'name' => $category->name, 
+                'products_count' => $category->products_count
+            ]);
+            
+            // Check if category has associated products
+            if ($category->products_count > 0) {
+                \Illuminate\Support\Facades\Log::warning('Cannot delete category as it has associated products:', ['id' => $id, 'products_count' => $category->products_count]);
+                
+                // Instead of deleting, deactivate the category
+                $category->update(['is_active' => false]);
+                \Illuminate\Support\Facades\Log::info('Category deactivated instead of deleted:', ['id' => $id]);
+                
+                // Create error message with explicit newlines instead of \n for better JSON encoding
+                $productsText = $category->products_count == 1 ? 'produkt' : 
+                               ($category->products_count < 5 ? 'produkty' : 'produktów');
+                               
+                // Build the error message with actual newlines, not string literals
+                $errorMessage = "Nie można usunąć kategorii \"{$category->name}\" (ID: {$category->id})." . PHP_EOL . PHP_EOL
+                              . "Przyczyna: Kategoria zawiera {$category->products_count} {$productsText}." . PHP_EOL . PHP_EOL
+                              . "Aby zachować integralność danych, kategorie zawierające produkty nie mogą zostać usunięte." . PHP_EOL
+                              . "Zamiast tego kategoria została dezaktywowana i nie będzie widoczna dla klientów." . PHP_EOL . PHP_EOL
+                              . "Możliwe rozwiązania:" . PHP_EOL
+                              . "1. Przenieś produkty do innej kategorii, a następnie usuń tę kategorię." . PHP_EOL
+                              . "2. Pozostaw kategorię dezaktywowaną, jeśli chcesz zachować historię zamówień.";
+                
+                // Debug the actual message being sent, including newline handling
+                \Illuminate\Support\Facades\Log::debug('Error message being sent:', [
+                    'raw_message' => $errorMessage,
+                    'json_encoded' => json_encode($errorMessage),
+                    'has_newlines' => str_contains($errorMessage, PHP_EOL) ? 'Yes' : 'No',
+                    'length' => strlen($errorMessage)
+                ]);
+                
+                // Create direct JSON response with proper error format
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage
+                ], 422, [
+                    'Content-Type' => 'application/json;charset=UTF-8'
+                ]);
+            }
+            
+            // If we reach here, the category has no products and can be deleted
             $category->delete();
+            \Illuminate\Support\Facades\Log::info('Category deleted successfully', ['id' => $id]);
 
-            return $this->successResponse('Category deleted successfully');
+            return response()->json([
+                'success' => true,
+                'message' => 'Kategoria została usunięta pomyślnie'
+            ]);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error deleting category: ' . $e->getMessage(), 500);
+            \Illuminate\Support\Facades\Log::error('Error deleting category: ' . $e->getMessage(), [
+                'id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Wystąpił błąd podczas usuwania kategorii: ' . $e->getMessage()
+            ], 500);
         }
     }
 } 
