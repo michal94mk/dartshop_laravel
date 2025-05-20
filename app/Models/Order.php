@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Order model representing customer orders in the e-commerce system.
@@ -43,6 +44,7 @@ class Order extends Model
         'discount',
         'total',
         'payment_method',
+        'shipping_method',
         'session_id',
         'promotion_code'
     ];
@@ -55,6 +57,31 @@ class Order extends Model
     protected $casts = [
         'status' => OrderStatus::class,
     ];
+    
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Auto-generate order number when creating a new order
+        static::creating(function ($order) {
+            // Always generate a new order number - don't rely on empty check
+            $order->order_number = self::generateOrderNumber();
+            
+            // Log the order creation for debugging
+            Log::info('Order creating event: ', [
+                'order_number' => $order->order_number,
+                'user_id' => $order->user_id,
+                'email' => $order->email,
+                'first_name' => $order->first_name,
+                'last_name' => $order->last_name
+            ]);
+        });
+    }
 
     /**
      * Get the user that owns the order.

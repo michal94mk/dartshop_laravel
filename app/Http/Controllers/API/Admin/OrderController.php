@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class OrderController extends BaseAdminController
@@ -69,10 +70,14 @@ class OrderController extends BaseAdminController
     public function store(Request $request)
     {
         try {
+            // Log entire request for debugging
+            Log::info('Order creation request data:', $request->all());
+            
             $validator = Validator::make($request->all(), [
                 'user_id' => 'nullable|exists:users,id',
-                'name' => 'required_without:user_id|string|max:255',
-                'email' => 'required_without:user_id|email|max:255',
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
                 'phone' => 'nullable|string|max:20',
                 'address' => 'required|string|max:255',
                 'city' => 'required|string|max:100',
@@ -81,7 +86,6 @@ class OrderController extends BaseAdminController
                 'total' => 'required|numeric|min:0',
                 'status' => 'required|in:pending,processing,completed,cancelled',
                 'payment_method' => 'required|string|max:100',
-                'payment_status' => 'required|in:pending,completed,failed',
                 'shipping_method' => 'required|string|max:100',
                 'shipping_cost' => 'required|numeric|min:0',
                 'notes' => 'nullable|string',
@@ -89,48 +93,74 @@ class OrderController extends BaseAdminController
                 'items.*.product_id' => 'required|exists:products,id',
                 'items.*.quantity' => 'required|integer|min:1',
                 'items.*.price' => 'required|numeric|min:0',
+                'order_number' => 'nullable|string|max:50',
             ]);
 
             if ($validator->fails()) {
+                Log::warning('Order validation failed:', ['errors' => $validator->errors()->toArray()]);
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
             // Start transaction
             DB::beginTransaction();
 
-            // Create order
-            $order = Order::create([
-                'user_id' => $request->user_id,
-                'name' => $request->name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'address' => $request->address,
-                'city' => $request->city,
-                'postal_code' => $request->postal_code,
-                'country' => $request->country,
-                'total' => $request->total,
-                'status' => $request->status,
-                'payment_method' => $request->payment_method,
-                'payment_status' => $request->payment_status,
-                'shipping_method' => $request->shipping_method,
-                'shipping_cost' => $request->shipping_cost,
-                'notes' => $request->notes,
-            ]);
+            // Generate a unique order number
+            $orderNumber = $request->order_number ?? Order::generateOrderNumber();
+            Log::info('Generated order number: ' . $orderNumber);
+
+            // Build the order data with explicit attributes
+            $orderData = [
+                'order_number' => $orderNumber,
+                'user_id' => $request->input('user_id'),
+                'first_name' => $request->input('first_name'),
+                'last_name' => $request->input('last_name'),
+                'email' => $request->input('email'),
+                'phone' => $request->input('phone'),
+                'address' => $request->input('address'),
+                'city' => $request->input('city'),
+                'postal_code' => $request->input('postal_code'),
+                'country' => $request->input('country', 'Polska'),
+                'total' => $request->input('total'),
+                'status' => $request->input('status', 'pending'),
+                'payment_method' => $request->input('payment_method'),
+                'shipping_method' => $request->input('shipping_method'),
+                'shipping_cost' => $request->input('shipping_cost'),
+                'notes' => $request->input('notes'),
+                'subtotal' => $request->input('subtotal', ($request->input('total') - $request->input('shipping_cost'))),
+            ];
+            
+            // Log orderData for debugging
+            Log::info('Order data being created:', $orderData);
+
+            // Create order explicitly with all fields
+            $order = new Order();
+            $order->fill($orderData);
+            $order->save();
+            
+            Log::info('Order created with ID: ' . $order->id);
 
             // Create order items
             foreach ($request->items as $item) {
                 $order->items()->create([
                     'product_id' => $item['product_id'],
+                    'product_name' => isset($item['product_name']) ? $item['product_name'] : null,
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
+                    'total' => $item['price'] * $item['quantity'],
                 ]);
             }
 
             DB::commit();
+            Log::info('Order creation successful. Transaction committed.');
 
             return $this->successResponse('Order created successfully', $order, 201);
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Error creating order: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all()
+            ]);
             return $this->errorResponse('Error creating order: ' . $e->getMessage(), 500);
         }
     }
