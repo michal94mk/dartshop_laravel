@@ -60,9 +60,29 @@ export default {
         return 'Wystąpił nieznany błąd.';
       }
       
-      // Special case for newlines in the message (common in the category error)
+      console.log('Original message:', this.message);
+      console.log('Message type:', typeof this.message);
+      
+      // Special case for newlines in the message
+      let formatted = this.message;
+      
       // Replace literal "\n" strings with actual newlines
-      let formatted = this.message.replace(/\\n/g, '\n');
+      formatted = formatted.replace(/\\n/g, '\n');
+      
+      // Replace PHP_EOL placeholders with actual newlines
+      formatted = formatted.replace(/PHP_EOL/g, '\n');
+      
+      // Additional check to handle JSON-encoded strings that contain escaped newlines
+      try {
+        // Check if this looks like a JSON-encoded string with escape sequences
+        if (formatted.includes('\\n') || formatted.includes('\\r') || formatted.includes('\\t')) {
+          // Try to parse and re-stringify to properly handle escape sequences
+          const temp = JSON.parse(`"${formatted.replace(/"/g, '\\"')}"`);
+          if (temp) formatted = temp;
+        }
+      } catch (e) {
+        console.log('Failed to process escaped characters:', e);
+      }
       
       // If the message looks like a JSON string, try to parse it
       if (formatted.startsWith('{') && formatted.endsWith('}')) {
@@ -71,9 +91,11 @@ export default {
           return parsed.message || formatted;
         } catch (e) {
           // Not valid JSON, just return the original message
+          console.log('Failed to parse JSON:', e);
         }
       }
       
+      console.log('Formatted message:', formatted);
       return formatted;
     }
   },

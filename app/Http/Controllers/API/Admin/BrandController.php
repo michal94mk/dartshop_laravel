@@ -139,13 +139,87 @@ class BrandController extends BaseAdminController
      */
     public function destroy($id)
     {
+        Log::info('BrandController@destroy called for ID: ' . $id);
+        
         try {
-            $brand = Brand::findOrFail($id);
+            // First check if the brand exists and load it
+            if (!$brand = Brand::find($id)) {
+                Log::warning('Brand not found during deletion attempt:', ['id' => $id]);
+                
+                // Build and log response for debugging
+                $response = [
+                    'success' => false,
+                    'message' => 'Nie znaleziono marki o ID: ' . $id
+                ];
+                Log::debug('Sending 404 not found response', ['response' => $response]);
+                
+                return response()->json($response, 404);
+            }
+            
+            // Load product count
+            $brand->loadCount('products');
+            Log::info('Found brand to delete:', [
+                'id' => $brand->id, 
+                'name' => $brand->name, 
+                'products_count' => $brand->products_count
+            ]);
+            
+            // Check if brand has associated products
+            if ($brand->products_count > 0) {
+                Log::warning('Cannot delete brand as it has associated products:', ['id' => $id, 'products_count' => $brand->products_count]);
+                
+                // Instead of deleting, deactivate the brand
+                $brand->update(['is_active' => false]);
+                Log::info('Brand deactivated instead of deleted:', ['id' => $id]);
+                
+                // Create error message with explicit newlines instead of \n for better JSON encoding
+                $productsText = $brand->products_count == 1 ? 'produkt' : 
+                               ($brand->products_count < 5 ? 'produkty' : 'produktów');
+                               
+                // Build the error message with actual newlines, not string literals
+                $errorMessage = "Nie można usunąć marki \"{$brand->name}\" (ID: {$brand->id})." . "\n\n"
+                              . "Przyczyna: Marka zawiera {$brand->products_count} {$productsText}." . "\n\n"
+                              . "Aby zachować integralność danych, marki zawierające produkty nie mogą zostać usunięte." . "\n"
+                              . "Zamiast tego marka została dezaktywowana i nie będzie widoczna dla klientów." . "\n\n"
+                              . "Możliwe rozwiązania:" . "\n"
+                              . "1. Przypisz produkty do innej marki, a następnie usuń tę markę." . "\n"
+                              . "2. Pozostaw markę dezaktywowaną, jeśli chcesz zachować historię zamówień.";
+                
+                // Debug the actual message being sent, including newline handling
+                Log::debug('Error message being sent:', [
+                    'raw_message' => $errorMessage,
+                    'json_encoded' => json_encode($errorMessage),
+                    'has_newlines' => str_contains($errorMessage, "\n") ? 'Yes' : 'No',
+                    'length' => strlen($errorMessage)
+                ]);
+                
+                // Create direct JSON response with proper error format
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage
+                ], 422, [
+                    'Content-Type' => 'application/json;charset=UTF-8'
+                ]);
+            }
+            
+            // If we reach here, the brand has no products and can be deleted
             $brand->delete();
+            Log::info('Brand deleted successfully', ['id' => $id]);
 
-            return $this->successResponse('Brand deleted successfully');
+            return response()->json([
+                'success' => true,
+                'message' => 'Marka została usunięta pomyślnie'
+            ]);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error deleting brand: ' . $e->getMessage(), 500);
+            Log::error('Error deleting brand: ' . $e->getMessage(), [
+                'id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Wystąpił błąd podczas usuwania marki: ' . $e->getMessage()
+            ], 500);
         }
     }
 } 

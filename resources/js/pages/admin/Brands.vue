@@ -136,6 +136,14 @@
         </div>
       </div>
     </div>
+    
+    <!-- Detailed Error Modal -->
+    <detailed-error-modal
+      :show="showErrorModal"
+      :message="errorMessage"
+      title="Nie można usunąć marki"
+      @close="showErrorModal = false"
+    />
   </div>
 </template>
 
@@ -143,9 +151,13 @@
 import { ref, onMounted, computed, reactive } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
+import DetailedErrorModal from '../../components/ui/DetailedErrorModal.vue'
 
 export default {
   name: 'AdminBrands',
+  components: {
+    DetailedErrorModal
+  },
   setup() {
     const alertStore = useAlertStore()
     const loading = ref(true)
@@ -162,6 +174,10 @@ export default {
     const showEditForm = ref(false)
     const showDeleteModal = ref(false)
     const brandToDelete = ref({})
+    
+    // Error modal
+    const showErrorModal = ref(false)
+    const errorMessage = ref('')
     
     // Sort options for the filter component
     const sortOptions = [
@@ -251,6 +267,10 @@ export default {
     
     // Confirm delete
     const confirmDelete = (brand) => {
+      console.log('confirmDelete called with brand:', brand);
+      console.log('Brand ID type:', typeof brand.id);
+      console.log('Brand ID value:', brand.id);
+      
       brandToDelete.value = brand
       showDeleteModal.value = true
     }
@@ -258,13 +278,64 @@ export default {
     // Delete brand
     const deleteBrand = async () => {
       try {
-        await axios.delete(`/api/admin/brands/${brandToDelete.value.id}`)
+        // Ensure we have the correct ID format
+        const brandId = typeof brandToDelete.value === 'object' 
+                      ? brandToDelete.value.id 
+                      : brandToDelete.value;
+        
+        console.log('Attempting to delete brand with ID:', brandId);
+        
+        await axios.delete(`/api/admin/brands/${brandId}`)
         alertStore.success('Marka została usunięta.')
         showDeleteModal.value = false
         fetchBrands() // Refresh the list
       } catch (error) {
+        // Close the delete confirmation modal
+        showDeleteModal.value = false
+        
         console.error('Error deleting brand:', error)
-        alertStore.error('Wystąpił błąd podczas usuwania marki.')
+        console.dir(error, { depth: null }) // Full error object dump
+        
+        if (error.response) {
+          console.group('Error Response Details:')
+          console.log('Status:', error.response.status)
+          console.log('Status Text:', error.response.statusText)
+          console.log('Full Response Data:', error.response.data)
+          console.log('Headers:', error.response.headers)
+          console.groupEnd()
+          
+          // Display detailed error in modal if appropriate
+          if (error.response.status === 422) {
+            // For database constraint errors
+            if (error.response.data.message) {
+              // Dokładnie przekazuj komunikat bez modyfikacji, tak jak w CategoryController
+              errorMessage.value = error.response.data.message
+              console.log('Error message content:', errorMessage.value)
+              console.log('Message contains newlines:', errorMessage.value.includes('\n'))
+              console.log('Message contains PHP_EOL:', errorMessage.value.includes('PHP_EOL'))
+            } else {
+              // If there's no message, stringify the entire response
+              errorMessage.value = JSON.stringify(error.response.data, null, 2)
+            }
+            showErrorModal.value = true
+          } else if (error.response.status === 404) {
+            alertStore.error('Nie znaleziono marki.')
+          } else {
+            // For any other error, also show detailed error
+            if (error.response.data && error.response.data.message) {
+              errorMessage.value = error.response.data.message
+              showErrorModal.value = true
+            } else {
+              alertStore.error('Wystąpił błąd podczas usuwania marki: ' + error.message)
+            }
+          }
+        } else {
+          // Network error or something else
+          alertStore.error('Wystąpił błąd podczas komunikacji z serwerem.')
+        }
+        
+        // Always refresh the brands list
+        fetchBrands()
       }
     }
     
@@ -306,7 +377,9 @@ export default {
       deleteBrand,
       closeForm,
       goToPage,
-      formatDate
+      formatDate,
+      showErrorModal,
+      errorMessage
     }
   }
 }
