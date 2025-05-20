@@ -19,8 +19,11 @@
     "dependencies": {
         "@fortawesome/fontawesome-free": "^6.7.2",
         "@vitejs/plugin-vue": "^5.2.4",
+        "dompurify": "^3.2.6",
+        "marked": "^15.0.11",
         "pinia": "^3.0.2",
         "vue": "^3.5.14",
-        "vue-router": "^4.5.1"
+        "vue-router": "^4.5.1",
+        "vue-toastification": "^2.0.0-rc.5"
     }
 }

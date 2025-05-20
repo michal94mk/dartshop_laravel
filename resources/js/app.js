@@ -5,6 +5,10 @@ import App from './App.vue';
 import router from './router';
 import axios from 'axios';
 
+// Import Vue Toastification
+import Toast from "vue-toastification";
+import "vue-toastification/dist/index.css";
+
 // Set Axios defaults
 axios.defaults.baseURL = window.location.protocol + '//' + window.location.host;  // Używaj pełnego URL
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -147,6 +151,11 @@ app.component('NoDataMessage', NoDataMessage);
 // Use Plugins
 app.use(router);
 app.use(pinia);
+app.use(Toast, {
+  transition: "Vue-Toastification__bounce",
+  maxToasts: 5,
+  newestOnTop: true
+});
 
 // Initialize stores
 const productStore = useProductStore();

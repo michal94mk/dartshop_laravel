@@ -172,16 +172,63 @@
             ></textarea>
           </div>
           
-          <div class="flex justify-between items-center space-x-3 mt-6">
-            <div>
-              <a 
-                :href="`mailto:${selectedMessage.email}?subject=Re: ${selectedMessage.subject}`" 
-                class="inline-flex items-center px-4 py-2 border border-indigo-300 text-sm font-medium rounded-md text-indigo-700 bg-indigo-50 hover:bg-indigo-100"
-                target="_blank"
-              >
-                Odpowiedz e-mailem
-              </a>
+          <!-- New Response System -->
+          <div class="mt-6 border-t pt-4">
+            <h4 class="text-md font-medium text-gray-700">Odpowiedź bezpośrednia</h4>
+            <div class="mt-3 space-y-3">
+              <div>
+                <label for="response-subject" class="block text-sm font-medium text-gray-700">Temat</label>
+                <input 
+                  type="text" 
+                  id="response-subject" 
+                  v-model="responseData.subject" 
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  placeholder="Re: {{selectedMessage.subject}}"
+                />
+              </div>
+              
+              <div>
+                <label for="response-message" class="block text-sm font-medium text-gray-700">Treść odpowiedzi</label>
+                <textarea 
+                  id="response-message" 
+                  v-model="responseData.message" 
+                  rows="5"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  placeholder="Wpisz swoją odpowiedź..."
+                ></textarea>
+              </div>
+              
+              <div class="mt-2">
+                <label class="inline-flex items-center">
+                  <input type="checkbox" v-model="responseData.markAsReplied" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-offset-0">
+                  <span class="ml-2 text-sm text-gray-700">Oznacz jako odpowiedzianą po wysłaniu</span>
+                </label>
+              </div>
+              
+              <div class="mt-2">
+                <label class="inline-flex items-center">
+                  <input type="checkbox" v-model="responseData.addToNotes" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-offset-0">
+                  <span class="ml-2 text-sm text-gray-700">Dodaj odpowiedź do notatek</span>
+                </label>
+              </div>
+              
+              <div>
+                <button 
+                  @click="sendResponse" 
+                  class="mt-2 w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  :disabled="responseSending"
+                >
+                  <svg v-if="responseSending" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {{ responseSending ? 'Wysyłanie...' : 'Wyślij odpowiedź' }}
+                </button>
+              </div>
             </div>
+          </div>
+          
+          <div class="flex justify-between items-center space-x-3 mt-6">
             <div class="flex space-x-3">
               <button 
                 @click="confirmDelete(selectedMessage)" 
@@ -249,8 +296,17 @@ export default {
     const showDetailsModal = ref(false)
     const showDeleteModal = ref(false)
     const selectedMessage = ref(null)
-    const messageToDelete = ref({})
+    const messageToDelete = ref(null)
     const searchTimeout = ref(null)
+    const responseSending = ref(false)
+    
+    // Response system data
+    const responseData = ref({
+      subject: '',
+      message: '',
+      markAsReplied: true,
+      addToNotes: true
+    })
     
     // Filters
     const filters = ref({
@@ -273,26 +329,28 @@ export default {
     }
     
     // View message details
-    const viewMessage = async (message) => {
-      try {
-        // If status is new, mark as read
-        if (message.status === 'new') {
-          await axios.patch(`/api/admin/contact-messages/${message.id}/mark-as-read`)
-          message.status = 'read'
-        }
-        
-        selectedMessage.value = { ...message }
-        showDetailsModal.value = true
-      } catch (error) {
-        console.error('Error updating message status:', error)
-        alertStore.error('Wystąpił błąd podczas aktualizacji statusu wiadomości.')
+    const viewMessage = (message) => {
+      selectedMessage.value = { ...message }
+      
+      // Prepare response data
+      responseData.value.subject = `Re: ${message.subject}`
+      responseData.value.message = ''
+      responseData.value.markAsReplied = true
+      responseData.value.addToNotes = true
+      
+      showDetailsModal.value = true
+      
+      // If message is new, mark it as read
+      if (message.status === 'new') {
+        selectedMessage.value.status = 'read'
+        updateStatus()
       }
     }
     
     // Close details modal
     const closeDetails = () => {
-      selectedMessage.value = null
       showDetailsModal.value = false
+      selectedMessage.value = null
     }
     
     // Update message status
@@ -312,6 +370,73 @@ export default {
       } catch (error) {
         console.error('Error updating message status:', error)
         alertStore.error('Wystąpił błąd podczas aktualizacji statusu wiadomości.')
+      }
+    }
+    
+    // Send response
+    const sendResponse = async () => {
+      if (!responseData.value.message.trim()) {
+        alertStore.error('Treść odpowiedzi nie może być pusta.')
+        return
+      }
+      
+      try {
+        responseSending.value = true
+        
+        // Send the response email
+        await axios.post(`/api/admin/contact-messages/${selectedMessage.value.id}/respond`, {
+          subject: responseData.value.subject,
+          message: responseData.value.message
+        })
+        
+        // If user chose to mark as replied
+        if (responseData.value.markAsReplied) {
+          selectedMessage.value.status = 'replied'
+          
+          // Update status in DB
+          await axios.patch(`/api/admin/contact-messages/${selectedMessage.value.id}/status`, {
+            status: 'replied'
+          })
+          
+          // Update status in messages list
+          const index = messages.value.findIndex(m => m.id === selectedMessage.value.id)
+          if (index !== -1) {
+            messages.value[index].status = 'replied'
+          }
+        }
+        
+        // If user chose to add to notes
+        if (responseData.value.addToNotes) {
+          const dateTime = new Date().toLocaleString('pl-PL')
+          const notesAddition = `--- Odpowiedź wysłana ${dateTime} ---\n${responseData.value.message}\n\n`
+          
+          if (selectedMessage.value.notes) {
+            selectedMessage.value.notes = notesAddition + selectedMessage.value.notes
+          } else {
+            selectedMessage.value.notes = notesAddition
+          }
+          
+          // Save notes
+          await axios.patch(`/api/admin/contact-messages/${selectedMessage.value.id}/notes`, {
+            notes: selectedMessage.value.notes
+          })
+          
+          // Update notes in messages list
+          const index = messages.value.findIndex(m => m.id === selectedMessage.value.id)
+          if (index !== -1) {
+            messages.value[index].notes = selectedMessage.value.notes
+          }
+        }
+        
+        alertStore.success('Odpowiedź została wysłana.')
+        
+        // Reset response form
+        responseData.value.message = ''
+      } catch (error) {
+        console.error('Error sending response:', error)
+        alertStore.error('Wystąpił błąd podczas wysyłania odpowiedzi.')
+      } finally {
+        responseSending.value = false
       }
     }
     
@@ -450,6 +575,8 @@ export default {
       selectedMessage,
       messageToDelete,
       filters,
+      responseData,
+      responseSending,
       fetchMessages,
       viewMessage,
       closeDetails,
@@ -462,8 +589,9 @@ export default {
       getStatusClass,
       debounceSearch,
       applyFilters,
-      clearFilters
+      clearFilters,
+      sendResponse
     }
   }
 }
-</script> 
+</script>

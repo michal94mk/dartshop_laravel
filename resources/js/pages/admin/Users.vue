@@ -139,16 +139,47 @@
       <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="showModal = false"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
           <form @submit.prevent="saveUser">
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
               <div class="sm:flex sm:items-start">
                 <div class="w-full">
                   <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
-                    Edytuj użytkownika
+                    {{ currentUser.id ? 'Edytuj użytkownika' : 'Dodaj użytkownika' }}
                   </h3>
                   
-                  <div class="grid grid-cols-1 gap-4">
+                  <!-- Tabs -->
+                  <div class="border-b border-gray-200 mb-6">
+                    <nav class="-mb-px flex" aria-label="Tabs">
+                      <button
+                        type="button"
+                        @click="activeTab = 'details'"
+                        :class="[
+                          activeTab === 'details'
+                            ? 'border-indigo-500 text-indigo-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+                          'w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm'
+                        ]"
+                      >
+                        Podstawowe dane
+                      </button>
+                      <button
+                        type="button"
+                        @click="activeTab = 'permissions'"
+                        :class="[
+                          activeTab === 'permissions'
+                            ? 'border-indigo-500 text-indigo-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+                          'w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm'
+                        ]"
+                      >
+                        Uprawnienia
+                      </button>
+                    </nav>
+                  </div>
+                  
+                  <!-- Basic Details Tab -->
+                  <div v-if="activeTab === 'details'" class="grid grid-cols-1 gap-4">
                     <div>
                       <label for="name" class="block text-sm font-medium text-gray-700">Imię i nazwisko</label>
                       <input
@@ -171,6 +202,29 @@
                       />
                     </div>
                     
+                    <div v-if="!currentUser.id">
+                      <label for="password" class="block text-sm font-medium text-gray-700">Hasło</label>
+                      <input
+                        type="password"
+                        id="password"
+                        v-model="currentUser.password"
+                        :required="!currentUser.id"
+                        minlength="8"
+                        class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                      />
+                    </div>
+                    
+                    <div v-if="currentUser.id">
+                      <label for="new_password" class="block text-sm font-medium text-gray-700">Nowe hasło (pozostaw puste, aby nie zmieniać)</label>
+                      <input
+                        type="password"
+                        id="new_password"
+                        v-model="currentUser.password"
+                        minlength="8"
+                        class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                      />
+                    </div>
+                    
                     <div>
                       <label class="block text-sm font-medium text-gray-700">Status</label>
                       <div class="mt-2">
@@ -184,30 +238,33 @@
                         </label>
                       </div>
                     </div>
-                    
+                  </div>
+                  
+                  <!-- Permissions Tab -->
+                  <div v-if="activeTab === 'permissions'" class="space-y-6">
+                    <!-- Role Selection -->
                     <div>
-                      <label class="block text-sm font-medium text-gray-700">Rola</label>
-                      <div class="mt-2">
-                        <label class="inline-flex items-center mr-4">
-                          <input 
-                            type="radio" 
-                            name="role" 
-                            value="user" 
-                            v-model="currentUser.role" 
-                            class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
-                          />
-                          <span class="ml-2 text-sm text-gray-700">Użytkownik</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                          <input 
-                            type="radio" 
-                            name="role" 
-                            value="admin" 
-                            v-model="currentUser.role" 
-                            class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
-                          />
-                          <span class="ml-2 text-sm text-gray-700">Administrator</span>
-                        </label>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">Rola użytkownika</label>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div 
+                          v-for="role in availableRoles" 
+                          :key="role.value" 
+                          @click="currentUser.role = role.value"
+                          class="relative border rounded-lg p-4 cursor-pointer"
+                          :class="currentUser.role === role.value ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:border-indigo-300'"
+                        >
+                          <div class="flex items-center justify-between">
+                            <div>
+                              <span class="text-sm font-medium text-gray-900">{{ role.label }}</span>
+                              <p class="text-xs text-gray-500 mt-1">{{ role.description }}</p>
+                            </div>
+                            <div class="h-5 w-5 text-indigo-600">
+                              <svg v-if="currentUser.role === role.value" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
@@ -322,22 +379,25 @@ export default {
     
     // Sort options for the filter component
     const sortOptions = [
-      { value: 'created_at', label: 'Data rejestracji' },
-      { value: 'name', label: 'Imię i nazwisko' },
-      { value: 'email', label: 'Email' }
+      { value: 'name|asc', label: 'Nazwa A-Z' },
+      { value: 'name|desc', label: 'Nazwa Z-A' },
+      { value: 'email|asc', label: 'Email A-Z' },
+      { value: 'email|desc', label: 'Email Z-A' },
+      { value: 'created_at|desc', label: 'Najnowsi' },
+      { value: 'created_at|asc', label: 'Najstarsi' }
     ]
     
     const filters = reactive({
       search: '',
       role: '',
       verified: '',
-      sort_field: 'created_at',
-      sort_direction: 'desc',
+      sort_field: 'name',
+      sort_direction: 'asc',
       page: 1
     })
     
     // Current user ID to prevent self-deletion
-    const currentUserId = ref(authStore.user?.id || null)
+    const currentUserId = computed(() => authStore.user ? authStore.user.id : null)
     
     // Modals
     const showModal = ref(false)
@@ -349,8 +409,89 @@ export default {
       email: '',
       role: 'user',
       verified: false,
-      password: ''
+      password: '',
+      permissions: []
     })
+    const activeTab = ref('details')
+    
+    // Available roles for the role selector
+    const availableRoles = [
+      {
+        value: 'user',
+        label: 'Użytkownik',
+        description: 'Podstawowe uprawnienia dostępu, bez panelu administracyjnego.'
+      },
+      {
+        value: 'admin',
+        label: 'Administrator',
+        description: 'Pełne uprawnienia administracyjne, możliwość zarządzania sklepem.'
+      },
+      {
+        value: 'manager',
+        label: 'Menedżer',
+        description: 'Uprawnienia do zarządzania zamówieniami i produktami, bez dostępu do ustawień systemowych.'
+      },
+      {
+        value: 'editor',
+        label: 'Redaktor',
+        description: 'Uprawnienia do zarządzania treścią, opisami produktów i stronami statycznymi.'
+      },
+      {
+        value: 'custom',
+        label: 'Niestandardowa',
+        description: 'Własny zestaw uprawnień, określany indywidualnie.'
+      }
+    ]
+    
+    // Permission groups for the permissions selector
+    const permissionGroups = {
+      'Produkty': [
+        { value: 'products.view', label: 'Przeglądanie produktów' },
+        { value: 'products.create', label: 'Dodawanie produktów' },
+        { value: 'products.edit', label: 'Edycja produktów' },
+        { value: 'products.delete', label: 'Usuwanie produktów' }
+      ],
+      'Kategorie': [
+        { value: 'categories.view', label: 'Przeglądanie kategorii' },
+        { value: 'categories.create', label: 'Dodawanie kategorii' },
+        { value: 'categories.edit', label: 'Edycja kategorii' },
+        { value: 'categories.delete', label: 'Usuwanie kategorii' }
+      ],
+      'Marki': [
+        { value: 'brands.view', label: 'Przeglądanie marek' },
+        { value: 'brands.create', label: 'Dodawanie marek' },
+        { value: 'brands.edit', label: 'Edycja marek' },
+        { value: 'brands.delete', label: 'Usuwanie marek' }
+      ],
+      'Użytkownicy': [
+        { value: 'users.view', label: 'Przeglądanie użytkowników' },
+        { value: 'users.create', label: 'Dodawanie użytkowników' },
+        { value: 'users.edit', label: 'Edycja użytkowników' },
+        { value: 'users.delete', label: 'Usuwanie użytkowników' }
+      ],
+      'Zamówienia': [
+        { value: 'orders.view', label: 'Przeglądanie zamówień' },
+        { value: 'orders.create', label: 'Tworzenie zamówień' },
+        { value: 'orders.edit', label: 'Edycja zamówień' },
+        { value: 'orders.delete', label: 'Usuwanie zamówień' }
+      ],
+      'Recenzje': [
+        { value: 'reviews.view', label: 'Przeglądanie recenzji' },
+        { value: 'reviews.approve', label: 'Zatwierdzanie recenzji' },
+        { value: 'reviews.edit', label: 'Edycja recenzji' },
+        { value: 'reviews.delete', label: 'Usuwanie recenzji' }
+      ],
+      'Promocje': [
+        { value: 'promotions.view', label: 'Przeglądanie promocji' },
+        { value: 'promotions.create', label: 'Tworzenie promocji' },
+        { value: 'promotions.edit', label: 'Edycja promocji' },
+        { value: 'promotions.delete', label: 'Usuwanie promocji' }
+      ],
+      'Ustawienia': [
+        { value: 'settings.view', label: 'Przeglądanie ustawień' },
+        { value: 'settings.edit', label: 'Edycja ustawień' }
+      ]
+    }
     
     // Computed
     const paginationPages = computed(() => {
@@ -379,9 +520,15 @@ export default {
     const fetchUsers = async () => {
       try {
         loading.value = true
-        const params = { ...filters }
         
-        const response = await axios.get('/api/admin/users', { params })
+        // Convert sort option to sort_field and sort_direction
+        if (filters.sort_option) {
+          const [sortField, sortDir] = filters.sort_option.split('|')
+          filters.sort_field = sortField
+          filters.sort_direction = sortDir
+        }
+        
+        const response = await axios.get('/api/admin/users', { params: filters })
         users.value = response.data
       } catch (error) {
         console.error('Error fetching users:', error)
@@ -400,35 +547,82 @@ export default {
     }
     
     const openModal = (user) => {
-      currentUser.value = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: isUserAdmin(user) ? 'admin' : 'user',
-        verified: !!user.email_verified_at,
-        password: ''
+      if (user.id) {
+        // Edit mode - fetch detailed user data including permissions
+        fetchUserDetails(user.id)
+      } else {
+        // Create mode - reset form
+        currentUser.value = {
+          id: null,
+          name: '',
+          email: '',
+          role: 'user',
+          verified: false,
+          password: '',
+          permissions: []
+        }
+        activeTab.value = 'details'
       }
+      
       showModal.value = true
+    }
+    
+    const fetchUserDetails = async (userId) => {
+      try {
+        const response = await axios.get(`/api/admin/users/${userId}`)
+        const userData = response.data
+        
+        currentUser.value = {
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+          role: userData.role || 'user',
+          verified: !!userData.email_verified_at,
+          password: '',
+          permissions: userData.permissions || []
+        }
+        
+        activeTab.value = 'details'
+      } catch (error) {
+        console.error('Error fetching user details:', error)
+        alertStore.setErrorMessage('Wystąpił błąd podczas pobierania danych użytkownika.')
+      }
     }
     
     const saveUser = async () => {
       try {
+        // Prepare data for API
         const userData = {
           name: currentUser.value.name,
           email: currentUser.value.email,
           role: currentUser.value.role,
-          email_verified: currentUser.value.verified
+          email_verified_at: currentUser.value.verified ? new Date().toISOString() : null
         }
         
-        // Only include password if it was changed
+        // Add password only if provided
         if (currentUser.value.password) {
           userData.password = currentUser.value.password
         }
         
-        await axios.put(`/api/admin/users/${currentUser.value.id}`, userData)
-        alertStore.setSuccessMessage('Użytkownik został zaktualizowany.')
+        // Add permissions if role is custom or admin
+        if (currentUser.value.role === 'custom' || currentUser.value.role === 'admin') {
+          userData.permissions = currentUser.value.permissions
+        }
+        
+        let response
+        
+        if (currentUser.value.id) {
+          // Update existing user
+          response = await axios.put(`/api/admin/users/${currentUser.value.id}`, userData)
+          alertStore.setSuccessMessage('Użytkownik został zaktualizowany.')
+        } else {
+          // Create new user
+          response = await axios.post('/api/admin/users', userData)
+          alertStore.setSuccessMessage('Użytkownik został utworzony.')
+        }
+        
         showModal.value = false
-        fetchUsers()
+        fetchUsers() // Refresh the users list
       } catch (error) {
         console.error('Error saving user:', error)
         alertStore.setErrorMessage('Wystąpił błąd podczas zapisywania użytkownika.')
@@ -471,13 +665,7 @@ export default {
     }
     
     const isUserAdmin = (user) => {
-      // Check for roles property first (if API returns roles)
-      if (user.roles && Array.isArray(user.roles)) {
-        return user.roles.some(role => role.name === 'admin')
-      }
-      
-      // Fallback to is_admin property
-      return !!user.is_admin
+      return user.role === 'admin'
     }
     
     // Lifecycle
@@ -504,7 +692,10 @@ export default {
       confirmDelete,
       formatDate,
       getUserInitials,
-      isUserAdmin
+      isUserAdmin,
+      activeTab,
+      availableRoles,
+      permissionGroups
     }
   }
 }
