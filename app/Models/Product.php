@@ -9,12 +9,13 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'description', 'price', 'weight', 'category_id', 'brand_id', 'image', 'stock', 'featured'];
+    protected $fillable = ['name', 'description', 'price', 'weight', 'category_id', 'brand_id', 'image', 'stock', 'featured', 'is_active'];
 
     protected $casts = [
         'price' => 'decimal:2',
         'weight' => 'decimal:2',
         'featured' => 'boolean',
+        'is_active' => 'boolean',
     ];
     
     protected $appends = ['image_url'];

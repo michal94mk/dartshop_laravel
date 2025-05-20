@@ -40,6 +40,12 @@ class ProductController extends BaseAdminController
             
             $query = Product::with(['category', 'brand']);
             
+            // Apply active/inactive filter
+            if ($request->has('is_active')) {
+                $isActive = filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN);
+                $query->where('is_active', $isActive);
+            }
+            
             // Apply search filter
             if ($request->has('search') && !empty($request->search)) {
                 $search = $request->search;
@@ -110,6 +116,7 @@ class ProductController extends BaseAdminController
             'brand_id' => 'required|exists:brands,id',
             'image' => 'nullable|image|max:2048', // 2MB max
             'weight' => 'nullable|numeric|min:0',
+            'is_active' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -199,6 +206,7 @@ class ProductController extends BaseAdminController
                 'brand_id' => 'sometimes|required|exists:brands,id',
                 'image' => 'nullable|image|max:2048', // 2MB max
                 'weight' => 'nullable|numeric|min:0',
+                'is_active' => 'nullable|boolean',
             ]);
 
             if ($validator->fails()) {
@@ -284,6 +292,42 @@ class ProductController extends BaseAdminController
             
             $product = Product::findOrFail($id);
             \Illuminate\Support\Facades\Log::info('Found product to delete:', ['id' => $product->id, 'name' => $product->name]);
+            
+            // Check if product is used in any orders
+            $hasOrderItems = DB::table('order_items')->where('product_id', $id)->exists();
+            
+            if ($hasOrderItems) {
+                \Illuminate\Support\Facades\Log::warning('Cannot delete product as it has associated order items:', ['id' => $id]);
+                
+                // Instead of deleting, deactivate the product
+                $product->update(['is_active' => false]);
+                \Illuminate\Support\Facades\Log::info('Product deactivated instead of deleted:', ['id' => $id]);
+                
+                return $this->errorResponse(
+                    'This product cannot be deleted because it is associated with existing orders. ' .
+                    'Products that have been ordered cannot be deleted to maintain order history integrity. ' .
+                    'The product has been deactivated instead - it will no longer appear in the shop.',
+                    422
+                );
+            }
+            
+            // Check if product is in any shopping carts
+            $hasCartItems = DB::table('cart_items')->where('product_id', $id)->exists();
+            
+            if ($hasCartItems) {
+                // For cart items, we can delete them as they are temporary
+                DB::table('cart_items')->where('product_id', $id)->delete();
+                \Illuminate\Support\Facades\Log::info('Deleted associated cart items for product:', ['id' => $id]);
+            }
+            
+            // Check if product has reviews
+            $hasReviews = DB::table('reviews')->where('product_id', $id)->exists();
+            
+            if ($hasReviews) {
+                // For reviews, we can delete them when deleting the product
+                DB::table('reviews')->where('product_id', $id)->delete();
+                \Illuminate\Support\Facades\Log::info('Deleted associated reviews for product:', ['id' => $id]);
+            }
             
             // Delete the image if it exists
             if ($product->image && Storage::disk('public')->exists(str_replace('/storage/', '', $product->image))) {
