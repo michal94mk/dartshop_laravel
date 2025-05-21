@@ -33,12 +33,13 @@ class PromotionController extends BaseAdminController
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:promotions',
             'description' => 'nullable|string',
-            'type' => 'required|string|in:percentage,fixed',
-            'value' => 'required|numeric|min:0',
-            'min_order_value' => 'nullable|numeric|min:0',
-            'max_uses' => 'nullable|integer|min:0',
-            'expires_at' => 'nullable|date',
-            'active' => 'boolean',
+            'discount_type' => 'required|string|in:percentage,fixed',
+            'discount_value' => 'required|numeric|min:0',
+            'minimum_order_value' => 'nullable|numeric|min:0',
+            'usage_limit' => 'nullable|integer|min:0',
+            'starts_at' => 'required|date',
+            'ends_at' => 'nullable|date',
+            'is_active' => 'boolean',
         ]);
 
         if ($validator->fails()) {
@@ -46,8 +47,8 @@ class PromotionController extends BaseAdminController
         }
 
         // Validate percentage value cannot be greater than 100
-        if ($request->type === 'percentage' && $request->value > 100) {
-            return $this->validationError(['value' => ['Wartość procentowa nie może przekraczać 100%.']]);
+        if ($request->discount_type === 'percentage' && $request->discount_value > 100) {
+            return $this->validationError(['discount_value' => ['Wartość procentowa nie może przekraczać 100%.']]);
         }
 
         $promotion = Promotion::create($request->all());
@@ -81,12 +82,13 @@ class PromotionController extends BaseAdminController
             'name' => 'sometimes|string|max:255',
             'code' => 'sometimes|string|max:50|unique:promotions,code,' . $promotion->id,
             'description' => 'nullable|string',
-            'type' => 'sometimes|string|in:percentage,fixed',
-            'value' => 'sometimes|numeric|min:0',
-            'min_order_value' => 'nullable|numeric|min:0',
-            'max_uses' => 'nullable|integer|min:0',
-            'expires_at' => 'nullable|date',
-            'active' => 'boolean',
+            'discount_type' => 'sometimes|string|in:percentage,fixed',
+            'discount_value' => 'sometimes|numeric|min:0',
+            'minimum_order_value' => 'nullable|numeric|min:0',
+            'usage_limit' => 'nullable|integer|min:0',
+            'starts_at' => 'sometimes|date',
+            'ends_at' => 'nullable|date',
+            'is_active' => 'boolean',
         ]);
 
         if ($validator->fails()) {
@@ -94,8 +96,8 @@ class PromotionController extends BaseAdminController
         }
 
         // Validate percentage value cannot be greater than 100
-        if ($request->type === 'percentage' && $request->value > 100) {
-            return $this->validationError(['value' => ['Wartość procentowa nie może przekraczać 100%.']]);
+        if ($request->has('discount_type') && $request->discount_type === 'percentage' && $request->has('discount_value') && $request->discount_value > 100) {
+            return $this->validationError(['discount_value' => ['Wartość procentowa nie może przekraczać 100%.']]);
         }
 
         $promotion->update($request->all());

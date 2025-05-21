@@ -76,15 +76,15 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               <span class="px-2 py-1 bg-gray-100 rounded font-mono">{{ promotion.code }}</span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ getPromotionTypeName(promotion.type) }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ getPromotionTypeName(promotion.discount_type) }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ promotion.type === 'percentage' ? `${promotion.value}%` : `${promotion.value} zł` }}
+              {{ promotion.discount_type === 'percentage' ? `${promotion.discount_value}%` : `${promotion.discount_value} zł` }}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(promotion.expires_at) }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(promotion.ends_at) }}</td>
             <td class="px-6 py-4 whitespace-nowrap">
               <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                   :class="promotion.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-                {{ promotion.active ? 'Aktywna' : 'Nieaktywna' }}
+                   :class="promotion.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                {{ promotion.is_active ? 'Aktywna' : 'Nieaktywna' }}
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -162,7 +162,7 @@
                 <label for="type" class="block text-sm font-medium text-gray-700">Typ promocji</label>
                 <select 
                   id="type" 
-                  v-model="form.type" 
+                  v-model="form.discount_type" 
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   required
                 >
@@ -173,14 +173,14 @@
               
               <div>
                 <label for="value" class="block text-sm font-medium text-gray-700">
-                  {{ form.type === 'percentage' ? 'Wartość procentowa' : 'Kwota rabatu (zł)' }}
+                  {{ form.discount_type === 'percentage' ? 'Wartość procentowa' : 'Kwota rabatu (zł)' }}
                 </label>
                 <input 
                   type="number" 
                   id="value" 
-                  v-model.number="form.value" 
+                  v-model.number="form.discount_value" 
                   min="0"
-                  :max="form.type === 'percentage' ? 100 : null"
+                  :max="form.discount_type === 'percentage' ? 100 : null"
                   step="0.01"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   required
@@ -194,7 +194,7 @@
                 <input 
                   type="number" 
                   id="min_order_value" 
-                  v-model.number="form.min_order_value" 
+                  v-model.number="form.minimum_order_value" 
                   min="0"
                   step="0.01"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
@@ -206,29 +206,41 @@
                 <input 
                   type="number" 
                   id="max_uses" 
-                  v-model.number="form.max_uses" 
+                  v-model.number="form.usage_limit" 
                   min="0"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 >
               </div>
             </div>
             
-            <div>
-              <label for="expires_at" class="block text-sm font-medium text-gray-700">Data ważności</label>
-              <input 
-                type="datetime-local" 
-                id="expires_at" 
-                v-model="form.expires_at" 
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                required
-              >
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="starts_at" class="block text-sm font-medium text-gray-700">Data rozpoczęcia</label>
+                <input 
+                  type="datetime-local" 
+                  id="starts_at" 
+                  v-model="form.starts_at" 
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  required
+                >
+              </div>
+              
+              <div>
+                <label for="ends_at" class="block text-sm font-medium text-gray-700">Data zakończenia</label>
+                <input 
+                  type="datetime-local" 
+                  id="ends_at" 
+                  v-model="form.ends_at" 
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                >
+              </div>
             </div>
             
             <div class="flex items-center">
               <input
                 id="active" 
                 type="checkbox" 
-                v-model="form.active"
+                v-model="form.is_active"
                 class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
               >
               <label for="active" class="ml-2 block text-sm text-gray-900">Promocja aktywna</label>
@@ -300,13 +312,25 @@ export default {
     const showDeleteModal = ref(false)
     const promotionToDelete = ref({})
     const searchTimeout = ref(null)
+    const form = ref({
+      name: '',
+      code: '',
+      description: '',
+      discount_type: 'percentage',
+      discount_value: 0,
+      minimum_order_value: 0,
+      usage_limit: null,
+      starts_at: new Date().toISOString().slice(0, 16),
+      ends_at: '',
+      is_active: true
+    })
     
     // Filters
     const filters = ref({
       search: '',
       status: '',
       type: '',
-      sort_field: 'expires_at',
+      sort_field: 'ends_at',
       sort_direction: 'asc'
     })
     
@@ -350,8 +374,8 @@ export default {
           return a.name.localeCompare(b.name) * direction
         case 'value':
           return (a.value - b.value) * direction
-        case 'expires_at':
-          return (new Date(a.expires_at) - new Date(b.expires_at)) * direction
+        case 'ends_at':
+          return (new Date(a.ends_at) - new Date(b.ends_at)) * direction
         case 'created_at':
         default:
           return (new Date(a.created_at) - new Date(b.created_at)) * direction
@@ -363,15 +387,15 @@ export default {
       return promotions.value
         .filter(promotion => {
           // Filter by status
-          if (filters.value.status === 'active' && !promotion.active) {
+          if (filters.value.status === 'active' && !promotion.is_active) {
             return false
           }
-          if (filters.value.status === 'inactive' && promotion.active) {
+          if (filters.value.status === 'inactive' && promotion.is_active) {
             return false
           }
           
           // Filter by type
-          if (filters.value.type && promotion.type !== filters.value.type) {
+          if (filters.value.type && promotion.discount_type !== filters.value.type) {
             return false
           }
           
@@ -411,12 +435,13 @@ export default {
         name: promotion.name,
         code: promotion.code,
         description: promotion.description || '',
-        type: promotion.type,
-        value: parseFloat(promotion.value),
-        min_order_value: promotion.min_order_value ? parseFloat(promotion.min_order_value) : 0,
-        max_uses: promotion.max_uses,
-        expires_at: formatDateForInput(promotion.expires_at),
-        active: promotion.active
+        discount_type: promotion.discount_type,
+        discount_value: parseFloat(promotion.discount_value),
+        minimum_order_value: promotion.minimum_order_value ? parseFloat(promotion.minimum_order_value) : 0,
+        usage_limit: promotion.usage_limit,
+        starts_at: formatDateForInput(promotion.starts_at),
+        ends_at: formatDateForInput(promotion.ends_at),
+        is_active: promotion.is_active
       }
       showEditForm.value = true
     }
@@ -462,12 +487,13 @@ export default {
         name: '',
         code: '',
         description: '',
-        type: 'percentage',
-        value: 0,
-        min_order_value: 0,
-        max_uses: null,
-        expires_at: '',
-        active: true
+        discount_type: 'percentage',
+        discount_value: 0,
+        minimum_order_value: 0,
+        usage_limit: null,
+        starts_at: new Date().toISOString().slice(0, 16),
+        ends_at: '',
+        is_active: true
       }
       showAddForm.value = false
       showEditForm.value = false
@@ -497,14 +523,14 @@ export default {
     }
     
     // Generate random code
-    const generateCode = () => {
-      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-      let result = ''
-      const length = 8
-      for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * characters.length))
+    const generateCode = async () => {
+      try {
+        const response = await axios.get('/api/admin/promotions/generate-code')
+        form.value.code = response.data.code
+      } catch (error) {
+        console.error('Error generating code:', error)
+        alertStore.error('Wystąpił błąd podczas generowania kodu promocji.')
       }
-      form.value.code = result
     }
     
     onMounted(() => {
@@ -520,7 +546,7 @@ export default {
       showDeleteModal,
       promotionToDelete,
       filters,
-      form: ref({}),
+      form,
       fetchPromotions,
       addPromotion,
       editPromotion,
