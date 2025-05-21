@@ -1,18 +1,20 @@
 <template>
-  <div class="flex space-x-2">
+  <div class="flex flex-row gap-1">
     <button 
       v-if="showEdit"
       @click="$emit('edit', item)"
-      class="px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700 transition-colors"
+      class="px-2 py-1 bg-indigo-600 text-white text-xs font-medium rounded hover:bg-indigo-700 transition-colors"
+      title="Edytuj"
     >
       {{ editLabel }}
     </button>
     <button 
       v-if="showDelete"
       @click="handleDelete"
-      class="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors"
+      class="px-2 py-1 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-700 transition-colors"
       :disabled="disableDelete"
       :class="{ 'opacity-50 cursor-not-allowed': disableDelete }"
+      title="Usuń"
     >
       {{ deleteLabel }}
     </button>

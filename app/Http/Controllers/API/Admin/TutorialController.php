@@ -80,7 +80,7 @@ class TutorialController extends BaseAdminController
             'content' => $request->content,
             'meta_title' => $request->meta_title,
             'meta_description' => $request->meta_description,
-            'user_id' => $request->user()->id, // Correct way to get authenticated user ID
+            'user_id' => \Illuminate\Support\Facades\Auth::id(), // Get the authenticated user ID
         ];
         
         // Handle status
@@ -129,7 +129,7 @@ class TutorialController extends BaseAdminController
      */
     public function show($id)
     {
-        $tutorial = Tutorial::with('author')->findOrFail($id);
+        $tutorial = Tutorial::with('user')->findOrFail($id);
         return response()->json($tutorial);
     }
 
@@ -174,6 +174,7 @@ class TutorialController extends BaseAdminController
             'content' => $request->content ?? $tutorial->content,
             'meta_title' => $request->meta_title,
             'meta_description' => $request->meta_description,
+            // Keep the user_id unchanged
         ];
         
         // Handle status conversion

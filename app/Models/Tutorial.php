@@ -27,7 +27,8 @@ class Tutorial extends Model
         'published_at',
         'meta_title',
         'meta_description',
-        'excerpt'
+        'excerpt',
+        'user_id'
     ];
 
     /**

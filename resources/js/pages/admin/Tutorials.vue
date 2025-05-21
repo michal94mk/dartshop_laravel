@@ -55,40 +55,51 @@
     <loading-spinner v-if="loading" />
     
     <!-- Tutorials Table -->
-    <div v-else-if="filteredTutorials.length" class="bg-white shadow overflow-hidden sm:rounded-md mt-6">
-      <table class="min-w-full divide-y divide-gray-200">
+    <div v-else-if="filteredTutorials.length" class="bg-white shadow sm:rounded-md mt-6">
+      <table class="w-full divide-y divide-gray-200 table-fixed">
         <thead class="bg-gray-50">
           <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tytuł</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Autor</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data publikacji</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Akcje</th>
+            <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">ID</th>
+            <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Tytuł</th>
+            <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24 hidden lg:table-cell">Slug</th>
+            <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20 hidden md:table-cell">Autor</th>
+            <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20 hidden md:table-cell">Data</th>
+            <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Status</th>
+            <th scope="col" class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Akcje</th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
           <tr v-for="tutorial in filteredTutorials" :key="tutorial.id">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ tutorial.id }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ tutorial.title }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <td class="px-2 py-2 whitespace-nowrap text-xs font-medium text-gray-900">{{ tutorial.id }}</td>
+            <td class="px-2 py-2 text-xs text-gray-500 truncate max-w-[160px]">{{ tutorial.title }}</td>
+            <td class="px-2 py-2 text-xs text-gray-500 truncate hidden lg:table-cell">
               {{ tutorial.slug }}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ tutorial.author ? tutorial.author.name : 'Nieznany' }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(tutorial.published_at) }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+            <td class="px-2 py-2 whitespace-nowrap text-xs text-gray-500 hidden md:table-cell">{{ tutorial.author ? tutorial.author.name : 'Nieznany' }}</td>
+            <td class="px-2 py-2 whitespace-nowrap text-xs text-gray-500 hidden md:table-cell">{{ formatDate(tutorial.published_at) }}</td>
+            <td class="px-2 py-2 whitespace-nowrap">
+              <span class="px-1.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full"
                    :class="getStatusClass(tutorial)">
                 {{ getStatusLabel(tutorial) }}
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <action-buttons 
-                :item="tutorial"
-                @edit="editTutorial"
-                @delete="confirmDelete"
-              />
+            <td class="px-2 py-2 whitespace-nowrap text-xs font-medium text-center">
+              <div class="flex justify-center space-x-1">
+                <button
+                  @click="editTutorial(tutorial)"
+                  class="px-1.5 py-0.5 bg-indigo-600 text-white text-xs font-medium rounded hover:bg-indigo-700 transition-colors"
+                  title="Edytuj"
+                >
+                  Edytuj
+                </button>
+                <button
+                  @click="confirmDelete(tutorial)"
+                  class="px-1.5 py-0.5 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-700 transition-colors"
+                  title="Usuń"
+                >
+                  Usuń
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -100,91 +111,93 @@
     
     <!-- Add/Edit Modal -->
     <div v-if="showAddForm || showEditForm" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-      <div class="relative mx-auto p-5 border w-full max-w-3xl shadow-lg rounded-md bg-white">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-medium text-gray-900">{{ showEditForm ? 'Edytuj poradnik' : 'Dodaj nowy poradnik' }}</h3>
+      <div class="relative mx-auto p-4 border w-full max-w-3xl shadow-lg rounded-md bg-white max-h-[95vh] flex flex-col">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="text-base font-medium text-gray-900">{{ showEditForm ? 'Edytuj poradnik' : 'Dodaj nowy poradnik' }}</h3>
           <button @click="closeForm" class="text-gray-400 hover:text-gray-500">
-            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
         
-        <form @submit.prevent="showEditForm ? updateTutorial() : addTutorial()" class="overflow-y-auto max-h-screen">
-          <div class="grid grid-cols-1 gap-4 mb-4">
-            <div>
-              <label for="title" class="block text-sm font-medium text-gray-700">Tytuł</label>
-              <input 
-                type="text" 
-                id="title" 
-                v-model="form.title" 
-                @input="generateSlug"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                required
-              >
-            </div>
-            
-            <div>
-              <label for="slug" class="block text-sm font-medium text-gray-700">Slug</label>
-              <input 
-                type="text" 
-                id="slug" 
-                v-model="form.slug" 
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                required
-              >
-            </div>
-            
-            <div>
-              <label for="excerpt" class="block text-sm font-medium text-gray-700">Krótki opis (fragment)</label>
-              <textarea 
-                id="excerpt" 
-                v-model="form.excerpt" 
-                rows="2"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                required
-              ></textarea>
-            </div>
-            
-            <div>
-              <label for="content" class="block text-sm font-medium text-gray-700">Treść</label>
-              <textarea 
-                id="content" 
-                v-model="form.content" 
-                rows="10"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                required
-              ></textarea>
-            </div>
-            
-            <div>
-              <label for="image_url" class="block text-sm font-medium text-gray-700">URL obrazka</label>
-              <input 
-                type="url" 
-                id="image_url" 
-                v-model="form.image_url" 
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                required
-              >
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
+        <div class="overflow-y-auto flex-grow">
+          <form @submit.prevent="showEditForm ? updateTutorial() : addTutorial()" class="grid grid-cols-1 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label for="published_at" class="block text-sm font-medium text-gray-700">Data publikacji</label>
+                <label for="title" class="block text-xs font-medium text-gray-700">Tytuł</label>
                 <input 
-                  type="datetime-local" 
-                  id="published_at" 
-                  v-model="form.published_at" 
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  type="text" 
+                  id="title" 
+                  v-model="form.title" 
+                  @input="generateSlug"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
+                  required
                 >
               </div>
               
               <div>
-                <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                <label for="slug" class="block text-xs font-medium text-gray-700">Slug</label>
+                <input 
+                  type="text" 
+                  id="slug" 
+                  v-model="form.slug" 
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
+                  required
+                >
+              </div>
+            </div>
+            
+            <div>
+              <label for="excerpt" class="block text-xs font-medium text-gray-700">Krótki opis</label>
+              <textarea 
+                id="excerpt" 
+                v-model="form.excerpt" 
+                rows="2"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
+                required
+              ></textarea>
+            </div>
+            
+            <div>
+              <label for="content" class="block text-xs font-medium text-gray-700">Treść</label>
+              <textarea 
+                id="content" 
+                v-model="form.content" 
+                rows="8"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
+                required
+              ></textarea>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label for="image_url" class="block text-xs font-medium text-gray-700">URL obrazka</label>
+                <input 
+                  type="url" 
+                  id="image_url" 
+                  v-model="form.image_url" 
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
+                  required
+                >
+              </div>
+              
+              <div>
+                <label for="published_at" class="block text-xs font-medium text-gray-700">Data publikacji</label>
+                <input 
+                  type="datetime-local" 
+                  id="published_at" 
+                  v-model="form.published_at" 
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
+                >
+              </div>
+              
+              <div>
+                <label for="status" class="block text-xs font-medium text-gray-700">Status</label>
                 <select 
                   id="status" 
                   v-model="form.status" 
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
                   required
                 >
                   <option value="draft">Szkic</option>
@@ -194,24 +207,26 @@
               </div>
             </div>
             
-            <div>
-              <label for="meta_title" class="block text-sm font-medium text-gray-700">Meta tytuł (SEO)</label>
-              <input 
-                type="text" 
-                id="meta_title" 
-                v-model="form.meta_title" 
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              >
-            </div>
-            
-            <div>
-              <label for="meta_description" class="block text-sm font-medium text-gray-700">Meta opis (SEO)</label>
-              <textarea 
-                id="meta_description" 
-                v-model="form.meta_description" 
-                rows="2"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              ></textarea>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label for="meta_title" class="block text-xs font-medium text-gray-700">Meta tytuł (SEO)</label>
+                <input 
+                  type="text" 
+                  id="meta_title" 
+                  v-model="form.meta_title" 
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
+                >
+              </div>
+              
+              <div>
+                <label for="meta_description" class="block text-xs font-medium text-gray-700">Meta opis (SEO)</label>
+                <textarea 
+                  id="meta_description" 
+                  v-model="form.meta_description" 
+                  rows="2"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
+                ></textarea>
+              </div>
             </div>
             
             <div class="flex items-center">
@@ -221,26 +236,26 @@
                 v-model="form.featured"
                 class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
               >
-              <label for="featured" class="ml-2 block text-sm text-gray-900">Wyróżniony poradnik</label>
+              <label for="featured" class="ml-2 block text-xs text-gray-900">Wyróżniony poradnik</label>
             </div>
-          </div>
-          
-          <div class="flex justify-end">
-            <button 
-              type="button" 
-              @click="closeForm" 
-              class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2"
-            >
-              Anuluj
-            </button>
-            <button 
-              type="submit" 
-              class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              {{ showEditForm ? 'Zapisz zmiany' : 'Dodaj poradnik' }}
-            </button>
-          </div>
-        </form>
+            
+            <div class="flex justify-end space-x-2 pt-3">
+              <button 
+                type="button" 
+                @click="closeForm" 
+                class="bg-white py-1.5 px-3 border border-gray-300 rounded-md shadow-sm text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Anuluj
+              </button>
+              <button 
+                type="submit" 
+                class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-1.5 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-xs"
+              >
+                {{ showEditForm ? 'Zapisz zmiany' : 'Dodaj poradnik' }}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
     
@@ -406,8 +421,7 @@ export default {
     // Add new tutorial
     const addTutorial = async () => {
       try {
-        const tutorialData = { ...form.value, author_id: authStore.user.id }
-        const response = await axios.post('/api/admin/tutorials', tutorialData)
+        const response = await axios.post('/api/admin/tutorials', form.value)
         tutorials.value.push(response.data)
         alertStore.success('Poradnik został dodany.')
         closeForm()
@@ -418,7 +432,20 @@ export default {
     }
     
     // Edit tutorial
-    const editTutorial = (tutorial) => {
+    const editTutorial = (tutorialOrId) => {
+      // Handle either a tutorial object or just an ID
+      let tutorial;
+      if (typeof tutorialOrId === 'object' && tutorialOrId !== null) {
+        tutorial = tutorialOrId;
+      } else {
+        // Find the tutorial by ID
+        tutorial = tutorials.value.find(t => t.id === tutorialOrId);
+        if (!tutorial) {
+          console.error('Tutorial not found with ID:', tutorialOrId);
+          return;
+        }
+      }
+      
       form.value = {
         id: tutorial.id,
         title: tutorial.title,
@@ -432,7 +459,7 @@ export default {
         meta_description: tutorial.meta_description || '',
         featured: tutorial.featured || false
       }
-      showEditForm.value = true
+      showEditForm.value = true;
     }
     
     // Update tutorial
@@ -452,9 +479,22 @@ export default {
     }
     
     // Confirm delete
-    const confirmDelete = (tutorial) => {
-      tutorialToDelete.value = tutorial
-      showDeleteModal.value = true
+    const confirmDelete = (tutorialOrId) => {
+      // Handle either a tutorial object or just an ID
+      let tutorial;
+      if (typeof tutorialOrId === 'object' && tutorialOrId !== null) {
+        tutorial = tutorialOrId;
+      } else {
+        // Find the tutorial by ID
+        tutorial = tutorials.value.find(t => t.id === tutorialOrId);
+        if (!tutorial) {
+          console.error('Tutorial not found with ID:', tutorialOrId);
+          return;
+        }
+      }
+      
+      tutorialToDelete.value = tutorial;
+      showDeleteModal.value = true;
     }
     
     // Delete tutorial
