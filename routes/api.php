@@ -187,9 +187,11 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice']);
     
     // Reviews management
+    Route::get('/reviews/form-data', [ReviewController::class, 'getFormData']);
     Route::apiResource('/reviews', ReviewController::class);
     Route::post('/reviews/{review}/approve', [ReviewController::class, 'approve']);
     Route::post('/reviews/{review}/reject', [ReviewController::class, 'reject']);
+    Route::post('/reviews/{review}/toggle-featured', [ReviewController::class, 'toggleFeatured']);
     
     // Tutorials management
     Route::apiResource('/tutorials', TutorialController::class);

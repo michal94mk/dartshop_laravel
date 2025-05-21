@@ -53,6 +53,17 @@ class BaseAdminController extends Controller
     }
     
     /**
+     * Return a validation error response
+     * 
+     * @param mixed $errors
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function validationError($errors)
+    {
+        return $this->errorResponse('Validation error', 422, $errors);
+    }
+    
+    /**
      * Log and return a success response
      * 
      * @param string $message
