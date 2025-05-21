@@ -85,6 +85,7 @@ class OrderController extends BaseAdminController
                 'country' => 'required|string|max:100',
                 'total' => 'required|numeric|min:0',
                 'status' => 'required|in:pending,processing,completed,cancelled',
+                'payment_status' => 'required|in:pending,completed,failed',
                 'payment_method' => 'required|string|max:100',
                 'shipping_method' => 'required|string|max:100',
                 'shipping_cost' => 'required|numeric|min:0',
@@ -122,6 +123,7 @@ class OrderController extends BaseAdminController
                 'country' => $request->input('country', 'Polska'),
                 'total' => $request->input('total'),
                 'status' => $request->input('status', 'pending'),
+                'payment_status' => $request->input('payment_status', 'pending'),
                 'payment_method' => $request->input('payment_method'),
                 'shipping_method' => $request->input('shipping_method'),
                 'shipping_cost' => $request->input('shipping_cost'),
@@ -193,24 +195,97 @@ class OrderController extends BaseAdminController
         try {
             $order = Order::findOrFail($id);
 
+            Log::info('Order update request data:', $request->all());
+            
             $validator = Validator::make($request->all(), [
+                'user_id' => 'nullable|exists:users,id',
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+                'phone' => 'nullable|string|max:20',
+                'address' => 'required|string|max:255',
+                'city' => 'required|string|max:100',
+                'postal_code' => 'required|string|max:20',
+                'country' => 'required|string|max:100',
                 'status' => 'required|in:pending,processing,completed,cancelled',
                 'payment_status' => 'required|in:pending,completed,failed',
+                'payment_method' => 'required|string|max:100',
+                'shipping_method' => 'required|string|max:100',
                 'notes' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
+                Log::warning('Order update validation failed:', ['errors' => $validator->errors()->toArray()]);
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $order->update([
-                'status' => $request->status,
-                'payment_status' => $request->payment_status,
-                'notes' => $request->notes,
-            ]);
+            // Start transaction
+            DB::beginTransaction();
+            
+            // Update order data
+            $orderData = [
+                'user_id' => $request->input('user_id'),
+                'first_name' => $request->input('first_name'),
+                'last_name' => $request->input('last_name'),
+                'email' => $request->input('email'),
+                'phone' => $request->input('phone'),
+                'address' => $request->input('address'),
+                'city' => $request->input('city'),
+                'postal_code' => $request->input('postal_code'),
+                'country' => $request->input('country', 'Polska'),
+                'status' => $request->input('status'),
+                'payment_status' => $request->input('payment_status'),
+                'payment_method' => $request->input('payment_method'),
+                'shipping_method' => $request->input('shipping_method'),
+                'notes' => $request->input('notes'),
+            ];
+            
+            // Log orderData for debugging
+            Log::info('Order data being updated:', $orderData);
+
+            // Update order
+            $order->update($orderData);
+            
+            // Update order items if provided
+            if ($request->has('items') && is_array($request->items)) {
+                // Delete existing items
+                $order->items()->delete();
+                
+                // Create new items
+                foreach ($request->items as $item) {
+                    $order->items()->create([
+                        'product_id' => $item['product_id'],
+                        'product_name' => isset($item['product_name']) ? $item['product_name'] : null,
+                        'quantity' => $item['quantity'],
+                        'price' => $item['price'],
+                        'total' => $item['price'] * $item['quantity'],
+                    ]);
+                }
+                
+                // Recalculate order total
+                if ($request->has('shipping_cost')) {
+                    $subtotal = $order->items()->sum('total');
+                    $shipping_cost = $request->input('shipping_cost');
+                    
+                    $order->update([
+                        'subtotal' => $subtotal,
+                        'shipping_cost' => $shipping_cost,
+                        'total' => $subtotal + $shipping_cost,
+                    ]);
+                }
+            }
+
+            DB::commit();
+            Log::info('Order update successful. Transaction committed.');
 
             return $this->successResponse('Order updated successfully', $order);
         } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error updating order: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all()
+            ]);
             return $this->errorResponse('Error updating order: ' . $e->getMessage(), 500);
         }
     }

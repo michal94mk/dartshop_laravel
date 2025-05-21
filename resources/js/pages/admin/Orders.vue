@@ -517,18 +517,31 @@
             </div>
           </div>
 
-          <!-- Payment Method -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Metoda płatności</label>
-            <select
-              v-model="editedOrder.payment_method"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            >
-              <option value="bank_transfer">Przelew bankowy</option>
-              <option value="cash_on_delivery">Płatność przy odbiorze</option>
-              <option value="online">Płatność online</option>
-              <option value="blik">BLIK</option>
-            </select>
+          <!-- Payment Method and Status -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Metoda płatności</label>
+              <select
+                v-model="editedOrder.payment_method"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="bank_transfer">Przelew bankowy</option>
+                <option value="cash_on_delivery">Płatność przy odbiorze</option>
+                <option value="online">Płatność online</option>
+                <option value="blik">BLIK</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Status płatności</label>
+              <select
+                v-model="editedOrder.payment_status"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="pending">Oczekująca</option>
+                <option value="completed">Opłacone</option>
+                <option value="failed">Nieudana</option>
+              </select>
+            </div>
           </div>
 
           <!-- Notes -->
@@ -694,6 +707,7 @@ export default {
       items: [],
       shipping_method: 'courier',
       payment_method: 'bank_transfer',
+      payment_status: 'pending',
       notes: '',
       status: 'pending'
     })
@@ -850,6 +864,7 @@ export default {
         items: [],
         shipping_method: 'courier',
         payment_method: 'bank_transfer',
+        payment_status: 'pending',
         notes: '',
         status: 'pending'
       }
@@ -922,6 +937,7 @@ export default {
           items: [],
           shipping_method: 'courier',
           payment_method: 'bank_transfer',
+          payment_status: 'pending',
           notes: '',
           status: 'pending'
         };
@@ -947,6 +963,7 @@ export default {
         items: [],
         shipping_method: 'courier',
         payment_method: 'bank_transfer',
+        payment_status: 'pending',
         notes: '',
         status: 'pending'
       }
@@ -1198,6 +1215,7 @@ export default {
           // Order details
           notes: ensureString(editedOrder.value.notes),
           status: ensureString(editedOrder.value.status || 'pending'),
+          payment_status: ensureString(editedOrder.value.payment_status || 'pending'),
           payment_method: ensureString(editedOrder.value.payment_method || 'bank_transfer'),
           shipping_method: ensureString(editedOrder.value.shipping_method || 'courier'),
           shipping_cost: shipping_cost,
