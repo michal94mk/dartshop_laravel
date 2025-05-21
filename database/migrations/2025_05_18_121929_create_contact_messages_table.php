@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('subject');
             $table->text('message');
             $table->text('reply')->nullable();
+            $table->text('notes')->nullable();
             $table->enum('status', ['unread', 'read', 'replied'])->default('unread');
             $table->timestamps();
         });

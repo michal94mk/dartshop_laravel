@@ -201,6 +201,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::patch('/contact-messages/{id}/status', [ContactMessageController::class, 'updateStatus']);
     Route::patch('/contact-messages/{id}/mark-as-read', [ContactMessageController::class, 'markAsRead']);
     Route::patch('/contact-messages/{id}/notes', [ContactMessageController::class, 'updateNotes']);
+    Route::post('/contact-messages/{id}/respond', [ContactMessageController::class, 'respond']);
     
     // About page management
     Route::get('/about', [AboutPageController::class, 'index']);

@@ -20,6 +20,7 @@ class ContactMessage extends Model
         'subject',
         'message',
         'reply',
+        'notes',
         'status'
     ];
     

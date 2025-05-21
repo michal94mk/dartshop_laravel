@@ -24,10 +24,9 @@
             class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           >
             <option value="">Wszystkie</option>
-            <option value="new">Nowe</option>
+            <option value="unread">Nieprzeczytane</option>
             <option value="read">Przeczytane</option>
             <option value="replied">Odpowiedziane</option>
-            <option value="resolved">Rozwiązane</option>
           </select>
         </div>
         <div>
@@ -53,47 +52,47 @@
     </div>
     
     <!-- Contact Messages Table -->
-    <div v-if="!loading && filteredMessages.length" class="bg-white shadow overflow-hidden sm:rounded-md">
-      <table class="min-w-full divide-y divide-gray-200">
+    <div v-if="!loading && filteredMessages.length" class="bg-white shadow overflow-x-auto sm:rounded-md">
+      <table class="min-w-full divide-y divide-gray-200 table-fixed">
         <thead class="bg-gray-50">
           <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Imię</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Temat</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wiadomość</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Akcje</th>
+            <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">ID</th>
+            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Imię</th>
+            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Email</th>
+            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Temat</th>
+            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Data</th>
+            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Status</th>
+            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Akcje</th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="message in filteredMessages" :key="message.id" :class="{ 'bg-indigo-50': message.status === 'new' }">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ message.id }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ message.name }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ message.email }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ message.subject }}</td>
-            <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{{ message.message }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(message.created_at) }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
+          <tr v-for="message in filteredMessages" :key="message.id" :class="{ 'bg-indigo-50': message.status === 'unread' }">
+            <td class="px-2 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ message.id }}</td>
+            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 truncate">{{ message.name }}</td>
+            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 truncate">{{ message.email }}</td>
+            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 truncate">{{ message.subject }}</td>
+            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(message.created_at) }}</td>
+            <td class="px-3 py-4 whitespace-nowrap">
               <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                    :class="getStatusClass(message.status)">
-                {{ getStatusLabel(message.status) }}
+                {{ message.status_label || getStatusLabel(message.status) }}
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-              <button 
-                @click="viewMessage(message)" 
-                class="text-indigo-600 hover:text-indigo-900 mr-2"
-              >
-                Szczegóły
-              </button>
-              <button 
-                @click="confirmDelete(message)" 
-                class="text-red-600 hover:text-red-900"
-              >
-                Usuń
-              </button>
+            <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
+              <div class="flex space-x-2">
+                <button 
+                  @click="viewMessage(message)" 
+                  class="text-indigo-600 hover:text-indigo-900"
+                >
+                  Zarządzaj
+                </button>
+                <button 
+                  @click="confirmDelete(message)" 
+                  class="text-red-600 hover:text-red-900"
+                >
+                  Usuń
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -154,10 +153,9 @@
                 @change="updateStatus"
                 class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               >
-                <option value="new">Nowa</option>
+                <option value="unread">Nieprzeczytana</option>
                 <option value="read">Przeczytana</option>
                 <option value="replied">Odpowiedziana</option>
-                <option value="resolved">Rozwiązana</option>
               </select>
             </div>
           </div>
@@ -243,6 +241,12 @@
                 Zapisz zmiany
               </button>
             </div>
+            <button 
+              @click="closeDetails" 
+              class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            >
+              Zamknij
+            </button>
           </div>
         </div>
       </div>
@@ -340,8 +344,8 @@ export default {
       
       showDetailsModal.value = true
       
-      // If message is new, mark it as read
-      if (message.status === 'new') {
+      // If message is unread, mark it as read
+      if (message.status === 'unread') {
         selectedMessage.value.status = 'read'
         updateStatus()
       }
@@ -370,6 +374,27 @@ export default {
       } catch (error) {
         console.error('Error updating message status:', error)
         alertStore.error('Wystąpił błąd podczas aktualizacji statusu wiadomości.')
+      }
+    }
+    
+    // Save notes
+    const saveNotes = async () => {
+      try {
+        await axios.patch(`/api/admin/contact-messages/${selectedMessage.value.id}/notes`, {
+          notes: selectedMessage.value.notes
+        })
+        
+        // Update notes in messages list
+        const index = messages.value.findIndex(m => m.id === selectedMessage.value.id)
+        if (index !== -1) {
+          messages.value[index].notes = selectedMessage.value.notes
+        }
+        
+        alertStore.success('Notatki zostały zapisane.')
+        closeDetails() // Close the modal after successful save
+      } catch (error) {
+        console.error('Error saving notes:', error)
+        alertStore.error('Wystąpił błąd podczas zapisywania notatek.')
       }
     }
     
@@ -429,6 +454,7 @@ export default {
         }
         
         alertStore.success('Odpowiedź została wysłana.')
+        closeDetails() // Close the modal after successful response
         
         // Reset response form
         responseData.value.message = ''
@@ -437,26 +463,6 @@ export default {
         alertStore.error('Wystąpił błąd podczas wysyłania odpowiedzi.')
       } finally {
         responseSending.value = false
-      }
-    }
-    
-    // Save notes
-    const saveNotes = async () => {
-      try {
-        await axios.patch(`/api/admin/contact-messages/${selectedMessage.value.id}/notes`, {
-          notes: selectedMessage.value.notes
-        })
-        
-        // Update notes in messages list
-        const index = messages.value.findIndex(m => m.id === selectedMessage.value.id)
-        if (index !== -1) {
-          messages.value[index].notes = selectedMessage.value.notes
-        }
-        
-        alertStore.success('Notatki zostały zapisane.')
-      } catch (error) {
-        console.error('Error saving notes:', error)
-        alertStore.error('Wystąpił błąd podczas zapisywania notatek.')
       }
     }
     
@@ -493,10 +499,9 @@ export default {
     // Get status label
     const getStatusLabel = (status) => {
       switch (status) {
-        case 'new': return 'Nowa'
+        case 'unread': return 'Nieprzeczytana'
         case 'read': return 'Przeczytana'
         case 'replied': return 'Odpowiedziana'
-        case 'resolved': return 'Rozwiązana'
         default: return status
       }
     }
@@ -504,10 +509,9 @@ export default {
     // Get status class
     const getStatusClass = (status) => {
       switch (status) {
-        case 'new': return 'bg-indigo-100 text-indigo-800'
+        case 'unread': return 'bg-yellow-100 text-yellow-800'
         case 'read': return 'bg-blue-100 text-blue-800'
-        case 'replied': return 'bg-yellow-100 text-yellow-800'
-        case 'resolved': return 'bg-green-100 text-green-800'
+        case 'replied': return 'bg-green-100 text-green-800'
         default: return 'bg-gray-100 text-gray-800'
       }
     }

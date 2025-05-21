@@ -42,7 +42,7 @@ class ContactMessageController extends BaseAdminController
     public function updateStatus(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'required|string|in:new,read,replied,resolved',
+            'status' => 'required|string|in:unread,read,replied',
         ]);
 
         if ($validator->fails()) {
@@ -66,7 +66,7 @@ class ContactMessageController extends BaseAdminController
     {
         $message = ContactMessage::findOrFail($id);
         
-        if ($message->status === 'new') {
+        if ($message->status === 'unread') {
             $message->status = 'read';
             $message->save();
         }
@@ -110,5 +110,37 @@ class ContactMessageController extends BaseAdminController
         $message->delete();
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Send a response to the contact message.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function respond(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator->errors());
+        }
+
+        $contactMessage = ContactMessage::findOrFail($id);
+        
+        try {
+            // Here you would typically send an email to the contact
+            // For now, we'll just store the reply
+            $contactMessage->reply = $request->message;
+            $contactMessage->save();
+            
+            return response()->json(['success' => true, 'message' => 'Odpowiedź została wysłana']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Błąd podczas wysyłania odpowiedzi: ' . $e->getMessage()], 500);
+        }
     }
 } 
