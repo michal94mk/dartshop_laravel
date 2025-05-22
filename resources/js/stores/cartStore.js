@@ -236,6 +236,9 @@ export const useCartStore = defineStore('cart', {
         
         // Zapisz zmiany w localStorage
         this.saveToLocalStorage();
+        
+        // Return true to indicate success for guest users
+        return true;
       }
     },
     

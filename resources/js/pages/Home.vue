@@ -95,7 +95,17 @@
                   <h3 class="text-lg font-medium text-gray-900 line-clamp-2 min-h-[3.5rem]">{{ product.name }}</h3>
                   <p class="mt-2 text-sm text-gray-500 line-clamp-2 flex-grow min-h-[2.5rem]">{{ product.short_description || product.description }}</p>
                   <div v-if="product.id === cartMessageProductId" class="mt-2 p-2 rounded text-sm" :class="cartSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
-                    {{ cartMessage }}
+                    <div v-if="cartSuccess" class="flex flex-col">
+                      <span>{{ cartMessage }}</span>
+                      <div class="mt-1 flex justify-end">
+                        <router-link to="/cart" class="text-xs font-medium text-indigo-600 hover:text-indigo-500">
+                          Przejdź do koszyka &rarr;
+                        </router-link>
+                      </div>
+                    </div>
+                    <div v-else>
+                      {{ cartMessage }}
+                    </div>
                   </div>
                   <div class="mt-4 pt-3 border-t border-gray-100">
                     <span class="text-indigo-600 font-bold text-xl block mb-3">{{ formatPrice(product.price) }} zł</span>
@@ -157,7 +167,17 @@
                   <h3 class="text-lg font-medium text-gray-900 line-clamp-2 min-h-[3.5rem]">{{ product.name }}</h3>
                   <p class="mt-2 text-sm text-gray-500 line-clamp-2 flex-grow min-h-[2.5rem]">{{ product.description }}</p>
                   <div v-if="product.id === cartMessageProductId" class="mt-2 p-2 rounded text-sm" :class="cartSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
-                    {{ cartMessage }}
+                    <div v-if="cartSuccess" class="flex flex-col">
+                      <span>{{ cartMessage }}</span>
+                      <div class="mt-1 flex justify-end">
+                        <router-link to="/cart" class="text-xs font-medium text-indigo-600 hover:text-indigo-500">
+                          Przejdź do koszyka &rarr;
+                        </router-link>
+                      </div>
+                    </div>
+                    <div v-else>
+                      {{ cartMessage }}
+                    </div>
                   </div>
                   <div class="mt-4 pt-3 border-t border-gray-100">
                     <span class="text-indigo-600 font-bold text-xl block mb-3">{{ formatPrice(product.price) }} zł</span>
@@ -381,7 +401,7 @@ export default {
       this.cartMessageProductId = product.id;
       this.cartStore.addToCart(product.id)
         .then(() => {
-          this.cartMessage = 'Produkt został dodany do koszyka';
+          this.cartMessage = `Produkt "${product.name || 'wybrany'}" został dodany do koszyka.`;
           this.cartSuccess = true;
           
           // Clear message after 3 seconds
