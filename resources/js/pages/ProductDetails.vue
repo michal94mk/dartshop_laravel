@@ -51,11 +51,11 @@
       <div class="md:flex">
         <!-- Product image -->
         <div class="md:w-1/2">
-          <div class="relative pb-3/4">
+          <div class="relative" style="height: 400px;">
             <img 
-              :src="product.image_url || `https://via.placeholder.com/800x600/indigo/fff?text=${product.name}`" 
+              :src="product.image_url || `https://via.placeholder.com/800x600/indigo/fff?text=${encodeURIComponent(product.name)}`" 
               :alt="product.name" 
-              class="absolute h-full w-full object-cover"
+              class="w-full h-full object-contain"
             >
           </div>
         </div>
@@ -207,9 +207,13 @@ export default {
       this.error = null;
       
       try {
+        console.log('Fetching product with ID:', this.$route.params.id);
         const product = await this.productStore.fetchProductById(this.$route.params.id);
+        console.log('Product returned from store:', product);
+        
         if (product) {
           this.product = product;
+          document.title = `${product.name} - DartShop`;
         } else {
           this.error = 'Nie udało się załadować produktu. Produkt nie został znaleziony.';
         }
@@ -262,7 +266,5 @@ export default {
 </script>
 
 <style scoped>
-.pb-3\/4 {
-  padding-bottom: 75%;
-}
+/* Custom styles for product details */
 </style> 

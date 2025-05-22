@@ -160,6 +160,7 @@ class ProductController extends Controller
                 'query_log' => DB::getQueryLog()
             ]);
             
+            // Return product with a consistent format
             return response()->json($product);
         } catch (Exception $e) {
             Log::error('Error fetching product details', [

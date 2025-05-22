@@ -251,15 +251,25 @@ export const useProductStore = defineStore('product', {
       this.error = null;
       
       try {
+        console.log(`Fetching product with ID: ${id}`);
         const response = await axios.get(`/api/products/${id}`);
+        console.log('API Response:', response);
         
         if (response && response.data) {
+          // The API may return the product directly or wrapped in a 'data' property
+          const productData = response.data.data || response.data;
+          
           this.currentProduct = {
-            ...response.data,
-            price: response.data.price || 0,
-            name: response.data.name || 'Unnamed Product',
-            image_url: response.data.image_url || response.data.image || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
+            ...productData,
+            price: productData.price || 0,
+            name: productData.name || 'Unnamed Product',
+            image_url: productData.image_url || productData.image || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
           };
+          
+          console.log('Current product set:', this.currentProduct);
+          
+          // Return the current product for the component to use
+          return this.currentProduct;
         } else {
           throw new Error('Invalid API response format');
         }
@@ -275,6 +285,9 @@ export const useProductStore = defineStore('product', {
           price: 99.99,
           image_url: 'https://via.placeholder.com/300x300/indigo/fff?text=Fallback+Product'
         };
+        
+        // Return the fallback product
+        return this.currentProduct;
       } finally {
         this.loading = false;
       }

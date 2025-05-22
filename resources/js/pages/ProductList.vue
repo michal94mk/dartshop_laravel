@@ -225,27 +225,28 @@
               </div>
               <div class="mt-4 pt-3 border-t border-gray-100">
                 <span class="text-indigo-600 font-bold text-xl block mb-3">{{ formatPrice(product.price) }} zł</span>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="mt-4 flex space-x-2">
                   <button 
-                    @click="addToCart(product)"
+                    @click="addToCart(product.id)"
+                    :disabled="isCartLoading(product.id)" 
                     class="h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200"
-                    :disabled="isCartLoading(product.id)"
                   >
                     <template v-if="isCartLoading(product.id)">
-                      <svg class="animate-spin w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Dodaję...
+                      Dodawanie...
                     </template>
                     <template v-else>
-                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                      </svg>
+                      <i class="fas fa-shopping-cart mr-1"></i>
                       Koszyk
                     </template>
                   </button>
-                  <router-link :to="`/products/${product.id}`" class="h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors duration-200">
+                  <router-link 
+                    :to="`/products/${product.id}`" 
+                    class="h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors duration-200"
+                  >
                     Szczegóły
                   </router-link>
                 </div>
@@ -411,38 +412,41 @@ export default {
       return parseFloat(price).toFixed(2);
     };
 
-    const addToCart = (product) => {
-      cartMessageProductId.value = product.id;
-      cartLoadingItems.value.add(product.id);
+    const addToCart = async (productId) => {
+      // Show loading indicator for this product
+      cartLoadingItems.value.add(productId);
+      cartMessageProductId.value = null;
       cartMessage.value = '';
       cartSuccess.value = false;
       
-      cartStore.addToCart(product.id)
-        .then(() => {
-          cartMessage.value = `Produkt "${product.name}" został dodany do koszyka.`;
+      try {
+        const success = await cartStore.addToCart(productId, 1);
+        if (success) {
           cartSuccess.value = true;
+          cartMessageProductId.value = productId;
+          const product = productStore.products.find(p => p.id === productId);
+          cartMessage.value = `Produkt "${product?.name || 'wybrany'}" został dodany do koszyka.`;
           
-          // Clear message after 5 seconds
+          // Hide the message after a few seconds
           setTimeout(() => {
-            if (cartMessageProductId.value === product.id) {
-              cartMessage.value = '';
+            if (cartMessageProductId.value === productId) {
               cartMessageProductId.value = null;
-            }
-          }, 5000);
-        })
-        .catch(error => {
-          console.error('Failed to add to cart:', error);
-          cartMessage.value = 'Nie udało się dodać produktu do koszyka';
-          cartSuccess.value = false;
-          
-          // Clear message after 3 seconds
-          setTimeout(() => {
-            if (cartMessageProductId.value === product.id) {
               cartMessage.value = '';
-              cartMessageProductId.value = null;
             }
           }, 3000);
-        });
+        } else {
+          cartSuccess.value = false;
+          cartMessageProductId.value = productId;
+          cartMessage.value = 'Nie udało się dodać produktu do koszyka.';
+        }
+      } catch (error) {
+        cartSuccess.value = false;
+        cartMessageProductId.value = productId;
+        cartMessage.value = 'Wystąpił błąd podczas dodawania produktu do koszyka.';
+        console.error('Error adding product to cart:', error);
+      } finally {
+        cartLoadingItems.value.delete(productId);
+      }
     };
 
     const toggleFavorite = (product) => {
