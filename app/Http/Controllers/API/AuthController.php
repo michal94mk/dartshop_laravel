@@ -94,16 +94,20 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         // Handle token-based logout (API tokens)
-        if ($request->user() && method_exists($request->user(), 'currentAccessToken')) {
-            $request->user()->currentAccessToken()->delete();
+        if ($request->user()) {
+            // Delete all tokens instead of just current one
+            $request->user()->tokens()->delete();
         }
         
         // Handle session-based logout (cookies)
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
-        return response()->json(['message' => 'Successfully logged out']);
+        
+        // Set cookie expiry to force browser to remove it
+        $cookie = cookie()->forget('laravel_session');
+        
+        return response()->json(['message' => 'Successfully logged out'])->withCookie($cookie);
     }
 
     /**

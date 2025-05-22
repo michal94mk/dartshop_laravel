@@ -113,6 +113,13 @@ export default {
     onMounted(() => {
       authStore.hasError = false;
       authStore.errorMessage = '';
+      
+      // Check if redirected due to session expiration
+      const expired = router.currentRoute.value.query.expired;
+      if (expired) {
+        authStore.hasError = true;
+        authStore.errorMessage = 'Twoja sesja wygasła. Zaloguj się ponownie.';
+      }
     });
     
     const handleLogin = async () => {

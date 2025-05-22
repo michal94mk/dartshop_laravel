@@ -2,6 +2,25 @@ import { defineStore } from 'pinia';
 import axios from 'axios';
 import { useCartStore } from './cartStore';
 
+// Set up axios interceptor to handle 401 Unauthorized responses globally
+axios.interceptors.response.use(
+  response => response,
+  async error => {
+    if (error.response && error.response.status === 401) {
+      console.log('Unauthorized response detected, forcing logout');
+      const authStore = useAuthStore();
+      
+      // If we're already logged in but get a 401, session expired
+      if (authStore.isLoggedIn) {
+        console.warn('Session expired, logging out');
+        await authStore.forceLogout();
+        window.location.href = '/login?expired=1';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
@@ -86,27 +105,6 @@ export const useAuthStore = defineStore('auth', {
       
       // Najpierw spróbuj załadować z localStorage
       const loadedFromStorage = this.loadUserFromLocalStorage();
-      if (loadedFromStorage) {
-        console.log('User data loaded from localStorage:', this.user);
-        
-        // Sprawdź czy token jest ważny
-        try {
-          await axios.get('/sanctum/csrf-cookie');
-          console.log('CSRF token refreshed during init');
-          
-          const testResponse = await axios.get('/api/test-auth');
-          console.log('Auth verification successful:', testResponse.data);
-        } catch (error) {
-          console.error('Token verification failed, will try to refresh authentication:', error);
-          this.user = null;
-          localStorage.removeItem('user');
-          localStorage.removeItem('permissions');
-          localStorage.removeItem('auth_time');
-        }
-        
-        this.authInitialized = true;
-        return this.user;
-      }
       
       this.isLoading = true;
       
@@ -115,6 +113,7 @@ export const useAuthStore = defineStore('auth', {
         await axios.get('/sanctum/csrf-cookie');
         console.log('CSRF token refreshed before auth check');
         
+        // Sprawdź status użytkownika na serwerze niezależnie od danych w localStorage
         const response = await axios.get('/api/user');
         console.log('User API response:', response);
         
@@ -153,6 +152,13 @@ export const useAuthStore = defineStore('auth', {
           // Jeśli użytkownik nie jest zalogowany (401), to nie ustawiaj błędu
           this.hasError = false;
           this.errorMessage = '';
+          
+          // Jeśli otrzymamy 401, wyczyść wszystkie dane lokalnie
+          this.user = null;
+          this.permissions = [];
+          localStorage.removeItem('user');
+          localStorage.removeItem('permissions');
+          localStorage.removeItem('auth_time');
         }
         
         // Nawet w przypadku błędu oznacz, że próbowano zainicjalizować stan
@@ -266,57 +272,82 @@ export const useAuthStore = defineStore('auth', {
       
       try {
         console.log('Starting logout process...');
-
-        // Niezależnie od wyniku API, wyczyść dane lokalnie
-        this.user = null;
-        this.permissions = [];
-        this.authInitialized = true; 
-        
-        // Usuń dane z localStorage
-        localStorage.removeItem('user');
-        localStorage.removeItem('permissions');
-        localStorage.removeItem('auth_time');
-        console.log('Local storage cleared');
-        
-        // Zresetuj stan koszyka po wylogowaniu
-        const cartStore = useCartStore();
-        cartStore.$reset();
-        console.log('Cart store reset');
         
         // Pobierz CSRF token
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         
-        // Wywołaj API wylogowania w tle, ale nie czekaj na odpowiedź
-        fetch('/api/logout', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-          },
-          credentials: 'same-origin'
-        }).catch(error => {
-          console.error('Logout API error (non-blocking):', error);
-        });
+        // Wywołaj API wylogowania i poczekaj na odpowiedź
+        try {
+          const response = await fetch('/api/logout', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': csrfToken,
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Logout failed with status: ${response.status}`);
+          }
+          
+          console.log('Logout API success:', await response.json());
+        } catch (apiError) {
+          console.error('Logout API error:', apiError);
+          // Nie przerywamy procesu wylogowania jeśli API się nie powiedzie
+        }
+        
+        // Zawsze wyczyść dane lokalnie po próbie wylogowania na serwerze
+        await this.forceLogout();
         
         return true;
       } catch (error) {
         console.error('Logout failed:', error);
         
         // Mimo błędu, wyczyść dane lokalnie
-        this.user = null;
-        this.permissions = [];
-        this.authInitialized = true;
-        localStorage.removeItem('user');
-        localStorage.removeItem('permissions');
-        localStorage.removeItem('auth_time');
+        await this.forceLogout();
         
         this.hasError = true;
         this.errorMessage = 'Wylogowanie nie powiodło się w API, ale dane zostały wyczyszczone lokalnie';
         return true; // Zwróć true, aby przekierować użytkownika mimo błędu API
       } finally {
         this.isLoading = false;
+      }
+    },
+    
+    // Wymuszone wylogowanie (tylko po stronie klienta)
+    async forceLogout() {
+      // Wyczyść dane użytkownika w store
+      this.user = null;
+      this.permissions = [];
+      this.authInitialized = true;
+      
+      // Usuń dane z localStorage
+      localStorage.removeItem('user');
+      localStorage.removeItem('permissions');
+      localStorage.removeItem('auth_time');
+      console.log('Local storage cleared');
+      
+      // Zresetuj stan koszyka po wylogowaniu
+      const cartStore = useCartStore();
+      cartStore.$reset();
+      console.log('Cart store reset');
+      
+      // Wyczyść wszystkie ciasteczka związane z sesją
+      document.cookie.split(';').forEach(cookie => {
+        const [name] = cookie.trim().split('=');
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      });
+      console.log('Cookies cleared');
+      
+      // Odśwież token CSRF
+      try {
+        await axios.get('/sanctum/csrf-cookie');
+        console.log('CSRF token refreshed after logout');
+      } catch (error) {
+        console.error('Failed to refresh CSRF token:', error);
       }
     },
     
