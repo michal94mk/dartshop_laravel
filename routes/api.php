@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\DebugController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\UserOrderController;
+use App\Http\Controllers\Api\UserReviewController;
 use App\Http\Controllers\Api\Admin\BaseAdminController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
@@ -66,6 +68,14 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+    
+    // User orders
+    Route::get('/orders/my-orders', [UserOrderController::class, 'myOrders']);
+    Route::get('/orders/my-orders/{id}', [UserOrderController::class, 'show']);
+    
+    // User reviews
+    Route::get('/reviews/my-reviews', [UserReviewController::class, 'myReviews']);
+    Route::get('/reviews/my-reviews/{id}', [UserReviewController::class, 'show']);
 });
 
 // Password Reset API
