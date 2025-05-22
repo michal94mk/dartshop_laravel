@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\Admin\ContactMessageController;
 use App\Http\Controllers\Api\Admin\AboutPageController;
 use App\Http\Controllers\Api\Admin\ImageUploadController;
 use App\Http\Controllers\API\AboutUsController;
+use App\Http\Controllers\Api\ContactController;
 
 /*
 |--------------------------------------------------------------------------
@@ -116,6 +117,9 @@ Route::get('/test', function() {
 
 // Public About page route
 Route::get('/about', [AboutUsController::class, 'index']);
+
+// Contact form submission route
+Route::post('/contact', [ContactController::class, 'store']);
 
 // Temporary debug routes for About (remove in production)
 Route::get('/debug/about', [AboutUsController::class, 'index']);
