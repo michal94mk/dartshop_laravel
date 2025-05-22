@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CategorySeeder::class,
             BrandSeeder::class,
-            AboutPageSeeder::class,
+            AboutUsSeeder::class,
         ]);
         
         // 3. Seedujemy tabele z podstawowymi zależnościami

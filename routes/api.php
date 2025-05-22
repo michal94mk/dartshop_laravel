@@ -22,6 +22,8 @@ use App\Http\Controllers\Api\Admin\PromotionController;
 use App\Http\Controllers\Api\Admin\TutorialController;
 use App\Http\Controllers\Api\Admin\ContactMessageController;
 use App\Http\Controllers\Api\Admin\AboutPageController;
+use App\Http\Controllers\Api\Admin\ImageUploadController;
+use App\Http\Controllers\API\AboutUsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -112,6 +114,14 @@ Route::get('/test', function() {
     ]);
 });
 
+// Public About page route
+Route::get('/about', [AboutUsController::class, 'index']);
+
+// Temporary debug routes for About (remove in production)
+Route::get('/debug/about', [AboutUsController::class, 'index']);
+Route::put('/debug/about', [AboutUsController::class, 'update']);
+Route::post('/debug/upload/image/about', [AboutUsController::class, 'uploadImage']);
+
 // Test products endpoint
 Route::get('/test-products', function() {
     return response()->json([
@@ -163,6 +173,9 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     // Dashboard statistics
     Route::get('/dashboard', [DashboardController::class, 'index']);
     
+    // Image uploads
+    Route::post('/upload/image/about', [ImageUploadController::class, 'uploadAboutImage']);
+    
     // Products management - custom routes must be defined BEFORE the resource route
     Route::get('/products/form-data', [AdminProductController::class, 'getFormData']);
     // Standard CRUD routes for products
@@ -204,6 +217,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::post('/contact-messages/{id}/respond', [ContactMessageController::class, 'respond']);
     
     // About page management
-    Route::get('/about', [AboutPageController::class, 'index']);
-    Route::put('/about', [AboutPageController::class, 'update']);
+    Route::get('/about', [AboutUsController::class, 'index']);
+    Route::put('/about', [AboutUsController::class, 'update']);
+    Route::post('/about/upload-image', [AboutUsController::class, 'uploadImage']);
 });
