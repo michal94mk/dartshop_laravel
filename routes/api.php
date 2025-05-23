@@ -19,15 +19,16 @@ use App\Http\Controllers\Api\Admin\CategoryController as AdminCategoryController
 use App\Http\Controllers\Api\Admin\BrandController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\OrderController;
-use App\Http\Controllers\Api\Admin\ReviewController;
+use App\Http\Controllers\Api\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Api\Admin\PromotionController;
-use App\Http\Controllers\Api\Admin\TutorialController;
-use App\Http\Controllers\Api\Admin\ContactMessageController;
+use App\Http\Controllers\Api\Admin\TutorialController as AdminTutorialController;
+use App\Http\Controllers\Api\Admin\ContactMessageController as AdminContactMessageController;
 use App\Http\Controllers\Api\Admin\AboutPageController;
 use App\Http\Controllers\Api\Admin\ImageUploadController;
-use App\Http\Controllers\API\AboutUsController;
+use App\Http\Controllers\Api\AboutUsController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\FavoriteProductController;
+use App\Http\Controllers\Api\TutorialController;
 
 /*
 |--------------------------------------------------------------------------
@@ -106,16 +107,10 @@ Route::get('/promotions', function() {
         'data' => []
     ]);
 });
-Route::get('/tutorials', function() {
-    return response()->json([
-        'data' => []
-    ]);
-});
-Route::get('/tutorials/{id}', function($id) {
-    return response()->json([
-        'data' => null
-    ]);
-});
+
+// Tutorial routes
+Route::get('/tutorials', [TutorialController::class, 'index']);
+Route::get('/tutorials/{slug}', [TutorialController::class, 'show']);
 
 // Debug routes
 Route::get('/debug/products', [DebugController::class, 'checkProducts']);
@@ -220,24 +215,24 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice']);
     
     // Reviews management
-    Route::get('/reviews/form-data', [ReviewController::class, 'getFormData']);
-    Route::apiResource('/reviews', ReviewController::class);
-    Route::post('/reviews/{review}/approve', [ReviewController::class, 'approve']);
-    Route::post('/reviews/{review}/reject', [ReviewController::class, 'reject']);
-    Route::post('/reviews/{review}/toggle-featured', [ReviewController::class, 'toggleFeatured']);
+    Route::get('/reviews/form-data', [AdminReviewController::class, 'getFormData']);
+    Route::apiResource('/reviews', AdminReviewController::class);
+    Route::post('/reviews/{review}/approve', [AdminReviewController::class, 'approve']);
+    Route::post('/reviews/{review}/reject', [AdminReviewController::class, 'reject']);
+    Route::post('/reviews/{review}/toggle-featured', [AdminReviewController::class, 'toggleFeatured']);
     
     // Tutorials management
-    Route::apiResource('/tutorials', TutorialController::class);
+    Route::apiResource('/tutorials', AdminTutorialController::class);
     
     // Contact messages management
-    Route::apiResource('/contact-messages', ContactMessageController::class)->only(['index', 'show', 'destroy']);
-    Route::patch('/contact-messages/{id}/status', [ContactMessageController::class, 'updateStatus']);
-    Route::patch('/contact-messages/{id}/mark-as-read', [ContactMessageController::class, 'markAsRead']);
-    Route::patch('/contact-messages/{id}/notes', [ContactMessageController::class, 'updateNotes']);
-    Route::post('/contact-messages/{id}/respond', [ContactMessageController::class, 'respond']);
+    Route::apiResource('/contact-messages', AdminContactMessageController::class)->only(['index', 'show', 'destroy']);
+    Route::patch('/contact-messages/{id}/status', [AdminContactMessageController::class, 'updateStatus']);
+    Route::patch('/contact-messages/{id}/mark-as-read', [AdminContactMessageController::class, 'markAsRead']);
+    Route::patch('/contact-messages/{id}/notes', [AdminContactMessageController::class, 'updateNotes']);
+    Route::post('/contact-messages/{id}/respond', [AdminContactMessageController::class, 'respond']);
     
     // About page management
-    Route::get('/about', [AboutUsController::class, 'index']);
-    Route::put('/about', [AboutUsController::class, 'update']);
-    Route::post('/about/upload-image', [AboutUsController::class, 'uploadImage']);
+    Route::get('/about', [AboutPageController::class, 'index']);
+    Route::put('/about', [AboutPageController::class, 'update']);
+    Route::post('/about/upload-image', [AboutPageController::class, 'uploadImage']);
 });

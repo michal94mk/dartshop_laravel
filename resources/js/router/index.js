@@ -11,7 +11,7 @@ import About from '../pages/About.vue';
 import Contact from '../pages/Contact.vue';
 import Promotions from '../pages/Promotions.vue';
 import Tutorials from '../pages/Tutorials.vue';
-import TutorialDetails from '../pages/TutorialDetails.vue';
+import Tutorial from '../pages/Tutorial.vue';
 import NotFound from '../pages/NotFound.vue';
 // Import auth components
 import Login from '../pages/Login.vue';
@@ -111,9 +111,9 @@ const routes = [
     }
   },
   {
-    path: '/tutorials/:id',
-    name: 'tutorial-details',
-    component: TutorialDetails,
+    path: '/tutorials/:slug',
+    name: 'tutorial',
+    component: Tutorial,
     props: true,
     meta: {
       layout: 'default'
