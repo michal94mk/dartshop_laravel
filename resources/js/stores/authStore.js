@@ -181,32 +181,57 @@ export const useAuthStore = defineStore('auth', {
         await axios.get('/sanctum/csrf-cookie');
         console.log('CSRF cookie refreshed before login');
         
-        // Wykonaj logowanie
-        const response = await axios.post('/api/login', {
-          email,
-          password
-        });
+        // Upewnij się, że nagłówki są poprawnie ustawione
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const xsrfToken = document.cookie
+            .split('; ')
+            .find(cookie => cookie.startsWith('XSRF-TOKEN='))
+            ?.split('=')[1];
+            
+        const headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        };
         
-        this.user = response.data.user;
-        
-        // Zapisz uprawnienia, jeśli istnieją
-        if (response.data.user.permissions) {
-          this.permissions = response.data.user.permissions;
+        if (csrfToken) {
+            headers['X-CSRF-TOKEN'] = csrfToken;
         }
         
-        // Zapisz dane do localStorage
-        this.saveUserToLocalStorage();
+        if (xsrfToken) {
+            headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrfToken);
+        }
         
-        // Synchronizacja koszyka po zalogowaniu
-        const cartStore = useCartStore();
-        await cartStore.syncCartAfterLogin();
+        // Wykonaj logowanie
+        const response = await axios.post('/api/login', {
+            email,
+            password
+        }, { headers, withCredentials: true });
         
-        // Ustaw auth init na true i wyczyść status błędu
-        this.authInitialized = true;
-        this.hasError = false;
-        this.errorMessage = '';
+        if (response.data.user) {
+            this.user = response.data.user;
+            
+            // Zapisz uprawnienia, jeśli istnieją
+            if (response.data.user.permissions) {
+                this.permissions = response.data.user.permissions;
+            }
+            
+            // Zapisz dane do localStorage
+            this.saveUserToLocalStorage();
+            
+            // Synchronizacja koszyka po zalogowaniu
+            const cartStore = useCartStore();
+            await cartStore.syncCartAfterLogin();
+            
+            // Ustaw auth init na true i wyczyść status błędu
+            this.authInitialized = true;
+            this.hasError = false;
+            this.errorMessage = '';
+            
+            return true;
+        }
         
-        return true;
+        throw new Error('Invalid response format');
       } catch (error) {
         console.error('Login failed:', error);
         this.hasError = true;

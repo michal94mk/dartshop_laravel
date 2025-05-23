@@ -19,47 +19,65 @@ axios.defaults.headers.common = axios.defaults.headers.common || {};
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 window.axios.defaults.withCredentials = true;
 
-// Make sure CSRF cookies and tokens work properly
-axios.defaults.headers.common['X-XSRF-TOKEN'] = document.cookie
-  .split('; ')
-  .find(cookie => cookie.startsWith('XSRF-TOKEN='))
-  ?.split('=')[1];
+// Function to get CSRF token from meta tag
+const getMetaToken = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-// Add CSRF token from meta tag
-document.addEventListener('DOMContentLoaded', () => {
-  const token = document.head.querySelector('meta[name="csrf-token"]');
-  if (token) {
-    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
-    console.log('CSRF token set from meta tag:', token.content);
-  } else {
-    console.error('CSRF token not found');
-  }
+// Function to get CSRF token from cookie
+const getCookieToken = () => {
+    return document.cookie
+        .split('; ')
+        .find(cookie => cookie.startsWith('XSRF-TOKEN='))
+        ?.split('=')[1];
+};
 
-  // Use Laravel object if available
-  if (window.Laravel && window.Laravel.csrfToken) {
-    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = window.Laravel.csrfToken;
-    console.log('CSRF token set from window.Laravel:', window.Laravel.csrfToken);
+// Set up CSRF token in axios headers
+const setCsrfToken = () => {
+    const token = getCookieToken();
+    const metaToken = getMetaToken();
     
-    // Set base URL for API if available
-    if (window.Laravel.apiUrl) {
-      console.log('API base URL set to:', window.Laravel.apiUrl);
+    if (token) {
+        axios.defaults.headers.common['X-XSRF-TOKEN'] = decodeURIComponent(token);
+        console.log('CSRF token set from cookie:', token);
     }
-  }
-});
+    
+    if (metaToken) {
+        axios.defaults.headers.common['X-CSRF-TOKEN'] = metaToken;
+        console.log('CSRF token set from meta tag:', metaToken);
+    }
+};
 
-// Log axios requests and responses for debugging
-axios.interceptors.request.use(request => {
-    console.log('Starting Request', request);
-    return request;
-});
+// Set initial CSRF token
+setCsrfToken();
 
+// Add request interceptor to ensure CSRF token is set before each request
+axios.interceptors.request.use(
+    config => {
+        setCsrfToken(); // Refresh token before each request
+        return config;
+    },
+    error => {
+        return Promise.reject(error);
+    }
+);
+
+// Add response interceptor to handle CSRF token errors
 axios.interceptors.response.use(
     response => {
         console.log('Response:', response);
         return response;
     },
-    error => {
-        console.error('API Error:', error);
+    async error => {
+        if (error.response?.status === 419) {
+            console.log('CSRF token mismatch detected, refreshing token...');
+            try {
+                await axios.get('/sanctum/csrf-cookie');
+                setCsrfToken();
+                // Retry the original request
+                return axios(error.config);
+            } catch (refreshError) {
+                console.error('Failed to refresh CSRF token:', refreshError);
+            }
+        }
         return Promise.reject(error);
     }
 );
