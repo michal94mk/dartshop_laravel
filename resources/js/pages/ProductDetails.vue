@@ -62,11 +62,20 @@
         
         <!-- Product info -->
         <div class="md:w-1/2 p-6">
-          <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-900">{{ product.name }}</h1>
-            <p v-if="product.brand" class="mt-1 text-sm text-gray-500">
-              {{ product.brand.name }}
-            </p>
+          <div class="mb-6 flex justify-between items-start">
+            <div>
+              <h1 class="text-3xl font-bold text-gray-900">{{ product.name }}</h1>
+              <p v-if="product.brand" class="mt-1 text-sm text-gray-500">
+                {{ product.brand.name }}
+              </p>
+            </div>
+            <FavoriteButton 
+              :product="product" 
+              buttonClasses="p-2 bg-white border border-gray-200 rounded-full shadow hover:bg-gray-100 transition-colors duration-200" 
+              :showText="false"
+              @favorite-added="handleFavoriteAdded"
+              @favorite-removed="handleFavoriteRemoved"
+            />
           </div>
           
           <div class="mb-6">
@@ -117,11 +126,11 @@
                 </select>
               </div>
               
-              <div class="flex-1 flex items-end">
+              <div class="flex-1 flex items-end space-x-2">
                 <button 
                   @click="addToCart"
                   :disabled="cartLoading"
-                  class="w-full bg-indigo-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="flex-1 bg-indigo-600 border border-transparent rounded-md py-3 px-4 flex items-center justify-center text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <template v-if="cartLoading">
                     <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -137,7 +146,7 @@
                 </button>
               </div>
             </div>
-            <div v-if="cartMessage" class="mt-4 p-3 rounded" :class="cartSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+            <div v-if="cartMessage" class="mt-4 p-3 rounded" :class="{ 'bg-green-100 text-green-700': cartSuccess, 'bg-red-100 text-red-700': !cartSuccess }">
               <div v-if="cartSuccess" class="flex flex-col">
                 <span>{{ cartMessage }}</span>
                 <div class="mt-2 flex justify-between items-center">
@@ -150,6 +159,10 @@
               <div v-else>
                 {{ cartMessage }}
               </div>
+            </div>
+            
+            <div v-if="favoriteMessage" class="mt-4 p-3 rounded" :class="{'bg-green-100 text-green-700': favoriteSuccess, 'bg-red-100 text-red-700': !favoriteSuccess}">
+              {{ favoriteMessage }}
             </div>
           </div>
         </div>
@@ -168,9 +181,14 @@
 <script>
 import { useProductStore } from '../stores/productStore';
 import { useCartStore } from '../stores/cartStore';
+import { useFavoriteStore } from '../stores/favoriteStore';
+import FavoriteButton from '../components/ui/FavoriteButton.vue';
 
 export default {
   name: 'ProductDetails',
+  components: {
+    FavoriteButton
+  },
   props: {
     id: {
       type: String,
@@ -185,14 +203,20 @@ export default {
       quantity: 1,
       cartMessage: '',
       cartSuccess: false,
-      cartLoading: false
+      cartLoading: false,
+      favoriteMessage: '',
+      favoriteSuccess: false
     }
   },
   created() {
     this.productStore = useProductStore();
     this.cartStore = useCartStore();
+    this.favoriteStore = useFavoriteStore();
   },
-  mounted() {
+  async mounted() {
+    // Initialize favorites first
+    await this.favoriteStore.initializeFavorites();
+    // Then fetch product
     this.fetchProduct();
   },
   watch: {
@@ -260,6 +284,26 @@ export default {
       } finally {
         this.cartLoading = false;
       }
+    },
+
+    handleFavoriteAdded(product) {
+      this.favoriteMessage = `Produkt "${product.name}" został dodany do ulubionych.`;
+      this.favoriteSuccess = true;
+      
+      // Clear message after 3 seconds
+      setTimeout(() => {
+        this.favoriteMessage = '';
+      }, 3000);
+    },
+
+    handleFavoriteRemoved(product) {
+      this.favoriteMessage = `Produkt "${product.name}" został usunięty z ulubionych.`;
+      this.favoriteSuccess = false;
+      
+      // Clear message after 3 seconds
+      setTimeout(() => {
+        this.favoriteMessage = '';
+      }, 3000);
     }
   }
 }

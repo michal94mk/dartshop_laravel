@@ -25,6 +25,7 @@ import axios from 'axios';
 import { computed, ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from './stores/authStore';
+import { useFavoriteStore } from './stores/favoriteStore';
 
 export default {
   name: 'App',
@@ -37,6 +38,7 @@ export default {
     const route = useRoute();
     const router = useRouter();
     const authStore = useAuthStore();
+    const favoriteStore = useFavoriteStore();
     const isInitializing = ref(true);
     
     // Sprawdź, czy bieżąca trasa należy do panelu administracyjnego (na podstawie meta)
@@ -84,11 +86,19 @@ export default {
       // Jeśli flaga authInitialized jest już ustawiona, to nie pokazuj loadingu
       if (authStore.authInitialized) {
         isInitializing.value = false;
+        // Initialize favorites if user is already authenticated
+        if (authStore.isLoggedIn) {
+          favoriteStore.initializeFavorites();
+        }
       } else {
         // Sprawdzaj co 100ms, czy inicjalizacja została zakończona
         const checkInterval = setInterval(() => {
           if (authStore.authInitialized) {
             isInitializing.value = false;
+            // Initialize favorites after auth is initialized
+            if (authStore.isLoggedIn) {
+              favoriteStore.initializeFavorites();
+            }
             clearInterval(checkInterval);
           }
         }, 100);
@@ -99,6 +109,11 @@ export default {
             console.warn('Auth initialization timed out');
             isInitializing.value = false;
             clearInterval(checkInterval);
+            
+            // Initialize favorites anyway if user seems to be logged in
+            if (authStore.isLoggedIn) {
+              favoriteStore.initializeFavorites();
+            }
             
             // Informuj użytkownika o potencjalnym problemie
             alert('Nie udało się w pełni zainicjalizować aplikacji. Niektóre funkcje mogą być niedostępne. Odśwież stronę lub spróbuj ponownie później.');

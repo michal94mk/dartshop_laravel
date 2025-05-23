@@ -68,28 +68,17 @@
           <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <!-- Display API products if available -->
             <template v-if="productStore.featuredProducts && productStore.featuredProducts.length > 0">
-              <div v-for="product in productStore.featuredProducts" :key="product.id" class="bg-white overflow-hidden shadow-sm rounded-lg transition-all hover:shadow-md flex flex-col h-full">
-                <div class="relative aspect-square overflow-hidden">
-                  <img 
-                    :src="product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=' + product.name" 
-                    :alt="product.name" 
-                    class="h-full w-full object-cover hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                  >
-                  <button 
-                    @click.prevent="toggleFavorite(product)"
-                    class="absolute top-2 right-2 p-2 bg-white rounded-full shadow hover:bg-gray-100 transition-colors duration-200"
-                  >
-                    <svg 
-                      class="w-5 h-5" 
-                      :class="{ 'text-red-500 fill-current': isInFavorites(product.id), 'text-gray-400': !isInFavorites(product.id) }"
-                      xmlns="http://www.w3.org/2000/svg" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor"
+              <div v-for="product in productStore.featuredProducts" :key="product.id" class="bg-white overflow-hidden shadow-sm rounded-lg transition-all hover:shadow-md flex flex-col h-full group">
+                <div class="relative">
+                  <div class="aspect-square overflow-hidden">
+                    <img 
+                      :src="product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=' + product.name" 
+                      :alt="product.name" 
+                      class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
                     >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                  </button>
+                    <div class="absolute inset-0 bg-black bg-opacity-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </div>
                 </div>
                 <div class="p-5 flex-grow flex flex-col">
                   <h3 class="text-lg font-medium text-gray-900 line-clamp-2 min-h-[3.5rem]">{{ product.name }}</h3>
@@ -107,31 +96,43 @@
                       {{ cartMessage }}
                     </div>
                   </div>
+                  <div v-if="product.id === favoriteMessageProductId" class="mt-2 p-2 rounded text-sm" :class="favoriteSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                    {{ favoriteMessage }}
+                  </div>
                   <div class="mt-4 pt-3 border-t border-gray-100">
                     <span class="text-indigo-600 font-bold text-xl block mb-3">{{ formatPrice(product.price) }} zł</span>
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="mt-4 flex flex-col space-y-2">
                       <button 
                         @click="addToCart(product)"
-                        class="h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200"
-                        :disabled="cartStore.isLoadingProduct(product.id)"
+                        :disabled="cartStore.isLoadingProduct(product.id)" 
+                        class="w-full h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200"
                       >
                         <template v-if="cartStore.isLoadingProduct(product.id)">
                           <svg class="animate-spin w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          Dodaję...
+                          Dodawanie...
                         </template>
                         <template v-else>
-                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                          </svg>
-                          Koszyk
+                          <i class="fas fa-shopping-cart mr-1"></i>
+                          Dodaj do koszyka
                         </template>
                       </button>
-                      <router-link :to="`/products/${product.id}`" class="h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors duration-200">
-                        Szczegóły
-                      </router-link>
+                      <div class="flex space-x-2">
+                        <router-link 
+                          :to="`/products/${product.id}`" 
+                          class="flex-1 h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors duration-200"
+                        >
+                          Szczegóły produktu
+                        </router-link>
+                        <FavoriteButton 
+                          :product="product"
+                          buttonClasses="h-10 inline-flex items-center justify-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
+                          @favorite-added="handleFavoriteAdded"
+                          @favorite-removed="handleFavoriteRemoved"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -140,28 +141,17 @@
             
             <!-- Fallback products if API fails -->
             <template v-else>
-              <div v-for="product in fallbackProducts" :key="product.id" class="bg-white overflow-hidden shadow-sm rounded-lg transition-all hover:shadow-md flex flex-col h-full">
-                <div class="relative aspect-square overflow-hidden">
-                  <img 
-                    :src="product.image_url" 
-                    :alt="product.name" 
-                    class="h-full w-full object-cover hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                  >
-                  <button 
-                    @click.prevent="toggleFavorite(product)"
-                    class="absolute top-2 right-2 p-2 bg-white rounded-full shadow hover:bg-gray-100 transition-colors duration-200"
-                  >
-                    <svg 
-                      class="w-5 h-5" 
-                      :class="{ 'text-red-500 fill-current': isInFavorites(product.id), 'text-gray-400': !isInFavorites(product.id) }"
-                      xmlns="http://www.w3.org/2000/svg" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor"
+              <div v-for="product in fallbackProducts" :key="product.id" class="bg-white overflow-hidden shadow-sm rounded-lg transition-all hover:shadow-md flex flex-col h-full group">
+                <div class="relative">
+                  <div class="aspect-square overflow-hidden">
+                    <img 
+                      :src="product.image_url" 
+                      :alt="product.name" 
+                      class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
                     >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                  </button>
+                    <div class="absolute inset-0 bg-black bg-opacity-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </div>
                 </div>
                 <div class="p-5 flex-grow flex flex-col">
                   <h3 class="text-lg font-medium text-gray-900 line-clamp-2 min-h-[3.5rem]">{{ product.name }}</h3>
@@ -179,12 +169,15 @@
                       {{ cartMessage }}
                     </div>
                   </div>
+                  <div v-if="product.id === favoriteMessageProductId" class="mt-2 p-2 rounded text-sm" :class="favoriteSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                    {{ favoriteMessage }}
+                  </div>
                   <div class="mt-4 pt-3 border-t border-gray-100">
                     <span class="text-indigo-600 font-bold text-xl block mb-3">{{ formatPrice(product.price) }} zł</span>
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="mt-4 flex flex-col space-y-2">
                       <button 
                         @click="addToCart(product)"
-                        class="h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200"
+                        class="w-full h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200"
                         :disabled="cartStore.isLoadingProduct(product.id)"
                       >
                         <template v-if="cartStore.isLoadingProduct(product.id)">
@@ -192,18 +185,27 @@
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          Dodaję...
+                          Dodawanie...
                         </template>
                         <template v-else>
-                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                          </svg>
-                          Koszyk
+                          <i class="fas fa-shopping-cart mr-1"></i>
+                          Dodaj do koszyka
                         </template>
                       </button>
-                      <router-link :to="`/products/${product.id}`" class="h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors duration-200">
-                        Szczegóły
-                      </router-link>
+                      <div class="flex space-x-2">
+                        <router-link 
+                          :to="`/products/${product.id}`" 
+                          class="flex-1 h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors duration-200"
+                        >
+                          Szczegóły produktu
+                        </router-link>
+                        <FavoriteButton 
+                          :product="product"
+                          buttonClasses="h-10 inline-flex items-center justify-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
+                          @favorite-added="handleFavoriteAdded"
+                          @favorite-removed="handleFavoriteRemoved"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -294,10 +296,14 @@
 <script>
 import { useProductStore } from '../stores/productStore';
 import { useCartStore } from '../stores/cartStore';
-import { useWishlistStore } from '../stores/wishlistStore';
+import { useFavoriteStore } from '../stores/favoriteStore';
+import FavoriteButton from '../components/ui/FavoriteButton.vue';
 
 export default {
   name: 'HomePage',
+  components: {
+    FavoriteButton
+  },
   data() {
     return {
       categories: [
@@ -375,13 +381,16 @@ export default {
       ],
       cartMessage: '',
       cartSuccess: false,
-      cartMessageProductId: null
+      cartMessageProductId: null,
+      favoriteMessage: '',
+      favoriteSuccess: false,
+      favoriteMessageProductId: null
     }
   },
   created() {
     this.productStore = useProductStore();
     this.cartStore = useCartStore();
-    this.wishlistStore = useWishlistStore();
+    this.favoriteStore = useFavoriteStore();
   },
   mounted() {
     this.loadFeaturedProducts();
@@ -427,10 +436,34 @@ export default {
         });
     },
     toggleFavorite(product) {
-      this.wishlistStore.toggleWishlistItem(product);
+      this.favoriteStore.toggleFavoriteItem(product);
     },
     isInFavorites(productId) {
-      return this.wishlistStore.isInWishlist(productId);
+      return this.favoriteStore.isInFavorites(productId);
+    },
+    handleFavoriteAdded(product) {
+      this.favoriteMessage = `Produkt "${product.name}" został dodany do ulubionych.`;
+      this.favoriteSuccess = true;
+      this.favoriteMessageProductId = product.id;
+      
+      // Clear the message after 3 seconds
+      setTimeout(() => {
+        if (this.favoriteMessageProductId === product.id) {
+          this.favoriteMessageProductId = null;
+        }
+      }, 3000);
+    },
+    handleFavoriteRemoved(product) {
+      this.favoriteMessage = `Produkt "${product.name}" został usunięty z ulubionych.`;
+      this.favoriteSuccess = false;
+      this.favoriteMessageProductId = product.id;
+      
+      // Clear the message after 3 seconds
+      setTimeout(() => {
+        if (this.favoriteMessageProductId === product.id) {
+          this.favoriteMessageProductId = null;
+        }
+      }, 3000);
     }
   }
 }

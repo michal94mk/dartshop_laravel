@@ -184,28 +184,17 @@
         </div>
         
         <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <div v-for="product in productStore.products" :key="product.id" class="bg-white overflow-hidden shadow-sm rounded-lg transition-all hover:shadow-md flex flex-col h-full">
-            <div class="relative aspect-square overflow-hidden">
-              <img 
-                :src="product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=' + product.name" 
-                :alt="product.name" 
-                class="h-full w-full object-cover hover:scale-105 transition-transform duration-300"
-                loading="lazy"
-              >
-              <button 
-                @click.prevent="toggleFavorite(product)"
-                class="absolute top-2 right-2 p-2 bg-white rounded-full shadow hover:bg-gray-100 transition-colors duration-200"
-              >
-                <svg 
-                  class="w-5 h-5" 
-                  :class="{ 'text-red-500 fill-current': isInFavorites(product.id), 'text-gray-400': !isInFavorites(product.id) }"
-                  xmlns="http://www.w3.org/2000/svg" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
+          <div v-for="product in productStore.products" :key="product.id" class="bg-white overflow-hidden shadow-sm rounded-lg transition-all hover:shadow-md flex flex-col h-full group">
+            <div class="relative">
+              <div class="aspect-square overflow-hidden">
+                <img 
+                  :src="product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=' + product.name" 
+                  :alt="product.name" 
+                  class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
                 >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </button>
+                <div class="absolute inset-0 bg-black bg-opacity-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </div>
             </div>
             <div class="p-5 flex-grow flex flex-col">
               <h3 class="text-lg font-medium text-gray-900 line-clamp-2 min-h-[3.5rem]">{{ product.name }}</h3>
@@ -223,13 +212,16 @@
                   {{ cartMessage }}
                 </div>
               </div>
+              <div v-if="product.id === favoriteMessageProductId" class="mt-2 p-2 rounded text-sm" :class="favoriteSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                {{ favoriteMessage }}
+              </div>
               <div class="mt-4 pt-3 border-t border-gray-100">
                 <span class="text-indigo-600 font-bold text-xl block mb-3">{{ formatPrice(product.price) }} zł</span>
-                <div class="mt-4 flex space-x-2">
+                <div class="mt-4 flex flex-col space-y-2">
                   <button 
                     @click="addToCart(product.id)"
                     :disabled="isCartLoading(product.id)" 
-                    class="h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200"
+                    class="w-full h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200"
                   >
                     <template v-if="isCartLoading(product.id)">
                       <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -240,15 +232,23 @@
                     </template>
                     <template v-else>
                       <i class="fas fa-shopping-cart mr-1"></i>
-                      Koszyk
+                      Dodaj do koszyka
                     </template>
                   </button>
-                  <router-link 
-                    :to="`/products/${product.id}`" 
-                    class="h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors duration-200"
-                  >
-                    Szczegóły
-                  </router-link>
+                  <div class="flex space-x-2">
+                    <router-link 
+                      :to="`/products/${product.id}`" 
+                      class="flex-1 h-10 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors duration-200"
+                    >
+                      Szczegóły produktu
+                    </router-link>
+                    <FavoriteButton 
+                      :product="product"
+                      buttonClasses="h-10 inline-flex items-center justify-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
+                      @favorite-added="handleFavoriteAdded"
+                      @favorite-removed="handleFavoriteRemoved"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -298,28 +298,38 @@
 import { computed, ref, onMounted } from 'vue';
 import { useProductStore } from '../stores/productStore';
 import { useCartStore } from '../stores/cartStore';
-import { useWishlistStore } from '../stores/wishlistStore';
+import { useFavoriteStore } from '../stores/favoriteStore';
+import FavoriteButton from '../components/ui/FavoriteButton.vue';
 import axios from 'axios';
 
 export default {
   name: 'ProductList',
+  components: {
+    FavoriteButton
+  },
   setup() {
     const productStore = useProductStore();
     const cartStore = useCartStore();
-    const wishlistStore = useWishlistStore();
+    const favoriteStore = useFavoriteStore();
     const mobileFiltersOpen = ref(false);
     const priceRange = ref([null, null]);
     const cartMessageProductId = ref(null);
     const cartMessage = ref('');
     const cartSuccess = ref(false);
     const cartLoadingItems = ref(new Set());
+    const favoriteMessageProductId = ref(null);
+    const favoriteMessage = ref('');
+    const favoriteSuccess = ref(false);
     
     // Debugging information
     console.log('ProductList component setup started');
     
     onMounted(async () => {
       console.log('ProductList component mounted');
-      loadProducts();
+      // Initialize favorites when component is mounted
+      await favoriteStore.initializeFavorites();
+      // Then load products
+      await loadProducts();
     });
 
     const paginationPages = computed(() => {
@@ -449,12 +459,8 @@ export default {
       }
     };
 
-    const toggleFavorite = (product) => {
-      wishlistStore.toggleWishlistItem(product);
-    };
-
-    const isInFavorites = (productId) => {
-      return wishlistStore.isInWishlist(productId);
+    const isCartLoading = (productId) => {
+      return cartStore.isLoadingProduct(productId);
     };
 
     const setSorting = (sort) => {
@@ -467,8 +473,30 @@ export default {
       applyFilters();
     };
 
-    const isCartLoading = (productId) => {
-      return cartStore.isLoadingProduct(productId);
+    const handleFavoriteAdded = (product) => {
+      favoriteMessage.value = `Produkt "${product.name}" został dodany do ulubionych.`;
+      favoriteSuccess.value = true;
+      favoriteMessageProductId.value = product.id;
+      
+      // Clear the message after 3 seconds
+      setTimeout(() => {
+        if (favoriteMessageProductId.value === product.id) {
+          favoriteMessageProductId.value = null;
+        }
+      }, 3000);
+    };
+    
+    const handleFavoriteRemoved = (product) => {
+      favoriteMessage.value = `Produkt "${product.name}" został usunięty z ulubionych.`;
+      favoriteSuccess.value = false;
+      favoriteMessageProductId.value = product.id;
+      
+      // Clear the message after 3 seconds
+      setTimeout(() => {
+        if (favoriteMessageProductId.value === product.id) {
+          favoriteMessageProductId.value = null;
+        }
+      }, 3000);
     };
 
     return {
@@ -479,6 +507,9 @@ export default {
       cartMessage,
       cartSuccess,
       cartLoadingItems,
+      favoriteMessageProductId,
+      favoriteMessage,
+      favoriteSuccess,
       paginationPages,
       loadProducts,
       applyFilters,
@@ -486,11 +517,11 @@ export default {
       goToPage,
       formatPrice,
       addToCart,
-      toggleFavorite,
-      isInFavorites,
+      isCartLoading,
       setSorting,
       applyPriceFilter,
-      isCartLoading
+      handleFavoriteAdded,
+      handleFavoriteRemoved
     };
   }
 }

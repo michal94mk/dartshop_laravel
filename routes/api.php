@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\Admin\AboutPageController;
 use App\Http\Controllers\Api\Admin\ImageUploadController;
 use App\Http\Controllers\API\AboutUsController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\FavoriteProductController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +77,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // User reviews
     Route::get('/reviews/my-reviews', [UserReviewController::class, 'myReviews']);
     Route::get('/reviews/my-reviews/{id}', [UserReviewController::class, 'show']);
+    
+    // Favorite products
+    Route::get('/favorites', [FavoriteProductController::class, 'index']);
+    Route::post('/favorites/{product}', [FavoriteProductController::class, 'toggle']);
+    Route::get('/favorites/check/{product}', [FavoriteProductController::class, 'check']);
 });
 
 // Password Reset API

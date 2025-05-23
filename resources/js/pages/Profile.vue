@@ -405,7 +405,7 @@
 import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
-import { useWishlistStore } from '../stores/wishlistStore';
+import { useFavoriteStore } from '../stores/favoriteStore';
 import axios from 'axios';
 
 export default {
@@ -440,7 +440,7 @@ export default {
     
     const router = useRouter();
     const authStore = useAuthStore();
-    const wishlistStore = useWishlistStore();
+    const favoriteStore = useFavoriteStore();
     
     // Fetch data when tab changes
     watch(activeTab, (newTab) => {
@@ -458,6 +458,9 @@ export default {
       if (!authStore.user) {
         authStore.initAuth();
       }
+      
+      // Initialize the favorite store
+      favoriteStore.initializeFavorites();
     });
     
     // Profile tab methods
@@ -521,27 +524,14 @@ export default {
     
     // Favorites tab methods
     const fetchFavorites = async () => {
+      if (!authStore.isLoggedIn) return;
+      
       loadingFavorites.value = true;
       
       try {
-        // Get products data for items in wishlist
-        const productIds = wishlistStore.wishlistItems.map(item => item.id);
-        
-        if (productIds.length === 0) {
-          favorites.value = [];
-          return;
-        }
-        
-        const response = await axios.get('/api/products', {
-          params: { 
-            ids: productIds.join(','),
-            per_page: 50
-          }
-        });
-        
-        if (response.data && response.data.data) {
-          favorites.value = response.data.data;
-        }
+        // Load favorites from API
+        await favoriteStore.loadFavorites();
+        favorites.value = favoriteStore.favorites;
       } catch (error) {
         console.error('Error fetching favorites:', error);
       } finally {
@@ -549,9 +539,18 @@ export default {
       }
     };
     
-    const removeFromFavorites = (productId) => {
-      wishlistStore.removeFromWishlist(productId);
-      favorites.value = favorites.value.filter(item => item.id !== productId);
+    const removeFromFavorites = async (productId) => {
+      // Find the product in favorites
+      const product = favorites.value.find(item => item.id === productId);
+      if (product) {
+        try {
+          await favoriteStore.toggleFavorite(product);
+          // Refresh the favorites list
+          favorites.value = favoriteStore.favorites;
+        } catch (error) {
+          console.error('Error removing favorite:', error);
+        }
+      }
     };
     
     // Orders tab methods
