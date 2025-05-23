@@ -4,12 +4,26 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'description', 'price', 'weight', 'category_id', 'brand_id', 'image', 'stock', 'featured', 'is_active'];
+    protected $fillable = [
+        'name',
+        'description',
+        'price',
+        'weight',
+        'category_id',
+        'brand_id',
+        'image',
+        'stock',
+        'featured',
+        'is_active'
+    ];
 
     protected $casts = [
         'price' => 'decimal:2',
@@ -20,56 +34,34 @@ class Product extends Model
     
     protected $appends = ['image_url'];
 
-    public function category()
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
-    public function brand()
+    public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
     }
     
-    public function carts()
+    public function cartItems(): HasMany
     {
         return $this->hasMany(CartItem::class);
     }
     
-    public function reviews()
+    public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
     }
     
-    public function users()
+    public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'user_favorite_products')
             ->withTimestamps();
     }
 
-    public function getImageUrlAttribute()
+    public function getImageUrlAttribute(): ?string
     {
-        // Check if the product already has an image_url attribute (e.g., from mock data)
-        if (isset($this->attributes['image_url'])) {
-            return $this->attributes['image_url'];
-        }
-        
-        // Check if the product has an image field
-        if (!empty($this->image)) {
-            // Check if it's a full URL
-            if (filter_var($this->image, FILTER_VALIDATE_URL)) {
-                return $this->image;
-            }
-            
-            // Check if it's an absolute path to a public file
-            if (strpos($this->image, '/') === 0) {
-                return $this->image;
-            }
-            
-            // Otherwise, treat it as a relative path in storage
-            return asset('storage/' . $this->image);
-        }
-        
-        // Default image when no image is provided
-        return asset('images/default-product.jpg');
-    }    
+        return $this->image ? asset('storage/' . $this->image) : null;
+    }
 }

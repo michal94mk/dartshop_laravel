@@ -21,6 +21,8 @@ class CartItem extends Model
         'quantity',
     ];
 
+    protected $with = ['product'];
+
     /**
      * Get the user that owns the cart item.
      */

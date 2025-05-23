@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\AboutUsController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\FavoriteProductController;
 use App\Http\Controllers\Api\TutorialController;
+use App\Http\Controllers\Api\CheckoutController;
 
 /*
 |--------------------------------------------------------------------------
@@ -83,6 +84,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/favorites', [FavoriteProductController::class, 'index']);
     Route::post('/favorites/{product}', [FavoriteProductController::class, 'toggle']);
     Route::get('/favorites/check/{product}', [FavoriteProductController::class, 'check']);
+    
+    // Checkout routes
+    Route::prefix('checkout')->group(function () {
+        Route::get('/', [CheckoutController::class, 'index']);
+        Route::post('/process', [CheckoutController::class, 'process']);
+    });
 });
 
 // Password Reset API

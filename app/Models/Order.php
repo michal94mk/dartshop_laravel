@@ -30,7 +30,6 @@ class Order extends Model
         'user_id',
         'order_number',
         'status',
-        'payment_status',
         'first_name',
         'last_name',
         'email',
