@@ -55,7 +55,7 @@ class ProductController extends Controller
                 });
             }
             
-            // Filtrowanie po zakresie cen
+            // Price range filtering
             if ($request->has('price_min') && is_numeric($request->price_min)) {
                 $query->where('price', '>=', (float)$request->price_min);
             }
@@ -67,48 +67,42 @@ class ProductController extends Controller
             // Apply sorting
             $sortField = $request->sort_by ?? 'created_at';
             $sortDirection = $request->sort_direction ?? 'desc';
+            
+            // Validate sort field to prevent SQL injection
+            $allowedSortFields = ['created_at', 'name', 'price'];
+            if (!in_array($sortField, $allowedSortFields)) {
+                $sortField = 'created_at';
+            }
+            
             $query->orderBy($sortField, $sortDirection);
             
             // Pagination
-            $perPage = $request->per_page ?? 12;
+            $perPage = (int)($request->per_page ?? 12);
+            if ($perPage <= 0) {
+                $perPage = 12;
+            }
+            
             $products = $query->paginate($perPage);
             
-            Log::info('Products query successful. Product count: ' . $products->count());
+            Log::info('Products query successful', [
+                'total' => $products->total(),
+                'per_page' => $products->perPage(),
+                'current_page' => $products->currentPage(),
+                'last_page' => $products->lastPage()
+            ]);
             
             return response()->json($products);
+            
         } catch (Exception $e) {
             Log::error('Error fetching products', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
             
-            // Return a fallback response
             return response()->json([
-                'current_page' => 1,
-                'data' => [
-                    [
-                        'id' => 9991,
-                        'name' => '[FALLBACK] Przykładowy produkt 1',
-                        'price' => 99.99,
-                        'description' => 'Przykładowy produkt - dane awaryjne',
-                        'image_url' => 'https://via.placeholder.com/300x300/indigo/fff?text=Fallback',
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ],
-                    [
-                        'id' => 9992,
-                        'name' => '[FALLBACK] Przykładowy produkt 2',
-                        'price' => 149.99,
-                        'description' => 'Przykładowy produkt - dane awaryjne',
-                        'image_url' => 'https://via.placeholder.com/300x300/indigo/fff?text=Fallback',
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]
-                ],
-                'per_page' => 12,
-                'total' => 2,
-                'last_page' => 1,
-            ], 200);
+                'error' => 'Wystąpił błąd podczas pobierania produktów',
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
     

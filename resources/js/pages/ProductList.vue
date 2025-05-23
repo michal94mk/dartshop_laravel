@@ -257,37 +257,66 @@
         
         <!-- Pagination -->
         <div v-if="productStore.pagination.totalPages > 1" class="mt-10 flex justify-center">
-          <nav class="flex items-center">
+          <nav class="flex items-center justify-center space-x-2">
+            <!-- Previous page button -->
             <button 
               @click="goToPage(productStore.pagination.currentPage - 1)"
               :disabled="productStore.pagination.currentPage === 1"
-              class="px-3 py-1 rounded-md mr-2 border border-gray-300 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md border"
+              :class="[
+                productStore.pagination.currentPage === 1 
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              ]"
             >
               &laquo; Poprzednia
             </button>
-            
-            <div v-for="page in paginationPages" :key="page" class="mx-1">
-              <button 
-                @click="goToPage(page)"
-                :class="[
-                  'px-3 py-1 rounded-md border',
-                  page === productStore.pagination.currentPage 
-                    ? 'bg-indigo-600 text-white border-indigo-600' 
-                    : 'bg-white text-gray-700 border-gray-300'
-                ]"
-              >
-                {{ page }}
-              </button>
+
+            <!-- Page numbers -->
+            <div class="flex items-center space-x-2">
+              <template v-for="(page, index) in paginationPages" :key="index">
+                <button 
+                  v-if="typeof page === 'number'"
+                  @click="goToPage(page)"
+                  class="relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md"
+                  :class="[
+                    page === productStore.pagination.currentPage 
+                      ? 'z-10 bg-indigo-600 text-white' 
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  ]"
+                >
+                  {{ page }}
+                </button>
+                <span 
+                  v-else 
+                  class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700"
+                >
+                  ...
+                </span>
+              </template>
             </div>
-            
+
+            <!-- Next page button -->
             <button 
               @click="goToPage(productStore.pagination.currentPage + 1)"
               :disabled="productStore.pagination.currentPage === productStore.pagination.totalPages"
-              class="px-3 py-1 rounded-md ml-2 border border-gray-300 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md border"
+              :class="[
+                productStore.pagination.currentPage === productStore.pagination.totalPages 
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              ]"
             >
               Następna &raquo;
             </button>
           </nav>
+        </div>
+
+        <!-- Pagination info -->
+        <div class="mt-4 text-sm text-gray-600 text-center">
+          Wyświetlanie {{ (productStore.pagination.currentPage - 1) * productStore.pagination.perPage + 1 }} 
+          - {{ Math.min(productStore.pagination.currentPage * productStore.pagination.perPage, productStore.pagination.total) }} 
+          z {{ productStore.pagination.total }} produktów
         </div>
       </div>
     </div>
@@ -410,7 +439,13 @@ export default {
     };
 
     const goToPage = (page) => {
-      if (typeof page === 'number' && page !== productStore.pagination.currentPage) {
+      if (
+        typeof page === 'number' && 
+        page >= 1 && 
+        page <= productStore.pagination.totalPages && 
+        page !== productStore.pagination.currentPage
+      ) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         productStore.setPage(page);
       }
     };
