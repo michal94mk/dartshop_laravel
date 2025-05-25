@@ -259,9 +259,18 @@ export const useCartStore = defineStore('cart', {
           return response.data;
         } catch (error) {
           console.error('Failed to update cart item:', error);
-          this.hasError = true;
-          this.errorMessage = 'Nie udało się zaktualizować produktu w koszyku';
-          throw error;
+          
+          // Jeśli element nie istnieje (404), odśwież koszyk
+          if (error.response && error.response.status === 404) {
+            console.log(`Cart item ${itemId} not found, refreshing cart`);
+            await this.fetchCart();
+            this.hasError = true;
+            this.errorMessage = 'Element koszyka już nie istnieje. Koszyk został odświeżony.';
+          } else {
+            this.hasError = true;
+            this.errorMessage = 'Nie udało się zaktualizować produktu w koszyku';
+            throw error;
+          }
         } finally {
           this.isLoading = false;
         }
@@ -294,9 +303,18 @@ export const useCartStore = defineStore('cart', {
           return response.data;
         } catch (error) {
           console.error('Failed to remove item from cart:', error);
-          this.hasError = true;
-          this.errorMessage = 'Nie udało się usunąć produktu z koszyka';
-          throw error;
+          
+          // Jeśli element nie istnieje (404), odśwież koszyk
+          if (error.response && error.response.status === 404) {
+            console.log(`Cart item ${itemId} not found, refreshing cart`);
+            await this.fetchCart();
+            this.hasError = true;
+            this.errorMessage = 'Element koszyka już nie istnieje. Koszyk został odświeżony.';
+          } else {
+            this.hasError = true;
+            this.errorMessage = 'Nie udało się usunąć produktu z koszyka';
+            throw error;
+          }
         } finally {
           this.isLoading = false;
         }
@@ -321,20 +339,27 @@ export const useCartStore = defineStore('cart', {
       const authStore = useAuthStore();
       
       if (authStore.isLoggedIn) {
-        // Dla zalogowanego użytkownika: usuwamy wszystkie elementy przez API
+        // Dla zalogowanego użytkownika: użyj dedykowanego endpointu clear
         this.isLoading = true;
         
         try {
-          // Usuń każdy element pojedynczo - zakładamy, że API nie ma dedykowanego endpointu do czyszczenia
-          const deletePromises = this.items.map(item => axios.delete(`/api/cart/${item.id}`));
-          await Promise.all(deletePromises);
+          // Użyj dedykowanego endpointu do czyszczenia koszyka
+          await axios.delete('/api/cart');
           
+          // Wyczyść lokalny stan
           this.items = [];
+          
         } catch (error) {
           console.error('Failed to clear cart:', error);
-          this.hasError = true;
-          this.errorMessage = 'Nie udało się wyczyścić koszyka';
-          throw error;
+          
+          // Jeśli nie udało się wyczyścić przez API, spróbuj pobrać aktualny stan
+          try {
+            await this.fetchCart();
+          } catch (fetchError) {
+            console.error('Failed to fetch cart after clear error:', fetchError);
+            this.hasError = true;
+            this.errorMessage = 'Nie udało się wyczyścić koszyka';
+          }
         } finally {
           this.isLoading = false;
         }

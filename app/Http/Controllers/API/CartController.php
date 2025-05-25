@@ -184,4 +184,28 @@ class CartController extends Controller
             return response()->json(['message' => 'Error syncing cart', 'error' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Clear all cart items for the authenticated user.
+     */
+    public function clear(): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+
+            // Delete all cart items for the user
+            $deletedCount = CartItem::where('user_id', $user->id)->delete();
+
+            return response()->json([
+                'message' => 'Cart cleared successfully',
+                'deleted_items' => $deletedCount,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error clearing cart: ' . $e->getMessage());
+            return response()->json(['message' => 'Error clearing cart', 'error' => $e->getMessage()], 500);
+        }
+    }
 } 

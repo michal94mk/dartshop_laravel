@@ -62,9 +62,11 @@
           
           <button
             type="submit"
-            class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            :disabled="loading || cartItems.length === 0"
+            class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Przejdź do płatności
+            <span v-if="loading">Przetwarzanie...</span>
+            <span v-else>Przejdź do płatności</span>
           </button>
         </form>
       </div>
@@ -72,15 +74,18 @@
       <!-- Order Summary -->
       <div class="bg-white p-6 rounded-lg shadow">
         <h2 class="text-2xl font-semibold mb-6">Podsumowanie zamówienia</h2>
-        <div v-if="loading" class="text-center py-4">
+        <div v-if="loading && cartItems.length === 0" class="text-center py-4">
           <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
         </div>
         <div v-else-if="error" class="text-red-600 text-center py-4">
           {{ error }}
         </div>
+        <div v-else-if="cartItems.length === 0" class="text-center py-4">
+          <p class="text-gray-500">Koszyk jest pusty</p>
+        </div>
         <div v-else>
           <div class="space-y-4">
-            <div v-for="item in cartItems" :key="item.id" class="flex justify-between items-center">
+            <div v-for="item in cartItems" :key="item.product_id || item.id" class="flex justify-between items-center">
               <div>
                 <h3 class="font-medium">{{ item.product.name }}</h3>
                 <p class="text-sm text-gray-500">Ilość: {{ item.quantity }}</p>
@@ -103,14 +108,18 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
+import { useAuthStore } from '../stores/authStore'
+import { useCartStore } from '../stores/cartStore'
 import axios from 'axios'
 
 export default {
   name: 'Checkout',
   
   setup() {
+    const authStore = useAuthStore()
+    const cartStore = useCartStore()
     const cartItems = ref([])
-    const loading = ref(true)
+    const loading = ref(false)
     const error = ref(null)
     
     const shippingDetails = ref({
@@ -131,10 +140,39 @@ export default {
     const fetchCart = async () => {
       try {
         loading.value = true
-        const response = await axios.get('/api/checkout')
-        cartItems.value = response.data.cart_items
+        error.value = null
+        
+        if (authStore.isLoggedIn) {
+          // Dla zalogowanych użytkowników - użyj standardowego API
+          const response = await axios.get('/api/checkout')
+          cartItems.value = response.data.cart_items
+        } else {
+          // Dla gości - pobierz z localStorage i wyślij do guest API
+          const savedCart = localStorage.getItem('cart')
+          if (savedCart) {
+            const localCartItems = JSON.parse(savedCart)
+            if (localCartItems.length > 0) {
+              // Przekształć dane z localStorage do formatu oczekiwanego przez API
+              const cartData = localCartItems.map(item => ({
+                product_id: item.product_id,
+                quantity: item.quantity
+              }))
+              
+              const response = await axios.post('/api/guest-checkout', {
+                cart_items: cartData
+              })
+              cartItems.value = response.data.cart_items
+            } else {
+              cartItems.value = []
+            }
+          } else {
+            cartItems.value = []
+          }
+        }
       } catch (err) {
+        console.error('Error fetching cart:', err)
         error.value = err.response?.data?.message || 'Nie udało się załadować koszyka'
+        cartItems.value = []
       } finally {
         loading.value = false
       }
@@ -143,11 +181,48 @@ export default {
     const processCheckout = async () => {
       try {
         loading.value = true
-        const response = await axios.post('/api/checkout/process', {
-          shipping: shippingDetails.value
-        })
-        // Handle successful checkout (will be implemented with Stripe)
+        error.value = null
+        
+        if (authStore.isLoggedIn) {
+          // Dla zalogowanych użytkowników
+          const response = await axios.post('/api/checkout/process', {
+            shipping: shippingDetails.value
+          })
+          
+          // Wyczyść koszyk po udanym zamówieniu
+          await cartStore.clearCart()
+          
+          alert('Zamówienie zostało złożone pomyślnie!')
+          // Przekieruj do strony zamówień lub potwierdzenia
+          
+        } else {
+          // Dla gości - wyślij dane koszyka wraz z danymi wysyłki
+          const savedCart = localStorage.getItem('cart')
+          if (!savedCart) {
+            throw new Error('Koszyk jest pusty')
+          }
+          
+          const localCartItems = JSON.parse(savedCart)
+          const cartData = localCartItems.map(item => ({
+            product_id: item.product_id,
+            quantity: item.quantity
+          }))
+          
+          const response = await axios.post('/api/guest-checkout/process', {
+            shipping: shippingDetails.value,
+            cart_items: cartData
+          })
+          
+          // Wyczyść localStorage po udanym zamówieniu
+          localStorage.removeItem('cart')
+          cartStore.items = []
+          
+          alert('Zamówienie zostało złożone pomyślnie!')
+          // Przekieruj do strony potwierdzenia
+        }
+        
       } catch (err) {
+        console.error('Error processing checkout:', err)
         error.value = err.response?.data?.message || 'Nie udało się przetworzyć zamówienia'
       } finally {
         loading.value = false

@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\FavoriteProductController;
 use App\Http\Controllers\Api\TutorialController;
 use App\Http\Controllers\Api\CheckoutController;
+use App\Http\Controllers\Api\GuestCheckoutController;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,6 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/cart/{cartItem}', [CartController::class, 'update']);
     Route::delete('/cart/{cartItem}', [CartController::class, 'destroy']);
     Route::post('/cart/sync', [CartController::class, 'sync']);
+    Route::delete('/cart', [CartController::class, 'clear']);
 });
 
 // Auth API
@@ -242,4 +244,10 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/about', [AboutPageController::class, 'index']);
     Route::put('/about', [AboutPageController::class, 'update']);
     Route::post('/about/upload-image', [AboutPageController::class, 'uploadImage']);
+});
+
+// Guest Checkout API (for non-authenticated users)
+Route::prefix('guest-checkout')->group(function () {
+    Route::post('/', [GuestCheckoutController::class, 'index']);
+    Route::post('/process', [GuestCheckoutController::class, 'process']);
 });
