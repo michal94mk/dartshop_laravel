@@ -27,7 +27,7 @@ use App\Http\Controllers\Api\Admin\AboutPageController;
 use App\Http\Controllers\Api\Admin\ImageUploadController;
 use App\Http\Controllers\Api\AboutUsController;
 use App\Http\Controllers\Api\ContactController;
-use App\Http\Controllers\FavoriteProductController;
+use App\Http\Controllers\Api\FavoriteProductController;
 use App\Http\Controllers\Api\TutorialController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\GuestCheckoutController;

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -77,4 +78,4 @@ class FavoriteProductController extends Controller
             'is_favorite' => $isFavorite
         ]);
     }
-}
+} 
