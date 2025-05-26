@@ -69,9 +69,6 @@
       v-if="orders.data && orders.data.length > 0"
       :columns="tableColumns"
       :items="orders.data"
-      :sort-by="filters.sort_field"
-      :sort-order="filters.sort_direction"
-      @sort="handleSort"
       :force-horizontal-scroll="true"
       class="mt-8"
     >
@@ -681,11 +678,11 @@ export default {
     
     // Table columns definition
     const tableColumns = [
-      { key: 'order_number', label: 'Nr zamówienia', sortable: true, width: '120px' },
-      { key: 'customer', label: 'Klient', sortable: false, width: '200px' },
-      { key: 'created_at', label: 'Data', sortable: true, type: 'date', width: '120px' },
-      { key: 'total', label: 'Kwota', sortable: true, width: '100px' },
-      { key: 'status', label: 'Status', sortable: true, align: 'center', width: '120px' },
+      { key: 'order_number', label: 'Nr zamówienia', width: '120px' },
+      { key: 'customer', label: 'Klient', width: '200px' },
+      { key: 'created_at', label: 'Data', type: 'date', width: '120px' },
+      { key: 'total', label: 'Kwota', width: '100px' },
+      { key: 'status', label: 'Status', align: 'center', width: '120px' },
       { key: 'actions', label: 'Akcje', align: 'right', width: '320px' }
     ]
     
@@ -708,13 +705,7 @@ export default {
       return variants[status] || 'gray'
     }
     
-    // Handle table sorting
-    const handleSort = (sortData) => {
-      filters.value.sort_field = sortData.key
-      filters.value.sort_direction = sortData.order
-      filters.value.page = 1 // Reset to first page when sorting
-      fetchOrders()
-    }
+
     
     const filters = ref({
       search: '',
@@ -1391,7 +1382,6 @@ export default {
       translateStatus,
       translatePaymentStatus,
       getStatusVariant,
-      handleSort,
       openCreateOrderModal,
       openEditModal,
       closeEditModal,

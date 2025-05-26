@@ -56,9 +56,6 @@
       v-if="!loading && filteredMessages.length"
       :columns="tableColumns"
       :items="filteredMessages"
-      :sort-by="filters.sort_field"
-      :sort-order="filters.sort_direction"
-      @sort="handleSort"
       class="mt-6"
     >
       <template #cell-name="{ item }">
@@ -350,10 +347,7 @@ export default {
     ]
     
     // Handle table sorting
-    const handleSort = (sortData) => {
-      filters.value.sort_field = sortData.key
-      filters.value.sort_direction = sortData.order
-    }
+
     
     // Get status variant for AdminBadge
     const getStatusVariant = (status) => {
@@ -633,7 +627,6 @@ export default {
       responseData,
       responseSending,
       tableColumns,
-      handleSort,
       getStatusVariant,
       getStatusLabel,
       fetchMessages,

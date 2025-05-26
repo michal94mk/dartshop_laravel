@@ -20,25 +20,6 @@
                 >
                   <div class="flex items-center h-full">
                     <span class="text-sm font-semibold text-gray-900">{{ column.label }}</span>
-                    <button
-                      v-if="column.sortable"
-                      @click="handleSort(column.key)"
-                      class="ml-2 flex-none rounded text-gray-400 hover:text-gray-600 transition-colors duration-150"
-                    >
-                      <svg
-                        class="h-4 w-4 transition-transform duration-150"
-                        :class="{
-                          'text-gray-900': sortBy === column.key,
-                          'rotate-180': sortBy === column.key && sortOrder === 'desc'
-                        }"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                      </svg>
-                    </button>
                   </div>
                 </th>
               </tr>
@@ -103,7 +84,6 @@
 <script>
 export default {
   name: 'AdminTable',
-  emits: ['sort'],
   props: {
     columns: {
       type: Array,
@@ -118,15 +98,6 @@ export default {
     items: {
       type: Array,
       default: () => []
-    },
-    sortBy: {
-      type: String,
-      default: ''
-    },
-    sortOrder: {
-      type: String,
-      default: 'asc',
-      validator: (value) => ['asc', 'desc'].includes(value)
     },
     keyField: {
       type: String,
@@ -202,16 +173,7 @@ export default {
       return baseClasses;
     },
 
-    handleSort(key) {
-      if (!key) return;
-      
-      let newOrder = 'asc';
-      if (this.sortBy === key && this.sortOrder === 'asc') {
-        newOrder = 'desc';
-      }
-      
-      this.$emit('sort', { key, order: newOrder });
-    },
+
 
     getItemKey(item, index) {
       return item[this.keyField] || index;

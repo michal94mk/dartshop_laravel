@@ -11,7 +11,7 @@
     <!-- Search and filters -->
     <search-filters
       v-if="!loading"
-      :filters.sync="filters"
+      v-model:filters="filters"
       :sort-options="sortOptions"
       search-label="Wyszukaj"
       search-placeholder="Nazwa kategorii..."
@@ -30,9 +30,6 @@
       v-if="categories.data && categories.data.length > 0"
       :columns="tableColumns"
       :items="categories.data"
-      :sort-by="filters.sort_field"
-      :sort-order="filters.sort_direction"
-      @sort="handleSort"
       class="mt-8"
     >
       <template #cell-products_count="{ item }">
@@ -161,6 +158,11 @@ import AdminTable from '../../components/admin/ui/AdminTable.vue'
 import AdminModal from '../../components/admin/ui/AdminModal.vue'
 import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
+import SearchFilters from '../../components/admin/SearchFilters.vue'
+import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
+import NoDataMessage from '../../components/admin/NoDataMessage.vue'
+import Pagination from '../../components/admin/Pagination.vue'
+import PageHeader from '../../components/admin/PageHeader.vue'
 
 export default {
   name: 'AdminCategories',
@@ -169,7 +171,12 @@ export default {
     AdminTable,
     AdminModal,
     AdminButtonGroup,
-    AdminButton
+    AdminButton,
+    SearchFilters,
+    LoadingSpinner,
+    NoDataMessage,
+    Pagination,
+    PageHeader
   },
   setup() {
     const alertStore = useAlertStore()
@@ -196,19 +203,13 @@ export default {
     
     // Table columns definition
     const tableColumns = [
-      { key: 'name', label: 'Nazwa', sortable: true, width: '350px' },
-      { key: 'products_count', label: 'Liczba produktów', sortable: false, width: '180px' },
-      { key: 'created_at', label: 'Data utworzenia', sortable: true, type: 'date', width: '180px' },
+      { key: 'name', label: 'Nazwa', width: '350px' },
+      { key: 'products_count', label: 'Liczba produktów', width: '180px' },
+      { key: 'created_at', label: 'Data utworzenia', type: 'date', width: '180px' },
       { key: 'actions', label: 'Akcje', align: 'right', width: '160px' }
     ]
     
-    // Handle table sorting
-    const handleSort = (sortData) => {
-      filters.sort_field = sortData.key
-      filters.sort_direction = sortData.order
-      filters.page = 1 // Reset to first page when sorting
-      fetchCategories()
-    }
+
     
     // Filters and pagination
     const filters = reactive({
@@ -430,7 +431,6 @@ export default {
       goToPage,
       sortOptions,
       tableColumns,
-      handleSort,
       showErrorModal,
       errorMessage
     }

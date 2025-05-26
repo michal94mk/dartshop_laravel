@@ -16,7 +16,7 @@
       search-label="Wyszukaj"
       search-placeholder="Nazwa lub kod promocji..."
       @update:filters="filters = $event"
-      @filter-change="filterPromotions"
+      @filter-change="fetchPromotions"
     >
       <template v-slot:filters>
         <div class="w-full sm:w-auto">
@@ -25,7 +25,7 @@
             id="status"
             name="status"
             v-model="filters.status"
-            @change="filterPromotions"
+            @change="fetchPromotions"
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">Wszystkie</option>
@@ -40,7 +40,7 @@
             id="type"
             name="type"
             v-model="filters.type"
-            @change="filterPromotions"
+            @change="fetchPromotions"
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">Wszystkie</option>
@@ -56,12 +56,9 @@
     
     <!-- Promotions Table -->
     <admin-table
-      v-if="!loading && filteredPromotions.length"
+      v-if="!loading && promotions.length"
       :columns="tableColumns"
-      :items="filteredPromotions"
-      :sort-by="filters.sort_field"
-      :sort-order="filters.sort_direction"
-      @sort="handleSort"
+      :items="promotions"
       class="mt-6"
     >
       <template #cell-code="{ item }">
@@ -310,6 +307,10 @@ import AdminTable from '../../components/admin/ui/AdminTable.vue'
 import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
 import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
+import SearchFilters from '../../components/admin/SearchFilters.vue'
+import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
+import NoDataMessage from '../../components/admin/NoDataMessage.vue'
+import PageHeader from '../../components/admin/PageHeader.vue'
 
 export default {
   name: 'AdminPromotions',
@@ -317,7 +318,11 @@ export default {
     AdminTable,
     AdminButtonGroup,
     AdminButton,
-    AdminBadge
+    AdminBadge,
+    SearchFilters,
+    LoadingSpinner,
+    NoDataMessage,
+    PageHeader
   },
   setup() {
     const alertStore = useAlertStore()
@@ -360,26 +365,22 @@ export default {
     
     // Table columns definition
     const tableColumns = [
-      { key: 'name', label: 'Nazwa', sortable: true, width: '250px' },
-      { key: 'code', label: 'Kod', sortable: false, width: '140px' },
-      { key: 'type', label: 'Typ', sortable: false, width: '120px' },
-      { key: 'value', label: 'Wartość', sortable: false, width: '120px' },
-      { key: 'ends_at', label: 'Data ważności', sortable: true, type: 'date', width: '160px' },
-      { key: 'status', label: 'Status', sortable: false, width: '120px' },
+      { key: 'name', label: 'Nazwa', width: '250px' },
+      { key: 'code', label: 'Kod', width: '140px' },
+      { key: 'type', label: 'Typ', width: '120px' },
+      { key: 'value', label: 'Wartość', width: '120px' },
+      { key: 'ends_at', label: 'Data ważności', type: 'date', width: '160px' },
+      { key: 'status', label: 'Status', width: '120px' },
       { key: 'actions', label: 'Akcje', align: 'right', width: '160px' }
     ]
     
-    // Handle table sorting
-    const handleSort = (sortData) => {
-      filters.value.sort_field = sortData.key
-      filters.value.sort_direction = sortData.order
-    }
+
     
     // Fetch all promotions
     const fetchPromotions = async () => {
       try {
         loading.value = true
-        const response = await axios.get('/api/admin/promotions')
+        const response = await axios.get('/api/admin/promotions', { params: filters.value })
         promotions.value = response.data
       } catch (error) {
         console.error('Error fetching promotions:', error)
@@ -389,72 +390,7 @@ export default {
       }
     }
     
-    // Filter promotions
-    const filterPromotions = () => {
-      // This is just a UI function to trigger the filteredPromotions computed property
-      console.log('Filtering with:', filters.value)
-    }
-    
-    // Debounced filter promotions
-    const debouncedFilterPromotions = () => {
-      if (searchTimeout.value) {
-        clearTimeout(searchTimeout.value)
-      }
-      
-      searchTimeout.value = setTimeout(() => {
-        filterPromotions()
-      }, 300)
-    }
-    
-    // Sort function
-    const sortPromotions = (a, b) => {
-      const direction = filters.value.sort_direction === 'asc' ? 1 : -1
-      
-      switch (filters.value.sort_field) {
-        case 'name':
-          return a.name.localeCompare(b.name) * direction
-        case 'value':
-          return (a.value - b.value) * direction
-        case 'ends_at':
-          return (new Date(a.ends_at) - new Date(b.ends_at)) * direction
-        case 'created_at':
-        default:
-          return (new Date(a.created_at) - new Date(b.created_at)) * direction
-      }
-    }
-    
-    // Filtered promotions
-    const filteredPromotions = computed(() => {
-      return promotions.value
-        .filter(promotion => {
-          // Filter by status
-          if (filters.value.status === 'active' && !promotion.is_active) {
-            return false
-          }
-          if (filters.value.status === 'inactive' && promotion.is_active) {
-            return false
-          }
-          
-          // Filter by type
-          if (filters.value.type && promotion.discount_type !== filters.value.type) {
-            return false
-          }
-          
-          // Filter by search text (name or code)
-          if (filters.value.search) {
-            const searchText = filters.value.search.toLowerCase()
-            const name = promotion.name.toLowerCase()
-            const code = promotion.code.toLowerCase()
-            
-            if (!name.includes(searchText) && !code.includes(searchText)) {
-              return false
-            }
-          }
-          
-          return true
-        })
-        .sort(sortPromotions)
-    })
+
     
     // Add new promotion
     const addPromotion = async () => {
@@ -581,7 +517,6 @@ export default {
     return {
       loading,
       promotions,
-      filteredPromotions,
       showAddForm,
       showEditForm,
       showDeleteModal,
@@ -590,7 +525,6 @@ export default {
       form,
       sortOptions,
       tableColumns,
-      handleSort,
       fetchPromotions,
       addPromotion,
       editPromotion,
@@ -600,9 +534,7 @@ export default {
       closeForm,
       getPromotionTypeName,
       formatDate,
-      generateCode,
-      filterPromotions,
-      debouncedFilterPromotions
+      generateCode
     }
   }
 }

@@ -56,6 +56,8 @@
 </template>
 
 <script>
+import { ref, watch } from 'vue'
+
 export default {
   name: 'SearchFilters',
   props: {
@@ -81,38 +83,40 @@ export default {
       default: 300
     }
   },
-  data() {
-    return {
-      filterModel: { ...this.filters },
-      searchTimeout: null
-    }
-  },
-  watch: {
-    filters: {
-      handler(newFilters) {
-        this.filterModel = { ...newFilters };
-      },
-      deep: true
-    }
-  },
-  methods: {
-    onSearchInput() {
-      if (this.searchTimeout) {
-        clearTimeout(this.searchTimeout);
+  emits: ['update:filters', 'filter-change'],
+  setup(props, { emit }) {
+    const filterModel = ref({ ...props.filters })
+    const searchTimeout = ref(null)
+    
+    // Watch for changes in props.filters
+    watch(() => props.filters, (newFilters) => {
+      filterModel.value = { ...newFilters }
+    }, { deep: true })
+    
+    const onSearchInput = () => {
+      if (searchTimeout.value) {
+        clearTimeout(searchTimeout.value)
       }
       
-      this.searchTimeout = setTimeout(() => {
-        this.emitChange();
-      }, this.debounceTime);
-    },
+      searchTimeout.value = setTimeout(() => {
+        emitChange()
+      }, props.debounceTime)
+    }
     
-    onFilterChange() {
-      this.emitChange();
-    },
+    const onFilterChange = () => {
+      emitChange()
+    }
     
-    emitChange() {
-      this.$emit('update:filters', { ...this.filterModel });
-      this.$emit('filter-change');
+    const emitChange = () => {
+      console.log('SearchFilters emitting change:', filterModel.value)
+      emit('update:filters', { ...filterModel.value })
+      emit('filter-change')
+    }
+    
+    return {
+      filterModel,
+      onSearchInput,
+      onFilterChange
     }
   }
 }

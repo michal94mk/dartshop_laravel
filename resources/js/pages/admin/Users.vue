@@ -59,9 +59,6 @@
       v-if="users.data && users.data.length > 0"
       :columns="tableColumns"
       :items="users.data"
-      :sort-by="filters.sort_field"
-      :sort-order="filters.sort_direction"
-      @sort="handleSort"
       class="mt-8"
     >
       <template #cell-user="{ item }">
@@ -355,6 +352,11 @@ import AdminTable from '../../components/admin/ui/AdminTable.vue'
 import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
 import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
+import SearchFilters from '../../components/admin/SearchFilters.vue'
+import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
+import NoDataMessage from '../../components/admin/NoDataMessage.vue'
+import Pagination from '../../components/admin/Pagination.vue'
+import PageHeader from '../../components/admin/PageHeader.vue'
 
 export default {
   name: 'AdminUsers',
@@ -362,7 +364,12 @@ export default {
     AdminTable,
     AdminButtonGroup,
     AdminButton,
-    AdminBadge
+    AdminBadge,
+    SearchFilters,
+    LoadingSpinner,
+    NoDataMessage,
+    Pagination,
+    PageHeader
   },
   setup() {
     const alertStore = useAlertStore()
@@ -392,21 +399,15 @@ export default {
     
     // Table columns definition
     const tableColumns = [
-      { key: 'user', label: 'Użytkownik', sortable: false, width: '200px' },
-      { key: 'email', label: 'Email', sortable: true, width: '250px' },
-      { key: 'role', label: 'Rola', sortable: false, width: '120px' },
-      { key: 'status', label: 'Status', sortable: false, width: '120px' },
-      { key: 'created_at', label: 'Data rejestracji', sortable: true, type: 'date', width: '140px' },
+      { key: 'user', label: 'Użytkownik', width: '200px' },
+      { key: 'email', label: 'Email', width: '250px' },
+      { key: 'role', label: 'Rola', width: '120px' },
+      { key: 'status', label: 'Status', width: '120px' },
+      { key: 'created_at', label: 'Data rejestracji', type: 'date', width: '140px' },
       { key: 'actions', label: 'Akcje', align: 'right', width: '160px' }
     ]
     
-    // Handle table sorting
-    const handleSort = (sortData) => {
-      filters.sort_field = sortData.key
-      filters.sort_direction = sortData.order
-      filters.page = 1 // Reset to first page when sorting
-      fetchUsers()
-    }
+
     
     const filters = reactive({
       search: '',
@@ -700,7 +701,6 @@ export default {
       filters,
       sortOptions,
       tableColumns,
-      handleSort,
       currentUserId,
       showModal,
       showDeleteModal,

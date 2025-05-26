@@ -11,11 +11,11 @@
     <!-- Search and filters -->
     <search-filters
       v-if="!loading"
-      :filters.sync="filters"
+      v-model:filters="filters"
       :sort-options="sortOptions"
       search-label="Wyszukaj"
       search-placeholder="Szukaj poradników..."
-      @filter-change="filterTutorials"
+      @filter-change="fetchTutorials"
     >
       <template v-slot:filters>
         <div class="w-full sm:w-auto">
@@ -24,7 +24,7 @@
             id="status"
             name="status"
             v-model="filters.status"
-            @change="filterTutorials"
+            @change="fetchTutorials"
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">Wszystkie</option>
@@ -40,7 +40,7 @@
             id="featured"
             name="featured"
             v-model="filters.featured"
-            @change="filterTutorials"
+            @change="fetchTutorials"
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">Wszystkie</option>
@@ -56,12 +56,9 @@
     
     <!-- Tutorials Table -->
     <admin-table
-      v-if="filteredTutorials.length"
+      v-if="tutorials.length"
       :columns="tableColumns"
-      :items="filteredTutorials"
-      :sort-by="filters.sort_field"
-      :sort-order="filters.sort_direction"
-      @sort="handleSort"
+      :items="tutorials"
       :force-horizontal-scroll="true"
       class="mt-6"
     >
@@ -286,6 +283,10 @@ import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
 import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
 import AdminModal from '../../components/admin/ui/AdminModal.vue'
+import SearchFilters from '../../components/admin/SearchFilters.vue'
+import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
+import NoDataMessage from '../../components/admin/NoDataMessage.vue'
+import PageHeader from '../../components/admin/PageHeader.vue'
 
 export default {
   name: 'AdminTutorials',
@@ -294,7 +295,11 @@ export default {
     AdminButtonGroup,
     AdminButton,
     AdminBadge,
-    AdminModal
+    AdminModal,
+    SearchFilters,
+    LoadingSpinner,
+    NoDataMessage,
+    PageHeader
   },
   setup() {
     const alertStore = useAlertStore()
@@ -316,19 +321,15 @@ export default {
     
     // Table columns definition
     const tableColumns = [
-      { key: 'title', label: 'Tytuł', sortable: true, width: '350px' },
-      { key: 'slug', label: 'Slug', sortable: false, width: '220px' },
-      { key: 'author', label: 'Autor', sortable: false, width: '170px' },
-      { key: 'published_at', label: 'Data', sortable: true, type: 'date', width: '140px' },
-      { key: 'status', label: 'Status', sortable: true, align: 'center', width: '120px' },
+      { key: 'title', label: 'Tytuł', width: '350px' },
+      { key: 'slug', label: 'Slug', width: '220px' },
+      { key: 'author', label: 'Autor', width: '170px' },
+      { key: 'published_at', label: 'Data', type: 'date', width: '140px' },
+      { key: 'status', label: 'Status', align: 'center', width: '120px' },
       { key: 'actions', label: 'Akcje', align: 'center', width: '140px' }
     ]
     
-    // Handle table sorting
-    const handleSort = (sortData) => {
-      filters.value.sort_field = sortData.key
-      filters.value.sort_direction = sortData.order
-    }
+
     
     // Get status variant for badge
     const getStatusVariant = (tutorial) => {
@@ -370,7 +371,7 @@ export default {
     const fetchTutorials = async () => {
       try {
         loading.value = true
-        const response = await axios.get('/api/admin/tutorials')
+        const response = await axios.get('/api/admin/tutorials', { params: filters.value })
         tutorials.value = response.data
       } catch (error) {
         console.error('Error fetching tutorials:', error)
@@ -380,72 +381,7 @@ export default {
       }
     }
     
-    // Filter tutorials
-    const filterTutorials = () => {
-      // This is just a UI function to trigger the filteredTutorials computed property
-      console.log('Filtering with:', filters.value)
-    }
-    
-    // Debounced filter tutorials
-    const debouncedFilterTutorials = () => {
-      if (searchTimeout.value) {
-        clearTimeout(searchTimeout.value)
-      }
-      
-      searchTimeout.value = setTimeout(() => {
-        filterTutorials()
-      }, 300)
-    }
-    
-    // Sort function
-    const sortTutorials = (a, b) => {
-      const direction = filters.value.sort_direction === 'asc' ? 1 : -1
-      
-      switch (filters.value.sort_field) {
-        case 'title':
-          return a.title.localeCompare(b.title) * direction
-        case 'published_at':
-          const aDate = a.published_at ? new Date(a.published_at) : new Date(0)
-          const bDate = b.published_at ? new Date(b.published_at) : new Date(0)
-          return (aDate - bDate) * direction
-        case 'created_at':
-        default:
-          return (new Date(a.created_at) - new Date(b.created_at)) * direction
-      }
-    }
-    
-    // Filtered tutorials
-    const filteredTutorials = computed(() => {
-      return tutorials.value
-        .filter(tutorial => {
-          // Filter by status
-          if (filters.value.status && tutorial.status !== filters.value.status) {
-            return false
-          }
-          
-          // Filter by featured
-          if (filters.value.featured === 'true' && !tutorial.featured) {
-            return false
-          }
-          if (filters.value.featured === 'false' && tutorial.featured) {
-            return false
-          }
-          
-          // Filter by search text (title or excerpt)
-          if (filters.value.search) {
-            const searchText = filters.value.search.toLowerCase()
-            const title = tutorial.title.toLowerCase()
-            const excerpt = tutorial.excerpt ? tutorial.excerpt.toLowerCase() : ''
-            
-            if (!title.includes(searchText) && !excerpt.includes(searchText)) {
-              return false
-            }
-          }
-          
-          return true
-        })
-        .sort(sortTutorials)
-    })
+
     
     // Add new tutorial
     const addTutorial = async () => {
@@ -629,7 +565,6 @@ export default {
     return {
       loading,
       tutorials,
-      filteredTutorials,
       showAddForm,
       showEditForm,
       showDeleteModal,
@@ -650,10 +585,7 @@ export default {
       generateSlug,
       getStatusLabel,
       getStatusClass,
-      getStatusVariant,
-      handleSort,
-      filterTutorials,
-      debouncedFilterTutorials
+      getStatusVariant
     }
   }
 }

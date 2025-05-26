@@ -11,10 +11,11 @@
     <!-- Search and filters -->
     <search-filters
       v-if="!loading"
-      :filters.sync="filters"
+      :filters="filters"
       :sort-options="sortOptions"
       search-label="Wyszukaj"
       search-placeholder="Nazwa produktu..."
+      @update:filters="(newFilters) => { console.log('Products received filters update:', newFilters); Object.assign(filters, newFilters); filters.page = 1; }"
       @filter-change="fetchProducts"
     >
       <template v-slot:filters>
@@ -24,7 +25,7 @@
             id="category"
             name="category"
             v-model="filters.category_id"
-            @change="fetchProducts"
+            @change="() => { filters.page = 1; fetchProducts(); }"
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">Wszystkie kategorie</option>
@@ -40,7 +41,7 @@
             id="brand"
             name="brand"
             v-model="filters.brand_id"
-            @change="fetchProducts"
+            @change="() => { filters.page = 1; fetchProducts(); }"
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">Wszystkie marki</option>
@@ -60,9 +61,6 @@
       v-if="products.data && products.data.length > 0"
       :columns="tableColumns"
       :items="products.data"
-      :sort-by="filters.sort_field"
-      :sort-order="filters.sort_direction"
-      @sort="handleSort"
       class="mt-8"
     >
       <template #cell-product="{ item }">
@@ -129,7 +127,7 @@
     />
     
     <!-- No data message -->
-    <no-data-message v-else-if="!loading" message="Brak produktów do wyświetlenia" />
+    <no-data-message v-if="!loading && (!products.data || products.data.length === 0)" message="Brak produktów do wyświetlenia" />
 
     <!-- Product Modal -->
     <div v-if="showModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -331,13 +329,23 @@ import debounce from 'lodash/debounce'
 import AdminTable from '../../components/admin/ui/AdminTable.vue'
 import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
+import SearchFilters from '../../components/admin/SearchFilters.vue'
+import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
+import NoDataMessage from '../../components/admin/NoDataMessage.vue'
+import Pagination from '../../components/admin/Pagination.vue'
+import PageHeader from '../../components/admin/PageHeader.vue'
 
 export default {
   name: 'AdminProducts',
   components: {
     AdminTable,
     AdminButtonGroup,
-    AdminButton
+    AdminButton,
+    SearchFilters,
+    LoadingSpinner,
+    NoDataMessage,
+    Pagination,
+    PageHeader
   },
   setup() {
     const alertStore = useAlertStore()
@@ -365,19 +373,14 @@ export default {
     
     // Table columns definition
     const tableColumns = [
-      { key: 'product', label: 'Produkt', sortable: false, width: '350px' },
-      { key: 'category', label: 'Kategoria', sortable: false, width: '150px' },
-      { key: 'brand', label: 'Marka', sortable: false, width: '150px' },
-      { key: 'price', label: 'Cena', sortable: true, width: '100px' },
+      { key: 'product', label: 'Produkt', width: '350px' },
+      { key: 'category', label: 'Kategoria', width: '150px' },
+      { key: 'brand', label: 'Marka', width: '150px' },
+      { key: 'price', label: 'Cena', width: '100px' },
       { key: 'actions', label: 'Akcje', align: 'right', width: '160px' }
     ]
     
-    // Handle table sorting
-    const handleSort = (sortData) => {
-      filters.sort_field = sortData.key
-      filters.sort_direction = sortData.order
-      fetchProducts()
-    }
+
     
     const filters = reactive({
       search: '',
@@ -444,6 +447,8 @@ export default {
           sort_field: filters.sort_field,
           sort_direction: filters.sort_direction
         }
+        
+        console.log('Fetching products with params:', params)
         
         const response = await axios.get('/api/admin/products', { params })
         
@@ -908,7 +913,6 @@ export default {
       filters,
       sortOptions,
       tableColumns,
-      handleSort,
       paginationPages,
       showModal,
       showDeleteModal,

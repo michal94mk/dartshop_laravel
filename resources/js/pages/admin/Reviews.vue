@@ -77,9 +77,6 @@
       v-if="!loading && reviews.length"
       :columns="tableColumns"
       :items="reviews"
-      :sort-by="filters.sort_field"
-      :sort-order="filters.sort_direction"
-      @sort="handleSort"
       :force-horizontal-scroll="true"
       class="mt-6"
     >
@@ -594,6 +591,9 @@ import { useToast } from 'vue-toastification'
   import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
   import AdminButton from '../../components/admin/ui/AdminButton.vue'
   import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
+  import SearchFilters from '../../components/admin/SearchFilters.vue'
+  import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
+  import NoDataMessage from '../../components/admin/NoDataMessage.vue'
 
 export default {
   name: 'AdminReviews',
@@ -603,7 +603,10 @@ export default {
     AdminTable,
     AdminButtonGroup,
     AdminButton,
-    AdminBadge
+    AdminBadge,
+    SearchFilters,
+    LoadingSpinner,
+    NoDataMessage
   },
   setup() {
     const alertStore = useAlertStore()
@@ -632,23 +635,18 @@ export default {
     
     // Table columns definition
     const tableColumns = [
-      { key: 'product', label: 'Produkt', sortable: false, width: '200px' },
-      { key: 'user', label: 'Użytkownik', sortable: false, width: '120px' },
-      { key: 'rating', label: 'Ocena', sortable: true, align: 'center', width: '60px' },
-      { key: 'title', label: 'Tytuł', sortable: false, width: '150px' },
-      { key: 'content', label: 'Treść', sortable: false, width: '150px' },
-      { key: 'is_approved', label: 'Status', sortable: true, align: 'center', width: '110px' },
-      { key: 'is_featured', label: 'Wyróż.', sortable: true, align: 'center', width: '100px' },
-      { key: 'created_at', label: 'Data', sortable: true, type: 'date', width: '180px' },
+      { key: 'product', label: 'Produkt', width: '200px' },
+      { key: 'user', label: 'Użytkownik', width: '120px' },
+      { key: 'rating', label: 'Ocena', align: 'center', width: '60px' },
+      { key: 'title', label: 'Tytuł', width: '150px' },
+      { key: 'content', label: 'Treść', width: '150px' },
+      { key: 'is_approved', label: 'Status', align: 'center', width: '110px' },
+      { key: 'is_featured', label: 'Wyróż.', align: 'center', width: '100px' },
+      { key: 'created_at', label: 'Data', type: 'date', width: '180px' },
       { key: 'actions', label: 'Akcje', align: 'right', width: '360px' }
     ]
     
-    // Handle table sorting
-    const handleSort = (sortData) => {
-      filters.sort_field = sortData.key
-      filters.sort_direction = sortData.order
-      fetchReviews()
-    }
+
     
     // Filters
     const filters = reactive({
@@ -1150,7 +1148,6 @@ export default {
       getStatusName,
       filterReviews,
       toggleFeatured,
-      handleSort,
       showCreateReviewModal,
       showEditModal,
       editingReview,
