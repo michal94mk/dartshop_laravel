@@ -1,405 +1,597 @@
 <template>
-  <div class="container mx-auto py-8">
-    <div class="max-w-4xl mx-auto bg-white rounded-lg overflow-hidden shadow-lg">
-      <div class="p-6">
-        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Twój Profil</h2>
-        
-        <div v-if="authStore.isLoading" class="text-center py-4">
-          <p class="text-gray-600">Ładowanie danych...</p>
+  <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50">
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-full text-indigo-700 font-semibold text-sm mb-4">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+          Profil użytkownika
         </div>
-        
-        <div v-else-if="!authStore.isLoggedIn" class="text-center py-4">
-          <p class="text-gray-600 mb-4">Nie jesteś zalogowany.</p>
-          <router-link 
-            to="/login" 
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          >
-            Zaloguj się
-          </router-link>
-        </div>
-        
-        <div v-else>
-          <!-- Tabs navigation -->
-          <div class="border-b border-gray-200 mb-6">
-            <ul class="flex flex-wrap -mb-px">
-              <li class="mr-2">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          Twój Profil
+        </h1>
+        <p class="text-gray-600 max-w-2xl mx-auto">
+          Zarządzaj swoim kontem, przeglądaj zamówienia i ulubione produkty
+        </p>
+      </div>
+
+      <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
+        <div class="p-8">
+          <!-- Loading state -->
+          <div v-if="authStore.isLoading" class="text-center py-16">
+            <div class="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p class="mt-4 text-gray-500 font-medium">Ładowanie danych...</p>
+          </div>
+          
+          <!-- Not logged in state -->
+          <div v-else-if="!authStore.isLoggedIn" class="text-center py-16">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3">Nie jesteś zalogowany</h3>
+            <p class="text-gray-600 mb-6">Zaloguj się, aby uzyskać dostęp do swojego profilu</p>
+            <router-link 
+              to="/login" 
+              class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+              </svg>
+              Zaloguj się
+            </router-link>
+          </div>
+          
+          <!-- Main content when logged in -->
+          <div v-else>
+            <!-- Tabs navigation -->
+            <div class="border-b border-gray-200 mb-8">
+              <nav class="flex space-x-8" aria-label="Tabs">
                 <button 
                   @click="activeTab = 'profile'" 
-                  class="inline-block p-4 rounded-t-lg"
-                  :class="activeTab === 'profile' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-800 hover:border-gray-300'"
+                  class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200"
+                  :class="activeTab === 'profile' 
+                    ? 'border-indigo-500 text-indigo-600' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                 >
-                  Profil
+                  <div class="flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    Profil
+                  </div>
                 </button>
-              </li>
-              <li class="mr-2">
                 <button 
                   @click="activeTab = 'favorites'" 
-                  class="inline-block p-4 rounded-t-lg"
-                  :class="activeTab === 'favorites' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-800 hover:border-gray-300'"
+                  class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200"
+                  :class="activeTab === 'favorites' 
+                    ? 'border-indigo-500 text-indigo-600' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                 >
-                  Ulubione produkty
+                  <div class="flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                    Ulubione produkty
+                  </div>
                 </button>
-              </li>
-              <li class="mr-2">
                 <button 
                   @click="activeTab = 'orders'" 
-                  class="inline-block p-4 rounded-t-lg"
-                  :class="activeTab === 'orders' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-800 hover:border-gray-300'"
+                  class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200"
+                  :class="activeTab === 'orders' 
+                    ? 'border-indigo-500 text-indigo-600' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                 >
-                  Zamówienia
+                  <div class="flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6a2 2 0 002 2h4a2 2 0 002-2v-6M8 11h8"/>
+                    </svg>
+                    Zamówienia
+                  </div>
                 </button>
-              </li>
-              <li>
                 <button 
                   @click="activeTab = 'reviews'" 
-                  class="inline-block p-4 rounded-t-lg"
-                  :class="activeTab === 'reviews' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-800 hover:border-gray-300'"
+                  class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200"
+                  :class="activeTab === 'reviews' 
+                    ? 'border-indigo-500 text-indigo-600' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                 >
-                  Moje opinie
-                </button>
-              </li>
-            </ul>
-          </div>
-          
-          <!-- Profile tab content -->
-          <div v-if="activeTab === 'profile'">
-            <!-- Dane profilu -->
-            <div v-if="!showChangePassword">
-              <div class="flex items-center justify-center mb-6">
-                <div class="w-20 h-20 rounded-full bg-blue-500 flex items-center justify-center text-white text-2xl font-bold">
-                  {{ authStore.userInitial }}
-                </div>
-              </div>
-              
-              <div class="mb-4">
-                <p class="text-gray-600 text-sm">Imię i nazwisko</p>
-                <p class="text-gray-900 font-medium">{{ authStore.userName }}</p>
-              </div>
-              
-              <div class="mb-4">
-                <p class="text-gray-600 text-sm">Email</p>
-                <p class="text-gray-900 font-medium">{{ authStore.userEmail }}</p>
-                
-                <!-- Weryfikacja emaila -->
-                <div v-if="authStore.isEmailVerified" class="mt-1 text-xs text-green-500 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                  </svg>
-                  Zweryfikowany
-                </div>
-                <div v-else class="mt-1 text-xs text-red-500 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                  </svg>
-                  Niezweryfikowany
-                  <button 
-                    @click="resendVerification" 
-                    class="ml-2 text-blue-500 hover:text-blue-700"
-                    :disabled="isVerificationLoading"
-                  >
-                    {{ isVerificationLoading ? 'Wysyłanie...' : 'Wyślij ponownie' }}
-                  </button>
-                </div>
-              </div>
-              
-              <div v-if="status" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                {{ status }}
-              </div>
-              
-              <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mt-6">
-                <button 
-                  @click="showChangePassword = true" 
-                  class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                >
-                  Zmień hasło
-                </button>
-                
-                <button 
-                  @click="handleLogout" 
-                  class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                  :disabled="isLoggingOut"
-                >
-                  <span v-if="isLoggingOut">Wylogowywanie...</span>
-                  <span v-else>Wyloguj się</span>
-                </button>
-              </div>
-            </div>
-            
-            <!-- Formularz zmiany hasła -->
-            <div v-else>
-              <h3 class="text-xl font-medium text-gray-800 mb-4">Zmiana hasła</h3>
-              
-              <div v-if="authStore.hasError" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                {{ authStore.errorMessage || 'Wystąpił błąd podczas zmiany hasła.' }}
-              </div>
-              
-              <div v-if="passwordChangeStatus" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                {{ passwordChangeStatus }}
-              </div>
-              
-              <form @submit.prevent="handlePasswordChange">
-                <div class="mb-4">
-                  <label for="current-password" class="block text-gray-700 text-sm font-bold mb-2">Aktualne hasło</label>
-                  <input 
-                    id="current-password" 
-                    type="password" 
-                    v-model="currentPassword" 
-                    required
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  />
-                </div>
-                
-                <div class="mb-4">
-                  <label for="new-password" class="block text-gray-700 text-sm font-bold mb-2">Nowe hasło</label>
-                  <input 
-                    id="new-password" 
-                    type="password" 
-                    v-model="newPassword" 
-                    required
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  />
-                </div>
-                
-                <div class="mb-6">
-                  <label for="new-password-confirmation" class="block text-gray-700 text-sm font-bold mb-2">Powtórz nowe hasło</label>
-                  <input 
-                    id="new-password-confirmation" 
-                    type="password" 
-                    v-model="newPasswordConfirmation" 
-                    required
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  />
-                </div>
-                
-                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                  <button 
-                    type="submit" 
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                    :disabled="authStore.isLoading"
-                  >
-                    <span v-if="authStore.isLoading">Zapisywanie...</span>
-                    <span v-else>Zapisz nowe hasło</span>
-                  </button>
-                  
-                  <button 
-                    type="button"
-                    @click="showChangePassword = false" 
-                    class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                  >
-                    Anuluj
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-          
-          <!-- Favorites tab content -->
-          <div v-else-if="activeTab === 'favorites'">
-            <h3 class="text-xl font-medium text-gray-800 mb-4">Ulubione produkty</h3>
-            
-            <div v-if="loadingFavorites" class="text-center py-4">
-              <p class="text-gray-600">Ładowanie ulubionych produktów...</p>
-            </div>
-            
-            <div v-else-if="favorites.length === 0" class="text-center py-4">
-              <p class="text-gray-600 mb-4">Nie masz jeszcze żadnych ulubionych produktów.</p>
-              <router-link 
-                to="/products" 
-                class="text-blue-500 hover:text-blue-700 font-medium"
-              >
-                Przeglądaj produkty
-              </router-link>
-            </div>
-            
-            <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div v-for="product in favorites" :key="product.id" class="border rounded-lg p-4 flex">
-                <div class="w-20 h-20 flex-shrink-0">
-                  <img 
-                    :src="product.image_url || '/images/placeholder.png'" 
-                    :alt="product.name"
-                    class="w-full h-full object-cover rounded"
-                  />
-                </div>
-                <div class="ml-4 flex-grow">
-                  <h4 class="font-medium">{{ product.name }}</h4>
-                  <p class="text-gray-600 text-sm mt-1">{{ product.price_formatted }}</p>
-                  <div class="flex mt-2">
-                    <router-link 
-                      :to="`/products/${product.id}`" 
-                      class="text-blue-500 hover:text-blue-700 text-sm mr-3"
-                    >
-                      Zobacz
-                    </router-link>
-                    <button 
-                      @click="removeFromFavorites(product.id)" 
-                      class="text-red-500 hover:text-red-700 text-sm"
-                    >
-                      Usuń
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Orders tab content -->
-          <div v-else-if="activeTab === 'orders'">
-            <h3 class="text-xl font-medium text-gray-800 mb-4">Twoje zamówienia</h3>
-            
-            <div v-if="loadingOrders" class="text-center py-4">
-              <p class="text-gray-600">Ładowanie zamówień...</p>
-            </div>
-            
-            <div v-else-if="orders.length === 0" class="text-center py-4">
-              <p class="text-gray-600 mb-4">Nie złożyłeś jeszcze żadnych zamówień.</p>
-              <router-link 
-                to="/products" 
-                class="text-blue-500 hover:text-blue-700 font-medium"
-              >
-                Rozpocznij zakupy
-              </router-link>
-            </div>
-            
-            <div v-else>
-              <div v-for="order in orders" :key="order.id" class="border rounded-lg p-4 mb-4">
-                <div class="flex justify-between items-start">
-                  <div>
-                    <span class="text-gray-600 text-sm">Zamówienie #{{ order.id }}</span>
-                    <p class="font-medium">{{ formatDate(order.created_at) }}</p>
-                  </div>
-                  <div class="flex flex-col items-end">
-                    <span class="text-gray-600 text-sm">Status:</span>
-                    <span :class="getOrderStatusClass(order.status)">{{ getOrderStatusText(order.status) }}</span>
-                  </div>
-                </div>
-                
-                <div class="mt-3">
-                  <p class="text-gray-600 text-sm">Całkowita wartość:</p>
-                  <p class="font-medium">{{ order.total_formatted }}</p>
-                </div>
-                
-                <div v-if="order.shipping_method" class="mt-2">
-                  <p class="text-gray-600 text-sm">Metoda dostawy:</p>
-                  <p>{{ order.shipping_method }}</p>
-                </div>
-                
-                <div v-if="order.payment_method" class="mt-2">
-                  <p class="text-gray-600 text-sm">Metoda płatności:</p>
-                  <p>{{ order.payment_method }}</p>
-                </div>
-                
-                <div class="mt-3 border-t pt-3">
-                  <button 
-                    @click="toggleOrderDetails(order.id)" 
-                    class="text-blue-500 hover:text-blue-700 text-sm font-medium flex items-center"
-                  >
-                    <span v-if="expandedOrderId === order.id">Ukryj szczegóły</span>
-                    <span v-else>Zobacz szczegóły</span>
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      class="h-4 w-4 ml-1" 
-                      :class="expandedOrderId === order.id ? 'transform rotate-180' : ''"
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  <div class="flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
                     </svg>
-                  </button>
-                  
-                  <div v-if="expandedOrderId === order.id" class="mt-3">
-                    <div v-for="item in order.items" :key="item.id" class="flex py-2 border-b last:border-b-0">
-                      <div class="w-10 h-10 flex-shrink-0">
-                        <img 
-                          :src="item.product.image_url || '/images/placeholder.png'" 
-                          :alt="item.product.name"
-                          class="w-full h-full object-cover rounded"
-                        />
-                      </div>
-                      <div class="ml-3 flex-grow">
-                        <div class="flex justify-between">
-                          <p class="font-medium">{{ item.product.name }}</p>
-                          <p>{{ item.price_formatted }}</p>
-                        </div>
-                        <p class="text-gray-600 text-sm">Ilość: {{ item.quantity }}</p>
-                      </div>
-                    </div>
+                    Moje opinie
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Reviews tab content -->
-          <div v-else-if="activeTab === 'reviews'">
-            <h3 class="text-xl font-medium text-gray-800 mb-4">Twoje opinie</h3>
-            
-            <div v-if="loadingReviews" class="text-center py-4">
-              <p class="text-gray-600">Ładowanie opinii...</p>
+                </button>
+              </nav>
             </div>
             
-            <div v-else-if="reviews.length === 0" class="text-center py-4">
-              <p class="text-gray-600 mb-4">Nie dodałeś jeszcze żadnych opinii.</p>
-              <router-link 
-                to="/products" 
-                class="text-blue-500 hover:text-blue-700 font-medium"
-              >
-                Przeglądaj produkty
-              </router-link>
-            </div>
-            
-            <div v-else>
-              <div v-for="review in reviews" :key="review.id" class="border rounded-lg p-4 mb-4">
-                <div class="flex justify-between items-start">
-                  <div>
-                    <h4 class="font-medium">{{ review.product.name }}</h4>
-                    <div class="flex items-center mt-1">
-                      <!-- Stars rating -->
-                      <div class="flex">
-                        <template v-for="i in 5" :key="i">
-                          <svg 
-                            class="w-4 h-4" 
-                            :class="i <= review.rating ? 'text-yellow-400' : 'text-gray-300'"
-                            fill="currentColor" 
-                            viewBox="0 0 20 20" 
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                          </svg>
-                        </template>
-                      </div>
-                      <span class="ml-2 text-gray-600 text-sm">{{ formatDate(review.created_at) }}</span>
-                    </div>
-                  </div>
-                  <div class="px-2 py-1 rounded text-xs font-medium" :class="review.is_approved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'">
-                    {{ review.is_approved ? 'Zatwierdzona' : 'Oczekuje na zatwierdzenie' }}
-                  </div>
-                </div>
-                
-                <div v-if="review.title" class="mt-3">
-                  <p class="font-medium">{{ review.title }}</p>
-                </div>
-                
-                <div class="mt-2">
-                  <p class="text-gray-700">{{ review.content }}</p>
-                </div>
-                
-                <div class="mt-3 flex">
-                  <router-link 
-                    :to="`/products/${review.product.id}`" 
-                    class="text-blue-500 hover:text-blue-700 text-sm mr-4"
-                  >
-                    Zobacz produkt
-                  </router-link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
+                         <!-- Profile tab content -->
+             <div v-if="activeTab === 'profile'">
+               <!-- Profile data -->
+               <div v-if="!showChangePassword" class="max-w-2xl mx-auto">
+                 <div class="text-center mb-8">
+                   <div class="w-24 h-24 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4">
+                     {{ authStore.userInitial }}
+                   </div>
+                   <h3 class="text-2xl font-bold text-gray-900">{{ authStore.userName }}</h3>
+                 </div>
+                 
+                 <div class="space-y-6">
+                   <div class="bg-gray-50 rounded-lg p-6">
+                     <div class="flex items-center mb-3">
+                       <svg class="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                       </svg>
+                       <h4 class="text-sm font-semibold text-gray-600">Imię i nazwisko</h4>
+                     </div>
+                     <p class="text-gray-900 font-medium">{{ authStore.userName }}</p>
+                   </div>
+                   
+                   <div class="bg-gray-50 rounded-lg p-6">
+                     <div class="flex items-center mb-3">
+                       <svg class="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                       </svg>
+                       <h4 class="text-sm font-semibold text-gray-600">Email</h4>
+                     </div>
+                     <p class="text-gray-900 font-medium">{{ authStore.userEmail }}</p>
+                     
+                     <!-- Email verification status -->
+                     <div v-if="authStore.isEmailVerified" class="mt-3 flex items-center text-sm text-green-600">
+                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                       </svg>
+                       Zweryfikowany
+                     </div>
+                     <div v-else class="mt-3">
+                       <div class="flex items-center text-sm text-red-600 mb-2">
+                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                         </svg>
+                         Niezweryfikowany
+                       </div>
+                       <button 
+                         @click="resendVerification" 
+                         class="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                         :disabled="isVerificationLoading"
+                       >
+                         {{ isVerificationLoading ? 'Wysyłanie...' : 'Wyślij link weryfikacyjny' }}
+                       </button>
+                     </div>
+                   </div>
+                   
+                   <div v-if="status" class="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-lg">
+                     <div class="flex">
+                       <div class="flex-shrink-0">
+                         <svg class="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                         </svg>
+                       </div>
+                       <div class="ml-3">
+                         <p class="font-medium">{{ status }}</p>
+                       </div>
+                     </div>
+                   </div>
+                   
+                   <div class="flex flex-col sm:flex-row gap-4">
+                     <button 
+                       @click="showChangePassword = true" 
+                       class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-lg hover:shadow-xl"
+                     >
+                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                       </svg>
+                       Zmień hasło
+                     </button>
+                     
+                     <button 
+                       @click="handleLogout" 
+                       class="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                       :disabled="isLoggingOut"
+                     >
+                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                       </svg>
+                       <span v-if="isLoggingOut">Wylogowywanie...</span>
+                       <span v-else>Wyloguj się</span>
+                     </button>
+                   </div>
+                 </div>
+               </div>
+               
+               <!-- Password change form -->
+               <div v-else class="max-w-2xl mx-auto">
+                 <div class="mb-8">
+                   <h3 class="text-2xl font-bold text-gray-900 mb-2">Zmiana hasła</h3>
+                   <p class="text-gray-600">Wprowadź swoje aktualne hasło oraz nowe hasło</p>
+                 </div>
+                 
+                 <div v-if="authStore.hasError" class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mb-6">
+                   <div class="flex">
+                     <div class="flex-shrink-0">
+                       <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                       </svg>
+                     </div>
+                     <div class="ml-3">
+                       <p class="font-medium">{{ authStore.errorMessage || 'Wystąpił błąd podczas zmiany hasła.' }}</p>
+                     </div>
+                   </div>
+                 </div>
+                 
+                 <div v-if="passwordChangeStatus" class="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-lg mb-6">
+                   <div class="flex">
+                     <div class="flex-shrink-0">
+                       <svg class="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                       </svg>
+                     </div>
+                     <div class="ml-3">
+                       <p class="font-medium">{{ passwordChangeStatus }}</p>
+                     </div>
+                   </div>
+                 </div>
+                 
+                 <form @submit.prevent="handlePasswordChange" class="space-y-6">
+                   <div>
+                     <label for="current-password" class="block text-sm font-semibold text-gray-700 mb-2">Aktualne hasło</label>
+                     <input 
+                       id="current-password" 
+                       type="password" 
+                       v-model="currentPassword" 
+                       required
+                       placeholder="Wprowadź aktualne hasło"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                     />
+                   </div>
+                   
+                   <div>
+                     <label for="new-password" class="block text-sm font-semibold text-gray-700 mb-2">Nowe hasło</label>
+                     <input 
+                       id="new-password" 
+                       type="password" 
+                       v-model="newPassword" 
+                       required
+                       placeholder="Wprowadź nowe hasło"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                     />
+                   </div>
+                   
+                   <div>
+                     <label for="new-password-confirmation" class="block text-sm font-semibold text-gray-700 mb-2">Powtórz nowe hasło</label>
+                     <input 
+                       id="new-password-confirmation" 
+                       type="password" 
+                       v-model="newPasswordConfirmation" 
+                       required
+                       placeholder="Powtórz nowe hasło"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                     />
+                   </div>
+                   
+                   <div class="flex flex-col sm:flex-row gap-4">
+                     <button 
+                       type="submit" 
+                       class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-lg hover:shadow-xl"
+                       :disabled="authStore.isLoading"
+                     >
+                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                       </svg>
+                       <span v-if="authStore.isLoading">Zapisywanie...</span>
+                       <span v-else>Zapisz nowe hasło</span>
+                     </button>
+                     
+                     <button 
+                       type="button"
+                       @click="showChangePassword = false" 
+                       class="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                     >
+                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                       </svg>
+                       Anuluj
+                     </button>
+                   </div>
+                 </form>
+               </div>
+                          </div>
+             
+             <!-- Favorites tab content -->
+             <div v-else-if="activeTab === 'favorites'">
+               <div class="mb-8">
+                 <h3 class="text-2xl font-bold text-gray-900 mb-2 flex items-center">
+                   <svg class="w-6 h-6 text-indigo-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                   </svg>
+                   Ulubione produkty
+                 </h3>
+                 <p class="text-gray-600">Twoja lista ulubionych produktów</p>
+               </div>
+               
+               <div v-if="loadingFavorites" class="text-center py-16">
+                 <div class="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                 <p class="mt-4 text-gray-500 font-medium">Ładowanie ulubionych produktów...</p>
+               </div>
+               
+               <div v-else-if="favorites.length === 0" class="text-center py-16">
+                 <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                   <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                   </svg>
+                 </div>
+                 <h4 class="text-xl font-bold text-gray-900 mb-3">Brak ulubionych produktów</h4>
+                 <p class="text-gray-600 mb-6">Nie masz jeszcze żadnych ulubionych produktów.</p>
+                 <router-link 
+                   to="/products" 
+                   class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-lg hover:shadow-xl"
+                 >
+                   <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6a2 2 0 002 2h4a2 2 0 002-2v-6M8 11h8"/>
+                   </svg>
+                   Przeglądaj produkty
+                 </router-link>
+               </div>
+               
+               <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 <div v-for="product in favorites" :key="product.id" class="bg-gray-50 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200">
+                   <div class="flex">
+                     <div class="w-20 h-20 flex-shrink-0 bg-white rounded-lg overflow-hidden shadow-sm">
+                       <img 
+                         :src="product.image_url || '/images/placeholder.png'" 
+                         :alt="product.name"
+                         class="w-full h-full object-cover"
+                       />
+                     </div>
+                     <div class="ml-4 flex-grow">
+                       <h4 class="font-semibold text-gray-900 mb-2">{{ product.name }}</h4>
+                       <p class="text-indigo-600 font-bold text-lg mb-3">{{ product.price_formatted }}</p>
+                       <div class="flex flex-col gap-2">
+                         <router-link 
+                           :to="`/products/${product.id}`" 
+                           class="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                         >
+                           <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                           </svg>
+                           Zobacz produkt
+                         </router-link>
+                         <button 
+                           @click="removeFromFavorites(product.id)" 
+                           class="inline-flex items-center text-sm text-red-600 hover:text-red-700 font-medium"
+                         >
+                           <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                           </svg>
+                           Usuń z ulubionych
+                         </button>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
+             
+             <!-- Orders tab content -->
+             <div v-else-if="activeTab === 'orders'">
+               <div class="mb-8">
+                 <h3 class="text-2xl font-bold text-gray-900 mb-2 flex items-center">
+                   <svg class="w-6 h-6 text-indigo-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6a2 2 0 002 2h4a2 2 0 002-2v-6M8 11h8"/>
+                   </svg>
+                   Twoje zamówienia
+                 </h3>
+                 <p class="text-gray-600">Historia wszystkich Twoich zamówień</p>
+               </div>
+               
+               <div v-if="loadingOrders" class="text-center py-16">
+                 <div class="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                 <p class="mt-4 text-gray-500 font-medium">Ładowanie zamówień...</p>
+               </div>
+               
+               <div v-else-if="orders.length === 0" class="text-center py-16">
+                 <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                   <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6a2 2 0 002 2h4a2 2 0 002-2v-6M8 11h8"/>
+                   </svg>
+                 </div>
+                 <h4 class="text-xl font-bold text-gray-900 mb-3">Brak zamówień</h4>
+                 <p class="text-gray-600 mb-6">Nie złożyłeś jeszcze żadnych zamówień.</p>
+                 <router-link 
+                   to="/products" 
+                   class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-lg hover:shadow-xl"
+                 >
+                   <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6a2 2 0 002 2h4a2 2 0 002-2v-6M8 11h8"/>
+                   </svg>
+                   Rozpocznij zakupy
+                 </router-link>
+               </div>
+               
+               <div v-else class="space-y-6">
+                 <div v-for="order in orders" :key="order.id" class="bg-gray-50 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200">
+                   <div class="flex justify-between items-start mb-4">
+                     <div>
+                       <div class="flex items-center mb-2">
+                         <svg class="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                         </svg>
+                         <span class="text-sm font-semibold text-gray-600">Zamówienie #{{ order.id }}</span>
+                       </div>
+                       <p class="font-semibold text-gray-900">{{ formatDate(order.created_at) }}</p>
+                     </div>
+                     <div class="text-right">
+                       <p class="text-sm font-semibold text-gray-600 mb-1">Status</p>
+                       <span class="inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full" :class="getOrderStatusClass(order.status)">
+                         {{ getOrderStatusText(order.status) }}
+                       </span>
+                     </div>
+                   </div>
+                   
+                   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                     <div class="bg-white rounded-lg p-4">
+                       <p class="text-sm font-semibold text-gray-600 mb-1">Wartość zamówienia</p>
+                       <p class="text-lg font-bold text-indigo-600">{{ order.total_formatted }}</p>
+                     </div>
+                     <div v-if="order.shipping_method" class="bg-white rounded-lg p-4">
+                       <p class="text-sm font-semibold text-gray-600 mb-1">Dostawa</p>
+                       <p class="font-medium text-gray-900">{{ order.shipping_method }}</p>
+                     </div>
+                     <div v-if="order.payment_method" class="bg-white rounded-lg p-4">
+                       <p class="text-sm font-semibold text-gray-600 mb-1">Płatność</p>
+                       <p class="font-medium text-gray-900">{{ order.payment_method }}</p>
+                     </div>
+                   </div>
+                   
+                   <div class="border-t border-gray-200 pt-4">
+                     <button 
+                       @click="toggleOrderDetails(order.id)" 
+                       class="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                     >
+                       <span v-if="expandedOrderId === order.id">Ukryj szczegóły</span>
+                       <span v-else>Zobacz szczegóły</span>
+                       <svg 
+                         class="w-4 h-4 ml-2 transition-transform duration-200" 
+                         :class="expandedOrderId === order.id ? 'transform rotate-180' : ''"
+                         fill="none" 
+                         stroke="currentColor" 
+                         viewBox="0 0 24 24"
+                       >
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                       </svg>
+                     </button>
+                     
+                     <div v-if="expandedOrderId === order.id" class="mt-4 space-y-3">
+                       <div v-for="item in order.items" :key="item.id" class="flex items-center bg-white rounded-lg p-4">
+                         <div class="w-12 h-12 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                           <img 
+                             :src="item.product.image_url || '/images/placeholder.png'" 
+                             :alt="item.product.name"
+                             class="w-full h-full object-cover"
+                           />
+                         </div>
+                         <div class="ml-4 flex-grow">
+                           <div class="flex justify-between items-start">
+                             <div>
+                               <p class="font-semibold text-gray-900">{{ item.product.name }}</p>
+                               <p class="text-sm text-gray-500">Ilość: {{ item.quantity }}</p>
+                             </div>
+                             <p class="font-bold text-indigo-600">{{ item.price_formatted }}</p>
+                           </div>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
+             
+             <!-- Reviews tab content -->
+             <div v-else-if="activeTab === 'reviews'">
+               <div class="mb-8">
+                 <h3 class="text-2xl font-bold text-gray-900 mb-2 flex items-center">
+                   <svg class="w-6 h-6 text-indigo-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                   </svg>
+                   Twoje opinie
+                 </h3>
+                 <p class="text-gray-600">Wszystkie opinie, które dodałeś do produktów</p>
+               </div>
+               
+               <div v-if="loadingReviews" class="text-center py-16">
+                 <div class="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                 <p class="mt-4 text-gray-500 font-medium">Ładowanie opinii...</p>
+               </div>
+               
+               <div v-else-if="reviews.length === 0" class="text-center py-16">
+                 <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                   <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                   </svg>
+                 </div>
+                 <h4 class="text-xl font-bold text-gray-900 mb-3">Brak opinii</h4>
+                 <p class="text-gray-600 mb-6">Nie dodałeś jeszcze żadnych opinii.</p>
+                 <router-link 
+                   to="/products" 
+                   class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-lg hover:shadow-xl"
+                 >
+                   <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6a2 2 0 002 2h4a2 2 0 002-2v-6M8 11h8"/>
+                   </svg>
+                   Przeglądaj produkty
+                 </router-link>
+               </div>
+               
+               <div v-else class="space-y-6">
+                 <div v-for="review in reviews" :key="review.id" class="bg-gray-50 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200">
+                   <div class="flex justify-between items-start mb-4">
+                     <div class="flex-grow">
+                       <h4 class="font-semibold text-gray-900 text-lg mb-2">{{ review.product.name }}</h4>
+                       <div class="flex items-center mb-2">
+                         <!-- Stars rating -->
+                         <div class="flex mr-3">
+                           <template v-for="i in 5" :key="i">
+                             <svg 
+                               class="w-5 h-5" 
+                               :class="i <= review.rating ? 'text-yellow-400' : 'text-gray-300'"
+                               fill="currentColor" 
+                               viewBox="0 0 20 20" 
+                               xmlns="http://www.w3.org/2000/svg"
+                             >
+                               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                             </svg>
+                           </template>
+                         </div>
+                         <span class="text-sm text-gray-500">{{ formatDate(review.created_at) }}</span>
+                       </div>
+                     </div>
+                     <div class="flex-shrink-0 ml-4">
+                       <span class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full" :class="review.is_approved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'">
+                         <svg v-if="review.is_approved" class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                         </svg>
+                         <svg v-else class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                         </svg>
+                         {{ review.is_approved ? 'Zatwierdzona' : 'Oczekuje' }}
+                       </span>
+                     </div>
+                   </div>
+                   
+                   <div v-if="review.title" class="mb-3">
+                     <h5 class="font-semibold text-gray-900">{{ review.title }}</h5>
+                   </div>
+                   
+                   <div class="mb-4">
+                     <p class="text-gray-700 leading-relaxed">{{ review.content }}</p>
+                   </div>
+                   
+                   <div class="border-t border-gray-200 pt-4">
+                     <router-link 
+                       :to="`/products/${review.product.id}`" 
+                       class="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                     >
+                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                       </svg>
+                       Zobacz produkt
+                     </router-link>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           </div>
+         </div>
+       </div>
+     </div>
+   </div>
+ </template>
 
 <script>
 import { ref, onMounted, watch } from 'vue';
