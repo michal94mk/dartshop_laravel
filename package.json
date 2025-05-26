@@ -19,6 +19,7 @@
     },
     "dependencies": {
         "@fortawesome/fontawesome-free": "^6.7.2",
+        "@stripe/stripe-js": "^7.3.0",
         "@vitejs/plugin-vue": "^5.2.4",
         "dompurify": "^3.2.6",
         "marked": "^15.0.11",

@@ -44,6 +44,7 @@ class Order extends Model
         'discount',
         'total',
         'payment_method',
+        'payment_intent_id',
         'shipping_method',
         'session_id',
         'promotion_code'

@@ -36,6 +36,8 @@ export default defineConfig({
         },
     },
     server: {
+        port: 5173,
+        host: 'localhost',
         hmr: {
             host: 'localhost',
         },
@@ -59,6 +61,9 @@ export default defineConfig({
                 secure: false,
                 cookieDomainRewrite: 'localhost',
             },
+        },
+        fs: {
+            strict: false,
         },
     },
 });

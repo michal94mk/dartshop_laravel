@@ -7,6 +7,7 @@ import ProductList from '../pages/ProductList.vue';
 import ProductDetails from '../pages/ProductDetails.vue';
 import Cart from '../pages/Cart.vue';
 import Checkout from '../pages/Checkout.vue';
+import PaymentSuccess from '../pages/PaymentSuccess.vue';
 import About from '../pages/About.vue';
 import Contact from '../pages/Contact.vue';
 import Promotions from '../pages/Promotions.vue';
@@ -74,6 +75,14 @@ const routes = [
     path: '/checkout',
     name: 'checkout',
     component: Checkout,
+    meta: {
+      layout: 'default'
+    }
+  },
+  {
+    path: '/payment/success',
+    name: 'payment-success',
+    component: PaymentSuccess,
     meta: {
       layout: 'default'
     }

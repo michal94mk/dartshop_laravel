@@ -60,13 +60,48 @@
             />
           </div>
           
+          <!-- Wybór metody płatności -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-3">Metoda płatności</label>
+            <div class="space-y-2">
+              <div class="flex items-center">
+                <input
+                  id="stripe"
+                  name="payment_method"
+                  type="radio"
+                  value="stripe"
+                  v-model="paymentMethod"
+                  class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                />
+                <label for="stripe" class="ml-3 block text-sm font-medium text-gray-700">
+                  Karta płatnicza (Stripe)
+                </label>
+              </div>
+              <div class="flex items-center">
+                <input
+                  id="cod"
+                  name="payment_method"
+                  type="radio"
+                  value="cod"
+                  v-model="paymentMethod"
+                  class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                />
+                <label for="cod" class="ml-3 block text-sm font-medium text-gray-700">
+                  Płatność przy odbiorze
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit button -->
           <button
             type="submit"
-            :disabled="loading || cartItems.length === 0"
+            :disabled="loading || cartItems.length === 0 || (paymentMethod === 'stripe' && !isFormValid)"
             class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span v-if="loading">Przetwarzanie...</span>
-            <span v-else>Przejdź do płatności</span>
+            <span v-else-if="paymentMethod === 'stripe'">Przejdź do płatności</span>
+            <span v-else>Złóż zamówienie</span>
           </button>
         </form>
       </div>
@@ -108,6 +143,7 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { useCartStore } from '../stores/cartStore'
 import axios from 'axios'
@@ -116,11 +152,13 @@ export default {
   name: 'Checkout',
   
   setup() {
+    const router = useRouter()
     const authStore = useAuthStore()
     const cartStore = useCartStore()
     const cartItems = ref([])
     const loading = ref(false)
     const error = ref(null)
+    const paymentMethod = ref('cod')
     
     const shippingDetails = ref({
       name: '',
@@ -135,6 +173,14 @@ export default {
       return cartItems.value.reduce((sum, item) => {
         return sum + (item.product.price * item.quantity)
       }, 0)
+    })
+    
+    const isFormValid = computed(() => {
+      return shippingDetails.value.name &&
+             shippingDetails.value.email &&
+             shippingDetails.value.address &&
+             shippingDetails.value.city &&
+             shippingDetails.value.postalCode
     })
     
     const fetchCart = async () => {
@@ -183,6 +229,19 @@ export default {
         loading.value = true
         error.value = null
         
+        // Sprawdź czy formularz jest wypełniony
+        if (!isFormValid.value) {
+          error.value = 'Uzupełnij wszystkie wymagane pola'
+          return
+        }
+        
+        // Jeśli wybrano płatność Stripe, utwórz sesję i przekieruj
+        if (paymentMethod.value === 'stripe') {
+          await processStripeCheckout()
+          return
+        }
+        
+        // Dla płatności przy odbiorze - przetwórz zamówienie
         if (authStore.isLoggedIn) {
           // Dla zalogowanych użytkowników
           const response = await axios.post('/api/checkout/process', {
@@ -193,7 +252,7 @@ export default {
           await cartStore.clearCart()
           
           alert('Zamówienie zostało złożone pomyślnie!')
-          // Przekieruj do strony zamówień lub potwierdzenia
+          router.push('/')
           
         } else {
           // Dla gości - wyślij dane koszyka wraz z danymi wysyłki
@@ -218,7 +277,7 @@ export default {
           cartStore.items = []
           
           alert('Zamówienie zostało złożone pomyślnie!')
-          // Przekieruj do strony potwierdzenia
+          router.push('/')
         }
         
       } catch (err) {
@@ -236,17 +295,51 @@ export default {
       }).format(price)
     }
     
+    const processStripeCheckout = async () => {
+      try {
+        loading.value = true
+        
+        const endpoint = authStore.isLoggedIn 
+          ? '/api/stripe/create-checkout-session'
+          : '/api/guest-stripe/create-checkout-session'
+        
+        const payload = {
+          shipping: shippingDetails.value,
+          ...(authStore.isLoggedIn ? {} : {
+            cart_items: cartItems.value.map(item => ({
+              product_id: item.product_id || item.product.id,
+              quantity: item.quantity
+            }))
+          })
+        }
+        
+        const response = await axios.post(endpoint, payload)
+        
+        // Przekieruj do Stripe Checkout
+        window.location.href = response.data.checkout_url
+        
+      } catch (err) {
+        console.error('Error creating Stripe checkout session:', err)
+        error.value = err.response?.data?.message || 'Nie udało się utworzyć sesji płatności'
+        loading.value = false
+      }
+    }
+    
     onMounted(() => {
       fetchCart()
     })
     
     return {
+      authStore,
       cartItems,
       loading,
       error,
+      paymentMethod,
       shippingDetails,
       total,
+      isFormValid,
       processCheckout,
+      processStripeCheckout,
       formatPrice
     }
   }

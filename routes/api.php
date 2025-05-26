@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\FavoriteProductController;
 use App\Http\Controllers\Api\TutorialController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\GuestCheckoutController;
+use App\Http\Controllers\Api\StripeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -91,6 +92,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('checkout')->group(function () {
         Route::get('/', [CheckoutController::class, 'index']);
         Route::post('/process', [CheckoutController::class, 'process']);
+    });
+    
+    // Stripe payment routes for authenticated users
+    Route::prefix('stripe')->group(function () {
+        Route::post('/create-checkout-session', [StripeController::class, 'createCheckoutSession']);
+        Route::post('/create-payment-intent', [StripeController::class, 'createPaymentIntent']);
+        Route::post('/confirm-payment', [StripeController::class, 'confirmPayment']);
     });
 });
 
@@ -250,4 +258,16 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
 Route::prefix('guest-checkout')->group(function () {
     Route::post('/', [GuestCheckoutController::class, 'index']);
     Route::post('/process', [GuestCheckoutController::class, 'process']);
+});
+
+// Guest Stripe payment routes
+Route::prefix('guest-stripe')->group(function () {
+    Route::post('/create-checkout-session', [StripeController::class, 'createGuestCheckoutSession']);
+    Route::post('/create-payment-intent', [StripeController::class, 'createGuestPaymentIntent']);
+    Route::post('/confirm-payment', [StripeController::class, 'confirmGuestPayment']);
+});
+
+// Stripe webhook and success handling (public routes)
+Route::prefix('stripe')->group(function () {
+    Route::post('/success', [StripeController::class, 'handleCheckoutSuccess']);
 });

@@ -65,24 +65,24 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
-## Nowy interfejs z Tailwind CSS
+## New Interface with Tailwind CSS
 
-Aplikacja posiada alternatywny interfejs oparty na Tailwind CSS. Można go włączyć dodając parametr `tailwind` do adresu URL:
+The application features an alternative interface based on Tailwind CSS. You can enable it by adding the `tailwind` parameter to the URL:
 
-- Strona główna z Tailwind: `/tailwind`
-- Kategorie z Tailwind: `/categories?tailwind=1`
-- Koszyk z Tailwind: `/cart/view?tailwind=1`
+- Home page with Tailwind: `/tailwind`
+- Categories with Tailwind: `/categories?tailwind=1`
+- Cart with Tailwind: `/cart/view?tailwind=1`
 
-### Zalety interfejsu Tailwind:
+### Tailwind Interface Benefits:
 
-- Nowoczesny, minimalistyczny design
-- W pełni responsywny dla wszystkich urządzeń
-- Ulepszone wrażenia użytkownika
-- Animacje i przejścia
-- Szybsze ładowanie strony
-- Lepsze filtry i sortowanie produktów
+- Modern, minimalist design
+- Fully responsive for all devices
+- Enhanced user experience
+- Animations and transitions
+- Faster page loading
+- Better product filters and sorting
 
-Aby zainstalować i uruchomić nowy interfejs:
+To install and run the new interface:
 
 ```bash
 npm install
@@ -132,7 +132,7 @@ Replace the custom search and filter section with the standardized component:
   v-if="!loading"
   :filters.sync="filters"
   :sort-options="sortOptions"
-  search-label="Wyszukaj"
+  search-label="Search"
   search-placeholder="Your placeholder..."
   @filter-change="yourFilterMethod"
 >
@@ -146,8 +146,8 @@ Define your sort options in the setup/data section:
 
 ```js
 const sortOptions = [
-  { value: 'created_at', label: 'Data dodania' },
-  { value: 'name', label: 'Nazwa' },
+  { value: 'created_at', label: 'Date Added' },
+  { value: 'name', label: 'Name' },
   // Add more options as needed
 ]
 ```
@@ -177,7 +177,7 @@ Replace custom action buttons in tables with the standardized component:
 Replace custom "no data" messages with the standardized component:
 
 ```vue
-<no-data-message v-else message="Brak danych do wyświetlenia" />
+<no-data-message v-else message="No data to display" />
 ```
 
 ### 6. Replace Pagination
@@ -187,7 +187,7 @@ If your page has pagination, replace it with the standardized component:
 ```vue
 <pagination 
   :pagination="paginationObject" 
-  items-label="elementów" 
+  items-label="items" 
   @page-change="goToPage" 
 />
 ```
@@ -204,3 +204,36 @@ Standardizing these UI elements provides several benefits:
 2. Easier maintenance and updates
 3. Reduced code duplication
 4. Faster development of new admin pages
+
+## Payment Processing
+
+This application uses Stripe for payment processing. Both guest checkout and authenticated user payments are supported.
+
+### Stripe Integration
+
+To enable Stripe payments, you need to set up the following environment variables in your `.env` file:
+
+```env
+STRIPE_KEY=your_publishable_key
+STRIPE_SECRET=your_secret_key
+```
+
+Features:
+- Secure payment processing with Stripe Checkout
+- Support for guest and authenticated user checkout
+- Automatic order status management
+- Payment success/failure handling
+- Comprehensive error handling and validation
+
+The payment flow:
+1. User proceeds to checkout
+2. Shipping information is collected
+3. User is redirected to Stripe Checkout
+4. Upon successful payment, user is redirected back to the application
+5. Order is created with 'processing' status
+6. Cart is cleared automatically
+
+For development, you can use Stripe test cards:
+- Card number: 4242 4242 4242 4242
+- Expiry: Any future date
+- CVC: Any 3 digits
