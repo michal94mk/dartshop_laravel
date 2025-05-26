@@ -123,6 +123,9 @@ import ActionButtons from './components/admin/ActionButtons.vue';
 import PageHeader from './components/admin/PageHeader.vue';
 import NoDataMessage from './components/admin/NoDataMessage.vue';
 
+// Import admin UI components
+import AdminUIComponents from './components/admin/ui/index.js';
+
 // Initialize Alpine.js for any legacy code that might still use it
 import Alpine from 'alpinejs';
 window.Alpine = Alpine;
@@ -151,6 +154,7 @@ app.component('NoDataMessage', NoDataMessage);
 // Use Plugins
 app.use(router);
 app.use(pinia);
+app.use(AdminUIComponents);
 app.use(Toast, {
   transition: "Vue-Toastification__bounce",
   maxToasts: 5,

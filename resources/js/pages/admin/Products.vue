@@ -56,74 +56,77 @@
     <loading-spinner v-if="loading" />
 
     <!-- Products list -->
-    <div v-else-if="products.data && products.data.length > 0" class="mt-8 flex flex-col">
-      <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-            <table class="min-w-full divide-y divide-gray-300">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Produkt</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Kategoria</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Marka</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Cena</th>
-                  <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                    <span class="sr-only">Akcje</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200 bg-white">
-                <tr v-for="product in products.data" :key="product.id" :data-product-id="product.id">
-                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                    <div class="flex items-center">
-                      <div class="h-10 w-10 flex-shrink-0">
-                        <img 
-                          v-if="product.image && !product.imageError" 
-                          :src="product.fallbackSrc || getImageSrc(product.image)" 
-                          class="h-10 w-10 rounded-full object-cover" 
-                          @error="tryFallbackImage(product)"
-                          alt="Product image" 
-                        />
-                        <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                          <svg class="h-6 w-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                      </div>
-                      <div class="ml-4">
-                        <div class="font-medium text-gray-900">{{ product.name }}</div>
-                        <div class="text-gray-500 truncate max-w-xs">{{ truncate(product.description, 50) }}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ product.category ? product.category.name : '-' }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ product.brand ? product.brand.name : '-' }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ product.price }} PLN</td>
-                  <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                    <action-buttons 
-                      :item="product"
-                      @edit="openModal"
-                      @delete="deleteProduct(product.id)"
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+    <admin-table
+      v-if="products.data && products.data.length > 0"
+      :columns="tableColumns"
+      :items="products.data"
+      :sort-by="filters.sort_field"
+      :sort-order="filters.sort_direction"
+      @sort="handleSort"
+      class="mt-8"
+    >
+      <template #cell-product="{ item }">
+        <div class="flex items-center">
+          <div class="h-10 w-10 flex-shrink-0">
+            <img 
+              v-if="item.image && !item.imageError" 
+              :src="item.fallbackSrc || getImageSrc(item.image)" 
+              class="h-10 w-10 rounded-full object-cover" 
+              @error="tryFallbackImage(item)"
+              alt="Product image" 
+            />
+            <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+              <svg class="h-6 w-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          </div>
+          <div class="ml-4">
+            <div class="font-medium text-gray-900">{{ item.name }}</div>
+            <div class="text-gray-500 truncate max-w-xs">{{ truncate(item.description, 50) }}</div>
           </div>
         </div>
-      </div>
+      </template>
       
-      <!-- Pagination -->
-      <pagination 
-        :pagination="products" 
-        items-label="produktów" 
-        @page-change="goToPage" 
-      />
-    </div>
+      <template #cell-category="{ item }">
+        {{ item.category ? item.category.name : '-' }}
+      </template>
+      
+      <template #cell-brand="{ item }">
+        {{ item.brand ? item.brand.name : '-' }}
+      </template>
+      
+      <template #cell-price="{ item }">
+        {{ item.price }} PLN
+      </template>
+      
+      <template #cell-actions="{ item }">
+        <admin-button-group spacing="xs">
+          <admin-button
+            @click="openModal(item)"
+            variant="primary"
+            size="sm"
+          >
+            Edytuj
+          </admin-button>
+          <admin-button
+            @click="deleteProduct(item.id)"
+            variant="danger"
+            size="sm"
+          >
+            Usuń
+          </admin-button>
+        </admin-button-group>
+      </template>
+    </admin-table>
+    
+    <!-- Pagination -->
+    <pagination 
+      v-if="products.data && products.data.length > 0 && products.last_page > 1"
+      :pagination="products" 
+      items-label="produktów" 
+      @page-change="goToPage" 
+    />
     
     <!-- No data message -->
     <no-data-message v-else-if="!loading" message="Brak produktów do wyświetlenia" />
@@ -325,9 +328,17 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useAlertStore } from '../../stores/alertStore'
 import axios from 'axios'
 import debounce from 'lodash/debounce'
+import AdminTable from '../../components/admin/ui/AdminTable.vue'
+import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
+import AdminButton from '../../components/admin/ui/AdminButton.vue'
 
 export default {
   name: 'AdminProducts',
+  components: {
+    AdminTable,
+    AdminButtonGroup,
+    AdminButton
+  },
   setup() {
     const alertStore = useAlertStore()
     
@@ -351,6 +362,22 @@ export default {
       { value: 'name', label: 'Nazwa' },
       { value: 'price', label: 'Cena' }
     ]
+    
+    // Table columns definition
+    const tableColumns = [
+      { key: 'product', label: 'Produkt', sortable: false, width: '350px' },
+      { key: 'category', label: 'Kategoria', sortable: false, width: '150px' },
+      { key: 'brand', label: 'Marka', sortable: false, width: '150px' },
+      { key: 'price', label: 'Cena', sortable: true, width: '100px' },
+      { key: 'actions', label: 'Akcje', align: 'right', width: '160px' }
+    ]
+    
+    // Handle table sorting
+    const handleSort = (sortData) => {
+      filters.sort_field = sortData.key
+      filters.sort_direction = sortData.order
+      fetchProducts()
+    }
     
     const filters = reactive({
       search: '',
@@ -879,6 +906,9 @@ export default {
       categories,
       brands,
       filters,
+      sortOptions,
+      tableColumns,
+      handleSort,
       paginationPages,
       showModal,
       showDeleteModal,

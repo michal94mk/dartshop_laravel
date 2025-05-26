@@ -1,19 +1,11 @@
 <template>
   <div class="p-6">
     <!-- Page Header -->
-    <div class="sm:flex sm:items-center mb-6">
-      <div class="sm:flex-auto">
-        <h1 class="text-xl font-semibold text-gray-900">Zamówienia</h1>
-      </div>
-      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-        <button
-          @click="showCreateOrderModal = true"
-          class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
-        >
-          Dodaj zamówienie
-        </button>
-      </div>
-    </div>
+    <page-header 
+      title="Zamówienia"
+      add-button-label="Dodaj zamówienie"
+      @add="showCreateOrderModal = true"
+    />
 
     <!-- Search and filters -->
     <search-filters
@@ -73,69 +65,82 @@
     <loading-spinner v-if="loading" />
 
     <!-- Orders list -->
-    <div v-else-if="orders.data && orders.data.length > 0" class="mt-8 flex flex-col">
-      <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-            <table class="min-w-full divide-y divide-gray-300">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Nr zamówienia</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Klient</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Data</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Kwota</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
-                  <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                    <span class="sr-only">Akcje</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200 bg-white">
-                <tr v-for="order in orders.data" :key="order.id">
-                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                    #{{ order.id }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ order.user ? order.user.name : 'Gość' }}
-                    <div class="text-xs text-gray-400">{{ order.user ? order.user.email : order.email }}</div>
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ formatDate(order.created_at) }}</td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 font-medium">{{ order.total }} PLN</td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                          :class="{
-                            'bg-yellow-100 text-yellow-800': order.status === 'pending',
-                            'bg-blue-100 text-blue-800': order.status === 'processing',
-                            'bg-green-100 text-green-800': order.status === 'completed',
-                            'bg-red-100 text-red-800': order.status === 'cancelled'
-                          }">
-                      {{ translateStatus(order.status) }}
-                    </span>
-                  </td>
-                  <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                    <button @click="openOrderDetails(order)" class="px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700 transition-colors mr-2">
-                      Szczegóły
-                    </button>
-                    <button @click="openStatusModal(order)" class="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors mr-2">
-                      Status
-                    </button>
-                    <button @click="openEditModal(order)" class="px-3 py-1.5 bg-yellow-600 text-white text-sm font-medium rounded hover:bg-yellow-700 transition-colors mr-2">
-                      Edytuj
-                    </button>
-                    <button @click="confirmDelete(order)" class="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors mr-2">
-                      Usuń
-                    </button>
-                    <a :href="`/api/admin/orders/${order.id}/invoice`" target="_blank" class="px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 transition-colors">
-                      Faktura
-                    </a>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+    <admin-table
+      v-if="orders.data && orders.data.length > 0"
+      :columns="tableColumns"
+      :items="orders.data"
+      :sort-by="filters.sort_field"
+      :sort-order="filters.sort_direction"
+      @sort="handleSort"
+      :force-horizontal-scroll="true"
+      class="mt-8"
+    >
+      <template #cell-order_number="{ item }">
+        #{{ item.id }}
+      </template>
+      
+      <template #cell-customer="{ item }">
+        <div>
+          <div class="font-medium text-gray-900">{{ item.user ? item.user.name : 'Gość' }}</div>
+          <div class="text-sm text-gray-400">{{ item.user ? item.user.email : item.email }}</div>
         </div>
-      </div>
-    </div>
+      </template>
+      
+      <template #cell-total="{ item }">
+        <span class="font-medium">{{ item.total }} PLN</span>
+      </template>
+      
+      <template #cell-status="{ item }">
+        <admin-badge 
+          :variant="getStatusVariant(item.status)"
+          size="sm"
+        >
+          {{ translateStatus(item.status) }}
+        </admin-badge>
+      </template>
+      
+      <template #cell-actions="{ item }">
+        <div class="flex gap-1 justify-end min-w-[320px]">
+          <admin-button 
+            @click="openOrderDetails(item)" 
+            variant="primary" 
+            size="sm"
+          >
+            Szczegóły
+          </admin-button>
+          <admin-button 
+            @click="openStatusModal(item)" 
+            variant="info" 
+            size="sm"
+          >
+            Status
+          </admin-button>
+          <admin-button 
+            @click="openEditModal(item)" 
+            variant="warning" 
+            size="sm"
+          >
+            Edytuj
+          </admin-button>
+          <admin-button 
+            @click="confirmDelete(item)" 
+            variant="danger" 
+            size="sm"
+          >
+            Usuń
+          </admin-button>
+          <admin-button 
+            tag="a"
+            :href="`/api/admin/orders/${item.id}/invoice`" 
+            target="_blank" 
+            variant="success" 
+            size="sm"
+          >
+            Faktura
+          </admin-button>
+        </div>
+      </template>
+    </admin-table>
     
     <!-- No data message -->
     <no-data-message v-else-if="!loading" message="Brak zamówień do wyświetlenia" />
@@ -149,197 +154,185 @@
     />
 
     <!-- Order details modal -->
-    <div v-if="showDetailsModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="showDetailsModal = false"></div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <div v-if="selectedOrder" class="sm:flex sm:items-start">
-              <div class="w-full">
-                <div class="flex items-center justify-between mb-4">
-                  <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                    Zamówienie #{{ selectedOrder.id }}
-                  </h3>
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                        :class="{
-                          'bg-yellow-100 text-yellow-800': selectedOrder.status === 'pending',
-                          'bg-blue-100 text-blue-800': selectedOrder.status === 'processing',
-                          'bg-green-100 text-green-800': selectedOrder.status === 'completed',
-                          'bg-red-100 text-red-800': selectedOrder.status === 'cancelled'
-                        }">
-                    {{ translateStatus(selectedOrder.status) }}
-                  </span>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div>
-                    <h4 class="text-sm font-medium text-gray-500">Dane klienta</h4>
-                    <div class="mt-2 text-sm text-gray-900">
-                      <p class="font-medium">{{ selectedOrder.user ? selectedOrder.user.name : selectedOrder.name }}</p>
-                      <p>{{ selectedOrder.user ? selectedOrder.user.email : selectedOrder.email }}</p>
-                      <p>{{ selectedOrder.phone }}</p>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 class="text-sm font-medium text-gray-500">Adres dostawy</h4>
-                    <div class="mt-2 text-sm text-gray-900">
-                      <p>{{ selectedOrder.address }}</p>
-                      <p>{{ selectedOrder.postal_code }} {{ selectedOrder.city }}</p>
-                      <p>{{ selectedOrder.country }}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 class="text-sm font-medium text-gray-500 mb-3">Produkty</h4>
-                  <div class="border rounded-md overflow-hidden">
-                    <table class="min-w-full divide-y divide-gray-200">
-                      <thead class="bg-gray-50">
-                        <tr>
-                          <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produkt</th>
-                          <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cena</th>
-                          <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ilość</th>
-                          <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suma</th>
-                        </tr>
-                      </thead>
-                      <tbody class="bg-white divide-y divide-gray-200">
-                        <tr v-for="(item, index) in selectedOrder.items" :key="index">
-                          <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {{ item.product ? item.product.name : item.product_name }}
-                          </td>
-                          <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ item.price }} PLN</td>
-                          <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ item.quantity }}</td>
-                          <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ (item.price * item.quantity).toFixed(2) }} PLN</td>
-                        </tr>
-                      </tbody>
-                      <tfoot class="bg-gray-50">
-                        <tr>
-                          <td colspan="3" class="px-4 py-3 text-sm font-medium text-gray-900 text-right">Suma:</td>
-                          <td class="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900">{{ selectedOrder.total }} PLN</td>
-                        </tr>
-                      </tfoot>
-                    </table>
-                  </div>
-                </div>
-                
-                <div class="mt-6">
-                  <h4 class="text-sm font-medium text-gray-500 mb-2">Uwagi</h4>
-                  <div class="mt-1 text-sm text-gray-900 p-3 bg-gray-50 rounded-md">
-                    {{ selectedOrder.notes || 'Brak uwag' }}
-                  </div>
-                </div>
-                
-                <div class="mt-6">
-                  <h4 class="text-sm font-medium text-gray-500 mb-2">Metoda płatności</h4>
-                  <div class="mt-1 text-sm text-gray-900">
-                    {{ selectedOrder.payment_method || 'Nieznana' }}
-                  </div>
-                </div>
-                
-                <div class="mt-6">
-                  <h4 class="text-sm font-medium text-gray-500 mb-2">Metoda dostawy</h4>
-                  <div class="mt-1 text-sm text-gray-900">
-                    {{ selectedOrder.shipping_method || 'Nieznana' }}
-                    <span v-if="selectedOrder.shipping_cost" class="ml-2 text-sm text-gray-500">({{ selectedOrder.shipping_cost }} PLN)</span>
-                  </div>
-                </div>
-              </div>
+    <admin-modal
+      :show="showDetailsModal"
+      title="Szczegóły zamówienia"
+      size="4xl"
+      @close="showDetailsModal = false"
+    >
+      <div v-if="selectedOrder">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Zamówienie #{{ selectedOrder.id }}
+          </h3>
+          <admin-badge 
+            :variant="getStatusVariant(selectedOrder.status)"
+            size="md"
+          >
+            {{ translateStatus(selectedOrder.status) }}
+          </admin-badge>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div>
+            <h4 class="text-sm font-medium text-gray-500">Dane klienta</h4>
+            <div class="mt-2 text-sm text-gray-900">
+              <p class="font-medium">{{ selectedOrder.user ? selectedOrder.user.name : selectedOrder.name }}</p>
+              <p>{{ selectedOrder.user ? selectedOrder.user.email : selectedOrder.email }}</p>
+              <p>{{ selectedOrder.phone }}</p>
             </div>
           </div>
-          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            <button
-              type="button"
-              @click="showDetailsModal = false"
-              class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
-            >
-              Zamknij
-            </button>
+          
+          <div>
+            <h4 class="text-sm font-medium text-gray-500">Adres dostawy</h4>
+            <div class="mt-2 text-sm text-gray-900">
+              <p>{{ selectedOrder.address }}</p>
+              <p>{{ selectedOrder.postal_code }} {{ selectedOrder.city }}</p>
+              <p>{{ selectedOrder.country }}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h4 class="text-sm font-medium text-gray-500 mb-3">Produkty</h4>
+          <admin-table
+            :columns="orderItemsColumns"
+            :items="selectedOrder.items"
+            :key-field="'id'"
+          >
+            <template #cell-product_name="{ item }">
+              {{ item.product ? item.product.name : item.product_name }}
+            </template>
+            
+            <template #cell-price="{ item }">
+              {{ item.price }} PLN
+            </template>
+            
+            <template #cell-total="{ item }">
+              {{ (item.price * item.quantity).toFixed(2) }} PLN
+            </template>
+          </admin-table>
+          
+          <div class="mt-4 flex justify-end">
+            <div class="text-lg font-bold">
+              Suma: {{ selectedOrder.total }} PLN
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h4 class="text-sm font-medium text-gray-500 mb-2">Uwagi</h4>
+            <div class="text-sm text-gray-900 p-3 bg-gray-50 rounded-md">
+              {{ selectedOrder.notes || 'Brak uwag' }}
+            </div>
+          </div>
+          
+          <div>
+            <h4 class="text-sm font-medium text-gray-500 mb-2">Metoda płatności</h4>
+            <div class="text-sm text-gray-900">
+              {{ selectedOrder.payment_method || 'Nieznana' }}
+            </div>
+            
+            <h4 class="text-sm font-medium text-gray-500 mb-2 mt-4">Metoda dostawy</h4>
+            <div class="text-sm text-gray-900">
+              {{ selectedOrder.shipping_method || 'Nieznana' }}
+              <span v-if="selectedOrder.shipping_cost" class="ml-2 text-sm text-gray-500">({{ selectedOrder.shipping_cost }} PLN)</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      
+      <template #footer>
+        <admin-button
+          @click="showDetailsModal = false"
+          variant="secondary"
+          outline
+        >
+          Zamknij
+        </admin-button>
+      </template>
+    </admin-modal>
 
     <!-- Status change modal -->
-    <div v-if="showStatusModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="showStatusModal = false"></div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <form @submit.prevent="updateOrderStatus">
-            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <div class="sm:flex sm:items-start">
-                <div class="w-full">
-                  <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
-                    Zmień status zamówienia #{{ selectedOrder ? selectedOrder.id : '' }}
-                  </h3>
-                  
-                  <div class="mt-2">
-                    <label for="new_status" class="block text-sm font-medium text-gray-700">Status</label>
-                    <select
-                      id="new_status"
-                      v-model="newStatus"
-                      required
-                      class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    >
-                      <option value="pending">Oczekujące</option>
-                      <option value="processing">W realizacji</option>
-                      <option value="completed">Zrealizowane</option>
-                      <option value="cancelled">Anulowane</option>
-                    </select>
-                  </div>
-                  
-                  <div class="mt-4">
-                    <label for="status_note" class="block text-sm font-medium text-gray-700">Notatka (opcjonalnie)</label>
-                    <textarea
-                      id="status_note"
-                      v-model="statusNote"
-                      rows="3"
-                      class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                      placeholder="Dodatkowe informacje o zmianie statusu..."
-                    ></textarea>
-                  </div>
-                  
-                  <div class="mt-4">
-                    <div class="flex items-start">
-                      <div class="flex items-center h-5">
-                        <input
-                          id="notify_customer"
-                          name="notify_customer"
-                          type="checkbox"
-                          v-model="notifyCustomer"
-                          class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                        />
-                      </div>
-                      <div class="ml-3 text-sm">
-                        <label for="notify_customer" class="font-medium text-gray-700">Powiadom klienta</label>
-                        <p class="text-gray-500">Wyślij email z informacją o zmianie statusu zamówienia</p>
-                      </div>
-                    </div>
-                  </div>
+    <admin-modal
+      :show="showStatusModal"
+      title="Zmień status zamówienia"
+      size="lg"
+      @close="showStatusModal = false"
+    >
+      <form @submit.prevent="updateOrderStatus">
+        <div class="space-y-4">
+          <div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+              Zamówienie #{{ selectedOrder ? selectedOrder.id : '' }}
+            </h3>
+            
+            <div>
+              <label for="new_status" class="block text-sm font-medium text-gray-700">Status</label>
+              <select
+                id="new_status"
+                v-model="newStatus"
+                required
+                class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              >
+                <option value="pending">Oczekujące</option>
+                <option value="processing">W realizacji</option>
+                <option value="completed">Zrealizowane</option>
+                <option value="cancelled">Anulowane</option>
+              </select>
+            </div>
+            
+            <div class="mt-4">
+              <label for="status_note" class="block text-sm font-medium text-gray-700">Notatka (opcjonalnie)</label>
+              <textarea
+                id="status_note"
+                v-model="statusNote"
+                rows="3"
+                class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                placeholder="Dodatkowe informacje o zmianie statusu..."
+              ></textarea>
+            </div>
+            
+            <div class="mt-4">
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <input
+                    id="notify_customer"
+                    name="notify_customer"
+                    type="checkbox"
+                    v-model="notifyCustomer"
+                    class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                  />
+                </div>
+                <div class="ml-3 text-sm">
+                  <label for="notify_customer" class="font-medium text-gray-700">Powiadom klienta</label>
+                  <p class="text-gray-500">Wyślij email z informacją o zmianie statusu zamówienia</p>
                 </div>
               </div>
             </div>
-            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-              <button
-                type="submit"
-                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
-              >
-                Zapisz zmiany
-              </button>
-              <button
-                type="button"
-                @click="showStatusModal = false"
-                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-              >
-                Anuluj
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
-      </div>
-    </div>
+      </form>
+      
+      <template #footer>
+        <admin-button-group justify="end" spacing="sm">
+          <admin-button
+            @click="showStatusModal = false"
+            variant="secondary"
+            outline
+          >
+            Anuluj
+          </admin-button>
+          <admin-button
+            @click="updateOrderStatus"
+            variant="primary"
+          >
+            Zapisz zmiany
+          </admin-button>
+        </admin-button-group>
+      </template>
+    </admin-modal>
 
     <!-- Create/Edit Order Modal -->
     <modal v-if="showCreateOrderModal || showEditModal" @close="closeEditModal">
@@ -610,9 +603,15 @@ import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import Modal from '../../components/Modal.vue'
 import SearchFilters from '../../components/admin/SearchFilters.vue'
-import LoadingSpinner from '../../components/ui/LoadingSpinner.vue'
+import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
 import NoDataMessage from '../../components/admin/NoDataMessage.vue'
 import Pagination from '../../components/admin/Pagination.vue'
+import PageHeader from '../../components/admin/PageHeader.vue'
+import AdminTable from '../../components/admin/ui/AdminTable.vue'
+import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
+import AdminButton from '../../components/admin/ui/AdminButton.vue'
+import AdminModal from '../../components/admin/ui/AdminModal.vue'
+import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
 
 // Add axios interceptors for debugging
 axios.interceptors.request.use(request => {
@@ -646,7 +645,13 @@ export default {
     SearchFilters,
     LoadingSpinner,
     NoDataMessage,
-    Pagination
+    Pagination,
+    PageHeader,
+    AdminTable,
+    AdminButtonGroup,
+    AdminButton,
+    AdminModal,
+    AdminBadge
   },
   setup() {
     const alertStore = useAlertStore()
@@ -673,6 +678,43 @@ export default {
       { value: 'total|desc', label: 'Najwyższa kwota' },
       { value: 'total|asc', label: 'Najniższa kwota' }
     ]
+    
+    // Table columns definition
+    const tableColumns = [
+      { key: 'order_number', label: 'Nr zamówienia', sortable: true, width: '120px' },
+      { key: 'customer', label: 'Klient', sortable: false, width: '200px' },
+      { key: 'created_at', label: 'Data', sortable: true, type: 'date', width: '120px' },
+      { key: 'total', label: 'Kwota', sortable: true, width: '100px' },
+      { key: 'status', label: 'Status', sortable: true, align: 'center', width: '120px' },
+      { key: 'actions', label: 'Akcje', align: 'right', width: '320px' }
+    ]
+    
+    // Order items table columns
+    const orderItemsColumns = [
+      { key: 'product_name', label: 'Produkt' },
+      { key: 'price', label: 'Cena', align: 'right' },
+      { key: 'quantity', label: 'Ilość', align: 'center' },
+      { key: 'total', label: 'Suma', align: 'right' }
+    ]
+    
+    // Status variant mapping for badges
+    const getStatusVariant = (status) => {
+      const variants = {
+        'pending': 'yellow',
+        'processing': 'blue', 
+        'completed': 'green',
+        'cancelled': 'red'
+      }
+      return variants[status] || 'gray'
+    }
+    
+    // Handle table sorting
+    const handleSort = (sortData) => {
+      filters.value.sort_field = sortData.key
+      filters.value.sort_direction = sortData.order
+      filters.value.page = 1 // Reset to first page when sorting
+      fetchOrders()
+    }
     
     const filters = ref({
       search: '',
@@ -1326,6 +1368,8 @@ export default {
       users,
       filters,
       sortOptions,
+      tableColumns,
+      orderItemsColumns,
       selectedOrder,
       showDetailsModal,
       showStatusModal,
@@ -1346,6 +1390,8 @@ export default {
       formatDate,
       translateStatus,
       translatePaymentStatus,
+      getStatusVariant,
+      handleSort,
       openCreateOrderModal,
       openEditModal,
       closeEditModal,

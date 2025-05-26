@@ -26,50 +26,38 @@
     <loading-spinner v-if="loading" />
     
     <!-- Categories list -->
-    <div v-else-if="categories.data && categories.data.length > 0" class="mt-8 flex flex-col">
-      <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-            <table class="min-w-full divide-y divide-gray-300">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">ID</th>
-                  <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Nazwa</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Liczba produktów</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Data utworzenia</th>
-                  <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                    <span class="sr-only">Akcje</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200 bg-white">
-                <tr v-for="category in categories.data" :key="category.id">
-                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                    {{ category.id }}
-                  </td>
-                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                    {{ category.name }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ category.products_count || 0 }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ formatDate(category.created_at) }}
-                  </td>
-                  <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                    <action-buttons
-                      :item="category"
-                      @edit="openModal"
-                      @delete="deleteCategory"
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+    <admin-table
+      v-if="categories.data && categories.data.length > 0"
+      :columns="tableColumns"
+      :items="categories.data"
+      :sort-by="filters.sort_field"
+      :sort-order="filters.sort_direction"
+      @sort="handleSort"
+      class="mt-8"
+    >
+      <template #cell-products_count="{ item }">
+        {{ item.products_count || 0 }}
+      </template>
+      
+      <template #cell-actions="{ item }">
+        <admin-button-group spacing="xs">
+          <admin-button
+            @click="openModal(item)"
+            variant="primary"
+            size="sm"
+          >
+            Edytuj
+          </admin-button>
+          <admin-button
+            @click="deleteCategory(item)"
+            variant="danger"
+            size="sm"
+          >
+            Usuń
+          </admin-button>
+        </admin-button-group>
+      </template>
+    </admin-table>
     
     <!-- No data message -->
     <no-data-message v-else-if="!loading" message="Brak kategorii do wyświetlenia" />
@@ -83,98 +71,76 @@
     />
     
     <!-- Category Modal -->
-    <div v-if="showModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="showModal = false"></div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <form @submit.prevent="saveCategory">
-            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <div class="sm:flex sm:items-start">
-                <div class="w-full">
-                  <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
-                    {{ currentCategory.id ? 'Edytuj kategorię' : 'Dodaj nową kategorię' }}
-                  </h3>
-                  
-                  <div class="grid grid-cols-1 gap-4">
-                    <div>
-                      <label for="name" class="block text-sm font-medium text-gray-700">Nazwa kategorii</label>
-                      <input
-                        type="text"
-                        id="name"
-                        v-model="currentCategory.name"
-                        required
-                        class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-              <button
-                type="submit"
-                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
-              >
-                {{ currentCategory.id ? 'Zapisz zmiany' : 'Dodaj kategorię' }}
-              </button>
-              <button
-                type="button"
-                @click="showModal = false"
-                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-              >
-                Anuluj
-              </button>
-            </div>
-          </form>
+    <admin-modal
+      :show="showModal"
+      :title="currentCategory.id ? 'Edytuj kategorię' : 'Dodaj nową kategorię'"
+      size="lg"
+      @close="showModal = false"
+    >
+      <form @submit.prevent="saveCategory" class="space-y-4">
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700">Nazwa kategorii</label>
+          <input
+            type="text"
+            id="name"
+            v-model="currentCategory.name"
+            required
+            class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+          />
         </div>
-      </div>
-    </div>
+      </form>
+      
+      <template #footer>
+        <admin-button-group justify="end" spacing="sm">
+          <admin-button
+            @click="showModal = false"
+            variant="secondary"
+            outline
+          >
+            Anuluj
+          </admin-button>
+          <admin-button
+            @click="saveCategory"
+            variant="primary"
+          >
+            {{ currentCategory.id ? 'Zapisz zmiany' : 'Dodaj kategorię' }}
+          </admin-button>
+        </admin-button-group>
+      </template>
+    </admin-modal>
     
     <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="showDeleteModal = false"></div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <div class="sm:flex sm:items-start">
-              <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                  Potwierdź usunięcie
-                </h3>
-                <div class="mt-2">
-                  <p class="text-sm text-gray-500">
-                    Czy na pewno chcesz usunąć tę kategorię? Tej operacji nie da się cofnąć.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            <button
-              type="button"
-              @click="confirmDelete"
-              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
-            >
-              Usuń kategorię
-            </button>
-            <button
-              type="button"
-              @click="showDeleteModal = false"
-              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-            >
-              Anuluj
-            </button>
-          </div>
-        </div>
+    <admin-modal
+      :show="showDeleteModal"
+      title="Potwierdź usunięcie"
+      size="md"
+      icon-variant="danger"
+      @close="showDeleteModal = false"
+    >
+      <div class="text-center">
+        <p class="text-sm text-gray-500">
+          Czy na pewno chcesz usunąć tę kategorię? Tej operacji nie da się cofnąć.
+        </p>
       </div>
-    </div>
+      
+      <template #footer>
+        <admin-button-group justify="center" spacing="sm">
+          <admin-button
+            @click="showDeleteModal = false"
+            variant="secondary"
+            outline
+          >
+            Anuluj
+          </admin-button>
+          <admin-button
+            @click="confirmDelete"
+            variant="danger"
+          >
+            Usuń kategorię
+          </admin-button>
+        </admin-button-group>
+      </template>
+    </admin-modal>
     
     <!-- Detailed Error Modal -->
     <detailed-error-modal
@@ -191,11 +157,19 @@ import { ref, computed, onMounted, reactive } from 'vue'
 import { useAlertStore } from '../../stores/alertStore'
 import axios from 'axios'
 import DetailedErrorModal from '../../components/ui/DetailedErrorModal.vue'
+import AdminTable from '../../components/admin/ui/AdminTable.vue'
+import AdminModal from '../../components/admin/ui/AdminModal.vue'
+import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
+import AdminButton from '../../components/admin/ui/AdminButton.vue'
 
 export default {
   name: 'AdminCategories',
   components: {
-    DetailedErrorModal
+    DetailedErrorModal,
+    AdminTable,
+    AdminModal,
+    AdminButtonGroup,
+    AdminButton
   },
   setup() {
     const alertStore = useAlertStore()
@@ -219,6 +193,22 @@ export default {
       { value: 'created_at', label: 'Data utworzenia' },
       { value: 'products_count', label: 'Liczba produktów' }
     ]
+    
+    // Table columns definition
+    const tableColumns = [
+      { key: 'name', label: 'Nazwa', sortable: true, width: '350px' },
+      { key: 'products_count', label: 'Liczba produktów', sortable: false, width: '180px' },
+      { key: 'created_at', label: 'Data utworzenia', sortable: true, type: 'date', width: '180px' },
+      { key: 'actions', label: 'Akcje', align: 'right', width: '160px' }
+    ]
+    
+    // Handle table sorting
+    const handleSort = (sortData) => {
+      filters.sort_field = sortData.key
+      filters.sort_direction = sortData.order
+      filters.page = 1 // Reset to first page when sorting
+      fetchCategories()
+    }
     
     // Filters and pagination
     const filters = reactive({
@@ -439,6 +429,8 @@ export default {
       onSearchChange,
       goToPage,
       sortOptions,
+      tableColumns,
+      handleSort,
       showErrorModal,
       errorMessage
     }

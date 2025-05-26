@@ -1,30 +1,38 @@
 <template>
-  <div class="flex flex-row gap-1">
-    <button 
+  <admin-button-group spacing="xs">
+    <admin-button 
       v-if="showEdit"
       @click="$emit('edit', item)"
-      class="px-2 py-1 bg-indigo-600 text-white text-xs font-medium rounded hover:bg-indigo-700 transition-colors"
-      title="Edytuj"
+      variant="primary"
+      size="sm"
+      :title="editLabel"
     >
       {{ editLabel }}
-    </button>
-    <button 
+    </admin-button>
+    <admin-button 
       v-if="showDelete"
       @click="handleDelete"
-      class="px-2 py-1 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-700 transition-colors"
+      variant="danger"
+      size="sm"
       :disabled="disableDelete"
-      :class="{ 'opacity-50 cursor-not-allowed': disableDelete }"
-      title="Usuń"
+      :title="deleteLabel"
     >
       {{ deleteLabel }}
-    </button>
+    </admin-button>
     <slot></slot>
-  </div>
+  </admin-button-group>
 </template>
 
 <script>
+import AdminButton from './ui/AdminButton.vue';
+import AdminButtonGroup from './ui/AdminButtonGroup.vue';
+
 export default {
   name: 'ActionButtons',
+  components: {
+    AdminButton,
+    AdminButtonGroup
+  },
   props: {
     item: {
       type: Object,

@@ -1,19 +1,11 @@
 <template>
   <div class="p-6">
     <!-- Page Header -->
-    <div class="sm:flex sm:items-center mb-6">
-      <div class="sm:flex-auto">
-        <h1 class="text-xl font-semibold text-gray-900">Recenzje</h1>
-      </div>
-      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-        <button
-          @click="handleAddButtonClick"
-          class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
-        >
-          Dodaj recenzję
-        </button>
-      </div>
-    </div>
+    <page-header 
+      title="Recenzje"
+      add-button-label="Dodaj recenzję"
+      @add="handleAddButtonClick"
+    />
     
     <!-- Loading indicator -->
     <loading-spinner v-if="loading" />
@@ -81,109 +73,121 @@
     </search-filters>
     
     <!-- Reviews Table -->
-    <div v-if="!loading && reviews.length" class="bg-white shadow overflow-hidden sm:rounded-md mt-6">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">ID</th>
-            <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produkt</th>
-            <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Użytkownik</th>
-            <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Ocena</th>
-            <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tytuł</th>
-            <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Treść</th>
-            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Status</th>
-            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Wyróż.</th>
-            <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Data</th>
-            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Akcje</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="review in reviews" :key="review.id">
-            <td class="px-2 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ review.id }}</td>
-            <td class="px-2 py-3 text-sm text-gray-500 max-w-[150px] truncate">
-              <a :href="`/products/${review.product.id}`" class="text-indigo-600 hover:text-indigo-900" target="_blank">
-                {{ review.product.name }}
-              </a>
-            </td>
-            <td class="px-2 py-3 text-sm text-gray-500 max-w-[150px] truncate">
-              {{ review.user ? review.user.name : 'Anonim' }}
-            </td>
-            <td class="px-2 py-3 whitespace-nowrap">
-              <div class="flex items-center justify-center">
-                <span class="text-sm text-gray-700">{{ review.rating }}/5</span>
-              </div>
-            </td>
-            <td class="px-2 py-3 text-sm text-gray-500 max-w-[150px] truncate">{{ review.title }}</td>
-            <td class="px-2 py-3 text-sm text-gray-500 max-w-[150px] truncate">{{ review.content }}</td>
-            <td class="px-2 py-3 whitespace-nowrap text-center">
-              <span class="px-1.5 py-0.5 text-xs leading-5 font-semibold rounded-full"
-                   :class="{
-                     'bg-green-100 text-green-800': review.is_approved,
-                     'bg-red-100 text-red-800': !review.is_approved
-                   }">
-                {{ review.is_approved ? 'Tak' : 'Nie' }}
-              </span>
-            </td>
-            <td class="px-2 py-3 whitespace-nowrap text-center">
-              <span class="px-1.5 py-0.5 text-xs leading-5 font-semibold rounded-full"
-                   :class="{
-                     'bg-blue-100 text-blue-800': review.is_featured,
-                     'bg-gray-100 text-gray-800': !review.is_featured
-                   }">
-                {{ review.is_featured ? 'Tak' : 'Nie' }}
-              </span>
-            </td>
-            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-500">{{ formatDate(review.created_at) }}</td>
-            <td class="px-2 py-3 whitespace-nowrap text-center">
-              <div class="flex justify-center space-x-1">
-                <button 
-                  v-if="!review.is_approved" 
-                  @click="approveReview(review)" 
-                  class="text-xs bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded"
-                >
-                  Zatwierdź
-                </button>
-                <button 
-                  v-if="review.is_approved" 
-                  @click="rejectReview(review)" 
-                  class="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded"
-                >
-                  Odrzuć
-                </button>
-                <button 
-                  @click="toggleFeatured(review)" 
-                  :class="{
-                    'text-xs bg-blue-600 hover:bg-blue-700 text-white': !review.is_featured,
-                    'text-xs bg-gray-600 hover:bg-gray-700 text-white': review.is_featured,
-                    'px-2 py-1 rounded': true
-                  }"
-                >
-                  {{ review.is_featured ? 'Usuń wyróżnienie' : 'Wyróżnij' }}
-                </button>
-                <button 
-                  @click="editReview(review)" 
-                  class="text-xs bg-yellow-600 hover:bg-yellow-700 text-white px-2 py-1 rounded"
-                >
-                  Edytuj
-                </button>
-                <button 
-                  @click="confirmDeleteReview(review)" 
-                  class="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded"
-                >
-                  Usuń
-                </button>
-                <button 
-                  @click="showReviewDetails(review)" 
-                  class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded"
-                >
-                  Szczegóły
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <admin-table
+      v-if="!loading && reviews.length"
+      :columns="tableColumns"
+      :items="reviews"
+      :sort-by="filters.sort_field"
+      :sort-order="filters.sort_direction"
+      @sort="handleSort"
+      :force-horizontal-scroll="true"
+      class="mt-6"
+    >
+      <template #cell-product="{ item }">
+        <div class="max-w-[190px]">
+          <a :href="`/products/${item.product.id}`" class="text-indigo-600 hover:text-indigo-900 text-sm truncate block" target="_blank" :title="item.product.name">
+            {{ item.product.name }}
+          </a>
+        </div>
+      </template>
+      
+      <template #cell-user="{ item }">
+        <div class="max-w-[110px]">
+          <span class="text-sm truncate block" :title="item.user ? item.user.name : 'Anonim'">
+            {{ item.user ? item.user.name : 'Anonim' }}
+          </span>
+        </div>
+      </template>
+      
+      <template #cell-rating="{ item }">
+        <div class="flex items-center justify-center">
+          <span class="text-sm font-medium text-gray-700">{{ item.rating }}/5</span>
+        </div>
+      </template>
+      
+      <template #cell-title="{ item }">
+        <div class="max-w-[140px]">
+          <span class="block truncate text-sm" :title="item.title">{{ item.title }}</span>
+        </div>
+      </template>
+      
+      <template #cell-content="{ item }">
+        <div class="max-w-[140px]">
+          <span class="block truncate text-sm" :title="item.content">{{ item.content }}</span>
+        </div>
+      </template>
+      
+      <template #cell-is_approved="{ item }">
+        <div class="flex justify-center">
+          <admin-badge 
+            :variant="item.is_approved ? 'green' : 'red'"
+            size="xs"
+          >
+            {{ item.is_approved ? '✓' : '✗' }}
+          </admin-badge>
+        </div>
+      </template>
+      
+      <template #cell-is_featured="{ item }">
+        <div class="flex justify-center">
+          <admin-badge 
+            :variant="item.is_featured ? 'blue' : 'gray'"
+            size="xs"
+          >
+            {{ item.is_featured ? '★' : '☆' }}
+          </admin-badge>
+        </div>
+      </template>
+      
+      <template #cell-actions="{ item }">
+        <div class="flex gap-1 justify-end min-w-[320px]">
+          <admin-button 
+            v-if="!item.is_approved" 
+            @click="approveReview(item)" 
+            variant="success"
+            size="sm"
+          >
+            Zatwierdź
+          </admin-button>
+          <admin-button 
+            v-if="item.is_approved" 
+            @click="rejectReview(item)" 
+            variant="danger"
+            size="sm"
+          >
+            Odrzuć
+          </admin-button>
+          <admin-button 
+            @click="toggleFeatured(item)" 
+            :variant="item.is_featured ? 'secondary' : 'info'"
+            size="sm"
+          >
+            {{ item.is_featured ? 'Usuń wyróż.' : 'Wyróżnij' }}
+          </admin-button>
+          <admin-button 
+            @click="editReview(item)" 
+            variant="warning"
+            size="sm"
+          >
+            Edytuj
+          </admin-button>
+          <admin-button 
+            @click="confirmDeleteReview(item)" 
+            variant="danger"
+            size="sm"
+          >
+            Usuń
+          </admin-button>
+          <admin-button 
+            @click="showReviewDetails(item)" 
+            variant="primary"
+            size="sm"
+          >
+            Szczegóły
+          </admin-button>
+        </div>
+      </template>
+    </admin-table>
     
     <!-- No data message -->
     <no-data-message v-else-if="!loading" message="Brak recenzji do wyświetlenia" />
@@ -585,11 +589,21 @@ import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
 import Modal from '../../components/Modal.vue'
 import { useToast } from 'vue-toastification'
+  import PageHeader from '../../components/admin/PageHeader.vue'
+  import AdminTable from '../../components/admin/ui/AdminTable.vue'
+  import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
+  import AdminButton from '../../components/admin/ui/AdminButton.vue'
+  import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
 
 export default {
   name: 'AdminReviews',
   components: {
-    Modal
+    Modal,
+    PageHeader,
+    AdminTable,
+    AdminButtonGroup,
+    AdminButton,
+    AdminBadge
   },
   setup() {
     const alertStore = useAlertStore()
@@ -615,6 +629,26 @@ export default {
       { value: 'rating', label: 'Ocena' },
       { value: 'product', label: 'Produkt' }
     ]
+    
+    // Table columns definition
+    const tableColumns = [
+      { key: 'product', label: 'Produkt', sortable: false, width: '200px' },
+      { key: 'user', label: 'Użytkownik', sortable: false, width: '120px' },
+      { key: 'rating', label: 'Ocena', sortable: true, align: 'center', width: '60px' },
+      { key: 'title', label: 'Tytuł', sortable: false, width: '150px' },
+      { key: 'content', label: 'Treść', sortable: false, width: '150px' },
+      { key: 'is_approved', label: 'Status', sortable: true, align: 'center', width: '110px' },
+      { key: 'is_featured', label: 'Wyróż.', sortable: true, align: 'center', width: '100px' },
+      { key: 'created_at', label: 'Data', sortable: true, type: 'date', width: '180px' },
+      { key: 'actions', label: 'Akcje', align: 'right', width: '360px' }
+    ]
+    
+    // Handle table sorting
+    const handleSort = (sortData) => {
+      filters.sort_field = sortData.key
+      filters.sort_direction = sortData.order
+      fetchReviews()
+    }
     
     // Filters
     const filters = reactive({
@@ -1107,6 +1141,7 @@ export default {
       reviews,
       filters,
       sortOptions,
+      tableColumns,
       fetchReviews,
       approveReview,
       rejectReview,
@@ -1115,6 +1150,7 @@ export default {
       getStatusName,
       filterReviews,
       toggleFeatured,
+      handleSort,
       showCreateReviewModal,
       showEditModal,
       editingReview,

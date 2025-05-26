@@ -55,237 +55,224 @@
     <loading-spinner v-if="loading" />
     
     <!-- Tutorials Table -->
-    <div v-else-if="filteredTutorials.length" class="bg-white shadow sm:rounded-md mt-6">
-      <table class="w-full divide-y divide-gray-200 table-fixed">
-        <thead class="bg-gray-50">
-          <tr>
-            <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">ID</th>
-            <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Tytuł</th>
-            <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24 hidden lg:table-cell">Slug</th>
-            <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20 hidden md:table-cell">Autor</th>
-            <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20 hidden md:table-cell">Data</th>
-            <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Status</th>
-            <th scope="col" class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Akcje</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="tutorial in filteredTutorials" :key="tutorial.id">
-            <td class="px-2 py-2 whitespace-nowrap text-xs font-medium text-gray-900">{{ tutorial.id }}</td>
-            <td class="px-2 py-2 text-xs text-gray-500 truncate max-w-[160px]">{{ tutorial.title }}</td>
-            <td class="px-2 py-2 text-xs text-gray-500 truncate hidden lg:table-cell">
-              {{ tutorial.slug }}
-            </td>
-            <td class="px-2 py-2 whitespace-nowrap text-xs text-gray-500 hidden md:table-cell">{{ tutorial.author ? tutorial.author.name : 'Nieznany' }}</td>
-            <td class="px-2 py-2 whitespace-nowrap text-xs text-gray-500 hidden md:table-cell">{{ formatDate(tutorial.published_at) }}</td>
-            <td class="px-2 py-2 whitespace-nowrap">
-              <span class="px-1.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full"
-                   :class="getStatusClass(tutorial)">
-                {{ getStatusLabel(tutorial) }}
-              </span>
-            </td>
-            <td class="px-2 py-2 whitespace-nowrap text-xs font-medium text-center">
-              <div class="flex justify-center space-x-1">
-                <button
-                  @click="editTutorial(tutorial)"
-                  class="px-1.5 py-0.5 bg-indigo-600 text-white text-xs font-medium rounded hover:bg-indigo-700 transition-colors"
-                  title="Edytuj"
-                >
-                  Edytuj
-                </button>
-                <button
-                  @click="confirmDelete(tutorial)"
-                  class="px-1.5 py-0.5 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-700 transition-colors"
-                  title="Usuń"
-                >
-                  Usuń
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <admin-table
+      v-if="filteredTutorials.length"
+      :columns="tableColumns"
+      :items="filteredTutorials"
+      :sort-by="filters.sort_field"
+      :sort-order="filters.sort_direction"
+      @sort="handleSort"
+      :force-horizontal-scroll="true"
+      class="mt-6"
+    >
+      <template #cell-title="{ item }">
+        <div class="max-w-[340px]">
+          <span class="block truncate text-sm" :title="item.title">{{ item.title }}</span>
+        </div>
+      </template>
+      
+      <template #cell-slug="{ item }">
+        <div class="max-w-[210px]">
+          <span class="block truncate text-sm" :title="item.slug">{{ item.slug }}</span>
+        </div>
+      </template>
+      
+      <template #cell-author="{ item }">
+        <div class="max-w-[160px]">
+          <span class="block truncate text-sm" :title="item.author ? item.author.name : 'Brak autora'">
+            {{ item.author ? item.author.name : 'Brak autora' }}
+          </span>
+        </div>
+      </template>
+      
+      <template #cell-status="{ item }">
+        <admin-badge 
+          :variant="getStatusVariant(item)"
+          size="xs"
+        >
+          {{ getStatusLabel(item) }}
+        </admin-badge>
+      </template>
+      
+      <template #cell-actions="{ item }">
+        <admin-button-group spacing="xs">
+          <admin-button
+            @click="editTutorial(item)"
+            variant="primary"
+            size="sm"
+          >
+            Edytuj
+          </admin-button>
+          <admin-button
+            @click="confirmDelete(item)"
+            variant="danger"
+            size="sm"
+          >
+            Usuń
+          </admin-button>
+        </admin-button-group>
+      </template>
+    </admin-table>
     
     <!-- No data message -->
     <no-data-message v-else message="Brak poradników do wyświetlenia" />
     
     <!-- Add/Edit Modal -->
-    <div v-if="showAddForm || showEditForm" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-      <div class="relative mx-auto p-4 border w-full max-w-3xl shadow-lg rounded-md bg-white max-h-[95vh] flex flex-col">
-        <div class="flex justify-between items-center mb-3">
-          <h3 class="text-base font-medium text-gray-900">{{ showEditForm ? 'Edytuj poradnik' : 'Dodaj nowy poradnik' }}</h3>
-          <button @click="closeForm" class="text-gray-400 hover:text-gray-500">
-            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+    <admin-modal
+      :show="showAddForm || showEditForm"
+      :title="showEditForm ? 'Edytuj poradnik' : 'Dodaj nowy poradnik'"
+      size="3xl"
+      @close="closeForm"
+    >
+      <form @submit.prevent="showEditForm ? updateTutorial() : addTutorial()" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="title" class="block text-sm font-medium text-gray-700">Tytuł</label>
+            <input 
+              type="text" 
+              id="title" 
+              v-model="form.title" 
+              @input="generateSlug"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              required
+            >
+          </div>
+          
+          <div>
+            <label for="slug" class="block text-sm font-medium text-gray-700">Slug</label>
+            <input 
+              type="text" 
+              id="slug" 
+              v-model="form.slug" 
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              required
+            >
+          </div>
         </div>
         
-        <div class="overflow-y-auto flex-grow">
-          <form @submit.prevent="showEditForm ? updateTutorial() : addTutorial()" class="grid grid-cols-1 gap-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label for="title" class="block text-xs font-medium text-gray-700">Tytuł</label>
-                <input 
-                  type="text" 
-                  id="title" 
-                  v-model="form.title" 
-                  @input="generateSlug"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
-                  required
-                >
-              </div>
-              
-              <div>
-                <label for="slug" class="block text-xs font-medium text-gray-700">Slug</label>
-                <input 
-                  type="text" 
-                  id="slug" 
-                  v-model="form.slug" 
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
-                  required
-                >
-              </div>
-            </div>
-            
-            <div>
-              <label for="excerpt" class="block text-xs font-medium text-gray-700">Krótki opis</label>
-              <textarea 
-                id="excerpt" 
-                v-model="form.excerpt" 
-                rows="2"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
-                required
-              ></textarea>
-            </div>
-            
-            <div>
-              <label for="content" class="block text-xs font-medium text-gray-700">Treść</label>
-              <textarea 
-                id="content" 
-                v-model="form.content" 
-                rows="8"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
-                required
-              ></textarea>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div>
-                <label for="image_url" class="block text-xs font-medium text-gray-700">URL obrazka</label>
-                <input 
-                  type="url" 
-                  id="image_url" 
-                  v-model="form.image_url" 
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
-                  required
-                >
-              </div>
-              
-              <div>
-                <label for="published_at" class="block text-xs font-medium text-gray-700">Data publikacji</label>
-                <input 
-                  type="datetime-local" 
-                  id="published_at" 
-                  v-model="form.published_at" 
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
-                >
-              </div>
-              
-              <div>
-                <label for="status" class="block text-xs font-medium text-gray-700">Status</label>
-                <select 
-                  id="status" 
-                  v-model="form.status" 
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
-                  required
-                >
-                  <option value="draft">Szkic</option>
-                  <option value="published">Opublikowany</option>
-                  <option value="scheduled">Zaplanowany</option>
-                </select>
-              </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label for="meta_title" class="block text-xs font-medium text-gray-700">Meta tytuł (SEO)</label>
-                <input 
-                  type="text" 
-                  id="meta_title" 
-                  v-model="form.meta_title" 
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
-                >
-              </div>
-              
-              <div>
-                <label for="meta_description" class="block text-xs font-medium text-gray-700">Meta opis (SEO)</label>
-                <textarea 
-                  id="meta_description" 
-                  v-model="form.meta_description" 
-                  rows="2"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs p-1.5"
-                ></textarea>
-              </div>
-            </div>
-            
-            <div class="flex items-center">
-              <input
-                id="featured" 
-                type="checkbox" 
-                v-model="form.featured"
-                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-              >
-              <label for="featured" class="ml-2 block text-xs text-gray-900">Wyróżniony poradnik</label>
-            </div>
-            
-            <div class="flex justify-end space-x-2 pt-3">
-              <button 
-                type="button" 
-                @click="closeForm" 
-                class="bg-white py-1.5 px-3 border border-gray-300 rounded-md shadow-sm text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                Anuluj
-              </button>
-              <button 
-                type="submit" 
-                class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-1.5 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-xs"
-              >
-                {{ showEditForm ? 'Zapisz zmiany' : 'Dodaj poradnik' }}
-              </button>
-            </div>
-          </form>
+        <div>
+          <label for="excerpt" class="block text-sm font-medium text-gray-700">Krótki opis</label>
+          <textarea 
+            id="excerpt" 
+            v-model="form.excerpt" 
+            rows="3"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          ></textarea>
         </div>
-      </div>
-    </div>
+        
+        <div>
+          <label for="content" class="block text-sm font-medium text-gray-700">Treść</label>
+          <textarea 
+            id="content" 
+            v-model="form.content" 
+            rows="10"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          ></textarea>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label for="image_url" class="block text-sm font-medium text-gray-700">URL obrazka</label>
+            <input 
+              type="url" 
+              id="image_url" 
+              v-model="form.image_url" 
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              required
+            >
+          </div>
+          
+          <div>
+            <label for="published_at" class="block text-sm font-medium text-gray-700">Data publikacji</label>
+            <input 
+              type="datetime-local" 
+              id="published_at" 
+              v-model="form.published_at" 
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            >
+          </div>
+          
+          <div>
+            <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+            <select 
+              id="status" 
+              v-model="form.status" 
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              required
+            >
+              <option value="draft">Szkic</option>
+              <option value="published">Opublikowany</option>
+              <option value="scheduled">Zaplanowany</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="flex items-center">
+          <input 
+            type="checkbox" 
+            id="is_featured" 
+            v-model="form.is_featured" 
+            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+          >
+          <label for="is_featured" class="ml-2 block text-sm text-gray-900">
+            Wyróżniony
+          </label>
+        </div>
+      </form>
+      
+      <template #footer>
+        <admin-button-group justify="end" spacing="sm">
+          <admin-button 
+            @click="closeForm" 
+            variant="secondary"
+            outline
+          >
+            Anuluj
+          </admin-button>
+          <admin-button 
+            @click="showEditForm ? updateTutorial() : addTutorial()" 
+            variant="primary"
+          >
+            {{ showEditForm ? 'Zapisz zmiany' : 'Dodaj poradnik' }}
+          </admin-button>
+        </admin-button-group>
+      </template>
+    </admin-modal>
     
     <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-      <div class="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
-        <div class="mt-3 text-center">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Potwierdź usunięcie</h3>
-          <div class="mt-2 px-7 py-3">
-            <p class="text-sm text-gray-500">
-              Czy na pewno chcesz usunąć poradnik "{{ tutorialToDelete.title }}"?
-            </p>
-          </div>
-          <div class="flex justify-center mt-4 gap-4">
-            <button 
-              @click="showDeleteModal = false" 
-              class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Anuluj
-            </button>
-            <button 
-              @click="deleteTutorial" 
-              class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-            >
-              Usuń
-            </button>
-          </div>
-        </div>
+    <admin-modal
+      :show="showDeleteModal"
+      title="Potwierdź usunięcie"
+      size="md"
+      icon-variant="danger"
+      @close="showDeleteModal = false"
+    >
+      <div class="text-center">
+        <p class="text-sm text-gray-500">
+          Czy na pewno chcesz usunąć poradnik "{{ tutorialToDelete.title }}"?
+        </p>
       </div>
-    </div>
+      
+      <template #footer>
+        <admin-button-group justify="center" spacing="sm">
+          <admin-button 
+            @click="showDeleteModal = false" 
+            variant="secondary"
+            outline
+          >
+            Anuluj
+          </admin-button>
+          <admin-button 
+            @click="deleteTutorial" 
+            variant="danger"
+          >
+            Usuń
+          </admin-button>
+        </admin-button-group>
+      </template>
+    </admin-modal>
   </div>
 </template>
 
@@ -294,9 +281,21 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
 import { useAuthStore } from '../../stores/authStore'
+import AdminTable from '../../components/admin/ui/AdminTable.vue'
+import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
+import AdminButton from '../../components/admin/ui/AdminButton.vue'
+import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
+import AdminModal from '../../components/admin/ui/AdminModal.vue'
 
 export default {
   name: 'AdminTutorials',
+  components: {
+    AdminTable,
+    AdminButtonGroup,
+    AdminButton,
+    AdminBadge,
+    AdminModal
+  },
   setup() {
     const alertStore = useAlertStore()
     const authStore = useAuthStore()
@@ -314,6 +313,36 @@ export default {
       { value: 'published_at', label: 'Data publikacji' },
       { value: 'title', label: 'Tytuł' }
     ]
+    
+    // Table columns definition
+    const tableColumns = [
+      { key: 'title', label: 'Tytuł', sortable: true, width: '350px' },
+      { key: 'slug', label: 'Slug', sortable: false, width: '220px' },
+      { key: 'author', label: 'Autor', sortable: false, width: '170px' },
+      { key: 'published_at', label: 'Data', sortable: true, type: 'date', width: '140px' },
+      { key: 'status', label: 'Status', sortable: true, align: 'center', width: '120px' },
+      { key: 'actions', label: 'Akcje', align: 'center', width: '140px' }
+    ]
+    
+    // Handle table sorting
+    const handleSort = (sortData) => {
+      filters.value.sort_field = sortData.key
+      filters.value.sort_direction = sortData.order
+    }
+    
+    // Get status variant for badge
+    const getStatusVariant = (tutorial) => {
+      switch (tutorial.status) {
+        case 'published':
+          return 'green'
+        case 'draft':
+          return 'gray'
+        case 'scheduled':
+          return 'blue'
+        default:
+          return 'gray'
+      }
+    }
     
     // Filters
     const filters = ref({
@@ -608,6 +637,7 @@ export default {
       filters,
       form,
       sortOptions,
+      tableColumns,
       fetchTutorials,
       addTutorial,
       editTutorial,
@@ -620,6 +650,8 @@ export default {
       generateSlug,
       getStatusLabel,
       getStatusClass,
+      getStatusVariant,
+      handleSort,
       filterTutorials,
       debouncedFilterTutorials
     }

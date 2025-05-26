@@ -52,52 +52,61 @@
     </div>
     
     <!-- Contact Messages Table -->
-    <div v-if="!loading && filteredMessages.length" class="bg-white shadow overflow-x-auto sm:rounded-md">
-      <table class="min-w-full divide-y divide-gray-200 table-fixed">
-        <thead class="bg-gray-50">
-          <tr>
-            <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">ID</th>
-            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Imię</th>
-            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Email</th>
-            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Temat</th>
-            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Data</th>
-            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Status</th>
-            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Akcje</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="message in filteredMessages" :key="message.id" :class="{ 'bg-indigo-50': message.status === 'unread' }">
-            <td class="px-2 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ message.id }}</td>
-            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 truncate">{{ message.name }}</td>
-            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 truncate">{{ message.email }}</td>
-            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 truncate">{{ message.subject }}</td>
-            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(message.created_at) }}</td>
-            <td class="px-3 py-4 whitespace-nowrap">
-              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                   :class="getStatusClass(message.status)">
-                {{ message.status_label || getStatusLabel(message.status) }}
-              </span>
-            </td>
-            <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
-              <div class="flex space-x-2">
-                <button 
-                  @click="viewMessage(message)" 
-                  class="text-indigo-600 hover:text-indigo-900"
-                >
-                  Zarządzaj
-                </button>
-                <button 
-                  @click="confirmDelete(message)" 
-                  class="text-red-600 hover:text-red-900"
-                >
-                  Usuń
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <admin-table
+      v-if="!loading && filteredMessages.length"
+      :columns="tableColumns"
+      :items="filteredMessages"
+      :sort-by="filters.sort_field"
+      :sort-order="filters.sort_direction"
+      @sort="handleSort"
+      class="mt-6"
+    >
+      <template #cell-name="{ item }">
+        <div class="max-w-[190px]">
+          <span class="block text-sm">{{ item.name }}</span>
+        </div>
+      </template>
+      
+      <template #cell-email="{ item }">
+        <div class="max-w-[270px]">
+          <span class="block text-sm">{{ item.email }}</span>
+        </div>
+      </template>
+      
+      <template #cell-subject="{ item }">
+        <div class="max-w-[170px]">
+          <span class="block truncate text-sm" :title="item.subject">{{ item.subject }}</span>
+        </div>
+      </template>
+      
+      <template #cell-status="{ item }">
+        <admin-badge 
+          :variant="getStatusVariant(item.status)"
+          size="xs"
+        >
+          {{ item.status_label || getStatusLabel(item.status) }}
+        </admin-badge>
+      </template>
+      
+      <template #cell-actions="{ item }">
+        <admin-button-group spacing="xs">
+          <admin-button
+            @click="viewMessage(item)"
+            variant="primary"
+            size="sm"
+          >
+            Zarządzaj
+          </admin-button>
+          <admin-button
+            @click="confirmDelete(item)"
+            variant="danger"
+            size="sm"
+          >
+            Usuń
+          </admin-button>
+        </admin-button-group>
+      </template>
+    </admin-table>
     <div v-else-if="!loading" class="bg-white shadow overflow-hidden sm:rounded-md p-6 text-center text-gray-500">
       Brak wiadomości kontaktowych do wyświetlenia
     </div>
@@ -290,9 +299,19 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
+import AdminTable from '../../components/admin/ui/AdminTable.vue'
+import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
+import AdminButton from '../../components/admin/ui/AdminButton.vue'
+import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
 
 export default {
   name: 'AdminContactMessages',
+  components: {
+    AdminTable,
+    AdminButtonGroup,
+    AdminButton,
+    AdminBadge
+  },
   setup() {
     const alertStore = useAlertStore()
     const loading = ref(true)
@@ -315,8 +334,46 @@ export default {
     // Filters
     const filters = ref({
       status: '',
-      search: ''
+      search: '',
+      sort_field: '',
+      sort_direction: 'asc'
     })
+    
+    // Table columns definition
+    const tableColumns = [
+      { key: 'name', label: 'Imię', sortable: true, width: '200px' },
+      { key: 'email', label: 'Email', sortable: true, width: '280px' },
+      { key: 'subject', label: 'Temat', sortable: false, width: '180px' },
+      { key: 'status', label: 'Status', sortable: false, width: '100px' },
+      { key: 'created_at', label: 'Data', sortable: true, type: 'date', width: '100px' },
+      { key: 'actions', label: 'Akcje', align: 'right', width: '160px' }
+    ]
+    
+    // Handle table sorting
+    const handleSort = (sortData) => {
+      filters.value.sort_field = sortData.key
+      filters.value.sort_direction = sortData.order
+    }
+    
+    // Get status variant for AdminBadge
+    const getStatusVariant = (status) => {
+      switch (status) {
+        case 'unread': return 'red'
+        case 'read': return 'yellow'
+        case 'replied': return 'green'
+        default: return 'gray'
+      }
+    }
+    
+    // Get status label
+    const getStatusLabel = (status) => {
+      switch (status) {
+        case 'unread': return 'Nieprzeczytana'
+        case 'read': return 'Przeczytana'
+        case 'replied': return 'Odpowiedziana'
+        default: return status
+      }
+    }
     
     // Fetch all messages
     const fetchMessages = async () => {
@@ -496,16 +553,6 @@ export default {
       return new Date(dateString).toLocaleDateString('pl-PL', options)
     }
     
-    // Get status label
-    const getStatusLabel = (status) => {
-      switch (status) {
-        case 'unread': return 'Nieprzeczytana'
-        case 'read': return 'Przeczytana'
-        case 'replied': return 'Odpowiedziana'
-        default: return status
-      }
-    }
-    
     // Get status class
     const getStatusClass = (status) => {
       switch (status) {
@@ -537,7 +584,9 @@ export default {
     const clearFilters = () => {
       filters.value = {
         status: '',
-        search: ''
+        search: '',
+        sort_field: '',
+        sort_direction: 'asc'
       }
     }
     
@@ -566,6 +615,8 @@ export default {
       })
     })
     
+
+    
     onMounted(() => {
       fetchMessages()
     })
@@ -581,6 +632,10 @@ export default {
       filters,
       responseData,
       responseSending,
+      tableColumns,
+      handleSort,
+      getStatusVariant,
+      getStatusLabel,
       fetchMessages,
       viewMessage,
       closeDetails,
@@ -589,7 +644,6 @@ export default {
       confirmDelete,
       deleteMessage,
       formatDate,
-      getStatusLabel,
       getStatusClass,
       debounceSearch,
       applyFilters,

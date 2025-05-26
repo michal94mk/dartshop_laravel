@@ -55,49 +55,55 @@
     <loading-spinner v-if="loading" />
     
     <!-- Promotions Table -->
-    <div v-else-if="filteredPromotions.length" class="bg-white shadow overflow-hidden sm:rounded-md mt-6">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nazwa</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kod</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Typ</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wartość</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data ważności</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Akcje</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="promotion in filteredPromotions" :key="promotion.id">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ promotion.id }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ promotion.name }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              <span class="px-2 py-1 bg-gray-100 rounded font-mono">{{ promotion.code }}</span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ getPromotionTypeName(promotion.discount_type) }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ promotion.discount_type === 'percentage' ? `${promotion.discount_value}%` : `${promotion.discount_value} zł` }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(promotion.ends_at) }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                   :class="promotion.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-                {{ promotion.is_active ? 'Aktywna' : 'Nieaktywna' }}
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <action-buttons 
-                :item="promotion" 
-                @edit="editPromotion" 
-                @delete="confirmDelete"
-              />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <admin-table
+      v-if="!loading && filteredPromotions.length"
+      :columns="tableColumns"
+      :items="filteredPromotions"
+      :sort-by="filters.sort_field"
+      :sort-order="filters.sort_direction"
+      @sort="handleSort"
+      class="mt-6"
+    >
+      <template #cell-code="{ item }">
+        <span class="px-2 py-1 bg-gray-100 rounded font-mono">{{ item.code }}</span>
+      </template>
+      
+      <template #cell-type="{ item }">
+        {{ getPromotionTypeName(item.discount_type) }}
+      </template>
+      
+      <template #cell-value="{ item }">
+        {{ item.discount_type === 'percentage' ? `${item.discount_value}%` : `${item.discount_value} zł` }}
+      </template>
+      
+      <template #cell-status="{ item }">
+        <admin-badge 
+          :variant="item.is_active ? 'green' : 'red'"
+          size="xs"
+        >
+          {{ item.is_active ? 'Aktywna' : 'Nieaktywna' }}
+        </admin-badge>
+      </template>
+      
+      <template #cell-actions="{ item }">
+        <admin-button-group spacing="xs">
+          <admin-button
+            @click="editPromotion(item)"
+            variant="primary"
+            size="sm"
+          >
+            Edytuj
+          </admin-button>
+          <admin-button
+            @click="confirmDelete(item)"
+            variant="danger"
+            size="sm"
+          >
+            Usuń
+          </admin-button>
+        </admin-button-group>
+      </template>
+    </admin-table>
     
     <!-- No data message -->
     <no-data-message v-else message="Brak promocji do wyświetlenia" />
@@ -300,9 +306,19 @@
 import { ref, computed, onMounted, reactive } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
+import AdminTable from '../../components/admin/ui/AdminTable.vue'
+import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
+import AdminButton from '../../components/admin/ui/AdminButton.vue'
+import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
 
 export default {
   name: 'AdminPromotions',
+  components: {
+    AdminTable,
+    AdminButtonGroup,
+    AdminButton,
+    AdminBadge
+  },
   setup() {
     const alertStore = useAlertStore()
     const loading = ref(true)
@@ -333,6 +349,31 @@ export default {
       sort_field: 'ends_at',
       sort_direction: 'asc'
     })
+    
+    // Sort options for the filter component
+    const sortOptions = [
+      { value: 'name', label: 'Nazwa' },
+      { value: 'code', label: 'Kod' },
+      { value: 'ends_at', label: 'Data ważności' },
+      { value: 'created_at', label: 'Data utworzenia' }
+    ]
+    
+    // Table columns definition
+    const tableColumns = [
+      { key: 'name', label: 'Nazwa', sortable: true, width: '250px' },
+      { key: 'code', label: 'Kod', sortable: false, width: '140px' },
+      { key: 'type', label: 'Typ', sortable: false, width: '120px' },
+      { key: 'value', label: 'Wartość', sortable: false, width: '120px' },
+      { key: 'ends_at', label: 'Data ważności', sortable: true, type: 'date', width: '160px' },
+      { key: 'status', label: 'Status', sortable: false, width: '120px' },
+      { key: 'actions', label: 'Akcje', align: 'right', width: '160px' }
+    ]
+    
+    // Handle table sorting
+    const handleSort = (sortData) => {
+      filters.value.sort_field = sortData.key
+      filters.value.sort_direction = sortData.order
+    }
     
     // Fetch all promotions
     const fetchPromotions = async () => {
@@ -547,6 +588,9 @@ export default {
       promotionToDelete,
       filters,
       form,
+      sortOptions,
+      tableColumns,
+      handleSort,
       fetchPromotions,
       addPromotion,
       editPromotion,
