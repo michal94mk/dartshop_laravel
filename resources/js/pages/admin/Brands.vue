@@ -15,7 +15,7 @@
       :sort-options="sortOptions"
       search-label="Wyszukaj"
       search-placeholder="Nazwa marki..."
-      @update:filters="filters = $event"
+      @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
       @filter-change="fetchBrands"
     />
     

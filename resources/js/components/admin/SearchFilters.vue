@@ -3,16 +3,30 @@
     <!-- Search Input (Full width, on top) -->
     <div class="mb-4">
       <label for="search" class="block text-sm font-medium text-gray-700">{{ searchLabel || 'Wyszukaj' }}</label>
-      <div class="mt-1">
+      <div class="mt-1 flex rounded-md shadow-sm">
         <input
+          ref="searchInput"
           type="text"
           name="search"
           id="search"
-          v-model="filterModel.search"
-          @input="onSearchInput"
-          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+          key="search-input"
+          v-model="localSearch"
+          @keyup.enter="onSearchSubmit"
+          @focus="onSearchFocus"
+          @blur="onSearchBlur"
+          class="flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-l-md sm:text-sm border-gray-300"
           :placeholder="searchPlaceholder || 'Wyszukaj...'"
         />
+        <button
+          type="button"
+          @click="onSearchSubmit"
+          class="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-500 text-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        >
+          <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <span class="ml-1">Szukaj</span>
+        </button>
       </div>
     </div>
     
@@ -78,33 +92,55 @@ export default {
       type: String,
       default: 'Wyszukaj...'
     },
-    debounceTime: {
-      type: Number,
-      default: 300
-    }
+
   },
   emits: ['update:filters', 'filter-change'],
   setup(props, { emit }) {
-    const filterModel = ref({ ...props.filters })
-    const searchTimeout = ref(null)
+    // Separate local search state from other filters
+    const localSearch = ref(props.filters.search || '')
+    const filterModel = ref({ 
+      ...props.filters,
+      search: localSearch.value // Ensure filterModel uses local search
+    })
+    const searchInput = ref(null)
+    const isSearchFocused = ref(false)
     
-    // Watch for changes in props.filters
+    // Watch for changes in props.filters, but never touch the search field
     watch(() => props.filters, (newFilters) => {
-      filterModel.value = { ...newFilters }
+      // Update everything except search (which is managed locally)
+      filterModel.value = { 
+        ...newFilters,
+        search: localSearch.value // Always use local search value
+      }
     }, { deep: true })
     
-    const onSearchInput = () => {
-      if (searchTimeout.value) {
-        clearTimeout(searchTimeout.value)
+    // Watch for external search changes (like clearing filters)
+    watch(() => props.filters.search, (newSearch) => {
+      // Only update local search if it's different and we're not currently focused
+      if (!isSearchFocused.value && newSearch !== localSearch.value) {
+        localSearch.value = newSearch || ''
+        filterModel.value.search = localSearch.value
       }
+    })
+    
+    const onSearchSubmit = () => {
+      // Update filter model with current search value
+      filterModel.value.search = localSearch.value
       
-      searchTimeout.value = setTimeout(() => {
-        emitChange()
-      }, props.debounceTime)
+      // Emit change immediately
+      emitChange()
     }
     
     const onFilterChange = () => {
       emitChange()
+    }
+    
+    const onSearchFocus = () => {
+      isSearchFocused.value = true
+    }
+    
+    const onSearchBlur = () => {
+      isSearchFocused.value = false
     }
     
     const emitChange = () => {
@@ -114,8 +150,13 @@ export default {
     }
     
     return {
+      localSearch,
       filterModel,
-      onSearchInput,
+      searchInput,
+      isSearchFocused,
+      onSearchSubmit,
+      onSearchFocus,
+      onSearchBlur,
       onFilterChange
     }
   }

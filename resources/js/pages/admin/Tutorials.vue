@@ -11,7 +11,8 @@
     <!-- Search and filters -->
     <search-filters
       v-if="!loading"
-      v-model:filters="filters"
+      :filters="filters.value"
+      @update:filters="(newFilters) => { Object.assign(filters.value, newFilters); filters.value.page = 1; }"
       :sort-options="sortOptions"
       search-label="Wyszukaj"
       search-placeholder="Szukaj poradników..."
@@ -23,7 +24,7 @@
           <select
             id="status"
             name="status"
-            v-model="filters.status"
+            v-model="filters.value.status"
             @change="fetchTutorials"
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
@@ -39,7 +40,7 @@
           <select
             id="featured"
             name="featured"
-            v-model="filters.featured"
+            v-model="filters.value.featured"
             @change="fetchTutorials"
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
@@ -56,7 +57,7 @@
     
     <!-- Tutorials Table -->
     <admin-table
-      v-if="tutorials.length"
+      v-if="!loading && tutorials.length > 0"
       :columns="tableColumns"
       :items="tutorials"
       :force-horizontal-scroll="true"
@@ -112,7 +113,7 @@
     </admin-table>
     
     <!-- No data message -->
-    <no-data-message v-else message="Brak poradników do wyświetlenia" />
+    <no-data-message v-if="!loading && tutorials.length === 0" message="Brak poradników do wyświetlenia" />
     
     <!-- Add/Edit Modal -->
     <admin-modal
@@ -351,7 +352,8 @@ export default {
       status: '',
       featured: '',
       sort_field: 'published_at',
-      sort_direction: 'desc'
+      sort_direction: 'desc',
+      page: 1
     })
     
     const form = ref({

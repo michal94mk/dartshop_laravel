@@ -72,7 +72,7 @@ export default {
       return this.pagination && 
              this.pagination.data && 
              this.pagination.data.length > 0 && 
-             (this.pagination.last_page > 1 || this.pagination.total > 0);
+             this.pagination.last_page > 1;
     },
     paginationPages() {
       if (!this.pagination || !this.pagination.last_page) return [];

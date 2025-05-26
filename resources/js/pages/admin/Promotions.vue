@@ -11,11 +11,11 @@
     <!-- Search and filters -->
     <search-filters
       v-if="!loading"
-      :filters="filters"
+      :filters="filters.value"
       :sort-options="sortOptions"
       search-label="Wyszukaj"
       search-placeholder="Nazwa lub kod promocji..."
-      @update:filters="filters = $event"
+      @update:filters="(newFilters) => { Object.assign(filters.value, newFilters); filters.value.page = 1; }"
       @filter-change="fetchPromotions"
     >
       <template v-slot:filters>
@@ -24,7 +24,7 @@
           <select
             id="status"
             name="status"
-            v-model="filters.status"
+            v-model="filters.value.status"
             @change="fetchPromotions"
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
@@ -39,7 +39,7 @@
           <select
             id="type"
             name="type"
-            v-model="filters.type"
+            v-model="filters.value.type"
             @change="fetchPromotions"
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
@@ -56,7 +56,7 @@
     
     <!-- Promotions Table -->
     <admin-table
-      v-if="!loading && promotions.length"
+      v-if="!loading && promotions.length > 0"
       :columns="tableColumns"
       :items="promotions"
       class="mt-6"
@@ -103,7 +103,7 @@
     </admin-table>
     
     <!-- No data message -->
-    <no-data-message v-else message="Brak promocji do wyświetlenia" />
+    <no-data-message v-if="!loading && promotions.length === 0" message="Brak promocji do wyświetlenia" />
     
     <!-- Add/Edit Modal -->
     <div v-if="showAddForm || showEditForm" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
@@ -352,7 +352,8 @@ export default {
       status: '',
       type: '',
       sort_field: 'ends_at',
-      sort_direction: 'asc'
+      sort_direction: 'asc',
+      page: 1
     })
     
     // Sort options for the filter component

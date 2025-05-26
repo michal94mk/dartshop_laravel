@@ -15,6 +15,7 @@
       :sort-options="sortOptions"
       search-label="Wyszukaj"
       search-placeholder="Nazwa produktu..."
+
       @update:filters="(newFilters) => { console.log('Products received filters update:', newFilters); Object.assign(filters, newFilters); filters.page = 1; }"
       @filter-change="fetchProducts"
     >

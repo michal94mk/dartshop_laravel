@@ -15,7 +15,7 @@
       :sort-options="sortOptions"
       search-label="Wyszukaj"
       search-placeholder="Imię, nazwisko lub email..."
-      @update:filters="filters = $event"
+      @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
       @filter-change="fetchUsers"
     >
       <template v-slot:filters>

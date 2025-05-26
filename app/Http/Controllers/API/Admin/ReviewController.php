@@ -51,7 +51,14 @@ class ReviewController extends BaseAdminController
             // Apply sorting
             $sortField = $request->sort_field ?? 'created_at';
             $sortDirection = $request->sort_direction ?? 'desc';
-            $query->orderBy($sortField, $sortDirection);
+            
+            if ($sortField === 'product') {
+                $query->join('products', 'reviews.product_id', '=', 'products.id')
+                      ->orderBy('products.name', $sortDirection)
+                      ->select('reviews.*');
+            } else {
+                $query->orderBy($sortField, $sortDirection);
+            }
             
             // Paginate results
             $perPage = $this->getPerPage($request);

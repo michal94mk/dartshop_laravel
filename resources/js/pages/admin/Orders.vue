@@ -14,7 +14,7 @@
       :sort-options="sortOptions"
       search-label="Wyszukaj"
       search-placeholder="Numer zamówienia, email klienta..."
-      @update:filters="filters = $event"
+      @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
       @filter-change="fetchOrders"
     >
       <template v-slot:filters>

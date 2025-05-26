@@ -11,10 +11,12 @@
     <!-- Search and filters -->
     <search-filters
       v-if="!loading"
-      v-model:filters="filters"
+      :filters="filters"
       :sort-options="sortOptions"
       search-label="Wyszukaj"
       search-placeholder="Nazwa kategorii..."
+
+      @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
       @filter-change="fetchCategories"
     >
       <template v-slot:filters>
@@ -56,16 +58,16 @@
       </template>
     </admin-table>
     
-    <!-- No data message -->
-    <no-data-message v-else-if="!loading" message="Brak kategorii do wyświetlenia" />
-    
     <!-- Pagination -->
     <pagination 
-      v-if="categories.data && categories.data.length > 0"
+      v-if="categories.data && categories.data.length > 0 && categories.last_page > 1"
       :pagination="categories" 
       items-label="kategorii" 
       @page-change="goToPage" 
     />
+    
+    <!-- No data message -->
+    <no-data-message v-if="!loading && (!categories.data || categories.data.length === 0)" message="Brak kategorii do wyświetlenia" />
     
     <!-- Category Modal -->
     <admin-modal
@@ -219,8 +221,7 @@ export default {
       page: 1
     })
     
-    // Debounce timer
-    let searchTimeout = null
+
     
     // Modals
     const showModal = ref(false)
@@ -262,27 +263,28 @@ export default {
     const fetchCategories = async () => {
       try {
         loading.value = true
-        const response = await axios.get('/api/admin/categories', { params: filters })
+        
+        const params = {
+          page: filters.page,
+          search: filters.search,
+          sort_field: filters.sort_field,
+          sort_direction: filters.sort_direction
+        }
+        
+        console.log('Fetching categories with params:', params)
+        
+        const response = await axios.get('/api/admin/categories', { params })
         categories.value = response.data
       } catch (error) {
         console.error('Error fetching categories:', error)
+        console.error('Error details:', error.response?.data)
         alertStore.error('Wystąpił błąd podczas pobierania kategorii.')
       } finally {
         loading.value = false
       }
     }
     
-    const onSearchChange = () => {
-      // Debounce search input to prevent too many requests
-      if (searchTimeout) {
-        clearTimeout(searchTimeout)
-      }
-      
-      searchTimeout = setTimeout(() => {
-        filters.page = 1 // Reset to first page on new search
-        fetchCategories()
-      }, 300)
-    }
+
     
     const goToPage = (page) => {
       if (page === '...') return
@@ -427,7 +429,6 @@ export default {
       deleteCategory,
       confirmDelete,
       formatDate,
-      onSearchChange,
       goToPage,
       sortOptions,
       tableColumns,

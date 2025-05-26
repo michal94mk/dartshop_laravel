@@ -17,9 +17,8 @@
       :sort-options="sortOptions"
       search-label="Wyszukaj"
       search-placeholder="Szukaj recenzji..."
-      @update:filters="filters = $event; fetchReviews()"
+      @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
       @filter-change="fetchReviews"
-      @sort-change="handleSortChange"
     >
       <template v-slot:filters>
         <div class="w-full sm:w-auto">
@@ -74,9 +73,9 @@
     
     <!-- Reviews Table -->
     <admin-table
-      v-if="!loading && reviews.length"
+      v-if="!loading && reviews.data && reviews.data.length > 0"
       :columns="tableColumns"
-      :items="reviews"
+      :items="reviews.data"
       :force-horizontal-scroll="true"
       class="mt-6"
     >
@@ -187,7 +186,15 @@
     </admin-table>
     
     <!-- No data message -->
-    <no-data-message v-else-if="!loading" message="Brak recenzji do wyświetlenia" />
+    <no-data-message v-if="!loading && (!reviews.data || reviews.data.length === 0)" message="Brak recenzji do wyświetlenia" />
+    
+    <!-- Pagination -->
+    <pagination 
+      v-if="!loading && reviews.data && reviews.data.length > 0" 
+      :pagination="reviews" 
+      items-label="recenzji" 
+      @page-change="goToPage" 
+    />
     
     <!-- Review Details Modal -->
     <modal v-if="showDetailsModal" @close="showDetailsModal = false">
@@ -594,6 +601,7 @@ import { useToast } from 'vue-toastification'
   import SearchFilters from '../../components/admin/SearchFilters.vue'
   import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
   import NoDataMessage from '../../components/admin/NoDataMessage.vue'
+  import Pagination from '../../components/admin/Pagination.vue'
 
 export default {
   name: 'AdminReviews',
@@ -606,13 +614,22 @@ export default {
     AdminBadge,
     SearchFilters,
     LoadingSpinner,
-    NoDataMessage
+    NoDataMessage,
+    Pagination
   },
   setup() {
     const alertStore = useAlertStore()
     const toast = useToast()
     const loading = ref(true)
-    const reviews = ref([])
+    const reviews = ref({
+      data: [],
+      current_page: 1,
+      from: 1,
+      to: 0,
+      total: 0,
+      last_page: 1,
+      per_page: 10
+    })
     const showDetailsModal = ref(false)
     const selectedReview = ref(null)
     const showCreateReviewModal = ref(false)
@@ -655,7 +672,8 @@ export default {
       rating: '',
       search: '',
       sort_field: 'created_at',
-      sort_direction: 'desc'
+      sort_direction: 'desc',
+      page: 1
     })
     
     // Fetch all reviews
@@ -664,6 +682,7 @@ export default {
         loading.value = true
         const response = await axios.get('/api/admin/reviews', {
           params: {
+            page: filters.page,
             approved: filters.approved,
             featured: filters.featured,
             rating: filters.rating,
@@ -672,7 +691,7 @@ export default {
             sort_direction: filters.sort_direction
           }
         })
-        reviews.value = response.data.data || response.data
+        reviews.value = response.data
       } catch (error) {
         console.error('Error fetching reviews:', error)
         alertStore.error('Wystąpił błąd podczas pobierania recenzji.')
@@ -686,9 +705,9 @@ export default {
       try {
         const response = await axios.post(`/api/admin/reviews/${review.id}/approve`)
         // Update the review in the local array
-        const index = reviews.value.findIndex(r => r.id === review.id)
+        const index = reviews.value.data.findIndex(r => r.id === review.id)
         if (index !== -1) {
-          reviews.value[index].is_approved = true
+          reviews.value.data[index].is_approved = true
           
           // If this is the review being shown in the details modal, update it too
           if (selectedReview.value && selectedReview.value.id === review.id) {
@@ -707,9 +726,9 @@ export default {
       try {
         const response = await axios.post(`/api/admin/reviews/${review.id}/reject`)
         // Update the review in the local array
-        const index = reviews.value.findIndex(r => r.id === review.id)
+        const index = reviews.value.data.findIndex(r => r.id === review.id)
         if (index !== -1) {
-          reviews.value[index].is_approved = false
+          reviews.value.data[index].is_approved = false
           
           // If this is the review being shown in the details modal, update it too
           if (selectedReview.value && selectedReview.value.id === review.id) {
@@ -744,6 +763,13 @@ export default {
     
     // Filter reviews
     const filterReviews = () => {
+      fetchReviews()
+    }
+    
+    // Pagination
+    const goToPage = (page) => {
+      if (page === '...') return
+      filters.page = page
       fetchReviews()
     }
     
@@ -830,9 +856,9 @@ export default {
     const toggleFeatured = async (review) => {
       try {
         await axios.post(`/api/admin/reviews/${review.id}/toggle-featured`)
-        const index = reviews.value.findIndex(r => r.id === review.id)
+        const index = reviews.value.data.findIndex(r => r.id === review.id)
         if (index !== -1) {
-          reviews.value[index].is_featured = !reviews.value[index].is_featured
+          reviews.value.data[index].is_featured = !reviews.value.data[index].is_featured
           
           // If this is the review being shown in the details modal, update it too
           if (selectedReview.value && selectedReview.value.id === review.id) {
@@ -1141,6 +1167,7 @@ export default {
       sortOptions,
       tableColumns,
       fetchReviews,
+      goToPage,
       approveReview,
       rejectReview,
       showReviewDetails,
