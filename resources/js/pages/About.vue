@@ -1,84 +1,252 @@
 <template>
-  <div>
+  <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
     <!-- Loading indicator -->
-    <div v-if="loading" class="flex justify-center my-12">
-      <svg class="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
+    <div v-if="loading" class="flex justify-center items-center min-h-screen">
+      <div class="relative">
+        <div class="w-20 h-20 border-4 border-purple-200 rounded-full animate-spin border-t-purple-600"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+          </svg>
+        </div>
+      </div>
     </div>
     
     <!-- No content message -->
-    <div v-else-if="!aboutUs" class="my-6 text-center">
-      <p class="text-xl text-gray-600">Nie znaleziono informacji. Sprawdź ponownie później.</p>
-    </div>
-    
-    <!-- Content - Left/Right Layout -->
-    <div v-else-if="aboutUs.image_position === 'left' || aboutUs.image_position === 'right'" 
-         class="flex flex-col md:flex-row max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8" 
-         :class="{ 'md:flex-row-reverse': aboutUs.image_position === 'right' }">
-      
-      <!-- Image section -->
-      <div v-if="aboutUs.image_path" class="w-full md:w-2/5 lg:w-1/3 flex-shrink-0 mb-8 md:mb-0" 
-           :class="{ 
-             'md:mr-12 lg:mr-16': aboutUs.image_position === 'left', 
-             'md:ml-12 lg:ml-16': aboutUs.image_position === 'right' 
-           }">
-        <img 
-          :src="getImageUrl(aboutUs.image_path)" 
-          :alt="aboutUs.title"
-          class="w-full h-auto object-cover rounded-lg shadow-md"
-        >
-      </div>
-      
-      <!-- Content section -->
-      <div class="flex-1">
-        <h1 :class="[aboutUs.header_style || 'text-3xl font-bold text-gray-900', aboutUs.header_margin || 'mb-6']">{{ aboutUs.title }}</h1>
-        <div :class="['break-words', aboutUs.content_layout || 'prose-lg']" v-html="aboutUs.content"></div>
+    <div v-else-if="!aboutUs" class="min-h-screen flex items-center justify-center">
+      <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md mx-auto text-center">
+        <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">Brak treści</h3>
+        <p class="text-gray-600">Nie znaleziono informacji. Sprawdź ponownie później.</p>
       </div>
     </div>
     
-    <!-- Content - Top/Bottom Layout -->
-    <div v-else class="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 space-y-6">
-      <!-- Image at the top -->
-      <div v-if="aboutUs.image_path && aboutUs.image_position === 'top'" class="mb-8">
-        <img 
-          :src="getImageUrl(aboutUs.image_path)" 
-          :alt="aboutUs.title"
-          class="w-full h-auto max-h-96 object-cover rounded-lg shadow-md"
-        >
-      </div>
-      
-      <h1 :class="[aboutUs.header_style || 'text-3xl font-bold text-gray-900', aboutUs.header_margin || 'mb-6']">{{ aboutUs.title }}</h1>
-      <div :class="['break-words', aboutUs.content_layout || 'prose-lg']" v-html="aboutUs.content"></div>
-      
-      <!-- Image at the bottom -->
-      <div v-if="aboutUs.image_path && aboutUs.image_position === 'bottom'" class="mt-10">
-        <img 
-          :src="getImageUrl(aboutUs.image_path)" 
-          :alt="aboutUs.title"
-          class="w-full h-auto max-h-96 object-cover rounded-lg shadow-md"
-        >
-      </div>
-    </div>
-    
-    <!-- Footer section with CTA -->
-    <div class="bg-indigo-50 mt-12">
-      <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
-        <h2 class="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-          <span class="block">Zainteresowany naszymi produktami?</span>
-          <span class="block text-indigo-600">Sprawdź nasz sklep już dziś.</span>
-        </h2>
-        <div class="mt-8 flex lg:mt-0 lg:flex-shrink-0">
-          <div class="inline-flex rounded-md shadow">
-            <router-link to="/" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-              Przejdź do sklepu
-            </router-link>
+    <!-- Content -->
+    <div v-else>
+      <!-- Hero Section -->
+      <div class="relative overflow-hidden bg-gradient-to-r from-purple-600 to-indigo-600 py-16">
+        <div class="absolute inset-0 bg-black opacity-20"></div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+              {{ aboutUs.title || 'O nas' }}
+            </h1>
+            <p class="text-xl text-purple-100 max-w-2xl mx-auto">
+              Poznaj naszą historię, wartości i misję, które kierują nami każdego dnia.
+            </p>
           </div>
-          <div class="ml-3 inline-flex rounded-md shadow">
-            <router-link to="/contact" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50">
-              Skontaktuj się
-            </router-link>
+        </div>
+      </div>
+
+      <!-- Main Content Section -->
+      <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+        <!-- Image and Content Layout -->
+        <div v-if="aboutUs.image_position === 'left' || aboutUs.image_position === 'right'" 
+             class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+             :class="{ 'lg:grid-flow-col-dense': aboutUs.image_position === 'right' }">
+          
+          <!-- Image Section -->
+          <div v-if="aboutUs.image_path" 
+               class="relative"
+               :class="{ 'lg:col-start-2': aboutUs.image_position === 'right' }">
+            <div class="relative overflow-hidden rounded-2xl shadow-2xl">
+              <img 
+                :src="getImageUrl(aboutUs.image_path)" 
+                :alt="aboutUs.title"
+                class="w-full h-auto object-cover"
+              >
+              <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            </div>
+            <!-- Decorative elements -->
+            <div class="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-r from-purple-400 to-indigo-500 rounded-full opacity-20"></div>
+            <div class="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-r from-indigo-400 to-purple-500 rounded-full opacity-30"></div>
+          </div>
+          
+          <!-- Content Section -->
+          <div :class="{ 'lg:col-start-1 lg:row-start-1': aboutUs.image_position === 'right' }">
+            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+              <div class="prose prose-lg max-w-none" v-html="aboutUs.content"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top/Bottom Image Layout -->
+        <div v-else class="space-y-12">
+          <!-- Image at the top -->
+          <div v-if="aboutUs.image_path && aboutUs.image_position === 'top'" class="relative">
+            <div class="relative overflow-hidden rounded-2xl shadow-2xl">
+              <img 
+                :src="getImageUrl(aboutUs.image_path)" 
+                :alt="aboutUs.title"
+                class="w-full h-96 object-cover"
+              >
+              <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+            </div>
+          </div>
+          
+          <!-- Content -->
+          <div class="bg-white rounded-2xl shadow-xl p-8 lg:p-12 border border-gray-100">
+            <div class="prose prose-lg max-w-none" v-html="aboutUs.content"></div>
+          </div>
+          
+          <!-- Image at the bottom -->
+          <div v-if="aboutUs.image_path && aboutUs.image_position === 'bottom'" class="relative">
+            <div class="relative overflow-hidden rounded-2xl shadow-2xl">
+              <img 
+                :src="getImageUrl(aboutUs.image_path)" 
+                :alt="aboutUs.title"
+                class="w-full h-96 object-cover"
+              >
+              <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features Section -->
+      <div class="bg-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Dlaczego warto nas wybrać?</h2>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+              Oto kilka powodów, dla których jesteśmy wyjątkowi
+            </p>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="text-center group">
+              <div class="w-16 h-16 bg-gradient-to-r from-purple-400 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900 mb-3">Najwyższa jakość</h3>
+              <p class="text-gray-600">Oferujemy tylko produkty najwyższej jakości, które przechodzą rygorystyczne testy.</p>
+            </div>
+            
+            <div class="text-center group">
+              <div class="w-16 h-16 bg-gradient-to-r from-blue-400 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900 mb-3">Szybka dostawa</h3>
+              <p class="text-gray-600">Gwarantujemy szybką i bezpieczną dostawę Twoich zamówień w całej Polsce.</p>
+            </div>
+            
+            <div class="text-center group">
+              <div class="w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900 mb-3">Wsparcie 24/7</h3>
+              <p class="text-gray-600">Nasz zespół ekspertów jest dostępny przez całą dobę, aby pomóc Ci w każdej sprawie.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics Section -->
+      <div class="bg-gradient-to-r from-purple-600 to-indigo-600 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-white mb-4">Nasze osiągnięcia w liczbach</h2>
+            <p class="text-xl text-purple-100">Zaufało nam już tysiące zadowolonych klientów</p>
+          </div>
+          
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div class="text-center">
+              <div class="text-4xl md:text-5xl font-bold text-white mb-2">10K+</div>
+              <div class="text-purple-100">Zadowolonych klientów</div>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl md:text-5xl font-bold text-white mb-2">500+</div>
+              <div class="text-purple-100">Produktów w ofercie</div>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl md:text-5xl font-bold text-white mb-2">5+</div>
+              <div class="text-purple-100">Lat doświadczenia</div>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl md:text-5xl font-bold text-white mb-2">99%</div>
+              <div class="text-purple-100">Pozytywnych opinii</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Team Section -->
+      <div class="py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Poznaj nasz zespół</h2>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+              Grupa pasjonatów, którzy każdego dnia pracują nad tym, aby dostarczyć Ci najlepsze produkty
+            </p>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+              <div class="h-64 bg-gradient-to-br from-purple-400 to-indigo-500"></div>
+              <div class="p-6 text-center">
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Anna Kowalska</h3>
+                <p class="text-purple-600 font-medium mb-3">CEO & Założycielka</p>
+                <p class="text-gray-600">Pasjonatka e-commerce z 10-letnim doświadczeniem w branży.</p>
+              </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+              <div class="h-64 bg-gradient-to-br from-blue-400 to-purple-500"></div>
+              <div class="p-6 text-center">
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Piotr Nowak</h3>
+                <p class="text-blue-600 font-medium mb-3">CTO</p>
+                <p class="text-gray-600">Ekspert w dziedzinie technologii i rozwoju platform e-commerce.</p>
+              </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+              <div class="h-64 bg-gradient-to-br from-green-400 to-blue-500"></div>
+              <div class="p-6 text-center">
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Maria Wiśniewska</h3>
+                <p class="text-green-600 font-medium mb-3">Head of Marketing</p>
+                <p class="text-gray-600">Specjalistka od marketingu digitalnego i budowania relacji z klientami.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA Section -->
+      <div class="bg-gradient-to-r from-indigo-600 to-purple-600">
+        <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+          <div class="text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
+              Gotowy na rozpoczęcie przygody z nami?
+            </h2>
+            <p class="text-xl text-indigo-100 mb-8 max-w-2xl mx-auto">
+              Dołącz do tysięcy zadowolonych klientów i odkryj nasze wyjątkowe produkty już dziś.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+              <router-link to="/" 
+                           class="inline-flex items-center px-8 py-4 border border-transparent text-base font-semibold rounded-xl text-indigo-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-all duration-200 shadow-lg hover:shadow-xl">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6a2 2 0 002 2h4a2 2 0 002-2v-6M8 11h8"/>
+                </svg>
+                Przejdź do sklepu
+              </router-link>
+              <router-link to="/contact" 
+                           class="inline-flex items-center px-8 py-4 border-2 border-white text-base font-semibold rounded-xl text-white bg-transparent hover:bg-white hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-all duration-200">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                Skontaktuj się z nami
+              </router-link>
+            </div>
           </div>
         </div>
       </div>
@@ -135,11 +303,42 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
+.prose {
+  max-width: none;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  color: #374151;
+  font-weight: 700;
+}
+
+.prose p {
+  color: #6b7280;
+  line-height: 1.75;
+}
+
 .prose img {
-  border-radius: 0.375rem;
+  border-radius: 1rem;
   max-width: 100%;
   height: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.prose a {
+  color: #7c3aed;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.prose a:hover {
+  color: #5b21b6;
+  text-decoration: underline;
 }
 
 .break-words {

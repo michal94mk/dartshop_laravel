@@ -6,7 +6,6 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\DebugController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\ProfileController;
@@ -48,7 +47,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// Products API - w wersji REST
+// Products API
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/featured', [ProductController::class, 'featured']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
@@ -118,30 +117,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/user/password', [ProfileController::class, 'updatePassword']);
 });
 
-// Other API endpoints
-Route::get('/promotions', function() {
-    return response()->json([
-        'data' => []
-    ]);
-});
-
 // Tutorial routes
 Route::get('/tutorials', [TutorialController::class, 'index']);
 Route::get('/tutorials/{slug}', [TutorialController::class, 'show']);
-
-// Debug routes
-Route::get('/debug/products', [DebugController::class, 'checkProducts']);
-Route::get('/debug/routes', [DebugController::class, 'checkRoutes']);
-Route::get('/debug', [DebugController::class, 'debug']);
-
-// Simple test endpoint
-Route::get('/test', function() {
-    return response()->json([
-        'success' => true,
-        'message' => 'API test endpoint working correctly',
-        'time' => now()->toDateTimeString()
-    ]);
-});
 
 // Public About page route
 Route::get('/about', [AboutUsController::class, 'index']);
@@ -149,56 +127,23 @@ Route::get('/about', [AboutUsController::class, 'index']);
 // Contact form submission route
 Route::post('/contact', [ContactController::class, 'store']);
 
-// Temporary debug routes for About (remove in production)
-Route::get('/debug/about', [AboutUsController::class, 'index']);
-Route::put('/debug/about', [AboutUsController::class, 'update']);
-Route::post('/debug/upload/image/about', [AboutUsController::class, 'uploadImage']);
-
-// Test products endpoint
-Route::get('/test-products', function() {
-    return response()->json([
-        'success' => true,
-        'products' => \App\Models\Product::with(['category', 'brand'])->take(5)->get()
-    ]);
+// Guest Checkout API (for non-authenticated users)
+Route::prefix('guest-checkout')->group(function () {
+    Route::post('/', [GuestCheckoutController::class, 'index']);
+    Route::post('/process', [GuestCheckoutController::class, 'process']);
 });
 
-// Test auth endpoints
-Route::get('/test-auth', function() {
-    return response()->json([
-        'success' => true,
-        'message' => 'You are authenticated',
-        'user' => \Illuminate\Support\Facades\Auth::user()
-    ]);
-})->middleware('auth:sanctum');
+// Guest Stripe payment routes
+Route::prefix('guest-stripe')->group(function () {
+    Route::post('/create-checkout-session', [StripeController::class, 'createGuestCheckoutSession']);
+    Route::post('/create-payment-intent', [StripeController::class, 'createGuestPaymentIntent']);
+    Route::post('/confirm-payment', [StripeController::class, 'confirmGuestPayment']);
+});
 
-Route::get('/test-admin', function() {
-    return response()->json([
-        'success' => true,
-        'message' => 'You are an admin',
-        'user' => \Illuminate\Support\Facades\Auth::user()
-    ]);
-})->middleware(['auth:sanctum', 'role:admin']);
-
-// Debug route for users
-Route::get('/debug-users', function() {
-    $users = \App\Models\User::all();
-    $usersArray = $users->map(function($user) {
-        return [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'is_admin' => $user->is_admin,
-            'email_verified_at' => $user->email_verified_at,
-            'created_at' => $user->created_at
-        ];
-    });
-    
-    return response()->json([
-        'success' => true,
-        'total_users' => $users->count(),
-        'users' => $usersArray
-    ]);
-})->middleware(['auth:sanctum', 'role:admin']);
+// Stripe webhook and success handling (public routes)
+Route::prefix('stripe')->group(function () {
+    Route::post('/success', [StripeController::class, 'handleCheckoutSuccess']);
+});
 
 // Admin API Routes
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
@@ -252,22 +197,4 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/about', [AboutPageController::class, 'index']);
     Route::put('/about', [AboutPageController::class, 'update']);
     Route::post('/about/upload-image', [AboutPageController::class, 'uploadImage']);
-});
-
-// Guest Checkout API (for non-authenticated users)
-Route::prefix('guest-checkout')->group(function () {
-    Route::post('/', [GuestCheckoutController::class, 'index']);
-    Route::post('/process', [GuestCheckoutController::class, 'process']);
-});
-
-// Guest Stripe payment routes
-Route::prefix('guest-stripe')->group(function () {
-    Route::post('/create-checkout-session', [StripeController::class, 'createGuestCheckoutSession']);
-    Route::post('/create-payment-intent', [StripeController::class, 'createGuestPaymentIntent']);
-    Route::post('/confirm-payment', [StripeController::class, 'confirmGuestPayment']);
-});
-
-// Stripe webhook and success handling (public routes)
-Route::prefix('stripe')->group(function () {
-    Route::post('/success', [StripeController::class, 'handleCheckoutSuccess']);
 });
