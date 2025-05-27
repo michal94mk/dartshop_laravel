@@ -12,10 +12,12 @@
       v-if="!loading"
       :filters="filters"
       :sort-options="sortOptions"
+      :default-filters="defaultFilters"
       search-label="Wyszukaj"
       search-placeholder="Numer zamówienia, email klienta..."
       @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
       @filter-change="fetchOrders"
+      @reset-filters="resetFilters"
     >
       <template v-slot:filters>
         <div class="w-full sm:w-auto">
@@ -716,7 +718,8 @@ export default {
     
 
     
-    const filters = ref({
+    // Default filters
+    const defaultFilters = {
       search: '',
       status: '',
       date_from: '',
@@ -724,7 +727,9 @@ export default {
       sort_field: 'created_at',
       sort_direction: 'desc',
       page: 1
-    })
+    }
+    
+    const filters = ref({ ...defaultFilters })
     
     // Modals
     const showDetailsModal = ref(false)
@@ -1340,6 +1345,11 @@ export default {
         style: 'currency',
         currency: 'PLN'
       }).format(price)
+    }
+    
+    const resetFilters = () => {
+      Object.assign(filters.value, defaultFilters)
+      fetchOrders()
     }
     
     // Lifecycle

@@ -13,10 +13,12 @@
       v-if="!loading"
       :filters="filters"
       :sort-options="sortOptions"
+      :default-filters="defaultFilters"
       search-label="Wyszukaj"
       search-placeholder="Imię, nazwisko lub email..."
       @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
       @filter-change="fetchUsers"
+      @reset-filters="resetFilters"
     >
       <template v-slot:filters>
         <div class="w-full sm:w-auto">
@@ -431,14 +433,17 @@ export default {
     
 
     
-    const filters = reactive({
+    // Default filters
+    const defaultFilters = {
       search: '',
       role: '',
       verified: '',
       sort_field: 'created_at',
       sort_direction: 'desc',
       page: 1
-    })
+    }
+    
+    const filters = reactive({ ...defaultFilters })
     
     // Current user ID to prevent self-deletion
     const currentUserId = computed(() => authStore.user ? authStore.user.id : null)
@@ -734,6 +739,11 @@ export default {
       return user.role === 'admin'
     }
     
+    const resetFilters = () => {
+      Object.assign(filters, defaultFilters)
+      fetchUsers()
+    }
+    
     // Lifecycle
     onMounted(() => {
       fetchUsers()
@@ -743,6 +753,7 @@ export default {
       loading,
       users,
       filters,
+      defaultFilters,
       sortOptions,
       tableColumns,
       currentUserId,
@@ -763,7 +774,8 @@ export default {
       isUserAdmin,
       activeTab,
       availableRoles,
-      permissionGroups
+      permissionGroups,
+      resetFilters
     }
   }
 }

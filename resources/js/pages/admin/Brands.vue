@@ -13,10 +13,12 @@
       v-if="!loading"
       :filters="filters"
       :sort-options="sortOptions"
+      :default-filters="defaultFilters"
       search-label="Wyszukaj"
       search-placeholder="Nazwa marki..."
       @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
       @filter-change="fetchBrands"
+      @reset-filters="resetFilters"
     />
     
     <!-- Loading indicator -->
@@ -196,13 +198,16 @@ export default {
       { value: 'products_count', label: 'Liczba produktów' }
     ]
     
-    // Filters and pagination
-    const filters = reactive({
+    // Default filters
+    const defaultFilters = {
       search: '',
       sort_field: 'id',
       sort_direction: 'asc',
       page: 1
-    })
+    }
+    
+    // Filters and pagination
+    const filters = reactive({ ...defaultFilters })
     
     const form = ref({
       name: ''
@@ -374,6 +379,11 @@ export default {
       return new Date(dateString).toLocaleDateString('pl-PL', options);
     }
     
+    const resetFilters = () => {
+      Object.assign(filters, defaultFilters)
+      fetchBrands()
+    }
+    
     onMounted(() => {
       fetchBrands()
     })
@@ -387,6 +397,7 @@ export default {
       brandToDelete,
       form,
       filters,
+      defaultFilters,
       sortOptions,
       tableColumns,
       fetchBrands,
@@ -398,6 +409,7 @@ export default {
       closeForm,
       goToPage,
       formatDate,
+      resetFilters,
       showErrorModal,
       errorMessage
     }

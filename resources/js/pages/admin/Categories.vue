@@ -13,11 +13,13 @@
       v-if="!loading"
       :filters="filters"
       :sort-options="sortOptions"
+      :default-filters="defaultFilters"
       search-label="Wyszukaj"
       search-placeholder="Nazwa kategorii..."
 
       @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
       @filter-change="fetchCategories"
+      @reset-filters="resetFilters"
     >
       <template v-slot:filters>
         <!-- No additional filters needed -->
@@ -213,13 +215,16 @@ export default {
     
 
     
-    // Filters and pagination
-    const filters = reactive({
+    // Default filters
+    const defaultFilters = {
       search: '',
       sort_field: 'created_at',
       sort_direction: 'desc',
       page: 1
-    })
+    }
+    
+    // Filters and pagination
+    const filters = reactive({ ...defaultFilters })
     
 
     
@@ -410,6 +415,11 @@ export default {
       return new Date(dateString).toLocaleDateString('pl-PL', options)
     }
     
+    const resetFilters = () => {
+      Object.assign(filters, defaultFilters)
+      fetchCategories()
+    }
+    
     // Lifecycle
     onMounted(() => {
       fetchCategories()
@@ -419,6 +429,7 @@ export default {
       loading,
       categories,
       filters,
+      defaultFilters,
       showModal,
       showDeleteModal,
       currentCategory,
@@ -430,6 +441,7 @@ export default {
       confirmDelete,
       formatDate,
       goToPage,
+      resetFilters,
       sortOptions,
       tableColumns,
       showErrorModal,

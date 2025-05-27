@@ -15,10 +15,12 @@
       v-else
       :filters="filters"
       :sort-options="sortOptions"
+      :default-filters="defaultFilters"
       search-label="Wyszukaj"
       search-placeholder="Szukaj recenzji..."
       @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
       @filter-change="fetchReviews"
+      @reset-filters="resetFilters"
     >
       <template v-slot:filters>
         <div class="w-full sm:w-auto">
@@ -663,8 +665,8 @@ export default {
     
 
     
-    // Filters
-    const filters = reactive({
+    // Default filters
+    const defaultFilters = {
       approved: '',
       featured: '',
       rating: '',
@@ -672,7 +674,10 @@ export default {
       sort_field: 'created_at',
       sort_direction: 'desc',
       page: 1
-    })
+    }
+    
+    // Filters
+    const filters = reactive({ ...defaultFilters })
     
     // Fetch all reviews
     const fetchReviews = async () => {
@@ -1154,6 +1159,11 @@ export default {
       }
     }, { immediate: false })
     
+    const resetFilters = () => {
+      Object.assign(filters, defaultFilters)
+      fetchReviews()
+    }
+    
     onMounted(() => {
       fetchReviews()
     })
@@ -1162,6 +1172,7 @@ export default {
       loading,
       reviews,
       filters,
+      defaultFilters,
       sortOptions,
       tableColumns,
       fetchReviews,
@@ -1193,7 +1204,8 @@ export default {
       formDataLoading,
       formSubmitting,
       handleAddButtonClick,
-      testFormDataAPI
+      testFormDataAPI,
+      resetFilters
     }
   }
 }

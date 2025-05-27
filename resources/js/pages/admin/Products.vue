@@ -13,11 +13,13 @@
       v-if="!loading"
       :filters="filters"
       :sort-options="sortOptions"
+      :default-filters="defaultFilters"
       search-label="Wyszukaj"
       search-placeholder="Nazwa produktu..."
 
       @update:filters="(newFilters) => { console.log('Products received filters update:', newFilters); Object.assign(filters, newFilters); filters.page = 1; }"
       @filter-change="fetchProducts"
+      @reset-filters="resetFilters"
     >
       <template v-slot:filters>
         <div class="w-full sm:w-auto">
@@ -383,14 +385,17 @@ export default {
     
 
     
-    const filters = reactive({
+    // Default filters
+    const defaultFilters = {
       search: '',
       category_id: '',
       brand_id: '',
       sort_field: 'created_at',
       sort_direction: 'desc',
       page: 1
-    })
+    }
+    
+    const filters = reactive({ ...defaultFilters })
     
     // Modals
     const showModal = ref(false)
@@ -895,6 +900,11 @@ export default {
       }, 100);
     }
     
+    const resetFilters = () => {
+      Object.assign(filters, defaultFilters)
+      fetchProducts()
+    }
+    
     // Watch for filter changes
     watch(() => filters.page, () => {
       fetchProducts()
@@ -912,6 +922,7 @@ export default {
       categories,
       brands,
       filters,
+      defaultFilters,
       sortOptions,
       tableColumns,
       paginationPages,
@@ -934,7 +945,8 @@ export default {
       getImageSrc,
       triggerFileUpload,
       tryFallbackImage,
-      tryModalFallbackImage
+      tryModalFallbackImage,
+      resetFilters
     }
   }
 }

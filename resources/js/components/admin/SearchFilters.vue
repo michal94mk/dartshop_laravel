@@ -31,7 +31,7 @@
     </div>
     
     <!-- Other Filters and Sort Options -->
-    <div class="flex flex-wrap gap-4">
+    <div class="flex flex-wrap gap-4 items-end">
       <!-- Custom Filters -->
       <slot name="filters"></slot>
       
@@ -65,6 +65,20 @@
           <option value="asc">Rosnąco</option>
         </select>
       </div>
+      
+      <!-- Reset Filters Button -->
+      <div class="w-full sm:w-auto">
+        <button
+          type="button"
+          @click="resetFilters"
+          class="mt-1 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Resetuj filtry
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -92,9 +106,17 @@ export default {
       type: String,
       default: 'Wyszukaj...'
     },
-
+    defaultFilters: {
+      type: Object,
+      default: () => ({
+        search: '',
+        sort_field: 'created_at',
+        sort_direction: 'desc',
+        page: 1
+      })
+    }
   },
-  emits: ['update:filters', 'filter-change'],
+  emits: ['update:filters', 'filter-change', 'reset-filters'],
   setup(props, { emit }) {
     // Separate local search state from other filters
     const localSearch = ref(props.filters.search || '')
@@ -143,6 +165,19 @@ export default {
       isSearchFocused.value = false
     }
     
+    const resetFilters = () => {
+      // Reset local search
+      localSearch.value = ''
+      
+      // Reset filter model to default values
+      filterModel.value = { ...props.defaultFilters }
+      
+      // Emit the reset
+      emit('reset-filters')
+      emit('update:filters', { ...filterModel.value })
+      emit('filter-change')
+    }
+    
     const emitChange = () => {
       console.log('SearchFilters emitting change:', filterModel.value)
       emit('update:filters', { ...filterModel.value })
@@ -157,7 +192,8 @@ export default {
       onSearchSubmit,
       onSearchFocus,
       onSearchBlur,
-      onFilterChange
+      onFilterChange,
+      resetFilters
     }
   }
 }
