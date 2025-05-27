@@ -282,8 +282,7 @@ export default {
     const fetchAboutPage = async () => {
       try {
         loading.value = true
-        // Temporarily use the public endpoint for debugging
-        const response = await axios.get('/api/debug/about')
+        const response = await axios.get('/api/admin/about')
         aboutUs.value = response.data
         
         // Ustaw domyślne style jeśli nie zostały jeszcze ustawione
@@ -317,8 +316,7 @@ export default {
         aboutUs.value.header_margin = headerOptions.value.margin
         aboutUs.value.content_layout = headerOptions.value.contentLayout
         
-        // Temporarily use the public endpoint for debugging
-        const response = await axios.put('/api/debug/about', aboutUs.value)
+        const response = await axios.put('/api/admin/about', aboutUs.value)
         originalAboutUs.value = JSON.parse(JSON.stringify(response.data))
         toast.success('Strona została zaktualizowana')
       } catch (error) {
@@ -359,8 +357,7 @@ export default {
       formData.append('image', file)
       
       try {
-        // Temporarily use the public endpoint for debugging
-        const response = await axios.post('/api/debug/upload/image/about', formData, {
+        const response = await axios.post('/api/admin/upload/image/about', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }

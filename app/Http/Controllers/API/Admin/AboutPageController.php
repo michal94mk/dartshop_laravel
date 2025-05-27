@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\AboutPage;
+use App\Models\AboutUs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -17,10 +17,10 @@ class AboutPageController extends BaseAdminController
     public function index()
     {
         // Get the first about page record or create a new one if none exists
-        $aboutPage = AboutPage::first();
+        $aboutPage = AboutUs::first();
         
         if (!$aboutPage) {
-            $aboutPage = new AboutPage();
+            $aboutPage = new AboutUs();
             $aboutPage->title = 'O nas';
             $aboutPage->content = 'Dodaj treść strony O nas.';
             $aboutPage->save();
@@ -36,7 +36,7 @@ class AboutPageController extends BaseAdminController
      */
     public function all()
     {
-        $aboutPages = AboutPage::orderBy('display_order')->get();
+        $aboutPages = AboutUs::orderBy('created_at')->get();
         return response()->json($aboutPages);
     }
     
@@ -48,7 +48,7 @@ class AboutPageController extends BaseAdminController
      */
     public function show($id)
     {
-        $aboutPage = AboutPage::findOrFail($id);
+        $aboutPage = AboutUs::findOrFail($id);
         return response()->json($aboutPage);
     }
 
@@ -65,32 +65,28 @@ class AboutPageController extends BaseAdminController
             'content' => 'required|string',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
-            'display_order' => 'nullable|integer',
-            'is_active' => 'nullable|boolean',
             'image_path' => 'nullable|string',
-            'layout_type' => 'nullable|string|in:standard,full-width,text-only,image-only',
-            'image_position' => 'nullable|string|in:left,right,top,bottom,background',
-            'background_color' => 'nullable|string',
-            'is_hero_section' => 'nullable|boolean',
+            'image_position' => 'nullable|string|in:left,right,top,bottom',
+            'header_style' => 'nullable|string',
+            'header_margin' => 'nullable|string',
+            'content_layout' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
             return $this->validationError($validator->errors());
         }
 
-        $aboutPage = new AboutPage();
+        $aboutPage = new AboutUs();
         $aboutPage->fill($request->only([
             'title',
             'content',
             'meta_title',
             'meta_description',
-            'display_order',
-            'is_active',
             'image_path',
-            'layout_type',
             'image_position',
-            'background_color',
-            'is_hero_section'
+            'header_style',
+            'header_margin',
+            'content_layout'
         ]));
         
         $aboutPage->save();
@@ -111,13 +107,11 @@ class AboutPageController extends BaseAdminController
             'content' => 'required|string',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
-            'display_order' => 'nullable|integer',
-            'is_active' => 'nullable|boolean',
             'image_path' => 'nullable|string',
-            'layout_type' => 'nullable|string|in:standard,full-width,text-only,image-only',
-            'image_position' => 'nullable|string|in:left,right,top,bottom,background',
-            'background_color' => 'nullable|string',
-            'is_hero_section' => 'nullable|boolean',
+            'image_position' => 'nullable|string|in:left,right,top,bottom',
+            'header_style' => 'nullable|string',
+            'header_margin' => 'nullable|string',
+            'content_layout' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -125,10 +119,10 @@ class AboutPageController extends BaseAdminController
         }
 
         // Get the first about page record or create a new one if none exists
-        $aboutPage = AboutPage::first();
+        $aboutPage = AboutUs::first();
         
         if (!$aboutPage) {
-            $aboutPage = new AboutPage();
+            $aboutPage = new AboutUs();
         }
         
         // Update the about page data with only the fields that are in the fillable array
@@ -137,13 +131,11 @@ class AboutPageController extends BaseAdminController
             'content',
             'meta_title',
             'meta_description',
-            'display_order',
-            'is_active',
             'image_path',
-            'layout_type',
             'image_position',
-            'background_color',
-            'is_hero_section'
+            'header_style',
+            'header_margin',
+            'content_layout'
         ]));
         
         $aboutPage->save();
@@ -165,20 +157,18 @@ class AboutPageController extends BaseAdminController
             'content' => 'required|string',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
-            'display_order' => 'nullable|integer',
-            'is_active' => 'nullable|boolean',
             'image_path' => 'nullable|string',
-            'layout_type' => 'nullable|string|in:standard,full-width,text-only,image-only',
-            'image_position' => 'nullable|string|in:left,right,top,bottom,background',
-            'background_color' => 'nullable|string',
-            'is_hero_section' => 'nullable|boolean',
+            'image_position' => 'nullable|string|in:left,right,top,bottom',
+            'header_style' => 'nullable|string',
+            'header_margin' => 'nullable|string',
+            'content_layout' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
             return $this->validationError($validator->errors());
         }
 
-        $aboutPage = AboutPage::findOrFail($id);
+        $aboutPage = AboutUs::findOrFail($id);
         
         // Update the about page data with only the fields that are in the fillable array
         $aboutPage->fill($request->only([
@@ -186,13 +176,11 @@ class AboutPageController extends BaseAdminController
             'content',
             'meta_title',
             'meta_description',
-            'display_order',
-            'is_active',
             'image_path',
-            'layout_type',
             'image_position',
-            'background_color',
-            'is_hero_section'
+            'header_style',
+            'header_margin',
+            'content_layout'
         ]));
         
         $aboutPage->save();
@@ -208,7 +196,7 @@ class AboutPageController extends BaseAdminController
      */
     public function destroy($id)
     {
-        $aboutPage = AboutPage::findOrFail($id);
+        $aboutPage = AboutUs::findOrFail($id);
         $aboutPage->delete();
         
         return response()->json(['message' => 'Strona usunięta pomyślnie']);
