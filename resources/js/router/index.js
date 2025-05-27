@@ -21,6 +21,7 @@ import Profile from '../pages/Profile.vue';
 import ForgotPassword from '../pages/ForgotPassword.vue';
 import ResetPassword from '../pages/ResetPassword.vue';
 import VerifyEmail from '../pages/VerifyEmail.vue';
+import NewsletterVerification from '../pages/NewsletterVerification.vue';
 // Import admin components
 import AdminLayout from '../components/layouts/AdminLayout.vue';
 import AdminDashboard from '../pages/admin/Dashboard.vue';
@@ -35,6 +36,7 @@ import AdminPromotions from '../pages/admin/Promotions.vue';
 import AdminTutorials from '../pages/admin/Tutorials.vue';
 import AdminContactMessages from '../pages/admin/ContactMessages.vue';
 import AdminAbout from '../pages/admin/About.vue';
+import AdminNewsletter from '../pages/admin/Newsletter.vue';
 
 const routes = [
   {
@@ -191,6 +193,14 @@ const routes = [
       layout: 'default'
     }
   },
+  {
+    path: '/newsletter/verify',
+    name: 'newsletter-verify',
+    component: NewsletterVerification,
+    meta: {
+      layout: 'default'
+    }
+  },
   // Admin routes
   {
     path: '/admin',
@@ -261,6 +271,11 @@ const routes = [
         path: 'about',
         name: 'admin-about',
         component: AdminAbout
+      },
+      {
+        path: 'newsletter',
+        name: 'admin-newsletter',
+        component: AdminNewsletter
       }
     ]
   },

@@ -1,0 +1,245 @@
+<template>
+  <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 shadow-2xl border border-indigo-500/20">
+    <div class="max-w-md mx-auto text-center">
+      <div class="mb-6">
+        <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+          <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+      </div>
+      
+      <h3 class="text-2xl font-bold text-white mb-3">Newsletter DartShop</h3>
+      <p class="text-indigo-100 mb-6 leading-relaxed">
+        Zapisz się do naszego newslettera i bądź na bieżąco z najnowszymi produktami, promocjami i poradnikami dotyczącymi gry w dart!
+      </p>
+      
+      <form @submit.prevent="subscribe" class="space-y-4">
+        <div class="relative">
+          <input
+            v-model="email"
+            type="email"
+            placeholder="Twój adres email"
+            required
+            :disabled="loading"
+            class="w-full px-6 py-4 text-gray-900 bg-white/95 backdrop-blur-sm border-2 border-white/20 rounded-xl focus:ring-4 focus:ring-white/30 focus:border-white focus:outline-none disabled:opacity-50 disabled:bg-gray-200 transition-all duration-200 text-center font-medium placeholder-gray-500 shadow-lg"
+            :class="{ 'border-red-300 focus:border-red-400 focus:ring-red-400/30': errorMessage }"
+          />
+          <div v-if="loading" class="absolute right-4 top-1/2 transform -translate-y-1/2">
+            <svg class="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+        </div>
+        
+        <button
+          type="submit"
+          :disabled="loading || !email || !isValidEmail"
+          class="w-full bg-white text-indigo-600 font-bold py-4 px-8 rounded-xl hover:bg-indigo-50 focus:ring-4 focus:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-lg backdrop-blur-sm"
+        >
+          <span v-if="loading" class="flex items-center justify-center">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Zapisywanie...
+          </span>
+          <span v-else class="flex items-center justify-center">
+            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Zapisz się do newslettera
+          </span>
+        </button>
+      </form>
+      
+      <!-- Privacy Notice -->
+      <p class="mt-6 text-xs text-indigo-200 leading-relaxed">
+        Zapisując się do newslettera akceptujesz naszą 
+        <router-link to="/privacy" class="text-white hover:text-indigo-100 underline font-medium">politykę prywatności</router-link>. 
+        Możesz się wypisać w każdej chwili.
+      </p>
+    </div>
+  </div>
+</template>
+
+<script>
+import { newsletterService } from '../../services/newsletterService';
+import { useToast } from "vue-toastification";
+
+export default {
+  name: 'NewsletterSubscription',
+  setup() {
+    const toast = useToast();
+    return { toast };
+  },
+  mounted() {
+    console.log('NewsletterSubscription component mounted successfully!');
+    console.log('Initial data:', this.$data);
+    console.log('Newsletter service available:', typeof newsletterService);
+  },
+  data() {
+    return {
+      email: '',
+      loading: false,
+      source: 'footer' // Track where the subscription came from
+    };
+  },
+  computed: {
+    isValidEmail() {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return this.email ? emailRegex.test(this.email) : true;
+    }
+  },
+  methods: {
+    async subscribe() {
+      console.log('Subscribe method called with email:', this.email);
+      console.log('Email validation:', { isValidEmail: this.isValidEmail, email: this.email });
+      
+      if (!this.email || !this.isValidEmail) {
+        this.toast.error('Proszę wprowadzić prawidłowy adres email', {
+          position: "top-center",
+          timeout: 4000,
+          closeOnClick: true,
+          pauseOnFocusLoss: true,
+          pauseOnHover: true,
+          draggable: true,
+          draggablePercent: 0.6,
+          showCloseButtonOnHover: false,
+          hideProgressBar: false,
+          closeButton: "button",
+          icon: true,
+          rtl: false
+        });
+        console.error('Email validation failed');
+        return;
+      }
+      
+      this.loading = true;
+      
+      try {
+        console.log('Attempting to subscribe with email:', this.email);
+        const response = await newsletterService.subscribe(this.email, this.source);
+        console.log('Newsletter subscription response:', response);
+        
+        if (response.success) {
+          // Success toast with custom styling
+          this.toast.success(response.message, {
+            position: "top-center",
+            timeout: 6000,
+            closeOnClick: true,
+            pauseOnFocusLoss: true,
+            pauseOnHover: true,
+            draggable: true,
+            draggablePercent: 0.6,
+            showCloseButtonOnHover: false,
+            hideProgressBar: false,
+            closeButton: "button",
+            icon: "🎯",
+            rtl: false
+          });
+          
+          this.email = '';
+          
+          // Additional celebration effect
+          this.celebrateSuccess();
+        } else {
+          this.toast.warning(response.message || 'Wystąpił błąd podczas zapisywania do newslettera', {
+            position: "top-center",
+            timeout: 5000,
+            closeOnClick: true,
+            pauseOnFocusLoss: true,
+            pauseOnHover: true,
+            draggable: true,
+            draggablePercent: 0.6,
+            showCloseButtonOnHover: false,
+            hideProgressBar: false,
+            closeButton: "button",
+            icon: "⚠️",
+            rtl: false
+          });
+        }
+      } catch (error) {
+        console.error('Newsletter subscription error:', error);
+        
+        // Handle different types of errors
+        if (error.response) {
+          console.error('Error response:', error.response.data);
+          if (error.response.status === 422 && error.response.data.errors) {
+            const firstError = Object.values(error.response.data.errors)[0];
+            const errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+            this.toast.error(errorMessage, {
+              position: "top-center",
+              timeout: 5000,
+              icon: "❌"
+            });
+          } else if (error.response.data.message) {
+            this.toast.error(error.response.data.message, {
+              position: "top-center",
+              timeout: 5000,
+              icon: "❌"
+            });
+          } else {
+            this.toast.error('Wystąpił błąd podczas zapisywania do newslettera', {
+              position: "top-center",
+              timeout: 5000,
+              icon: "❌"
+            });
+          }
+        } else if (error.request) {
+          console.error('Network error:', error.request);
+          this.toast.error('Błąd połączenia. Sprawdź swoją internetową i spróbuj ponownie.', {
+            position: "top-center",
+            timeout: 5000,
+            icon: "🌐"
+          });
+        } else {
+          console.error('Error message:', error.message);
+          this.toast.error('Wystąpił nieoczekiwany błąd. Spróbuj ponownie.', {
+            position: "top-center",
+            timeout: 5000,
+            icon: "❌"
+          });
+        }
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    celebrateSuccess() {
+      // Add a simple celebration effect
+      this.$el.style.transform = 'scale(1.02)';
+      setTimeout(() => {
+        this.$el.style.transform = 'scale(1)';
+      }, 300);
+    }
+  }
+};
+</script>
+
+<style scoped>
+/* Enhanced backdrop blur for better glass effect */
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+}
+
+/* Enhanced shadow and glow effects */
+.shadow-2xl {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition: all 0.2s ease;
+}
+
+/* Enhanced hover effects */
+button:hover:not(:disabled) {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+input:focus {
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2), 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+</style> 

@@ -57,7 +57,7 @@
     </main>
 
     <!-- Footer z lepszym kontrastem i stylizacją -->
-    <site-footer class="bg-gray-800 text-white shadow-inner mt-auto" />
+    <site-footer class="shadow-inner mt-auto" />
   </div>
 </template>
 

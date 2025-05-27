@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\Admin\TutorialController as AdminTutorialController
 use App\Http\Controllers\Api\Admin\ContactMessageController as AdminContactMessageController;
 use App\Http\Controllers\Api\Admin\AboutPageController;
 use App\Http\Controllers\Api\Admin\ImageUploadController;
+use App\Http\Controllers\Api\Admin\NewsletterController as AdminNewsletterController;
 use App\Http\Controllers\Api\AboutUsController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\FavoriteProductController;
@@ -31,6 +32,7 @@ use App\Http\Controllers\Api\TutorialController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\GuestCheckoutController;
 use App\Http\Controllers\Api\StripeController;
+use App\Http\Controllers\Api\NewsletterController;
 
 /*
 |--------------------------------------------------------------------------
@@ -107,7 +109,7 @@ Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']
 
 // Email Verification API
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/email/verify/{id}', [EmailVerificationController::class, 'verify'])->name('verification.verify');
+    Route::get('/email/verify/{id}', [EmailVerificationController::class, 'verify'])->name('api.verification.verify');
     Route::post('/email/verification-notification', [EmailVerificationController::class, 'sendVerificationEmail']);
 });
 
@@ -126,6 +128,24 @@ Route::get('/about', [AboutUsController::class, 'index']);
 
 // Contact form submission route
 Route::post('/contact', [ContactController::class, 'store']);
+
+// Newsletter API
+Route::prefix('newsletter')->group(function () {
+    Route::post('/subscribe', [NewsletterController::class, 'subscribe']);
+    Route::get('/verify', [NewsletterController::class, 'verify']);
+    Route::post('/unsubscribe', [NewsletterController::class, 'unsubscribe']);
+    Route::post('/status', [NewsletterController::class, 'status']);
+    
+    // Test endpoint
+    Route::get('/test', function () {
+        return response()->json([
+            'success' => true,
+            'message' => 'Newsletter API is working!',
+            'timestamp' => now(),
+            'routes_work' => true
+        ]);
+    });
+});
 
 // Guest Checkout API (for non-authenticated users)
 Route::prefix('guest-checkout')->group(function () {
@@ -219,4 +239,10 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/about', [AboutPageController::class, 'index']);
     Route::put('/about', [AboutPageController::class, 'update']);
     Route::post('/about/upload-image', [AboutPageController::class, 'uploadImage']);
+    
+    // Newsletter management
+    Route::get('/newsletter', [AdminNewsletterController::class, 'index']);
+    Route::delete('/newsletter/{newsletter}', [AdminNewsletterController::class, 'destroy']);
+    Route::get('/newsletter/export', [AdminNewsletterController::class, 'export']);
+    Route::get('/newsletter/stats', [AdminNewsletterController::class, 'stats']);
 });

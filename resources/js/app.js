@@ -158,7 +158,38 @@ app.use(AdminUIComponents);
 app.use(Toast, {
   transition: "Vue-Toastification__bounce",
   maxToasts: 5,
-  newestOnTop: true
+  newestOnTop: true,
+  position: "top-center",
+  timeout: 5000,
+  closeOnClick: true,
+  pauseOnFocusLoss: true,
+  pauseOnHover: true,
+  draggable: true,
+  draggablePercent: 0.6,
+  showCloseButtonOnHover: false,
+  hideProgressBar: false,
+  closeButton: "button",
+  icon: true,
+  rtl: false,
+  toastDefaults: {
+    // Custom styling to match the app theme
+    success: {
+      timeout: 6000,
+      icon: "🎯"
+    },
+    error: {
+      timeout: 5000,
+      icon: "❌"
+    },
+    warning: {
+      timeout: 5000,
+      icon: "⚠️"
+    },
+    info: {
+      timeout: 4000,
+      icon: "ℹ️"
+    }
+  }
 });
 
 // Initialize stores

@@ -57,6 +57,44 @@
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 300ms;
   }
+  
+  /* Custom Toast Styles */
+  .Vue-Toastification__toast--success {
+    @apply bg-gradient-to-r from-green-500 to-emerald-600 text-white border-l-4 border-green-300 shadow-2xl backdrop-blur-sm;
+  }
+  
+  .Vue-Toastification__toast--error {
+    @apply bg-gradient-to-r from-red-500 to-pink-600 text-white border-l-4 border-red-300 shadow-2xl backdrop-blur-sm;
+  }
+  
+  .Vue-Toastification__toast--warning {
+    @apply bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-l-4 border-yellow-300 shadow-2xl backdrop-blur-sm;
+  }
+  
+  .Vue-Toastification__toast--info {
+    @apply bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-l-4 border-blue-300 shadow-2xl backdrop-blur-sm;
+  }
+  
+  .Vue-Toastification__toast {
+    @apply rounded-xl shadow-2xl border border-white/20 backdrop-blur-sm font-medium;
+    min-height: 64px;
+  }
+  
+  .Vue-Toastification__toast-body {
+    @apply text-white font-medium text-sm;
+  }
+  
+  .Vue-Toastification__progress-bar {
+    @apply bg-white/30;
+  }
+  
+  .Vue-Toastification__close-button {
+    @apply text-white/80 hover:text-white text-lg font-bold;
+  }
+  
+  .Vue-Toastification__icon {
+    @apply text-2xl;
+  }
 }
 
 /* Utilities */
@@ -97,19 +135,35 @@ body {
 }
 
 /* Ensure sections stack vertically */
-.min-h-screen {
+.default-layout {
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
 }
 
-/* Force sections to take up full width */
-main, header, footer, nav {
-    width: 100%;
-    display: block;
+.default-layout .content {
+    flex: 1 1 auto;
 }
 
-/* Make sure router views take up full width */
-.router-view {
-    width: 100%;
-    max-width: 100%;
+/* Custom animation for newsletter subscription success */
+@keyframes newsletter-success {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.newsletter-success-animation {
+  animation: newsletter-success 0.6s ease-in-out;
+}
+
+/* Enhanced Toast Container */
+.Vue-Toastification__container {
+  top: 2rem !important;
+  z-index: 9999 !important;
+}
+
+/* Custom backdrop blur for toast */
+.Vue-Toastification__toast {
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
 }
