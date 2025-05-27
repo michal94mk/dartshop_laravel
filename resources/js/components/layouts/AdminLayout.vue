@@ -98,28 +98,6 @@
       <!-- Page Content - ze scrolla dla treści -->
       <main class="flex-1 overflow-y-auto p-6 bg-gray-100">
         <div class="mx-auto max-w-7xl flex flex-col">
-          <div v-if="successMessage" class="mb-6 rounded relative border border-green-400 bg-green-100 px-4 py-3 text-green-700" role="alert">
-            <strong class="font-bold">Sukces!</strong>
-            <span class="block sm:inline">{{ successMessage }}</span>
-            <button @click="alertStore.clearSuccess()" class="absolute right-0 top-0 px-4 py-3">
-              <svg class="h-4 w-4 fill-current" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                <title>Close</title>
-                <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z" />
-              </svg>
-            </button>
-          </div>
-          
-          <div v-if="errorMessage" class="mb-6 rounded relative border border-red-400 bg-red-100 px-4 py-3 text-red-700" role="alert">
-            <strong class="font-bold">Błąd!</strong>
-            <span class="block sm:inline">{{ errorMessage }}</span>
-            <button @click="alertStore.clearError()" class="absolute right-0 top-0 px-4 py-3">
-              <svg class="h-4 w-4 fill-current" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                <title>Close</title>
-                <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z" />
-              </svg>
-            </button>
-          </div>
-
           <!-- Router-view with transitions -->
           <div class="overflow-hidden rounded-lg bg-white shadow-sm">
             <router-view v-slot="{ Component }">
@@ -221,9 +199,7 @@ export default {
       return userName.value ? userName.value.charAt(0).toUpperCase() : '';
     })
     
-    // Alert messages
-    const successMessage = computed(() => alertStore.successMessage)
-    const errorMessage = computed(() => alertStore.errorMessage)
+    // Alert messages (AlertsContainer handles toast display now)
     
     // Toggle menu functions
     const toggleUserMenu = () => {
@@ -264,8 +240,6 @@ export default {
       userMenuOpen,
       sidebarOpen,
       toggleSidebar,
-      successMessage,
-      errorMessage,
       toggleUserMenu,
       logout,
       alertStore,

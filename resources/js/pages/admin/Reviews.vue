@@ -592,7 +592,6 @@ import { ref, computed, onMounted, reactive, watch } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
 import Modal from '../../components/Modal.vue'
-import { useToast } from 'vue-toastification'
   import PageHeader from '../../components/admin/PageHeader.vue'
   import AdminTable from '../../components/admin/ui/AdminTable.vue'
   import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
@@ -619,7 +618,6 @@ export default {
   },
   setup() {
     const alertStore = useAlertStore()
-    const toast = useToast()
     const loading = ref(true)
     const reviews = ref({
       data: [],
@@ -840,7 +838,7 @@ export default {
         // Even if form data loading fails, we can still show the modal
         // This assumes the admin will manually select products and users
         showCreateReviewModal.value = true
-        toast.error('Wystąpił błąd podczas ładowania danych formularza. Możesz kontynuować, ale będziesz musiał ręcznie wprowadzić wszystkie dane.')
+        alertStore.error('Wystąpił błąd podczas ładowania danych formularza. Możesz kontynuować, ale będziesz musiał ręcznie wprowadzić wszystkie dane.')
       } finally {
         formDataLoading.value = false
       }
@@ -973,12 +971,12 @@ export default {
             return Promise.resolve()
           } else {
             console.error('Invalid form data format - missing users or products:', formDataResponse)
-            toast.error('Nieprawidłowy format danych formularza - brak użytkowników lub produktów')
+            alertStore.error('Nieprawidłowy format danych formularza - brak użytkowników lub produktów')
             return Promise.reject(new Error('Invalid form data format - missing users or products'))
           }
         } else {
           console.error('Invalid form data response - empty data')
-          toast.error('Nieprawidłowy format odpowiedzi - brak danych')
+          alertStore.error('Nieprawidłowy format odpowiedzi - brak danych')
           return Promise.reject(new Error('Invalid form data response - empty data'))
         }
       } catch (error) {
@@ -993,17 +991,17 @@ export default {
           })
           
           if (error.response.status === 404) {
-            toast.error('Endpoint nie został znaleziony. Sprawdź adres URL formularza.')
+            alertStore.error('Endpoint nie został znaleziony. Sprawdź adres URL formularza.')
           } else if (error.response.status === 500) {
-            toast.error('Błąd serwera podczas ładowania danych formularza.')
+            alertStore.error('Błąd serwera podczas ładowania danych formularza.')
           } else {
-            toast.error(`Błąd (${error.response.status}) podczas ładowania danych formularza.`)
+            alertStore.error(`Błąd (${error.response.status}) podczas ładowania danych formularza.`)
           }
         } else if (error.request) {
           console.error('Error request:', error.request)
-          toast.error('Brak odpowiedzi z serwera. Sprawdź połączenie internetowe.')
+          alertStore.error('Brak odpowiedzi z serwera. Sprawdź połączenie internetowe.')
         } else {
-          toast.error(`Wystąpił błąd: ${error.message}`)
+          alertStore.error(`Wystąpił błąd: ${error.message}`)
         }
         
         return Promise.reject(error)
@@ -1021,7 +1019,7 @@ export default {
       const validationErrors = []
       
       if (!editingReview.value) {
-        toast.error('Brak danych recenzji do zapisania.')
+        alertStore.error('Brak danych recenzji do zapisania.')
         return
       }
       
@@ -1049,7 +1047,7 @@ export default {
       // If there are validation errors, show them and return
       if (validationErrors.length > 0) {
         console.log('Validation errors:', validationErrors)
-        validationErrors.forEach(error => toast.error(error))
+        validationErrors.forEach(error => alertStore.error(error))
         return
       }
       
@@ -1072,7 +1070,7 @@ export default {
         
         console.log('API Response:', response.status, response.data)
         
-        toast.success(isEditing.value 
+        alertStore.success(isEditing.value 
           ? 'Recenzja została zaktualizowana.' 
           : 'Nowa recenzja została dodana.'
         )
@@ -1084,11 +1082,11 @@ export default {
         
         if (error.response && error.response.data && error.response.data.errors) {
           const errorMessages = Object.values(error.response.data.errors).flat().join(', ')
-          toast.error(`Błąd walidacji: ${errorMessages}`)
+          alertStore.error(`Błąd walidacji: ${errorMessages}`)
         } else if (error.response && error.response.data && error.response.data.message) {
-          toast.error(`Błąd: ${error.response.data.message}`)
+          alertStore.error(`Błąd: ${error.response.data.message}`)
         } else {
-          toast.error('Wystąpił błąd podczas zapisywania recenzji.')
+          alertStore.error('Wystąpił błąd podczas zapisywania recenzji.')
         }
       } finally {
         formSubmitting.value = false
@@ -1122,7 +1120,7 @@ export default {
         console.log('Edit modal opened, form initialized with:', editingReview.value)
       } catch (error) {
         console.error('Error preparing review for edit:', error)
-        toast.error('Wystąpił błąd podczas przygotowania formularza edycji.')
+        alertStore.error('Wystąpił błąd podczas przygotowania formularza edycji.')
       } finally {
         formDataLoading.value = false
       }

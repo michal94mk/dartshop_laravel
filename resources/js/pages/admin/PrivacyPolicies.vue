@@ -327,13 +327,13 @@
 <script>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import { useToast } from 'vue-toastification'
+import { useAlertStore } from '../../stores/alertStore'
 
 export default {
   name: 'AdminPrivacyPolicies',
   
   setup() {
-    const toast = useToast()
+    const alertStore = useAlertStore()
     
     // State
     const loading = ref(true)
@@ -429,17 +429,17 @@ export default {
         
         if (showCreateModal.value) {
           await axios.post('/api/admin/privacy-policies', form.value)
-          toast.success('Polityka prywatności została utworzona')
+          alertStore.success('Polityka prywatności została utworzona')
         } else {
           await axios.put(`/api/admin/privacy-policies/${editingPolicy.value.id}`, form.value)
-          toast.success('Polityka prywatności została zaktualizowana')
+          alertStore.success('Polityka prywatności została zaktualizowana')
         }
         
         closeModal()
         await fetchPolicies()
         await fetchStats()
       } catch (err) {
-        toast.error('Wystąpił błąd podczas zapisywania')
+        alertStore.error('Wystąpił błąd podczas zapisywania')
         console.error('Error submitting form:', err)
       } finally {
         submitting.value = false
@@ -449,10 +449,10 @@ export default {
     const setAsActive = async (policy) => {
       try {
         await axios.post(`/api/admin/privacy-policies/${policy.id}/set-active`)
-        toast.success('Polityka została ustawiona jako aktywna')
+        alertStore.success('Polityka została ustawiona jako aktywna')
         await fetchPolicies()
       } catch (err) {
-        toast.error('Nie udało się ustawić polityki jako aktywnej')
+        alertStore.error('Nie udało się ustawić polityki jako aktywnej')
         console.error('Error setting policy as active:', err)
       }
     }
@@ -464,11 +464,11 @@ export default {
       
       try {
         await axios.delete(`/api/admin/privacy-policies/${policy.id}`)
-        toast.success('Polityka została usunięta')
+        alertStore.success('Polityka została usunięta')
         await fetchPolicies()
         await fetchStats()
       } catch (err) {
-        toast.error('Nie udało się usunąć polityki')
+        alertStore.error('Nie udało się usunąć polityki')
         console.error('Error deleting policy:', err)
       }
     }

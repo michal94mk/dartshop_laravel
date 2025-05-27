@@ -606,7 +606,6 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useAlertStore } from '../../stores/alertStore'
 import axios from 'axios'
-import { useToast } from 'vue-toastification'
 import Modal from '../../components/Modal.vue'
 import SearchFilters from '../../components/admin/SearchFilters.vue'
 import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
@@ -661,7 +660,6 @@ export default {
   },
   setup() {
     const alertStore = useAlertStore()
-    const toast = useToast()
     
     // Data
     const loading = ref(true)
@@ -767,7 +765,7 @@ export default {
         orders.value = response.data
       } catch (error) {
         console.error('Error fetching orders:', error)
-        toast.error('Nie udało się pobrać zamówień')
+        alertStore.error('Nie udało się pobrać zamówień')
       } finally {
         loading.value = false
       }
@@ -785,7 +783,7 @@ export default {
         products.value = response.data.data
       } catch (error) {
         console.error('Error fetching products:', error)
-        toast.error('Nie udało się pobrać listy produktów')
+        alertStore.error('Nie udało się pobrać listy produktów')
       }
     }
     
@@ -801,7 +799,7 @@ export default {
         users.value = response.data.data
       } catch (error) {
         console.error('Error fetching users:', error)
-        toast.error('Nie udało się pobrać listy użytkowników')
+        alertStore.error('Nie udało się pobrać listy użytkowników')
       }
     }
     
@@ -853,10 +851,10 @@ export default {
         }
         
         showStatusModal.value = false
-        toast.success('Status zamówienia został zaktualizowany')
+        alertStore.success('Status zamówienia został zaktualizowany')
       } catch (error) {
         console.error('Error updating order status:', error)
-        toast.error('Nie udało się zaktualizować statusu zamówienia')
+        alertStore.error('Nie udało się zaktualizować statusu zamówienia')
       }
     }
     
@@ -946,7 +944,7 @@ export default {
             })
             .catch(error => {
               console.error('Error fetching order details:', error);
-              toast.error('Nie udało się pobrać szczegółów zamówienia');
+              alertStore.error('Nie udało się pobrać szczegółów zamówienia');
             });
         } else {
           // Map items to the format expected by the form
@@ -1059,7 +1057,7 @@ export default {
           console.log('Loaded user data:', userData)
         } catch (error) {
           console.error('Error fetching user data:', error)
-          toast.error('Nie udało się pobrać danych użytkownika')
+          alertStore.error('Nie udało się pobrać danych użytkownika')
         }
       } else {
         // Clear form fields when no user is selected
@@ -1117,13 +1115,13 @@ export default {
 
         // Check if the order has at least one item
         if (editedOrder.value.items.length === 0) {
-          toast.error('Dodaj co najmniej jeden produkt do zamówienia')
+          alertStore.error('Dodaj co najmniej jeden produkt do zamówienia')
           return
         }
 
         // Check if email is empty and user_id is not set, add required field indicator
         if (!editedOrder.value.user_id && (!editedOrder.value.email || !editedOrder.value.email.trim())) {
-          toast.error('Email jest wymagany')
+          alertStore.error('Email jest wymagany')
           validationErrors.value.push('Email jest wymagany')
           return
         }
@@ -1137,14 +1135,14 @@ export default {
         if (!editedOrder.value.user_id) {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           if (!emailRegex.test(editedOrder.value.email)) {
-            toast.error('Wprowadź poprawny adres email')
+            alertStore.error('Wprowadź poprawny adres email')
             validationErrors.value.push('Niepoprawny format adresu email')
             return
           }
           
           // Additional validation for unregistered users
           if (!editedOrder.value.first_name || !editedOrder.value.last_name) {
-            toast.error('Dla niezarejestrowanego użytkownika, imię i nazwisko są wymagane')
+            alertStore.error('Dla niezarejestrowanego użytkownika, imię i nazwisko są wymagane')
             if (!editedOrder.value.first_name) validationErrors.value.push('Imię jest wymagane')
             if (!editedOrder.value.last_name) validationErrors.value.push('Nazwisko jest wymagane')
             return
@@ -1159,14 +1157,14 @@ export default {
         const orderItems = []
         for (const item of editedOrder.value.items) {
           if (!item.product_id) {
-            toast.error('Wybierz produkt dla wszystkich pozycji zamówienia')
+            alertStore.error('Wybierz produkt dla wszystkich pozycji zamówienia')
             return
           }
 
           // Find product to get the price
           const product = products.value.find(p => p.id == item.product_id)
           if (!product) {
-            toast.error(`Nie znaleziono produktu o ID ${item.product_id}`)
+            alertStore.error(`Nie znaleziono produktu o ID ${item.product_id}`)
             return
           }
 
@@ -1192,7 +1190,7 @@ export default {
         // Ensure all required fields are present
         if (!editedOrder.value.user_id) {
           if (!editedOrder.value.first_name || !editedOrder.value.last_name || !editedOrder.value.email) {
-            toast.error('Wypełnij wszystkie wymagane pola klienta')
+            alertStore.error('Wypełnij wszystkie wymagane pola klienta')
             if (!editedOrder.value.first_name) validationErrors.value.push('Imię jest wymagane')
             if (!editedOrder.value.last_name) validationErrors.value.push('Nazwisko jest wymagane')
             if (!editedOrder.value.email) validationErrors.value.push('Email jest wymagany')
@@ -1202,7 +1200,7 @@ export default {
 
         // Ensure address fields are filled
         if (!editedOrder.value.address || !editedOrder.value.city || !editedOrder.value.postal_code) {
-          toast.error('Wypełnij wszystkie pola adresu')
+          alertStore.error('Wypełnij wszystkie pola adresu')
           if (!editedOrder.value.address) validationErrors.value.push('Adres jest wymagany')
           if (!editedOrder.value.city) validationErrors.value.push('Miasto jest wymagane')
           if (!editedOrder.value.postal_code) validationErrors.value.push('Kod pocztowy jest wymagany')
@@ -1232,7 +1230,7 @@ export default {
 
         // Front-end validation before api call
         if (!emailValue || !emailValue.includes('@') || !emailValue.includes('.')) {
-          toast.error('Proszę wprowadzić poprawny adres email')
+          alertStore.error('Proszę wprowadzić poprawny adres email')
           validationErrors.value.push('Adres email musi być w poprawnym formacie')
           return
         }
@@ -1277,7 +1275,7 @@ export default {
         // Submit the order
         if (showEditModal.value) {
           await axios.put(`/api/admin/orders/${editedOrder.value.id}`, formattedOrderData)
-          toast.success('Zamówienie zostało zaktualizowane')
+          alertStore.success('Zamówienie zostało zaktualizowane')
         } else {
           // Log the full request for debugging
           console.log('Submit URL: /api/admin/orders')
@@ -1290,7 +1288,7 @@ export default {
           
           const response = await axios.post('/api/admin/orders', formattedOrderData)
           console.log('Server response:', response.data)
-          toast.success('Zamówienie zostało utworzone')
+          alertStore.success('Zamówienie zostało utworzone')
         }
         
         // Close modal and refresh orders list
@@ -1315,7 +1313,7 @@ export default {
           errorMessage += ': ' + error.response.data.message
         }
         
-        toast.error(errorMessage)
+        alertStore.error(errorMessage)
       }
     }
     
@@ -1327,13 +1325,13 @@ export default {
     const deleteOrder = async () => {
       try {
         await axios.delete(`/api/admin/orders/${orderToDelete.value.id}`)
-        toast.success('Zamówienie zostało usunięte')
+        alertStore.success('Zamówienie zostało usunięte')
         showDeleteModal.value = false
         orderToDelete.value = null
         fetchOrders()
       } catch (error) {
         console.error('Error deleting order:', error)
-        toast.error('Wystąpił błąd podczas usuwania zamówienia')
+        alertStore.error('Wystąpił błąd podczas usuwania zamówienia')
       }
     }
     

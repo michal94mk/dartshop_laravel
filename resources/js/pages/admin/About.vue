@@ -251,7 +251,7 @@
 <script>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import { useToast } from 'vue-toastification'
+import { useAlertStore } from '../../stores/alertStore'
 import RichTextEditor from '../../components/RichTextEditor.vue'
 
 export default {
@@ -272,7 +272,7 @@ export default {
     const saving = ref(false)
     const uploadingImage = ref(false)
     const imageUploadError = ref('')
-    const toast = useToast()
+    const alertStore = useAlertStore()
     const headerOptions = ref({
       margin: 'mb-6',
       contentLayout: 'prose-lg'
@@ -301,7 +301,7 @@ export default {
         originalAboutUs.value = JSON.parse(JSON.stringify(response.data))
       } catch (error) {
         console.error('Error fetching about page content:', error)
-        toast.error('Nie udało się załadować danych strony')
+        alertStore.error('Nie udało się załadować danych strony')
       } finally {
         loading.value = false
       }
@@ -318,10 +318,10 @@ export default {
         
         const response = await axios.put('/api/admin/about', aboutUs.value)
         originalAboutUs.value = JSON.parse(JSON.stringify(response.data))
-        toast.success('Strona została zaktualizowana')
+        alertStore.success('Strona została zaktualizowana')
       } catch (error) {
         console.error('Error saving about page:', error)
-        toast.error('Nie udało się zapisać zmian')
+        alertStore.error('Nie udało się zapisać zmian')
       } finally {
         saving.value = false
       }
@@ -330,7 +330,7 @@ export default {
     // Reset form to original data
     const resetForm = () => {
       aboutUs.value = JSON.parse(JSON.stringify(originalAboutUs.value))
-      toast.info('Zmiany zostały anulowane')
+      alertStore.info('Zmiany zostały anulowane')
     }
     
     // Handle image upload

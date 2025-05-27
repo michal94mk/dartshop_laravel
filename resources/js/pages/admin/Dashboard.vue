@@ -292,12 +292,12 @@
 <script>
 import { ref, onMounted, watch } from 'vue'
 import axios from 'axios'
-import { useToast } from 'vue-toastification'
+import { useAlertStore } from '../../stores/alertStore'
 
 export default {
   name: 'AdminDashboard',
   setup() {
-    const toast = useToast()
+    const alertStore = useAlertStore()
     const loading = ref(true)
     const stats = ref({
       counts: {
@@ -346,7 +346,7 @@ export default {
         updateChartData()
       } catch (error) {
         console.error('Error fetching dashboard data:', error)
-        toast.error('Nie udało się pobrać danych dla panelu administracyjnego')
+        alertStore.error('Nie udało się pobrać danych dla panelu administracyjnego')
       } finally {
         loading.value = false
       }
