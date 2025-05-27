@@ -147,7 +147,7 @@ class OrderController extends BaseAdminController
                 'postal_code' => 'required|string|max:20',
                 'country' => 'required|string|max:100',
                 'total' => 'required|numeric|min:0',
-                'status' => 'required|in:pending,processing,completed,cancelled',
+                'status' => 'required|in:pending,processing,completed,shipped,delivered,cancelled,refunded',
                 'payment_status' => 'required|in:pending,completed,failed',
                 'payment_method' => 'required|string|max:100',
                 'shipping_method' => 'required|string|max:100',
@@ -270,7 +270,7 @@ class OrderController extends BaseAdminController
                 'city' => 'required|string|max:100',
                 'postal_code' => 'required|string|max:20',
                 'country' => 'required|string|max:100',
-                'status' => 'required|in:pending,processing,completed,cancelled',
+                'status' => 'required|in:pending,processing,completed,shipped,delivered,cancelled,refunded',
                 'payment_status' => 'required|in:pending,completed,failed',
                 'payment_method' => 'required|string|max:100',
                 'shipping_method' => 'required|string|max:100',
@@ -366,7 +366,7 @@ class OrderController extends BaseAdminController
             $order = Order::findOrFail($id);
 
             $validator = Validator::make($request->all(), [
-                'status' => 'required|in:pending,processing,completed,cancelled',
+                'status' => 'required|in:pending,processing,completed,shipped,delivered,cancelled,refunded',
                 'note' => 'nullable|string',
                 'notify_customer' => 'nullable|boolean',
             ]);

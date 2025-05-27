@@ -29,9 +29,12 @@
           >
             <option value="">Wszystkie statusy</option>
             <option value="pending">Oczekujące</option>
-            <option value="processing">W realizacji</option>
+            <option value="processing">W trakcie realizacji</option>
             <option value="completed">Zrealizowane</option>
+            <option value="shipped">Wysłane</option>
+            <option value="delivered">Dostarczone</option>
             <option value="cancelled">Anulowane</option>
+            <option value="refunded">Zwrócone</option>
           </select>
         </div>
         
@@ -274,9 +277,12 @@
                 class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               >
                 <option value="pending">Oczekujące</option>
-                <option value="processing">W realizacji</option>
+                <option value="processing">W trakcie realizacji</option>
                 <option value="completed">Zrealizowane</option>
+                <option value="shipped">Wysłane</option>
+                <option value="delivered">Dostarczone</option>
                 <option value="cancelled">Anulowane</option>
+                <option value="refunded">Zwrócone</option>
               </select>
             </div>
             
@@ -489,9 +495,12 @@
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               >
                 <option value="pending">Oczekujące</option>
-                <option value="processing">W realizacji</option>
-                <option value="completed">Zakończone</option>
+                <option value="processing">W trakcie realizacji</option>
+                <option value="completed">Zrealizowane</option>
+                <option value="shipped">Wysłane</option>
+                <option value="delivered">Dostarczone</option>
                 <option value="cancelled">Anulowane</option>
+                <option value="refunded">Zwrócone</option>
               </select>
             </div>
             <div>
@@ -699,7 +708,10 @@ export default {
         'pending': 'yellow',
         'processing': 'blue', 
         'completed': 'green',
-        'cancelled': 'red'
+        'shipped': 'purple',
+        'delivered': 'green',
+        'cancelled': 'red',
+        'refunded': 'gray'
       }
       return variants[status] || 'gray'
     }
@@ -856,9 +868,12 @@ export default {
     const translateStatus = (status) => {
       const statusMap = {
         'pending': 'Oczekujące',
-        'processing': 'W realizacji',
+        'processing': 'W trakcie realizacji',
         'completed': 'Zrealizowane',
-        'cancelled': 'Anulowane'
+        'shipped': 'Wysłane',
+        'delivered': 'Dostarczone',
+        'cancelled': 'Anulowane',
+        'refunded': 'Zwrócone'
       }
       return statusMap[status] || status
     }

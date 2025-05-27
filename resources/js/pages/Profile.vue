@@ -773,9 +773,11 @@ export default {
       const statusMap = {
         'pending': 'Oczekujące',
         'processing': 'W trakcie realizacji',
+        'completed': 'Zrealizowane',
         'shipped': 'Wysłane',
         'delivered': 'Dostarczone',
-        'cancelled': 'Anulowane'
+        'cancelled': 'Anulowane',
+        'refunded': 'Zwrócone'
       };
       
       return statusMap[status] || status;
@@ -785,9 +787,11 @@ export default {
       const classMap = {
         'pending': 'text-yellow-600',
         'processing': 'text-blue-600',
+        'completed': 'text-green-600',
         'shipped': 'text-purple-600',
         'delivered': 'text-green-600',
-        'cancelled': 'text-red-600'
+        'cancelled': 'text-red-600',
+        'refunded': 'text-gray-600'
       };
       
       return classMap[status] || '';
