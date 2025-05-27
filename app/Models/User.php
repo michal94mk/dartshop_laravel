@@ -62,6 +62,17 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
     
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'role',
+        'full_name',
+        'display_name',
+    ];
+    
+    /**
      * Get the cart items associated with the user.
      */
     public function cartItems(): HasMany
@@ -128,5 +139,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getDisplayNameAttribute()
     {
         return $this->getFullNameAttribute();
+    }
+    
+    /**
+     * Get the user's role based on is_admin field.
+     */
+    public function getRoleAttribute()
+    {
+        return $this->is_admin ? 'admin' : 'user';
     }
 }
