@@ -189,6 +189,24 @@
             </div>
           </div>
           
+          <!-- Search Results Info -->
+          <div v-if="productStore.filters.search" class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div class="flex items-center">
+              <svg class="h-5 w-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <span class="text-sm font-medium text-blue-800">
+                Wyniki wyszukiwania dla: "<span class="font-semibold">{{ productStore.filters.search }}</span>"
+              </span>
+              <button 
+                @click="clearSearch"
+                class="ml-auto text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                Wyczyść wyszukiwanie
+              </button>
+            </div>
+          </div>
+          
           <div class="mt-4 text-sm text-gray-600">
             Wyświetlanie {{ productStore.products.length }} z {{ productStore.pagination.total }} produktów
             <span class="ml-2 text-xs text-gray-500">
@@ -383,7 +401,8 @@
 </template>
 
 <script>
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useProductStore } from '../stores/productStore';
 import { useCartStore } from '../stores/cartStore';
 import { useFavoriteStore } from '../stores/favoriteStore';
@@ -396,6 +415,8 @@ export default {
     FavoriteButton
   },
   setup() {
+    const route = useRoute();
+    const router = useRouter();
     const productStore = useProductStore();
     const cartStore = useCartStore();
     const favoriteStore = useFavoriteStore();
@@ -412,10 +433,24 @@ export default {
     // Debugging information
     console.log('ProductList component setup started');
     
+    // Watch for route changes to handle search parameter
+    watch(() => route.query.search, (newSearch) => {
+      if (newSearch) {
+        productStore.filters.search = newSearch;
+        productStore.fetchProducts();
+      }
+    }, { immediate: true });
+    
     onMounted(async () => {
       console.log('ProductList component mounted');
       // Initialize favorites when component is mounted
       await favoriteStore.initializeFavorites();
+      
+      // Check for search parameter in URL
+      if (route.query.search) {
+        productStore.filters.search = route.query.search;
+      }
+      
       // Then load products
       await loadProducts();
     });
@@ -593,6 +628,13 @@ export default {
       }, 3000);
     };
 
+    const clearSearch = () => {
+      productStore.filters.search = '';
+      productStore.fetchProducts();
+      // Also update the URL to remove search parameter
+      router.push({ path: '/products' });
+    };
+
     return {
       productStore,
       mobileFiltersOpen,
@@ -615,7 +657,8 @@ export default {
       setSorting,
       applyPriceFilter,
       handleFavoriteAdded,
-      handleFavoriteRemoved
+      handleFavoriteRemoved,
+      clearSearch
     };
   }
 }

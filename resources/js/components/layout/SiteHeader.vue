@@ -110,9 +110,25 @@
         </div>
       </div>
     </div>
+
+    <!-- Search Bar Section -->
+    <div class="bg-gradient-to-r from-indigo-50 via-blue-50 to-purple-50 border-t border-gray-100">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex justify-center">
+          <div class="w-full max-w-2xl">
+            <product-search />
+          </div>
+        </div>
+      </div>
+    </div>
     
     <!-- Mobile menu -->
     <div v-show="mobileMenuOpen" class="sm:hidden z-40" id="mobile-menu">
+      <!-- Mobile Search -->
+      <div class="px-4 py-3 border-b border-gray-200">
+        <product-search />
+      </div>
+      
       <div class="pt-2 pb-3 space-y-1">
         <router-link
           to="/"
@@ -196,9 +212,13 @@ import { useAuthStore } from '../../stores/authStore';
 import { useCartStore } from '../../stores/cartStore';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
+import ProductSearch from '../ui/ProductSearch.vue';
 
 export default {
   name: 'SiteHeader',
+  components: {
+    ProductSearch
+  },
   data() {
     return {
       userMenuOpen: false,
