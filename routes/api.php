@@ -217,7 +217,6 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     // Orders management
     Route::apiResource('/orders', OrderController::class);
     Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus']);
-    Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice']);
     
     // Reviews management
     Route::get('/reviews/form-data', [AdminReviewController::class, 'getFormData']);

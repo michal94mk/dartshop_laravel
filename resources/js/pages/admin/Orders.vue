@@ -102,7 +102,7 @@
       </template>
       
       <template #cell-actions="{ item }">
-        <div class="flex gap-1 justify-end min-w-[320px]">
+        <div class="flex gap-1 justify-end min-w-[260px]">
           <admin-button 
             @click="openOrderDetails(item)" 
             variant="primary" 
@@ -130,15 +130,6 @@
             size="sm"
           >
             Usuń
-          </admin-button>
-          <admin-button 
-            tag="a"
-            :href="`/api/admin/orders/${item.id}/invoice`" 
-            target="_blank" 
-            variant="success" 
-            size="sm"
-          >
-            Faktura
           </admin-button>
         </div>
       </template>
@@ -691,7 +682,7 @@ export default {
       { key: 'created_at', label: 'Data', type: 'date', width: '120px' },
       { key: 'total', label: 'Kwota', width: '100px' },
       { key: 'status', label: 'Status', align: 'center', width: '120px' },
-      { key: 'actions', label: 'Akcje', align: 'right', width: '320px' }
+      { key: 'actions', label: 'Akcje', align: 'right', width: '260px' }
     ]
     
     // Order items table columns
@@ -844,11 +835,20 @@ export default {
     
     const updateOrderStatus = async () => {
       try {
+        console.log('Updating order status:', {
+          orderId: selectedOrder.value.id,
+          newStatus: newStatus.value,
+          note: statusNote.value,
+          notifyCustomer: notifyCustomer.value
+        })
+        
         const response = await axios.put(`/api/admin/orders/${selectedOrder.value.id}/status`, {
           status: newStatus.value,
           note: statusNote.value,
           notify_customer: notifyCustomer.value
         })
+        
+        console.log('Status update response:', response.data)
         
         // Update the order in the list
         const index = orders.value.data.findIndex(o => o.id === selectedOrder.value.id)
@@ -860,7 +860,14 @@ export default {
         alertStore.success('Status zamówienia został zaktualizowany')
       } catch (error) {
         console.error('Error updating order status:', error)
-        alertStore.error('Nie udało się zaktualizować statusu zamówienia')
+        console.error('Error response:', error.response?.data)
+        
+        let errorMessage = 'Nie udało się zaktualizować statusu zamówienia'
+        if (error.response?.data?.message) {
+          errorMessage += ': ' + error.response.data.message
+        }
+        
+        alertStore.error(errorMessage)
       }
     }
     
@@ -1036,13 +1043,11 @@ export default {
     watch(() => editedOrder.value.user_id, async (newUserId) => {
       if (newUserId) {
         try {
-          console.log('Fetching user data for ID:', newUserId)
           const response = await axios.get(`/api/admin/users/${newUserId}`)
           const userData = response.data
           
           // Fill in email from user data - ensuring it's a valid string
           editedOrder.value.email = userData.email || ''
-          console.log('Setting email to:', editedOrder.value.email)
           
           // Use first_name and last_name if available, otherwise parse name
           if (userData.first_name && userData.last_name) {
@@ -1083,8 +1088,6 @@ export default {
           }
           
           console.log('Loaded user data:', userData)
-          console.log('User first_name:', userData.first_name, 'last_name:', userData.last_name)
-          console.log('Final form values - first_name:', editedOrder.value.first_name, 'last_name:', editedOrder.value.last_name)
         } catch (error) {
           console.error('Error fetching user data:', error)
           alertStore.error('Nie udało się pobrać danych użytkownika')

@@ -378,13 +378,6 @@ class OrderController extends BaseAdminController
             $order->status = $request->status;
             $order->save();
 
-            // Add status history entry
-            $order->statusHistory()->create([
-                'status' => $request->status,
-                'note' => $request->note,
-                'user_id' => $request->user()->id,
-            ]);
-
             // Send email notification if requested
             if ($request->notify_customer) {
                 // Send email (to be implemented)
@@ -425,41 +418,5 @@ class OrderController extends BaseAdminController
         }
     }
     
-    /**
-     * Generate invoice for an order.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function invoice($id)
-    {
-        try {
-            $order = Order::with(['user', 'items.product'])->findOrFail($id);
-            
-            // Generate PDF invoice (to be implemented)
-            // This is a placeholder that would normally generate a PDF
-            $invoiceData = [
-                'order' => $order,
-                'company' => [
-                    'name' => 'Dartshop',
-                    'address' => '123 Main St, City',
-                    'postal_code' => '12-345',
-                    'city' => 'City',
-                    'country' => 'Country',
-                    'tax_id' => '1234567890',
-                ],
-                'invoice_number' => 'INV-' . str_pad($order->id, 6, '0', STR_PAD_LEFT),
-                'invoice_date' => now()->format('Y-m-d'),
-            ];
-            
-            // For now, return JSON for testing
-            return response()->json($invoiceData);
-            
-            // In production, this would return a PDF:
-            // return PDF::loadView('invoices.template', $invoiceData)
-            //    ->stream('invoice-' . $order->id . '.pdf');
-        } catch (\Exception $e) {
-            return $this->errorResponse('Error generating invoice: ' . $e->getMessage(), 500);
-        }
-    }
+
 } 
