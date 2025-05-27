@@ -73,7 +73,7 @@
       class="mt-8"
     >
       <template #cell-order_number="{ item }">
-        #{{ item.id }}
+        {{ item.order_number || '#' + item.id }}
       </template>
       
       <template #cell-customer="{ item }">
@@ -160,7 +160,7 @@
       <div v-if="selectedOrder">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg leading-6 font-medium text-gray-900">
-            Zamówienie #{{ selectedOrder.id }}
+            Zamówienie {{ selectedOrder.order_number || '#' + selectedOrder.id }}
           </h3>
           <admin-badge 
             :variant="getStatusVariant(selectedOrder.status)"
@@ -174,7 +174,7 @@
           <div>
             <h4 class="text-sm font-medium text-gray-500">Dane klienta</h4>
             <div class="mt-2 text-sm text-gray-900">
-              <p class="font-medium">{{ selectedOrder.user ? selectedOrder.user.name : selectedOrder.name }}</p>
+              <p class="font-medium">{{ selectedOrder.user ? selectedOrder.user.name : (selectedOrder.first_name + ' ' + selectedOrder.last_name) }}</p>
               <p>{{ selectedOrder.user ? selectedOrder.user.email : selectedOrder.email }}</p>
               <p>{{ selectedOrder.phone }}</p>
             </div>
@@ -262,7 +262,7 @@
         <div class="space-y-4">
           <div>
             <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-              Zamówienie #{{ selectedOrder ? selectedOrder.id : '' }}
+              Zamówienie {{ selectedOrder ? (selectedOrder.order_number || '#' + selectedOrder.id) : '' }}
             </h3>
             
             <div>
@@ -670,10 +670,9 @@ export default {
     
     // Sort options for the filter component
     const sortOptions = [
-      { value: 'created_at|desc', label: 'Najnowsze' },
-      { value: 'created_at|asc', label: 'Najstarsze' },
-      { value: 'total|desc', label: 'Najwyższa kwota' },
-      { value: 'total|asc', label: 'Najniższa kwota' }
+      { value: 'created_at', label: 'Data utworzenia' },
+      { value: 'total', label: 'Kwota' },
+      { value: 'id', label: 'Numer zamówienia' }
     ]
     
     // Table columns definition
@@ -712,8 +711,8 @@ export default {
       status: '',
       date_from: '',
       date_to: '',
-      sort_by: 'created_at',
-      sort_dir: 'desc',
+      sort_field: 'created_at',
+      sort_direction: 'desc',
       page: 1
     })
     
@@ -752,13 +751,6 @@ export default {
       try {
         loading.value = true
         
-        // Convert sort option to sort_by and sort_dir
-        if (filters.value.sort_option) {
-          const [sortBy, sortDir] = filters.value.sort_option.split('|')
-          filters.value.sort_by = sortBy
-          filters.value.sort_dir = sortDir
-        }
-        
         const response = await axios.get('/api/admin/orders', { params: filters.value })
         orders.value = response.data
       } catch (error) {
@@ -774,8 +766,8 @@ export default {
         const response = await axios.get('/api/admin/products', { 
           params: { 
             per_page: 100,
-            sort_by: 'name',
-            sort_dir: 'asc'
+            sort_field: 'name',
+            sort_direction: 'asc'
           } 
         })
         products.value = response.data.data
@@ -790,8 +782,8 @@ export default {
         const response = await axios.get('/api/admin/users', { 
           params: { 
             per_page: 100,
-            sort_by: 'name',
-            sort_dir: 'asc'
+            sort_field: 'name',
+            sort_direction: 'asc'
           } 
         })
         users.value = response.data.data

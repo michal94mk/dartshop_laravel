@@ -19,18 +19,73 @@ class OrderController extends BaseAdminController
     public function index(Request $request)
     {
         try {
+            Log::info('OrderController@index called with filters:', $request->all());
+            
             $query = Order::with(['user']);
             
             // Apply filters
-            if ($request->has('search')) {
-                $search = $request->search;
+            if ($request->has('search') && !empty($request->search)) {
+                $search = trim($request->search);
+                
+                // Log search term for debugging
+                Log::info('Searching orders with term: ' . $search);
+                
                 $query->where(function($q) use ($search) {
+                    // Basic fields search
                     $q->where('id', 'like', "%{$search}%")
-                      ->orWhereHas('user', function($uq) use ($search) {
-                          $uq->where('name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%");
-                      })
-                      ->orWhere('email', 'like', "%{$search}%");
+                      ->orWhere('order_number', 'like', "%{$search}%")
+                      ->orWhere('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%")
+                      ->orWhere('city', 'like', "%{$search}%");
+                    
+                    // Special case: search for "Gość" (guest orders)
+                    if (strtolower($search) === 'gość' || strtolower($search) === 'gosc') {
+                        $q->orWhereNull('user_id');
+                    }
+                    
+                    // Email search - both exact and partial matching
+                    if (filter_var($search, FILTER_VALIDATE_EMAIL)) {
+                        // For valid emails, try exact match, partial match, and username part
+                        $emailParts = explode('@', $search);
+                        $username = $emailParts[0];
+                        
+                        $q->orWhere('email', '=', $search)
+                          ->orWhere('email', 'like', "%{$search}%")
+                          ->orWhere('email', 'like', "%{$username}%");
+                          
+                        // Also search in user email
+                        $q->orWhereHas('user', function($uq) use ($search) {
+                            $uq->where('email', '=', $search);
+                        });
+                    } else if (strpos($search, '@') !== false) {
+                        // Contains @ but not valid email - try exact, partial, and username part
+                        $emailParts = explode('@', $search);
+                        $username = $emailParts[0];
+                        
+                        $q->orWhere('email', '=', $search)
+                          ->orWhere('email', 'like', "%{$search}%")
+                          ->orWhere('email', 'like', "%{$username}%");
+                          
+                        // Also search in user email
+                        $q->orWhereHas('user', function($uq) use ($search) {
+                            $uq->where('email', 'like', "%{$search}%");
+                        });
+                    } else {
+                        // Partial email search (e.g., searching for "gmail" or "admin")
+                        $q->orWhere('email', 'like', "%{$search}%");
+                    }
+                    
+                    // User name search (only if not searching for email or guest)
+                    if (!filter_var($search, FILTER_VALIDATE_EMAIL) && 
+                        strpos($search, '@') === false && 
+                        strtolower($search) !== 'gość' && 
+                        strtolower($search) !== 'gosc') {
+                        $q->orWhereHas('user', function($uq) use ($search) {
+                            $uq->where('name', 'like', "%{$search}%")
+                              ->orWhere('email', 'like', "%{$search}%");
+                        });
+                    }
                 });
             }
             
@@ -51,9 +106,17 @@ class OrderController extends BaseAdminController
             $sortDirection = $request->sort_direction ?? 'desc';
             $query->orderBy($sortField, $sortDirection);
             
+            // Log query for debugging
+            Log::info('Orders query SQL:', [
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings()
+            ]);
+            
             // Paginate results
             $perPage = $this->getPerPage($request);
             $orders = $query->paginate($perPage);
+            
+            Log::info('OrderController@index success. Orders count: ' . $orders->count());
             
             return response()->json($orders);
         } catch (\Exception $e) {

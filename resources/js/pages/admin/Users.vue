@@ -389,12 +389,9 @@ export default {
     
     // Sort options for the filter component
     const sortOptions = [
-      { value: 'name|asc', label: 'Nazwa A-Z' },
-      { value: 'name|desc', label: 'Nazwa Z-A' },
-      { value: 'email|asc', label: 'Email A-Z' },
-      { value: 'email|desc', label: 'Email Z-A' },
-      { value: 'created_at|desc', label: 'Najnowsi' },
-      { value: 'created_at|asc', label: 'Najstarsi' }
+      { value: 'name', label: 'Nazwa' },
+      { value: 'email', label: 'Email' },
+      { value: 'created_at', label: 'Data rejestracji' }
     ]
     
     // Table columns definition
@@ -413,8 +410,8 @@ export default {
       search: '',
       role: '',
       verified: '',
-      sort_field: 'name',
-      sort_direction: 'asc',
+      sort_field: 'created_at',
+      sort_direction: 'desc',
       page: 1
     })
     
@@ -542,13 +539,6 @@ export default {
     const fetchUsers = async () => {
       try {
         loading.value = true
-        
-        // Convert sort option to sort_field and sort_direction
-        if (filters.sort_option) {
-          const [sortField, sortDir] = filters.sort_option.split('|')
-          filters.sort_field = sortField
-          filters.sort_direction = sortDir
-        }
         
         const response = await axios.get('/api/admin/users', { params: filters })
         users.value = response.data
