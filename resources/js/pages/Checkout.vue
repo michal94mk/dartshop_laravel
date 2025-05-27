@@ -282,6 +282,34 @@
                   </div>
                 </div>
 
+                <!-- Privacy Policy Agreement -->
+                <div v-if="!authStore.isLoggedIn || !authStore.user?.privacy_policy_accepted" class="mt-4 border-t border-gray-200 pt-4">
+                  <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                      <input 
+                        id="checkout_privacy" 
+                        type="checkbox" 
+                        v-model="privacyPolicyAccepted" 
+                        required
+                        class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                      />
+                    </div>
+                    <div class="ml-3 text-sm">
+                      <label for="checkout_privacy" class="text-gray-700">
+                        Akceptuję 
+                        <router-link 
+                          to="/privacy" 
+                          target="_blank"
+                          class="text-indigo-600 hover:text-indigo-800 underline font-medium"
+                        >
+                          politykę prywatności
+                        </router-link>
+                        <span class="text-red-500 ml-1">*</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- Submit Button -->
                 <div class="mt-6">
                   <button
@@ -329,6 +357,7 @@ export default {
     const selectedShippingMethod = ref('courier')
     const cartTotal = ref(0)
     const freeShippingThreshold = ref(0)
+    const privacyPolicyAccepted = ref(false)
     
     const shippingDetails = ref({
       name: '',
@@ -355,11 +384,16 @@ export default {
     })
     
     const isFormValid = computed(() => {
-      return shippingDetails.value.name &&
+      const basicFormValid = shippingDetails.value.name &&
              shippingDetails.value.email &&
              shippingDetails.value.address &&
              shippingDetails.value.city &&
-             shippingDetails.value.postalCode
+             shippingDetails.value.postalCode;
+             
+      // Sprawdź politykę prywatności dla gości lub użytkowników, którzy jej nie zaakceptowali
+      const privacyPolicyValid = authStore.isLoggedIn && authStore.user?.privacy_policy_accepted ? true : privacyPolicyAccepted.value;
+      
+      return basicFormValid && privacyPolicyValid;
     })
     
     const fetchCart = async () => {
@@ -417,6 +451,12 @@ export default {
         // Sprawdź czy formularz jest wypełniony
         if (!isFormValid.value) {
           error.value = 'Uzupełnij wszystkie wymagane pola'
+          return
+        }
+        
+        // Sprawdź akceptację polityki prywatności dla gości lub nieakceptujących użytkowników
+        if ((!authStore.isLoggedIn || !authStore.user?.privacy_policy_accepted) && !privacyPolicyAccepted.value) {
+          error.value = 'Musisz zaakceptować politykę prywatności'
           return
         }
 
@@ -553,7 +593,8 @@ export default {
       isFormValid,
       processCheckout,
       processStripeCheckout,
-      formatPrice
+      formatPrice,
+      privacyPolicyAccepted
     }
   }
 }

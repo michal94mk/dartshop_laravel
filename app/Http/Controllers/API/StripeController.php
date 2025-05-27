@@ -23,7 +23,13 @@ class StripeController extends Controller
     public function __construct(ShippingService $shippingService)
     {
         // Ustawienie klucza API Stripe
-        Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+        $stripeSecret = config('services.stripe.secret');
+        
+        if (empty($stripeSecret)) {
+            throw new \Exception('Stripe secret key is not configured. Please check your .env file.');
+        }
+        
+        Stripe::setApiKey($stripeSecret);
         $this->shippingService = $shippingService;
     }
 

@@ -35,6 +35,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'is_admin',
+        'privacy_policy_accepted',
+        'privacy_policy_accepted_at',
     ];
 
     /**
@@ -55,6 +57,8 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
         'is_admin' => 'boolean',
+        'privacy_policy_accepted' => 'boolean',
+        'privacy_policy_accepted_at' => 'datetime',
     ];
     
     /**

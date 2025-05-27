@@ -109,6 +109,50 @@
               />
             </div>
             
+            <!-- Privacy Policy Acceptance -->
+            <div class="space-y-3">
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <input 
+                    id="privacy_policy" 
+                    type="checkbox" 
+                    v-model="privacyPolicyAccepted" 
+                    required
+                    class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                  />
+                </div>
+                <div class="ml-3 text-sm">
+                  <label for="privacy_policy" class="text-gray-700">
+                    Akceptuję 
+                    <router-link 
+                      to="/privacy" 
+                      target="_blank"
+                      class="text-indigo-600 hover:text-indigo-800 underline font-medium"
+                    >
+                      politykę prywatności
+                    </router-link>
+                    <span class="text-red-500 ml-1">*</span>
+                  </label>
+                </div>
+              </div>
+              
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <input 
+                    id="newsletter_consent" 
+                    type="checkbox" 
+                    v-model="newsletterConsent" 
+                    class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                  />
+                </div>
+                <div class="ml-3 text-sm">
+                  <label for="newsletter_consent" class="text-gray-700">
+                    Chcę otrzymywać newsletter z ofertami i nowościami
+                  </label>
+                </div>
+              </div>
+            </div>
+            
             <div class="space-y-4">
               <button 
                 type="submit" 
@@ -194,6 +238,8 @@ export default {
     const email = ref('');
     const password = ref('');
     const passwordConfirmation = ref('');
+    const privacyPolicyAccepted = ref(false);
+    const newsletterConsent = ref(false);
     const router = useRouter();
     const authStore = useAuthStore();
     
@@ -215,7 +261,9 @@ export default {
           lastName.value,
           email.value,
           password.value,
-          passwordConfirmation.value
+          passwordConfirmation.value,
+          privacyPolicyAccepted.value,
+          newsletterConsent.value
         );
         
         if (success) {
@@ -235,6 +283,8 @@ export default {
       email,
       password,
       passwordConfirmation,
+      privacyPolicyAccepted,
+      newsletterConsent,
       authStore,
       handleRegister
     };

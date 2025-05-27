@@ -29,6 +29,13 @@
           >
             <span>Newsletter</span>
           </router-link>
+          <router-link 
+            to="/admin/privacy-policies"
+            class="flex items-center rounded-md px-4 py-3 text-sm font-medium transition-colors duration-150"
+            :class="[$route.path.includes('/admin/privacy-policies') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
+          >
+            <span>Polityki Prywatności</span>
+          </router-link>
         </div>
       </div>
 
@@ -176,6 +183,7 @@ export default {
       if (route.path.includes('/admin/about')) return 'O nas'
       if (route.path.includes('/admin/users')) return 'Użytkownicy'
       if (route.path.includes('/admin/newsletter')) return 'Newsletter'
+      if (route.path.includes('/admin/privacy-policies')) return 'Polityki Prywatności'
       return 'Panel Administratora'
     })
     

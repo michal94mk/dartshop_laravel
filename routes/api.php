@@ -31,8 +31,9 @@ use App\Http\Controllers\Api\FavoriteProductController;
 use App\Http\Controllers\Api\TutorialController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\GuestCheckoutController;
-use App\Http\Controllers\Api\StripeController;
+use App\Http\Controllers\API\StripeController;
 use App\Http\Controllers\Api\NewsletterController;
+use App\Http\Controllers\API\PrivacyPolicyController;
 
 /*
 |--------------------------------------------------------------------------
@@ -245,4 +246,16 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::delete('/newsletter/{newsletter}', [AdminNewsletterController::class, 'destroy']);
     Route::get('/newsletter/export', [AdminNewsletterController::class, 'export']);
     Route::get('/newsletter/stats', [AdminNewsletterController::class, 'stats']);
+    
+    // Privacy Policy management
+    Route::apiResource('/privacy-policies', \App\Http\Controllers\API\Admin\PrivacyPolicyController::class);
+    Route::post('/privacy-policies/{privacyPolicy}/set-active', [\App\Http\Controllers\API\Admin\PrivacyPolicyController::class, 'setActive']);
+    Route::get('/privacy-policies/users/without-acceptance', [\App\Http\Controllers\API\Admin\PrivacyPolicyController::class, 'getUsersWithoutAcceptance']);
+    Route::get('/privacy-policies/stats/acceptance', [\App\Http\Controllers\API\Admin\PrivacyPolicyController::class, 'getAcceptanceStats']);
 });
+
+// Privacy Policy API
+Route::get('/privacy-policy', [PrivacyPolicyController::class, 'show']);
+
+// Privacy Policy acceptance for authenticated users
+Route::middleware('auth:sanctum')->post('/privacy-policy/accept', [PrivacyPolicyController::class, 'accept']);

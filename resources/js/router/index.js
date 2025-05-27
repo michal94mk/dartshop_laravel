@@ -10,6 +10,7 @@ import Checkout from '../pages/Checkout.vue';
 import PaymentSuccess from '../pages/PaymentSuccess.vue';
 import About from '../pages/About.vue';
 import Contact from '../pages/Contact.vue';
+import Privacy from '../pages/Privacy.vue';
 import Promotions from '../pages/Promotions.vue';
 import Tutorials from '../pages/Tutorials.vue';
 import Tutorial from '../pages/Tutorial.vue';
@@ -37,6 +38,7 @@ import AdminTutorials from '../pages/admin/Tutorials.vue';
 import AdminContactMessages from '../pages/admin/ContactMessages.vue';
 import AdminAbout from '../pages/admin/About.vue';
 import AdminNewsletter from '../pages/admin/Newsletter.vue';
+import AdminPrivacyPolicies from '../pages/admin/PrivacyPolicies.vue';
 
 const routes = [
   {
@@ -101,6 +103,14 @@ const routes = [
     path: '/contact',
     name: 'contact',
     component: Contact,
+    meta: {
+      layout: 'default'
+    }
+  },
+  {
+    path: '/privacy',
+    name: 'privacy',
+    component: Privacy,
     meta: {
       layout: 'default'
     }
@@ -276,6 +286,11 @@ const routes = [
         path: 'newsletter',
         name: 'admin-newsletter',
         component: AdminNewsletter
+      },
+      {
+        path: 'privacy-policies',
+        name: 'admin-privacy-policies',
+        component: AdminPrivacyPolicies
       }
     ]
   },

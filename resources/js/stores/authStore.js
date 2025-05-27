@@ -243,7 +243,7 @@ export const useAuthStore = defineStore('auth', {
     },
     
     // Rejestracja użytkownika
-    async register(name, firstName, lastName, email, password, passwordConfirmation) {
+    async register(name, firstName, lastName, email, password, passwordConfirmation, privacyPolicyAccepted = false, newsletterConsent = false) {
       this.isLoading = true;
       // Reset error state before attempting registration
       this.hasError = false;
@@ -260,7 +260,9 @@ export const useAuthStore = defineStore('auth', {
           last_name: lastName,
           email,
           password,
-          password_confirmation: passwordConfirmation
+          password_confirmation: passwordConfirmation,
+          privacy_policy_accepted: privacyPolicyAccepted,
+          newsletter_consent: newsletterConsent
         });
         
         this.user = response.data.user;

@@ -55,6 +55,8 @@ class AuthController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'privacy_policy_accepted' => 'required|boolean|accepted',
+            'newsletter_consent' => 'boolean',
         ]);
 
         $user = User::create([
@@ -63,10 +65,18 @@ class AuthController extends Controller
             'last_name' => $request->last_name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'privacy_policy_accepted' => $request->privacy_policy_accepted,
+            'privacy_policy_accepted_at' => $request->privacy_policy_accepted ? now() : null,
         ]);
 
         // Assign default user role
         $user->assignRole(RoleEnum::User->value);
+
+        // Handle newsletter subscription if consent was given
+        if ($request->newsletter_consent) {
+            // You might want to handle newsletter subscription here
+            // For example, create a newsletter subscription record
+        }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
