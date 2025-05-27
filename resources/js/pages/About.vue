@@ -43,21 +43,20 @@
       </div>
 
       <!-- Main Content Section -->
-      <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+      <div class="py-16 px-4 sm:px-6 lg:px-8">
         <!-- Image and Content Layout -->
         <div v-if="aboutUs.image_position === 'left' || aboutUs.image_position === 'right'" 
-             class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
-             :class="{ 'lg:grid-flow-col-dense': aboutUs.image_position === 'right' }">
+             class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center h-full">
           
           <!-- Image Section -->
           <div v-if="aboutUs.image_path" 
-               class="relative"
+               class="relative h-full"
                :class="{ 'lg:col-start-2': aboutUs.image_position === 'right' }">
-            <div class="relative overflow-hidden rounded-2xl shadow-2xl">
+            <div class="relative overflow-hidden rounded-2xl shadow-2xl h-full">
               <img 
                 :src="getImageUrl(aboutUs.image_path)" 
                 :alt="aboutUs.title"
-                class="w-full h-auto object-cover"
+                class="w-full h-full object-cover"
               >
               <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
             </div>
@@ -67,9 +66,9 @@
           </div>
           
           <!-- Content Section -->
-          <div :class="{ 'lg:col-start-1 lg:row-start-1': aboutUs.image_position === 'right' }">
-            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-              <div class="prose prose-lg max-w-none" v-html="aboutUs.content"></div>
+          <div class="h-full" :class="{ 'lg:col-start-1 lg:row-start-1': aboutUs.image_position === 'right' }">
+            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 h-full">
+              <div class="prose prose-lg max-w-none h-full" v-html="aboutUs.content"></div>
             </div>
           </div>
         </div>

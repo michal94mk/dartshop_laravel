@@ -1,9 +1,9 @@
 <template>
   <footer class="bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-900 text-white border-t border-indigo-700/50 mt-12">
-    <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <!-- Newsletter Section -->
-      <div class="mb-16">
-        <h2 class="text-3xl font-bold text-center text-white mb-8">Zapisz się do Newslettera</h2>
+      <div class="mb-8">
+        <h2 class="text-xl font-bold text-center text-white mb-4">Zapisz się do Newslettera</h2>
         <NewsletterSubscription />
       </div>
       

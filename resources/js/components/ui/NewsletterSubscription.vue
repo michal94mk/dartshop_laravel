@@ -1,20 +1,20 @@
 <template>
-  <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 shadow-2xl border border-indigo-500/20">
+  <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-4 shadow-xl border border-indigo-500/20">
     <div class="max-w-md mx-auto text-center">
-      <div class="mb-6">
-        <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-          <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="mb-3">
+        <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-2 backdrop-blur-sm">
+          <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
           </svg>
         </div>
       </div>
       
-      <h3 class="text-2xl font-bold text-white mb-3">Newsletter DartShop</h3>
-      <p class="text-indigo-100 mb-6 leading-relaxed">
+      <h3 class="text-lg font-bold text-white mb-2">Newsletter DartShop</h3>
+      <p class="text-indigo-100 mb-4 text-sm leading-relaxed">
         Zapisz się do naszego newslettera i bądź na bieżąco z najnowszymi produktami, promocjami i poradnikami dotyczącymi gry w dart!
       </p>
       
-      <form @submit.prevent="subscribe" class="space-y-4">
+      <form @submit.prevent="subscribe" class="space-y-3">
         <div class="relative">
           <input
             v-model="email"
@@ -22,11 +22,11 @@
             placeholder="Twój adres email"
             required
             :disabled="loading"
-            class="w-full px-6 py-4 text-gray-900 bg-white/95 backdrop-blur-sm border-2 border-white/20 rounded-xl focus:ring-4 focus:ring-white/30 focus:border-white focus:outline-none disabled:opacity-50 disabled:bg-gray-200 transition-all duration-200 text-center font-medium placeholder-gray-500 shadow-lg"
+            class="w-full px-4 py-3 text-gray-900 bg-white/95 backdrop-blur-sm border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-white/30 focus:border-white focus:outline-none disabled:opacity-50 disabled:bg-gray-200 transition-all duration-200 text-center font-medium placeholder-gray-500 shadow-lg"
             :class="{ 'border-red-300 focus:border-red-400 focus:ring-red-400/30': errorMessage }"
           />
-          <div v-if="loading" class="absolute right-4 top-1/2 transform -translate-y-1/2">
-            <svg class="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <div v-if="loading" class="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <svg class="animate-spin h-4 w-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
@@ -36,7 +36,7 @@
         <button
           type="submit"
           :disabled="loading || !email || !isValidEmail"
-          class="w-full bg-white text-indigo-600 font-bold py-4 px-8 rounded-xl hover:bg-indigo-50 focus:ring-4 focus:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-lg backdrop-blur-sm"
+          class="w-full bg-white text-indigo-600 font-semibold py-3 px-6 rounded-lg hover:bg-indigo-50 focus:ring-2 focus:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-lg backdrop-blur-sm"
         >
           <span v-if="loading" class="flex items-center justify-center">
             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -55,7 +55,7 @@
       </form>
       
       <!-- Privacy Notice -->
-      <p class="mt-6 text-xs text-indigo-200 leading-relaxed">
+      <p class="mt-3 text-xs text-indigo-200 leading-relaxed">
         Zapisując się do newslettera akceptujesz naszą 
         <router-link to="/privacy" class="text-white hover:text-indigo-100 underline font-medium">politykę prywatności</router-link>. 
         Możesz się wypisać w każdej chwili.

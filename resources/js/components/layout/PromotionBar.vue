@@ -1,7 +1,7 @@
 <template>
   <div v-if="hasActivePromotion" class="bg-indigo-600 text-center py-2 px-4 text-white">
     <div class="max-w-7xl mx-auto">
-      <p>{{ promotionText }} <a v-if="hasLink" :href="promotionLink" class="font-bold underline">{{ linkText }}</a></p>
+      <p>{{ promotionText }}</p>
     </div>
   </div>
 </template>
@@ -12,10 +12,10 @@ export default {
   data() {
     return {
       hasActivePromotion: true,
-      promotionText: 'Darmowa dostawa na zamówienia powyżej 200 zł! Skorzystaj z kodu:',
-      hasLink: true,
-      linkText: 'FREEDART',
-      promotionLink: '/promotions'
+      promotionText: 'Darmowa dostawa na zamówienia powyżej 200 zł!',
+      hasLink: false,
+      linkText: '',
+      promotionLink: ''
     }
   },
   mounted() {
