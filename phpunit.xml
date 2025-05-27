@@ -23,7 +23,7 @@
         <env name="DB_CONNECTION" value="mysql"/>
         <env name="DB_HOST" value="localhost"/>
         <env name="DB_PORT" value="3306"/>
-        <env name="DB_DATABASE" value="dartshop_laravel"/>
+        <env name="DB_DATABASE" value="dartshop_laravel_test"/>
         <env name="DB_USERNAME" value="root"/>
         <env name="DB_PASSWORD" value=""/>
         <env name="CACHE_DRIVER" value="array"/>

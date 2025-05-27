@@ -55,6 +55,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
+            'api.rate.limit' => \App\Http\Middleware\ApiRateLimit::class,
         ]);
         
         $middleware->statefulApi();

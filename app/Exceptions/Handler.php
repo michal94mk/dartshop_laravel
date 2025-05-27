@@ -3,6 +3,14 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -46,5 +54,87 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    /**
+     * Render an exception into an HTTP response.
+     */
+    public function render($request, Throwable $e)
+    {
+        // Handle API requests
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return $this->handleApiException($request, $e);
+        }
+
+        return parent::render($request, $e);
+    }
+
+    /**
+     * Handle API exceptions with consistent JSON responses
+     */
+    private function handleApiException(Request $request, Throwable $e)
+    {
+        $response = [
+            'success' => false,
+            'message' => 'Wystąpił błąd serwera',
+            'errors' => []
+        ];
+
+        if ($e instanceof ValidationException) {
+            $response['message'] = 'Błędy walidacji';
+            $response['errors'] = $e->errors();
+            return response()->json($response, 422);
+        }
+
+        if ($e instanceof ModelNotFoundException) {
+            $response['message'] = 'Zasób nie został znaleziony';
+            return response()->json($response, 404);
+        }
+
+        if ($e instanceof NotFoundHttpException) {
+            $response['message'] = 'Endpoint nie został znaleziony';
+            return response()->json($response, 404);
+        }
+
+        if ($e instanceof MethodNotAllowedHttpException) {
+            $response['message'] = 'Metoda HTTP nie jest dozwolona';
+            return response()->json($response, 405);
+        }
+
+        if ($e instanceof AuthenticationException) {
+            $response['message'] = 'Wymagana autoryzacja';
+            return response()->json($response, 401);
+        }
+
+        if ($e instanceof AuthorizationException) {
+            $response['message'] = 'Brak uprawnień';
+            return response()->json($response, 403);
+        }
+
+        // Log the error for debugging
+        Log::error('API Exception: ' . $e->getMessage(), [
+            'exception' => get_class($e),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString(),
+            'url' => $request->fullUrl(),
+            'method' => $request->method(),
+            'ip' => $request->ip(),
+        ]);
+
+        // Don't expose internal errors in production
+        if (app()->environment('production')) {
+            return response()->json($response, 500);
+        }
+
+        // In development, show detailed error
+        $response['message'] = $e->getMessage();
+        $response['debug'] = [
+            'exception' => get_class($e),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ];
+
+        return response()->json($response, 500);
     }
 }
