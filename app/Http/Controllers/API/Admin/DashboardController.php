@@ -51,6 +51,9 @@ class DashboardController extends BaseAdminController
             // Get top selling products
             $topProducts = $this->getTopProducts();
             
+            // Get categories data
+            $categoriesData = $this->getCategoriesData();
+            
             return response()->json([
                 'counts' => [
                     'products' => $productCount,
@@ -61,6 +64,7 @@ class DashboardController extends BaseAdminController
                 'recent_orders' => $recentOrders,
                 'sales_data' => $salesData,
                 'top_products' => $topProducts,
+                'categories_data' => $categoriesData,
             ]);
         } catch (\Exception $e) {
             return $this->errorResponse('Error fetching dashboard data: ' . $e->getMessage(), 500);
@@ -136,6 +140,33 @@ class DashboardController extends BaseAdminController
             return $topProducts;
         } catch (\Exception $e) {
             // If there's an error (like missing tables), return empty array
+            return [];
+        }
+    }
+    
+    /**
+     * Get categories data for pie chart
+     *
+     * @return array
+     */
+    private function getCategoriesData()
+    {
+        try {
+            $categoriesData = DB::table('categories')
+                ->leftJoin('products', 'categories.id', '=', 'products.category_id')
+                ->select(
+                    'categories.id',
+                    'categories.name',
+                    DB::raw('COUNT(products.id) as products_count')
+                )
+                ->groupBy('categories.id', 'categories.name')
+                ->having('products_count', '>', 0)
+                ->orderBy('products_count', 'desc')
+                ->get();
+            
+            return $categoriesData;
+        } catch (\Exception $e) {
+            // If there's an error, return empty array
             return [];
         }
     }
