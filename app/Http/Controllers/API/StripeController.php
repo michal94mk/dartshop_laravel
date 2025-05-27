@@ -11,16 +11,20 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\CartItem;
+use App\Services\ShippingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class StripeController extends Controller
 {
-    public function __construct()
+    protected $shippingService;
+
+    public function __construct(ShippingService $shippingService)
     {
         // Ustawienie klucza API Stripe
         Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+        $this->shippingService = $shippingService;
     }
 
     /**
@@ -34,6 +38,7 @@ class StripeController extends Controller
             'shipping.address' => 'required|string|max:255',
             'shipping.city' => 'required|string|max:255',
             'shipping.postalCode' => 'required|string|max:10',
+            'shipping_method' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -73,7 +78,7 @@ class StripeController extends Controller
 
             // Utwórz Checkout Session
             $session = Session::create([
-                'payment_method_types' => ['card'],
+                'payment_method_types' => ['card', 'blik', 'p24'],
                 'line_items' => $lineItems,
                 'mode' => 'payment',
                 'success_url' => env('APP_FRONTEND_URL') . '/payment/success?session_id={CHECKOUT_SESSION_ID}',
@@ -82,6 +87,7 @@ class StripeController extends Controller
                 'metadata' => [
                     'user_id' => $user->id,
                     'shipping_data' => json_encode($request->shipping),
+                    'shipping_method' => $request->shipping_method,
                 ],
                 'shipping_address_collection' => [
                     'allowed_countries' => ['PL'],
@@ -114,6 +120,7 @@ class StripeController extends Controller
             'shipping.address' => 'required|string|max:255',
             'shipping.city' => 'required|string|max:255',
             'shipping.postalCode' => 'required|string|max:10',
+            'shipping_method' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -153,7 +160,7 @@ class StripeController extends Controller
 
             // Utwórz Checkout Session
             $session = Session::create([
-                'payment_method_types' => ['card'],
+                'payment_method_types' => ['card', 'blik', 'p24'],
                 'line_items' => $lineItems,
                 'mode' => 'payment',
                 'success_url' => env('APP_FRONTEND_URL') . '/payment/success?session_id={CHECKOUT_SESSION_ID}',
@@ -163,6 +170,7 @@ class StripeController extends Controller
                     'guest_order' => 'true',
                     'shipping_data' => json_encode($request->shipping),
                     'cart_data' => json_encode($cartData),
+                    'shipping_method' => $request->shipping_method,
                 ],
                 'shipping_address_collection' => [
                     'allowed_countries' => ['PL'],
@@ -210,7 +218,7 @@ class StripeController extends Controller
             $paymentIntent = PaymentIntent::create([
                 'amount' => $amountInCents,
                 'currency' => 'pln',
-                'payment_method_types' => ['card'],
+                'payment_method_types' => ['card', 'blik', 'p24'],
                 'metadata' => [
                     'user_id' => $user->id,
                     'cart_items_count' => $cartItems->count()
@@ -272,7 +280,7 @@ class StripeController extends Controller
             $paymentIntent = PaymentIntent::create([
                 'amount' => $amountInCents,
                 'currency' => 'pln',
-                'payment_method_types' => ['card'],
+                'payment_method_types' => ['card', 'blik', 'p24'],
                 'metadata' => [
                     'guest_order' => 'true',
                     'cart_items_count' => count($cartData)
@@ -304,6 +312,7 @@ class StripeController extends Controller
             'shipping.address' => 'required|string|max:255',
             'shipping.city' => 'required|string|max:255',
             'shipping.postalCode' => 'required|string|max:10',
+            'shipping_method' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -341,7 +350,15 @@ class StripeController extends Controller
                 return $item->product->price * $item->quantity;
             });
 
-            $shippingCost = 0;
+            // Validate and calculate shipping cost
+            $shippingMethod = $request->input('shipping_method');
+            if (!$this->shippingService->isValidMethod($shippingMethod)) {
+                return response()->json([
+                    'message' => 'Nieprawidłowa metoda wysyłki'
+                ], 400);
+            }
+
+            $shippingCost = $this->shippingService->calculateShippingCost($shippingMethod, $subtotal);
             $discount = 0;
             $total = $subtotal + $shippingCost - $discount;
 
@@ -367,6 +384,7 @@ class StripeController extends Controller
                 'total' => $total,
                 'payment_method' => 'stripe',
                 'payment_intent_id' => $request->payment_intent_id,
+                'shipping_method' => $shippingMethod,
             ]);
 
             // Utwórz pozycje zamówienia
@@ -411,6 +429,7 @@ class StripeController extends Controller
             'shipping.address' => 'required|string|max:255',
             'shipping.city' => 'required|string|max:255',
             'shipping.postalCode' => 'required|string|max:10',
+            'shipping_method' => 'required|string',
             'cart_items' => 'required|array',
             'cart_items.*.product_id' => 'required|exists:products,id',
             'cart_items.*.quantity' => 'required|integer|min:1',
@@ -456,7 +475,13 @@ class StripeController extends Controller
                 $subtotal += $product->price * $item['quantity'];
             }
 
-            $shippingCost = 0;
+            // Validate and calculate shipping cost
+            $shippingMethod = $request->input('shipping_method');
+            if (!$this->shippingService->isValidMethod($shippingMethod)) {
+                throw new \Exception('Nieprawidłowa metoda wysyłki');
+            }
+
+            $shippingCost = $this->shippingService->calculateShippingCost($shippingMethod, $subtotal);
             $discount = 0;
             $total = $subtotal + $shippingCost - $discount;
 
@@ -482,6 +507,7 @@ class StripeController extends Controller
                 'total' => $total,
                 'payment_method' => 'stripe',
                 'payment_intent_id' => $request->payment_intent_id,
+                'shipping_method' => $shippingMethod,
             ]);
 
             // Utwórz pozycje zamówienia
@@ -551,6 +577,7 @@ class StripeController extends Controller
             // Pobierz dane z metadata
             $metadata = $session->metadata;
             $shippingData = json_decode($metadata['shipping_data'], true);
+            $shippingMethod = $metadata['shipping_method'] ?? 'courier';
 
             if (isset($metadata['user_id'])) {
                 // Zamówienie dla zalogowanego użytkownika
@@ -572,7 +599,8 @@ class StripeController extends Controller
                     return $item->product->price * $item->quantity;
                 });
 
-                $shippingCost = 0;
+                // Calculate shipping cost
+                $shippingCost = $this->shippingService->calculateShippingCost($shippingMethod, $subtotal);
                 $discount = 0;
                 $total = $subtotal + $shippingCost - $discount;
 
@@ -598,6 +626,7 @@ class StripeController extends Controller
                     'total' => $total,
                     'payment_method' => 'stripe',
                     'payment_intent_id' => $session->payment_intent,
+                    'shipping_method' => $shippingMethod,
                 ]);
 
                 // Utwórz pozycje zamówienia
@@ -637,7 +666,8 @@ class StripeController extends Controller
                     $subtotal += $product->price * $item['quantity'];
                 }
 
-                $shippingCost = 0;
+                // Calculate shipping cost
+                $shippingCost = $this->shippingService->calculateShippingCost($shippingMethod, $subtotal);
                 $discount = 0;
                 $total = $subtotal + $shippingCost - $discount;
 
@@ -663,6 +693,7 @@ class StripeController extends Controller
                     'total' => $total,
                     'payment_method' => 'stripe',
                     'payment_intent_id' => $session->payment_intent,
+                    'shipping_method' => $shippingMethod,
                 ]);
 
                 // Utwórz pozycje zamówienia

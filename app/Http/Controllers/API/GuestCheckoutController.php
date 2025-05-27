@@ -7,11 +7,19 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Services\ShippingService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class GuestCheckoutController extends Controller
 {
+    protected $shippingService;
+
+    public function __construct(ShippingService $shippingService)
+    {
+        $this->shippingService = $shippingService;
+    }
+
     /**
      * Get cart data for guest checkout
      */
@@ -51,8 +59,19 @@ class GuestCheckoutController extends Controller
                 ], 400);
             }
 
+            // Calculate cart total
+            $cartTotal = collect($cartItems)->sum(function ($item) {
+                return $item['product']->price * $item['quantity'];
+            });
+
+            // Get shipping methods with calculated costs
+            $shippingMethods = $this->shippingService->getShippingMethodsWithCosts($cartTotal);
+
             return response()->json([
-                'cart_items' => $cartItems
+                'cart_items' => $cartItems,
+                'shipping_methods' => $shippingMethods,
+                'cart_total' => $cartTotal,
+                'free_shipping_threshold' => $this->shippingService->getFreeShippingThreshold()
             ]);
 
         } catch (\Exception $e) {
@@ -73,6 +92,7 @@ class GuestCheckoutController extends Controller
             'shipping.address' => 'required|string|max:255',
             'shipping.city' => 'required|string|max:255',
             'shipping.postalCode' => 'required|string|max:10',
+            'shipping_method' => 'required|string',
             'cart_items' => 'required|array',
             'cart_items.*.product_id' => 'required|exists:products,id',
             'cart_items.*.quantity' => 'required|integer|min:1',
@@ -113,8 +133,13 @@ class GuestCheckoutController extends Controller
                 throw new \Exception('Koszyk jest pusty');
             }
 
-            // Oblicz koszty
-            $shippingCost = 0;
+            // Validate and calculate shipping cost
+            $shippingMethod = $request->input('shipping_method');
+            if (!$this->shippingService->isValidMethod($shippingMethod)) {
+                throw new \Exception('Nieprawidłowa metoda wysyłki');
+            }
+
+            $shippingCost = $this->shippingService->calculateShippingCost($shippingMethod, $subtotal);
             $discount = 0;
             $total = $subtotal + $shippingCost - $discount;
 
@@ -138,7 +163,8 @@ class GuestCheckoutController extends Controller
                 'shipping_cost' => $shippingCost,
                 'discount' => $discount,
                 'total' => $total,
-                'payment_method' => 'stripe',
+                'payment_method' => 'cod',
+                'shipping_method' => $shippingMethod,
             ]);
 
             // Utwórz pozycje zamówienia

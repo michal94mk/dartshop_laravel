@@ -18,7 +18,7 @@ class CheckoutController extends Controller
 
     public function __construct(ShippingService $shippingService)
     {
-        $this->middleware('auth');
+        $this->middleware('auth')->except(['showOrder']);
         $this->shippingService = $shippingService;
     }
 
@@ -114,7 +114,7 @@ class CheckoutController extends Controller
                 'shipping_cost' => $shippingCost,
                 'discount' => $discount,
                 'total' => $total,
-                'payment_method' => 'stripe', // Will be implemented later
+                'payment_method' => 'cod',
                 'shipping_method' => $shippingMethod,
             ]);
 
@@ -146,5 +146,17 @@ class CheckoutController extends Controller
                 'message' => 'Wystąpił błąd podczas przetwarzania zamówienia'
             ], 500);
         }
+    }
+
+    /**
+     * Show order details for success page
+     */
+    public function showOrder($orderId)
+    {
+        $order = Order::with(['items'])->findOrFail($orderId);
+        
+        return response()->json([
+            'order' => $order
+        ]);
     }
 } 

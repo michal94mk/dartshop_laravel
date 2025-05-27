@@ -163,6 +163,7 @@
               </div>
               <div class="p-6">
                 <div class="space-y-2">
+                  <!-- Stripe Payment Methods -->
                   <div 
                     class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                     :class="{ 'border-indigo-500 bg-indigo-50': paymentMethod === 'stripe' }"
@@ -180,9 +181,14 @@
                       <svg class="w-4 h-4 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                       </svg>
-                      <span class="text-sm font-medium text-gray-900">Karta płatnicza (Stripe)</span>
+                      <div class="flex flex-col">
+                        <span class="text-sm font-medium text-gray-900">Płatność online</span>
+                        <span class="text-xs text-gray-500">Karta płatnicza, BLIK, Przelewy24</span>
+                      </div>
                     </div>
                   </div>
+                  
+                  <!-- Cash on Delivery -->
                   <div 
                     class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                     :class="{ 'border-indigo-500 bg-indigo-50': paymentMethod === 'cod' }"
@@ -437,8 +443,8 @@ export default {
           // Wyczyść koszyk po udanym zamówieniu
           await cartStore.clearCart()
           
-          alert('Zamówienie zostało złożone pomyślnie!')
-          router.push('/')
+          // Przekieruj na stronę sukcesu z ID zamówienia
+          router.push(`/payment/success?order_id=${response.data.order.id}`)
           
         } else {
           // Dla gości - wyślij dane koszyka wraz z danymi wysyłki
@@ -463,8 +469,8 @@ export default {
           localStorage.removeItem('cart')
           cartStore.items = []
           
-          alert('Zamówienie zostało złożone pomyślnie!')
-          router.push('/')
+          // Przekieruj na stronę sukcesu z ID zamówienia
+          router.push(`/payment/success?order_id=${response.data.order.id}`)
         }
         
       } catch (err) {

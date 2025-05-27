@@ -164,6 +164,9 @@ Route::prefix('stripe')->group(function () {
     Route::post('/success', [StripeController::class, 'handleCheckoutSuccess']);
 });
 
+// Public order endpoint for success page
+Route::get('/orders/{order}', [CheckoutController::class, 'showOrder']);
+
 // Admin API Routes
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
     // Dashboard statistics

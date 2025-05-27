@@ -65,8 +65,9 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
               </svg>
             </div>
-            <h2 class="text-3xl font-bold text-green-800 mb-3">Płatność zakończona pomyślnie!</h2>
-            <p class="text-green-700 text-lg">Twoje zamówienie zostało złożone i opłacone.</p>
+            <h2 class="text-3xl font-bold text-green-800 mb-3">Zamówienie złożone pomyślnie!</h2>
+            <p class="text-green-700 text-lg" v-if="order && order.payment_method === 'stripe'">Twoje zamówienie zostało złożone i opłacone.</p>
+            <p class="text-green-700 text-lg" v-else>Twoje zamówienie zostało złożone. Płatność nastąpi przy odbiorze.</p>
           </div>
           
           <!-- Order details -->
@@ -86,11 +87,17 @@
                 </div>
                 <div class="bg-gray-50 rounded-lg p-4">
                   <p class="text-sm font-semibold text-gray-600 mb-1">Status</p>
-                  <span class="inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
+                  <span v-if="order && order.payment_method === 'stripe'" class="inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
                     Opłacone
+                  </span>
+                  <span v-else class="inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Oczekuje na płatność
                   </span>
                 </div>
                 <div class="bg-gray-50 rounded-lg p-4">
@@ -198,18 +205,27 @@ export default {
     const processPaymentSuccess = async () => {
       try {
         const sessionId = route.query.session_id
+        const orderId = route.query.order_id
         
-        if (!sessionId) {
-          throw new Error('Brak ID sesji płatności')
+        if (sessionId) {
+          // Płatność Stripe
+          const response = await axios.post('/api/stripe/success', {
+            session_id: sessionId
+          })
+          
+          order.value = response.data.order
+          success.value = true
+          
+        } else if (orderId) {
+          // Płatność za pobraniem - pobierz dane zamówienia
+          const response = await axios.get(`/api/orders/${orderId}`)
+          
+          order.value = response.data.order
+          success.value = true
+          
+        } else {
+          throw new Error('Brak danych zamówienia')
         }
-        
-        // Wywołaj endpoint do przetworzenia sukcesu płatności
-        const response = await axios.post('/api/stripe/success', {
-          session_id: sessionId
-        })
-        
-        order.value = response.data.order
-        success.value = true
         
         // Wyczyść koszyk lokalnie (jeśli to gość)
         const savedCart = localStorage.getItem('cart')
