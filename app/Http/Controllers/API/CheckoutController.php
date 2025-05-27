@@ -7,14 +7,19 @@ use Illuminate\Http\Request;
 use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Services\ShippingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
 {
-    public function __construct()
+    protected $shippingService;
+
+    public function __construct(ShippingService $shippingService)
     {
         $this->middleware('auth');
+        $this->shippingService = $shippingService;
     }
 
     public function index()
@@ -30,9 +35,20 @@ class CheckoutController extends Controller
             ], 400);
         }
 
+        // Calculate cart total
+        $cartTotal = $cartItems->sum(function ($item) {
+            return $item->product->price * $item->quantity;
+        });
+
+        // Get shipping methods with calculated costs
+        $shippingMethods = $this->shippingService->getShippingMethodsWithCosts($cartTotal);
+
         return response()->json([
             'cart_items' => $cartItems,
-            'user' => $user
+            'user' => $user,
+            'shipping_methods' => $shippingMethods,
+            'cart_total' => $cartTotal,
+            'free_shipping_threshold' => $this->shippingService->getFreeShippingThreshold()
         ]);
     }
 
@@ -55,6 +71,7 @@ class CheckoutController extends Controller
             'shipping.address' => 'required|string|max:255',
             'shipping.city' => 'required|string|max:255',
             'shipping.postalCode' => 'required|string|max:10',
+            'shipping_method' => 'required|string',
         ]);
 
         try {
@@ -65,8 +82,15 @@ class CheckoutController extends Controller
                 return $item->product->price * $item->quantity;
             });
 
-            // For now, we'll set shipping cost to 0 and no discount
-            $shippingCost = 0;
+            // Validate and calculate shipping cost
+            $shippingMethod = $request->input('shipping_method');
+            if (!$this->shippingService->isValidMethod($shippingMethod)) {
+                return response()->json([
+                    'message' => 'Nieprawidłowa metoda wysyłki'
+                ], 400);
+            }
+
+            $shippingCost = $this->shippingService->calculateShippingCost($shippingMethod, $subtotal);
             $discount = 0;
             $total = $subtotal + $shippingCost - $discount;
 
@@ -91,6 +115,7 @@ class CheckoutController extends Controller
                 'discount' => $discount,
                 'total' => $total,
                 'payment_method' => 'stripe', // Will be implemented later
+                'shipping_method' => $shippingMethod,
             ]);
 
             // Create order items

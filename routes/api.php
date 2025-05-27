@@ -133,6 +133,25 @@ Route::prefix('guest-checkout')->group(function () {
     Route::post('/process', [GuestCheckoutController::class, 'process']);
 });
 
+// Shipping methods API
+Route::get('/shipping-methods', function () {
+    $shippingService = new \App\Services\ShippingService();
+    return response()->json([
+        'methods' => $shippingService->getShippingMethods(),
+        'free_shipping_threshold' => $shippingService->getFreeShippingThreshold()
+    ]);
+});
+
+// Test shipping calculations
+Route::get('/test-shipping/{total}', function ($total) {
+    $shippingService = new \App\Services\ShippingService();
+    return response()->json([
+        'cart_total' => $total,
+        'methods_with_costs' => $shippingService->getShippingMethodsWithCosts($total),
+        'free_shipping_threshold' => $shippingService->getFreeShippingThreshold()
+    ]);
+});
+
 // Guest Stripe payment routes
 Route::prefix('guest-stripe')->group(function () {
     Route::post('/create-checkout-session', [StripeController::class, 'createGuestCheckoutSession']);
