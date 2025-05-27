@@ -1,9 +1,51 @@
 <template>
-  <div class="flex h-screen bg-gray-100">
-    <!-- Sidebar (statyczny na desktop, wysuwalny na mobile) -->
+  <div class="min-h-screen bg-gray-100">
+    <!-- Top Header with Admin info -->
+    <div class="fixed top-0 left-0 right-0 z-50 bg-indigo-800 shadow-lg">
+      <div class="flex h-16 items-center justify-between px-6">
+        <!-- Left side - Admin info -->
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-3">
+            <div class="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center">
+              <span class="text-white font-medium text-sm">{{ userInitial }}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-white text-sm font-medium">Admin</p>
+              <p class="text-xs text-indigo-200 truncate">{{ userEmail }}</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Right side - Navigation options -->
+        <div class="flex items-center space-x-1">
+          <router-link to="/" class="rounded-md px-3 py-2 text-sm font-medium text-indigo-200 hover:bg-indigo-700 hover:text-white transition-colors">
+            Strona główna
+          </router-link>
+          <router-link to="/profile" class="rounded-md px-3 py-2 text-sm font-medium text-indigo-200 hover:bg-indigo-700 hover:text-white transition-colors">
+            Profil
+          </router-link>
+          <button @click="logout" class="rounded-md px-3 py-2 text-sm font-medium text-indigo-200 hover:bg-indigo-700 hover:text-white transition-colors">
+            Wyloguj
+          </button>
+          
+          <!-- Mobile menu button -->
+          <button 
+            @click="toggleSidebar" 
+            class="ml-4 rounded p-1 text-indigo-200 hover:bg-indigo-700 hover:text-white lg:hidden"
+          >
+            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar (przyklejony na desktop, wysuwalny na mobile) -->
     <aside 
-      class="fixed inset-y-0 left-0 z-50 w-64 bg-indigo-800 shadow-lg transform transition-transform duration-300 lg:relative lg:translate-x-0 flex flex-col"
+      class="fixed top-16 bottom-0 left-0 z-40 bg-indigo-800 shadow-lg transform transition-transform duration-300 lg:translate-x-0 flex flex-col"
       :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}"
+      style="width: 256px;"
     >
       <!-- Sidebar header -->
       <div class="flex h-16 items-center justify-between border-b border-indigo-700 px-6 flex-shrink-0">
@@ -21,7 +63,7 @@
       </div>
 
       <!-- Sidebar navigation -->
-      <div class="flex-1 py-4 overflow-y-auto">
+      <div class="flex-1 py-4">
         <div class="space-y-1 px-3">
           <!-- Dashboard -->
           <router-link 
@@ -192,66 +234,23 @@
           </div>
         </div>
       </div>
-
-      <!-- User profile section -->
-      <div class="border-t border-indigo-700 p-4 flex-shrink-0">
-        <div class="flex items-center space-x-3">
-          <div class="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center">
-            <span class="text-white font-medium text-sm">{{ userInitial }}</span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-white text-sm font-medium truncate">{{ userName }}</p>
-            <p class="text-xs text-indigo-200 truncate">{{ userEmail }}</p>
-          </div>
-        </div>
-        
-        <div class="mt-3 space-y-1">
-          <router-link to="/" class="block rounded-md px-3 py-1.5 text-xs text-indigo-200 hover:bg-indigo-700 hover:text-white transition-colors">
-            Strona główna
-          </router-link>
-          <router-link to="/profile" class="block rounded-md px-3 py-1.5 text-xs text-indigo-200 hover:bg-indigo-700 hover:text-white transition-colors">
-            Profil
-          </router-link>
-          <button @click="logout" class="block w-full rounded-md px-3 py-1.5 text-left text-xs text-indigo-200 hover:bg-indigo-700 hover:text-white transition-colors">
-            Wyloguj
-          </button>
-        </div>
-      </div>
     </aside>
 
     <!-- Sidebar overlay (tylko na mobile) -->
     <div 
       @click="toggleSidebar" 
-      class="fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity lg:hidden"
+      class="fixed inset-0 z-30 bg-black bg-opacity-50 transition-opacity lg:hidden"
       :class="{'opacity-100 pointer-events-auto': sidebarOpen, 'opacity-0 pointer-events-none': !sidebarOpen}"
     ></div>
 
     <!-- Główna treść -->
-    <div class="flex-1 flex flex-col h-screen overflow-hidden">
-      <!-- Header -->
-      <header class="bg-white shadow z-10">
-        <div class="flex h-16 items-center justify-between px-6">
-          <button 
-            @click="toggleSidebar" 
-            class="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 lg:hidden"
-          >
-            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          
-          <div class="text-lg font-medium text-gray-800">
-            {{ pageTitle }}
-          </div>
-        </div>
-      </header>
-
+    <div class="pt-16 lg:ml-64">
       <!-- Alerts Container -->
       <alerts-container />
 
-      <!-- Page Content - ze scrolla dla treści -->
-      <main class="flex-1 overflow-y-auto p-6 bg-gray-100">
-        <div class="mx-auto max-w-7xl flex flex-col">
+      <!-- Page Content -->
+      <main class="p-6 bg-gray-100 min-h-screen">
+        <div class="mx-auto max-w-7xl">
           <!-- Router-view with transitions -->
           <div class="overflow-hidden rounded-lg bg-white shadow-sm">
             <router-view v-slot="{ Component }">
