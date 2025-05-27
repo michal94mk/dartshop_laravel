@@ -35,6 +35,8 @@ class UserController extends BaseAdminController
                 $search = $request->search;
                 $query->where(function($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%")
                       ->orWhere('email', 'like', "%{$search}%");
                 });
                 \Illuminate\Support\Facades\Log::info('After search filter count: ' . $query->count());
@@ -97,6 +99,8 @@ class UserController extends BaseAdminController
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
                 'password' => 'required|string|min:8',
                 'role' => 'required|in:admin,user',
@@ -109,6 +113,8 @@ class UserController extends BaseAdminController
 
             $user = User::create([
                 'name' => $request->name,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'is_admin' => $request->role === 'admin',
@@ -151,6 +157,8 @@ class UserController extends BaseAdminController
 
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
                 'email' => [
                     'required',
                     'string',
@@ -169,6 +177,8 @@ class UserController extends BaseAdminController
 
             $userData = [
                 'name' => $request->name,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
                 'email' => $request->email,
                 'is_admin' => $request->role === 'admin',
             ];

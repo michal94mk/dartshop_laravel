@@ -65,11 +65,12 @@
         <div class="flex items-center">
           <div class="h-10 w-10 flex-shrink-0">
             <div class="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-medium">
-              {{ getUserInitials(item.name) }}
+              {{ getUserInitials(item) }}
             </div>
           </div>
           <div class="ml-4">
-            <div class="font-medium text-gray-900">{{ item.name }}</div>
+            <div class="font-medium text-gray-900">{{ getDisplayName(item) }}</div>
+            <div class="text-sm text-gray-500">@{{ item.name }}</div>
           </div>
         </div>
       </template>
@@ -171,7 +172,7 @@
                   <!-- Basic Details Tab -->
                   <div v-if="activeTab === 'details'" class="grid grid-cols-1 gap-4">
                     <div>
-                      <label for="name" class="block text-sm font-medium text-gray-700">Imię i nazwisko</label>
+                      <label for="name" class="block text-sm font-medium text-gray-700">Nazwa użytkownika</label>
                       <input
                         type="text"
                         id="name"
@@ -179,6 +180,30 @@
                         required
                         class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                       />
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700">Imię</label>
+                        <input
+                          type="text"
+                          id="first_name"
+                          v-model="currentUser.first_name"
+                          required
+                          class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700">Nazwisko</label>
+                        <input
+                          type="text"
+                          id="last_name"
+                          v-model="currentUser.last_name"
+                          required
+                          class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        />
+                      </div>
                     </div>
                     
                     <div>
@@ -425,6 +450,8 @@ export default {
     const currentUser = ref({
       id: null,
       name: '',
+      first_name: '',
+      last_name: '',
       email: '',
       role: 'user',
       verified: false,
@@ -567,6 +594,8 @@ export default {
         currentUser.value = {
           id: null,
           name: '',
+          first_name: '',
+          last_name: '',
           email: '',
           role: 'user',
           verified: false,
@@ -587,6 +616,8 @@ export default {
         currentUser.value = {
           id: userData.id,
           name: userData.name,
+          first_name: userData.first_name || '',
+          last_name: userData.last_name || '',
           email: userData.email,
           role: userData.role || 'user',
           verified: !!userData.email_verified_at,
@@ -606,6 +637,8 @@ export default {
         // Prepare data for API
         const userData = {
           name: currentUser.value.name,
+          first_name: currentUser.value.first_name,
+          last_name: currentUser.value.last_name,
           email: currentUser.value.email,
           role: currentUser.value.role,
           email_verified_at: currentUser.value.verified ? new Date().toISOString() : null
@@ -667,13 +700,34 @@ export default {
       return new Date(dateString).toLocaleDateString('pl-PL', options)
     }
     
-    const getUserInitials = (name) => {
-      if (!name) return '?'
+    const getUserInitials = (user) => {
+      if (!user) return '?'
       
-      const names = name.split(' ')
-      if (names.length === 1) return names[0].charAt(0).toUpperCase()
+      // Try to use first_name and last_name first
+      if (user.first_name && user.last_name) {
+        return (user.first_name.charAt(0) + user.last_name.charAt(0)).toUpperCase()
+      }
       
-      return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase()
+      // Fallback to name
+      if (user.name) {
+        const names = user.name.split(' ')
+        if (names.length === 1) return names[0].charAt(0).toUpperCase()
+        return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase()
+      }
+      
+      return '?'
+    }
+    
+    const getDisplayName = (user) => {
+      if (!user) return ''
+      
+      // Try to use first_name and last_name first
+      if (user.first_name && user.last_name) {
+        return `${user.first_name} ${user.last_name}`
+      }
+      
+      // Fallback to name
+      return user.name || ''
     }
     
     const isUserAdmin = (user) => {
@@ -705,6 +759,7 @@ export default {
       confirmDelete,
       formatDate,
       getUserInitials,
+      getDisplayName,
       isUserAdmin,
       activeTab,
       availableRoles,

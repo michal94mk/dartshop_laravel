@@ -34,15 +34,41 @@
           </div>
           
           <form @submit.prevent="handleRegister" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="first_name" class="block text-sm font-semibold text-gray-700 mb-2">Imię</label>
+                <input 
+                  id="first_name" 
+                  type="text" 
+                  v-model="firstName" 
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                  placeholder="Jan"
+                />
+              </div>
+              
+              <div>
+                <label for="last_name" class="block text-sm font-semibold text-gray-700 mb-2">Nazwisko</label>
+                <input 
+                  id="last_name" 
+                  type="text" 
+                  v-model="lastName" 
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                  placeholder="Kowalski"
+                />
+              </div>
+            </div>
+            
             <div>
-              <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Imię i Nazwisko</label>
+              <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Nazwa użytkownika</label>
               <input 
                 id="name" 
                 type="text" 
                 v-model="name" 
                 required
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
-                placeholder="Jan Kowalski"
+                placeholder="jan_kowalski"
               />
             </div>
             
@@ -163,6 +189,8 @@ export default {
   
   setup() {
     const name = ref('');
+    const firstName = ref('');
+    const lastName = ref('');
     const email = ref('');
     const password = ref('');
     const passwordConfirmation = ref('');
@@ -183,6 +211,8 @@ export default {
         
         const success = await authStore.register(
           name.value,
+          firstName.value,
+          lastName.value,
           email.value,
           password.value,
           passwordConfirmation.value
@@ -200,6 +230,8 @@ export default {
     
     return {
       name,
+      firstName,
+      lastName,
       email,
       password,
       passwordConfirmation,

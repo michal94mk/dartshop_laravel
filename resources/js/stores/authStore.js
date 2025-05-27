@@ -243,7 +243,7 @@ export const useAuthStore = defineStore('auth', {
     },
     
     // Rejestracja użytkownika
-    async register(name, email, password, passwordConfirmation) {
+    async register(name, firstName, lastName, email, password, passwordConfirmation) {
       this.isLoading = true;
       // Reset error state before attempting registration
       this.hasError = false;
@@ -256,6 +256,8 @@ export const useAuthStore = defineStore('auth', {
         // Wykonaj rejestrację
         const response = await axios.post('/api/register', {
           name,
+          first_name: firstName,
+          last_name: lastName,
           email,
           password,
           password_confirmation: passwordConfirmation

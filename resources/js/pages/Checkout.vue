@@ -412,6 +412,19 @@ export default {
     
     onMounted(() => {
       fetchCart()
+      
+      // Auto-fill shipping details if user is logged in
+      if (authStore.isLoggedIn && authStore.user) {
+        const user = authStore.user
+        shippingDetails.value.email = user.email || ''
+        
+        // Combine first_name and last_name if available, otherwise use name
+        if (user.first_name && user.last_name) {
+          shippingDetails.value.name = `${user.first_name} ${user.last_name}`
+        } else if (user.name) {
+          shippingDetails.value.name = user.name
+        }
+      }
     })
     
     return {

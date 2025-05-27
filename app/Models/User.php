@@ -30,6 +30,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $fillable = [
         'name',
+        'first_name',
+        'last_name',
         'email',
         'password',
         'is_admin',
@@ -102,5 +104,25 @@ class User extends Authenticatable implements MustVerifyEmail
     public function shippingAddresses()
     {
         return $this->hasMany(ShippingAddress::class);
+    }
+    
+    /**
+     * Get the user's full name.
+     */
+    public function getFullNameAttribute()
+    {
+        if ($this->first_name && $this->last_name) {
+            return "{$this->first_name} {$this->last_name}";
+        }
+        
+        return $this->name;
+    }
+    
+    /**
+     * Get the user's display name (full name if available, otherwise username).
+     */
+    public function getDisplayNameAttribute()
+    {
+        return $this->getFullNameAttribute();
     }
 }
