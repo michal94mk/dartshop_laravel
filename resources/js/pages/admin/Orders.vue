@@ -374,7 +374,7 @@
             >
               <option value="">Wybierz użytkownika</option>
               <option v-for="user in users" :key="user.id" :value="user.id">
-                {{ user.name }} ({{ user.email }})
+                {{ user.name }} ({{ user.email }}){{ user.is_admin ? ' [ADMIN]' : '' }}
               </option>
             </select>
           </div>
@@ -802,6 +802,7 @@ export default {
           } 
         })
         users.value = response.data.data
+        console.log('Fetched users:', users.value.length, 'users (including', users.value.filter(u => u.is_admin).length, 'admins)')
       } catch (error) {
         console.error('Error fetching users:', error)
         alertStore.error('Nie udało się pobrać listy użytkowników')
@@ -924,6 +925,14 @@ export default {
     }
     
     const openEditModal = (order = null) => {
+      // Fetch products and users if not already loaded
+      if (products.value.length === 0) {
+        fetchProducts()
+      }
+      if (users.value.length === 0) {
+        fetchUsers()
+      }
+      
       if (order) {
         // Clone the order to avoid modifying the original
         const orderData = { ...order };
@@ -1027,14 +1036,24 @@ export default {
     watch(() => editedOrder.value.user_id, async (newUserId) => {
       if (newUserId) {
         try {
+          console.log('Fetching user data for ID:', newUserId)
           const response = await axios.get(`/api/admin/users/${newUserId}`)
           const userData = response.data
           
           // Fill in email from user data - ensuring it's a valid string
           editedOrder.value.email = userData.email || ''
+          console.log('Setting email to:', editedOrder.value.email)
           
-          // Parse name into first and last name
-          if (userData.name) {
+          // Use first_name and last_name if available, otherwise parse name
+          if (userData.first_name && userData.last_name) {
+            editedOrder.value.first_name = userData.first_name
+            editedOrder.value.last_name = userData.last_name
+          } else if (userData.first_name) {
+            // If only first_name is available
+            editedOrder.value.first_name = userData.first_name
+            editedOrder.value.last_name = userData.last_name || ''
+          } else if (userData.name) {
+            // Parse from name field
             const nameParts = userData.name.split(' ')
             if (nameParts.length > 1) {
               editedOrder.value.first_name = nameParts[0]
@@ -1043,6 +1062,10 @@ export default {
               editedOrder.value.first_name = userData.name
               editedOrder.value.last_name = ''
             }
+          } else {
+            // Fallback - clear fields if no name data available
+            editedOrder.value.first_name = ''
+            editedOrder.value.last_name = ''
           }
           
           // Also prefill address data if available
@@ -1060,6 +1083,8 @@ export default {
           }
           
           console.log('Loaded user data:', userData)
+          console.log('User first_name:', userData.first_name, 'last_name:', userData.last_name)
+          console.log('Final form values - first_name:', editedOrder.value.first_name, 'last_name:', editedOrder.value.last_name)
         } catch (error) {
           console.error('Error fetching user data:', error)
           alertStore.error('Nie udało się pobrać danych użytkownika')
@@ -1069,6 +1094,10 @@ export default {
         editedOrder.value.email = ''
         editedOrder.value.first_name = ''
         editedOrder.value.last_name = ''
+        editedOrder.value.phone = ''
+        editedOrder.value.address = ''
+        editedOrder.value.city = ''
+        editedOrder.value.postal_code = ''
       }
     })
 
@@ -1102,15 +1131,20 @@ export default {
               editedOrder.value.email = userData.email
             }
             
-            // Extract first and last name from the user's name
-            if (!editedOrder.value.first_name && userData.name) {
-              const nameParts = userData.name.split(' ')
-              if (nameParts.length > 1) {
-                editedOrder.value.first_name = nameParts[0]
-                editedOrder.value.last_name = nameParts.slice(1).join(' ')
-              } else {
-                editedOrder.value.first_name = userData.name
-                editedOrder.value.last_name = ''
+            // Extract first and last name from user data
+            if (!editedOrder.value.first_name) {
+              if (userData.first_name && userData.last_name) {
+                editedOrder.value.first_name = userData.first_name
+                editedOrder.value.last_name = userData.last_name
+              } else if (userData.name) {
+                const nameParts = userData.name.split(' ')
+                if (nameParts.length > 1) {
+                  editedOrder.value.first_name = nameParts[0]
+                  editedOrder.value.last_name = nameParts.slice(1).join(' ')
+                } else {
+                  editedOrder.value.first_name = userData.name
+                  editedOrder.value.last_name = ''
+                }
               }
             }
           } catch (error) {
