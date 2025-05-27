@@ -258,3 +258,5 @@ Route::get('/privacy-policy', [PrivacyPolicyController::class, 'show']);
 
 // Privacy Policy acceptance for authenticated users
 Route::middleware('auth:sanctum')->post('/privacy-policy/accept', [PrivacyPolicyController::class, 'accept']);
+
+

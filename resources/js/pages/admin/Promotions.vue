@@ -11,12 +11,14 @@
     <!-- Search and filters -->
     <search-filters
       v-if="!loading"
-      :filters="filters.value"
+      :filters="filters"
       :sort-options="sortOptions"
+      :default-filters="defaultFilters"
       search-label="Wyszukaj"
       search-placeholder="Nazwa lub kod promocji..."
-      @update:filters="(newFilters) => { Object.assign(filters.value, newFilters); filters.value.page = 1; }"
+      @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
       @filter-change="fetchPromotions"
+      @reset-filters="resetFilters"
     >
       <template v-slot:filters>
         <div class="w-full sm:w-auto">
@@ -24,8 +26,8 @@
           <select
             id="status"
             name="status"
-            v-model="filters.value.status"
-            @change="fetchPromotions"
+            v-model="filters.status"
+            @change="() => { filters.page = 1; fetchPromotions(); }"
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">Wszystkie</option>
@@ -39,8 +41,8 @@
           <select
             id="type"
             name="type"
-            v-model="filters.value.type"
-            @change="fetchPromotions"
+            v-model="filters.type"
+            @change="() => { filters.page = 1; fetchPromotions(); }"
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">Wszystkie</option>
@@ -56,9 +58,9 @@
     
     <!-- Promotions Table -->
     <admin-table
-      v-if="!loading && promotions.length > 0"
+      v-if="!loading && promotions.data && promotions.data.length > 0"
       :columns="tableColumns"
-      :items="promotions"
+      :items="promotions.data"
       class="mt-6"
     >
       <template #cell-code="{ item }">
@@ -103,7 +105,15 @@
     </admin-table>
     
     <!-- No data message -->
-    <no-data-message v-if="!loading && promotions.length === 0" message="Brak promocji do wyświetlenia" />
+    <no-data-message v-if="!loading && (!promotions.data || promotions.data.length === 0)" message="Brak promocji do wyświetlenia" />
+    
+    <!-- Pagination -->
+    <pagination 
+      v-if="promotions.data && promotions.data.length > 0 && promotions.last_page > 1"
+      :pagination="promotions" 
+      items-label="promocji" 
+      @page-change="goToPage" 
+    />
     
     <!-- Add/Edit Modal -->
     <div v-if="showAddForm || showEditForm" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
@@ -310,6 +320,7 @@ import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
 import SearchFilters from '../../components/admin/SearchFilters.vue'
 import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
 import NoDataMessage from '../../components/admin/NoDataMessage.vue'
+import Pagination from '../../components/admin/Pagination.vue'
 import PageHeader from '../../components/admin/PageHeader.vue'
 
 export default {
@@ -322,12 +333,21 @@ export default {
     SearchFilters,
     LoadingSpinner,
     NoDataMessage,
+    Pagination,
     PageHeader
   },
   setup() {
     const alertStore = useAlertStore()
     const loading = ref(true)
-    const promotions = ref([])
+    const promotions = ref({
+      data: [],
+      current_page: 1,
+      from: 1,
+      to: 0,
+      total: 0,
+      last_page: 1,
+      per_page: 10
+    })
     const showAddForm = ref(false)
     const showEditForm = ref(false)
     const showDeleteModal = ref(false)
@@ -346,15 +366,18 @@ export default {
       is_active: true
     })
     
-    // Filters
-    const filters = ref({
+    // Default filters
+    const defaultFilters = {
       search: '',
       status: '',
       type: '',
-      sort_field: 'ends_at',
-      sort_direction: 'asc',
+      sort_field: 'created_at',
+      sort_direction: 'desc',
       page: 1
-    })
+    }
+    
+    // Filters
+    const filters = reactive({ ...defaultFilters })
     
     // Sort options for the filter component
     const sortOptions = [
@@ -381,11 +404,28 @@ export default {
     const fetchPromotions = async () => {
       try {
         loading.value = true
-        const response = await axios.get('/api/admin/promotions', { params: filters.value })
+        
+        const params = {
+          page: filters.page,
+          search: filters.search,
+          status: filters.status,
+          type: filters.type,
+          sort_field: filters.sort_field,
+          sort_direction: filters.sort_direction
+        }
+        
+        const response = await axios.get('/api/admin/promotions', { params })
         promotions.value = response.data
       } catch (error) {
         console.error('Error fetching promotions:', error)
-        alertStore.error('Wystąpił błąd podczas pobierania promocji.')
+        
+        if (error.response?.status === 401) {
+          alertStore.error('Brak autoryzacji. Sprawdź czy jesteś zalogowany jako administrator.')
+        } else if (error.response?.status === 403) {
+          alertStore.error('Brak uprawnień administratora.')
+        } else {
+          alertStore.error('Wystąpił błąd podczas pobierania promocji: ' + (error.response?.data?.message || error.message))
+        }
       } finally {
         loading.value = false
       }
@@ -397,9 +437,9 @@ export default {
     const addPromotion = async () => {
       try {
         const response = await axios.post('/api/admin/promotions', form.value)
-        promotions.value.push(response.data)
         alertStore.success('Promocja została dodana.')
         closeForm()
+        fetchPromotions() // Refresh the list
       } catch (error) {
         console.error('Error adding promotion:', error)
         alertStore.error('Wystąpił błąd podczas dodawania promocji.')
@@ -428,12 +468,9 @@ export default {
     const updatePromotion = async () => {
       try {
         const response = await axios.put(`/api/admin/promotions/${form.value.id}`, form.value)
-        const index = promotions.value.findIndex(promotion => promotion.id === form.value.id)
-        if (index !== -1) {
-          promotions.value[index] = response.data
-        }
         alertStore.success('Promocja została zaktualizowana.')
         closeForm()
+        fetchPromotions() // Refresh the list
       } catch (error) {
         console.error('Error updating promotion:', error)
         alertStore.error('Wystąpił błąd podczas aktualizacji promocji.')
@@ -450,9 +487,9 @@ export default {
     const deletePromotion = async () => {
       try {
         await axios.delete(`/api/admin/promotions/${promotionToDelete.value.id}`)
-        promotions.value = promotions.value.filter(promotion => promotion.id !== promotionToDelete.value.id)
         alertStore.success('Promocja została usunięta.')
         showDeleteModal.value = false
+        fetchPromotions() // Refresh the list
       } catch (error) {
         console.error('Error deleting promotion:', error)
         alertStore.error('Wystąpił błąd podczas usuwania promocji.')
@@ -511,6 +548,19 @@ export default {
       }
     }
     
+    // Change page
+    const goToPage = (page) => {
+      if (page === '...') return
+      filters.page = page
+      fetchPromotions()
+    }
+    
+    // Reset filters
+    const resetFilters = () => {
+      Object.assign(filters, defaultFilters)
+      fetchPromotions()
+    }
+    
     onMounted(() => {
       fetchPromotions()
     })
@@ -523,6 +573,7 @@ export default {
       showDeleteModal,
       promotionToDelete,
       filters,
+      defaultFilters,
       form,
       sortOptions,
       tableColumns,
@@ -535,7 +586,9 @@ export default {
       closeForm,
       getPromotionTypeName,
       formatDate,
-      generateCode
+      generateCode,
+      goToPage,
+      resetFilters
     }
   }
 }

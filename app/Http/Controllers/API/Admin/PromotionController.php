@@ -13,11 +13,56 @@ class PromotionController extends BaseAdminController
     /**
      * Display a listing of the promotions.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $promotions = Promotion::latest()->get();
+        $query = Promotion::query();
+        
+        // Apply search filter
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+        
+        // Apply status filter
+        if ($request->has('status') && !empty($request->status)) {
+            if ($request->status === 'active') {
+                $query->where('is_active', true);
+            } elseif ($request->status === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+        
+        // Apply type filter
+        if ($request->has('type') && !empty($request->type)) {
+            $query->where('discount_type', $request->type);
+        }
+        
+        // Apply sorting
+        $sortField = $request->sort_field ?? 'created_at';
+        $sortDirection = $request->sort_direction ?? 'desc';
+        
+        // Validate sort field to prevent SQL injection
+        $allowedSortFields = ['name', 'code', 'discount_type', 'discount_value', 'starts_at', 'ends_at', 'created_at', 'updated_at'];
+        if (!in_array($sortField, $allowedSortFields)) {
+            $sortField = 'created_at';
+        }
+        
+        $query->orderBy($sortField, $sortDirection);
+        
+        // Paginate results
+        $perPage = $request->per_page ?? 10;
+        $promotions = $query->paginate($perPage);
+        
+        // Add pagination info to response
+        $promotions->appends($request->query());
+        
         return response()->json($promotions);
     }
 
