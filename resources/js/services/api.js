@@ -188,5 +188,21 @@ export default {
   // Contact
   sendContactForm(formData) {
     return withLogging(api.post, 'sendContactForm')('/contact', formData);
+  },
+
+  // Admin Newsletter
+  getAdminNewsletter(params = {}) {
+    return withLogging(api.get, 'getAdminNewsletter')('/admin/newsletter', { params });
+  },
+
+  deleteNewsletterSubscription(id) {
+    return withLogging(api.delete, 'deleteNewsletterSubscription')(`/admin/newsletter/${id}`);
+  },
+
+  exportNewsletterSubscriptions(params = {}) {
+    return withLogging(api.get, 'exportNewsletterSubscriptions')('/admin/newsletter/export', { 
+      params, 
+      responseType: 'blob' 
+    });
   }
 }; 

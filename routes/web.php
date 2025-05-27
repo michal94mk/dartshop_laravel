@@ -21,6 +21,8 @@ require __DIR__.'/auth.php';
 // Privacy Policy route
 Route::get('/privacy', [PrivacyPolicyController::class, 'show'])->name('privacy');
 
+
+
 // Main entry point route - named route for SEO
 Route::get('/', [SPAController::class, 'index'])->name('home');
 

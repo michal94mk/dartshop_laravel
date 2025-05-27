@@ -1,29 +1,17 @@
 <template>
-  <div class="space-y-6">
+  <div class="pt-8 space-y-6">
     <!-- Header -->
-    <div class="sm:flex sm:items-center">
+    <div class="sm:flex sm:items-center px-6">
       <div class="sm:flex-auto">
         <h1 class="text-xl font-semibold text-gray-900">Newsletter</h1>
-        <p class="mt-2 text-sm text-gray-700">
+        <p class="mt-1 text-sm text-gray-700">
           Zarządzaj subskrypcjami newslettera i wysyłaj wiadomości do subskrybentów.
         </p>
-      </div>
-      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-        <button
-          @click="exportSubscriptions"
-          type="button"
-          class="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto"
-        >
-          <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-          Eksportuj
-        </button>
       </div>
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 px-6">
       <div class="bg-white overflow-hidden shadow rounded-lg">
         <div class="p-5">
           <div class="flex items-center">
@@ -77,201 +65,157 @@
           </div>
         </div>
       </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg class="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+              </svg>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">Łącznie</dt>
+                <dd class="text-lg font-medium text-gray-900">{{ stats.total || 0 }}</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Filters -->
-    <div class="bg-white shadow rounded-lg">
-      <div class="px-4 py-5 sm:p-6">
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
-          <div>
-            <label for="status-filter" class="block text-sm font-medium text-gray-700">Status</label>
-            <select
-              id="status-filter"
-              v-model="filters.status"
-              @change="loadSubscriptions"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            >
-              <option value="">Wszystkie</option>
-              <option value="active">Aktywne</option>
-              <option value="pending">Oczekujące</option>
-              <option value="unsubscribed">Wypisane</option>
-            </select>
-          </div>
-          <div>
-            <label for="search" class="block text-sm font-medium text-gray-700">Szukaj email</label>
-            <input
-              id="search"
-              v-model="filters.search"
-              @input="debounceSearch"
-              type="text"
-              placeholder="Wpisz adres email..."
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            />
-          </div>
-          <div>
-            <label for="source-filter" class="block text-sm font-medium text-gray-700">Źródło</label>
-            <select
-              id="source-filter"
-              v-model="filters.source"
-              @change="loadSubscriptions"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            >
-              <option value="">Wszystkie</option>
-              <option value="footer">Footer</option>
-              <option value="popup">Popup</option>
-              <option value="website">Strona</option>
-            </select>
-          </div>
+    <!-- Search and filters -->
+    <div class="px-6">
+      <search-filters
+        v-if="!loading"
+        :filters="filters"
+        :sort-options="sortOptions"
+        search-label="Wyszukaj email"
+        search-placeholder="Wpisz adres email..."
+        @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
+        @filter-change="loadSubscriptions"
+      >
+      <template v-slot:filters>
+        <div class="w-full sm:w-auto">
+          <label for="status-filter" class="block text-sm font-medium text-gray-700">Status</label>
+          <select
+            id="status-filter"
+            v-model="filters.status"
+            @change="() => { filters.page = 1; loadSubscriptions(); }"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="">Wszystkie</option>
+            <option value="active">Aktywne</option>
+            <option value="pending">Oczekujące</option>
+            <option value="unsubscribed">Wypisane</option>
+          </select>
+        </div>
+        
+        <div class="w-full sm:w-auto">
+          <label for="source-filter" class="block text-sm font-medium text-gray-700">Źródło</label>
+          <select
+            id="source-filter"
+            v-model="filters.source"
+            @change="() => { filters.page = 1; loadSubscriptions(); }"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="">Wszystkie</option>
+            <option value="footer">Footer</option>
+            <option value="popup">Popup</option>
+            <option value="website">Strona</option>
+          </select>
+        </div>
+
+        <div class="w-full sm:w-auto">
+          <label for="date-from" class="block text-sm font-medium text-gray-700">Data od</label>
+          <input
+            id="date-from"
+            v-model="filters.date_from"
+            @change="() => { filters.page = 1; loadSubscriptions(); }"
+            type="date"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          />
+        </div>
+
+        <div class="w-full sm:w-auto">
+          <label for="date-to" class="block text-sm font-medium text-gray-700">Data do</label>
+          <input
+            id="date-to"
+            v-model="filters.date_to"
+            @change="() => { filters.page = 1; loadSubscriptions(); }"
+            type="date"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          />
+        </div>
+
+        <div class="w-full flex justify-end">
           <div class="flex items-end">
             <button
               @click="resetFilters"
               type="button"
-              class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              class="inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Resetuj filtry
             </button>
           </div>
         </div>
-      </div>
+      </template>
+      </search-filters>
     </div>
 
-    <!-- Subscriptions Table -->
-    <div class="bg-white shadow rounded-lg">
-      <div class="px-4 py-5 sm:p-6">
-        <div v-if="loading" class="text-center py-4">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p class="mt-2 text-sm text-gray-500">Ładowanie subskrypcji...</p>
-        </div>
-
-        <div v-else-if="subscriptions.length === 0" class="text-center py-8">
-          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8l-4 4-4-4m-6 0l4 4 4-4"></path>
-          </svg>
-          <h3 class="mt-2 text-sm font-medium text-gray-900">Brak subskrypcji</h3>
-          <p class="mt-1 text-sm text-gray-500">Nie znaleziono subskrypcji newslettera.</p>
-        </div>
-
-        <div v-else class="overflow-hidden">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Źródło
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Data subskrypcji
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Data weryfikacji
-                </th>
-                <th scope="col" class="relative px-6 py-3">
-                  <span class="sr-only">Akcje</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="subscription in subscriptions" :key="subscription.id">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {{ subscription.email }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span :class="getStatusBadgeClass(subscription.status)" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
-                    {{ getStatusText(subscription.status) }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ subscription.source || '-' }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ formatDate(subscription.created_at) }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ subscription.verified_at ? formatDate(subscription.verified_at) : '-' }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    @click="deleteSubscription(subscription)"
-                    class="text-red-600 hover:text-red-900"
-                  >
-                    Usuń
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination -->
-        <div v-if="pagination.total > pagination.per_page" class="mt-6 flex items-center justify-between">
-          <div class="flex-1 flex justify-between sm:hidden">
-            <button
-              @click="changePage(pagination.current_page - 1)"
-              :disabled="pagination.current_page <= 1"
-              class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              Poprzednia
-            </button>
-            <button
-              @click="changePage(pagination.current_page + 1)"
-              :disabled="pagination.current_page >= pagination.last_page"
-              class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              Następna
-            </button>
-          </div>
-          <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p class="text-sm text-gray-700">
-                Pokazano <span class="font-medium">{{ pagination.from }}</span> do <span class="font-medium">{{ pagination.to }}</span>
-                z <span class="font-medium">{{ pagination.total }}</span> wyników
-              </p>
-            </div>
-            <div>
-              <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button
-                  @click="changePage(pagination.current_page - 1)"
-                  :disabled="pagination.current_page <= 1"
-                  class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  <span class="sr-only">Poprzednia</span>
-                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                  </svg>
-                </button>
-                <button
-                  v-for="page in getVisiblePages()"
-                  :key="page"
-                  @click="changePage(page)"
-                  :class="[
-                    page === pagination.current_page
-                      ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                      : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
-                    'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
-                  ]"
-                >
-                  {{ page }}
-                </button>
-                <button
-                  @click="changePage(pagination.current_page + 1)"
-                  :disabled="pagination.current_page >= pagination.last_page"
-                  class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  <span class="sr-only">Następna</span>
-                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                  </svg>
-                </button>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </div>
+        <!-- Loading indicator -->
+    <div class="px-6">
+      <loading-spinner v-if="loading" />
+    </div>
+    
+    <!-- Newsletter subscriptions list -->
+    <div class="px-6">
+      <admin-table
+        v-if="subscriptions.length > 0"
+        :columns="tableColumns"
+        :items="subscriptions"
+        class="mt-8"
+      >
+      <template #cell-email="{ item }">
+        <div class="font-medium text-gray-900">{{ item.email }}</div>
+      </template>
+      
+      <template #cell-status="{ item }">
+        <span :class="getStatusBadgeClass(item.status)" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
+          {{ getStatusText(item.status) }}
+        </span>
+      </template>
+      
+             <template #cell-source="{ item }">
+         {{ item.source || '-' }}
+       </template>
+       
+       <template #cell-verified_at="{ item }">
+         {{ item.verified_at ? formatDate(item.verified_at) : '-' }}
+       </template>
+       
+              <template #cell-actions="{ item }">
+         <admin-button
+           @click="deleteSubscription(item)"
+           variant="danger"
+           size="sm"
+         >
+           Usuń
+                  </admin-button>
+       </template>
+     </admin-table>
+     
+     <!-- Pagination -->
+     <pagination 
+       v-if="subscriptions.length > 0 && pagination.last_page > 1"
+       :pagination="{ ...pagination, data: subscriptions }" 
+       items-label="subskrypcji" 
+       @page-change="goToPage" 
+     />
+     
+     <!-- No data message -->
+     <no-data-message v-if="!loading && subscriptions.length === 0" message="Brak subskrypcji newslettera" />
     </div>
   </div>
 </template>
@@ -279,9 +223,25 @@
 <script>
 import { ref, reactive, onMounted } from 'vue';
 import api from '../../services/api';
+import SearchFilters from '../../components/admin/SearchFilters.vue';
+import AdminTable from '../../components/admin/ui/AdminTable.vue';
+import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue';
+import AdminButton from '../../components/admin/ui/AdminButton.vue';
+import LoadingSpinner from '../../components/admin/LoadingSpinner.vue';
+import NoDataMessage from '../../components/admin/NoDataMessage.vue';
+import Pagination from '../../components/admin/Pagination.vue';
 
 export default {
   name: 'AdminNewsletter',
+  components: {
+    SearchFilters,
+    AdminTable,
+    AdminButtonGroup,
+    AdminButton,
+    LoadingSpinner,
+    NoDataMessage,
+    Pagination
+  },
   setup() {
     const loading = ref(false);
     const subscriptions = ref([]);
@@ -291,73 +251,112 @@ export default {
       unsubscribed: 0
     });
     
+    // Sort options for the filter component
+    const sortOptions = [
+      { value: 'created_at', label: 'Data subskrypcji' },
+      { value: 'email', label: 'Email' },
+      { value: 'status', label: 'Status' },
+      { value: 'source', label: 'Źródło' },
+      { value: 'verified_at', label: 'Data weryfikacji' },
+      { value: 'unsubscribed_at', label: 'Data wypisania' }
+    ];
+    
+    // Table columns definition
+    const tableColumns = [
+      { key: 'email', label: 'Email', width: '300px' },
+      { key: 'status', label: 'Status', width: '120px' },
+      { key: 'source', label: 'Źródło', width: '100px' },
+      { key: 'created_at', label: 'Data subskrypcji', type: 'datetime', width: '180px' },
+      { key: 'verified_at', label: 'Data weryfikacji', width: '180px' },
+      { key: 'actions', label: 'Akcje', align: 'right', width: '100px' }
+    ];
+    
     const filters = reactive({
-      status: '',
       search: '',
-      source: ''
+      status: '',
+      source: '',
+      date_from: '',
+      date_to: '',
+      sort_field: 'created_at',
+      sort_direction: 'desc',
+      page: 1
     });
     
     const pagination = reactive({
       current_page: 1,
       last_page: 1,
-      per_page: 15,
+      per_page: 10,
       total: 0,
       from: 0,
       to: 0
     });
 
-    let searchTimeout = null;
+
 
     const loadSubscriptions = async (page = 1) => {
       loading.value = true;
       try {
+        console.log('Loading newsletter subscriptions...');
         const params = {
           page,
           per_page: pagination.per_page,
           ...filters
         };
         
-        const response = await api.get('/admin/newsletter', { params });
-        subscriptions.value = response.data.data;
-        Object.assign(pagination, response.data.pagination);
-        Object.assign(stats, response.data.stats);
+        console.log('Request params:', params);
+        // Try using the dedicated method first
+        console.log('Trying dedicated API method...');
+        const response = await api.getAdminNewsletter(params);
+        console.log('Newsletter API response:', response.data);
+        
+        subscriptions.value = response.data.data || [];
+        Object.assign(pagination, response.data.pagination || {});
+        Object.assign(stats, response.data.stats || {});
+        
+        console.log('Subscriptions loaded:', subscriptions.value.length);
+        console.log('Stats:', stats);
       } catch (error) {
         console.error('Error loading newsletter subscriptions:', error);
+        console.error('Error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          url: error.config?.url
+        });
+        
+        // If unauthorized, try alternative approach
+        if (error.response?.status === 401) {
+          console.error('Unauthorized - user may not be logged in as admin');
+          alert('Błąd autoryzacji - sprawdź czy jesteś zalogowany jako administrator');
+        } else if (error.response?.status === 403) {
+          console.error('Forbidden - user may not have admin role');
+          alert('Brak uprawnień administratora');
+        } else if (error.response?.status === 404) {
+          console.error('Newsletter endpoint not found');
+          alert('Endpoint newslettera nie został znaleziony');
+        }
       } finally {
         loading.value = false;
       }
     };
 
-    const debounceSearch = () => {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
-        loadSubscriptions(1);
-      }, 500);
-    };
-
     const resetFilters = () => {
-      filters.status = '';
       filters.search = '';
+      filters.status = '';
       filters.source = '';
+      filters.date_from = '';
+      filters.date_to = '';
+      filters.sort_field = 'created_at';
+      filters.sort_direction = 'desc';
+      filters.page = 1;
       loadSubscriptions(1);
     };
 
-    const changePage = (page) => {
-      if (page >= 1 && page <= pagination.last_page) {
-        loadSubscriptions(page);
-      }
-    };
-
-    const getVisiblePages = () => {
-      const pages = [];
-      const start = Math.max(1, pagination.current_page - 2);
-      const end = Math.min(pagination.last_page, pagination.current_page + 2);
+    const goToPage = (page) => {
+      if (page === '...') return;
       
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-      
-      return pages;
+      filters.page = page;
+      loadSubscriptions(page);
     };
 
     const getStatusBadgeClass = (status) => {
@@ -395,7 +394,7 @@ export default {
       }
 
       try {
-        await api.delete(`/admin/newsletter/${subscription.id}`);
+        await api.deleteNewsletterSubscription(subscription.id);
         await loadSubscriptions(pagination.current_page);
       } catch (error) {
         console.error('Error deleting subscription:', error);
@@ -403,26 +402,7 @@ export default {
       }
     };
 
-    const exportSubscriptions = async () => {
-      try {
-        const response = await api.get('/admin/newsletter/export', {
-          responseType: 'blob',
-          params: filters
-        });
-        
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `newsletter-subscriptions-${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.URL.revokeObjectURL(url);
-      } catch (error) {
-        console.error('Error exporting subscriptions:', error);
-        alert('Wystąpił błąd podczas eksportowania subskrypcji');
-      }
-    };
+
 
     onMounted(() => {
       loadSubscriptions();
@@ -432,18 +412,17 @@ export default {
       loading,
       subscriptions,
       stats,
+      sortOptions,
+      tableColumns,
       filters,
       pagination,
       loadSubscriptions,
-      debounceSearch,
       resetFilters,
-      changePage,
-      getVisiblePages,
+      goToPage,
       getStatusBadgeClass,
       getStatusText,
       formatDate,
-      deleteSubscription,
-      exportSubscriptions
+      deleteSubscription
     };
   }
 };

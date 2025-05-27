@@ -43,5 +43,10 @@ class DatabaseSeeder extends Seeder
             OrderSeeder::class,
             TutorialSeeder::class,
         ]);
+
+        $this->call([
+            NewsletterSeeder::class,
+            PrivacyPolicySeeder::class,
+        ]);
     }
 }

@@ -17,29 +17,54 @@ class NewsletterController extends Controller
     {
         $query = NewsletterSubscription::query();
 
-        // Apply filters
+        // Apply search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('email', 'like', '%' . $search . '%');
+        }
+
+        // Apply status filter
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('search')) {
-            $query->where('email', 'like', '%' . $request->search . '%');
-        }
-
+        // Apply source filter
         if ($request->filled('source')) {
             $query->where('source', $request->source);
         }
+
+        // Apply date range filters
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Apply sorting
+        $sortField = $request->sort_field ?? 'created_at';
+        $sortDirection = $request->sort_direction ?? 'desc';
+        
+        // Validate sort field to prevent SQL injection
+        $allowedSortFields = ['created_at', 'email', 'status', 'source', 'verified_at', 'unsubscribed_at'];
+        if (!in_array($sortField, $allowedSortFields)) {
+            $sortField = 'created_at';
+        }
+
+        $query->orderBy($sortField, $sortDirection);
 
         // Get stats
         $stats = [
             'active' => NewsletterSubscription::where('status', 'active')->count(),
             'pending' => NewsletterSubscription::where('status', 'pending')->count(),
             'unsubscribed' => NewsletterSubscription::where('status', 'unsubscribed')->count(),
+            'total' => NewsletterSubscription::count(),
         ];
 
         // Paginate results
         $perPage = $request->get('per_page', 15);
-        $subscriptions = $query->orderBy('created_at', 'desc')->paginate($perPage);
+        $subscriptions = $query->paginate($perPage);
 
         return response()->json([
             'data' => $subscriptions->items(),
