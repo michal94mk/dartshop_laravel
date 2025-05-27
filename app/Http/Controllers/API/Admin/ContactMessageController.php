@@ -12,12 +12,50 @@ class ContactMessageController extends BaseAdminController
     /**
      * Display a listing of the messages.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $messages = ContactMessage::latest()->get();
-        return response()->json($messages);
+        try {
+            $query = ContactMessage::query();
+            
+            // Apply search filter
+            if ($request->has('search') && !empty($request->search)) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('subject', 'like', "%{$search}%")
+                      ->orWhere('message', 'like', "%{$search}%");
+                });
+            }
+            
+            // Apply status filter
+            if ($request->has('status') && !empty($request->status)) {
+                $query->where('status', $request->status);
+            }
+            
+            // Apply sorting
+            $sortField = $request->sort_field ?? 'created_at';
+            $sortDirection = $request->sort_direction ?? 'desc';
+            
+            // Validate sort field to prevent SQL injection
+            $allowedSortFields = ['created_at', 'name', 'email', 'subject', 'status'];
+            if (!in_array($sortField, $allowedSortFields)) {
+                $sortField = 'created_at';
+            }
+            
+            $query->orderBy($sortField, $sortDirection);
+            
+            // Paginate results
+            $perPage = $this->getPerPage($request);
+            $messages = $query->paginate($perPage);
+            
+            return response()->json($messages);
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error fetching contact messages: ' . $e->getMessage(), 500);
+        }
     }
 
     /**

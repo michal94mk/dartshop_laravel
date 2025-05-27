@@ -1,27 +1,30 @@
 <template>
-  <div class="p-6">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-semibold text-gray-900">Wiadomości kontaktowe</h1>
-    </div>
-    
-    <!-- Loading indicator -->
-    <div v-if="loading" class="flex justify-center my-12">
-      <svg class="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-    </div>
-    
-    <!-- Filters -->
-    <div v-else class="mb-6 bg-white p-4 rounded-md shadow-sm">
-      <div class="flex flex-wrap gap-4 items-center">
-        <div>
-          <label for="status-filter" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-          <select 
-            id="status-filter"
+  <div>
+    <!-- Page Header -->
+    <page-header 
+      title="Wiadomości kontaktowe"
+      subtitle="Lista wszystkich wiadomości kontaktowych z możliwością zarządzania i odpowiadania."
+    />
+
+    <!-- Search and filters -->
+    <search-filters
+      v-if="!loading"
+      :filters="filters"
+      :sort-options="sortOptions"
+      search-label="Wyszukaj"
+      search-placeholder="Imię, email, temat lub treść..."
+      @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
+      @filter-change="fetchMessages"
+    >
+      <template v-slot:filters>
+        <div class="w-full sm:w-auto">
+          <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+          <select
+            id="status"
+            name="status"
             v-model="filters.status"
-            @change="applyFilters"
-            class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            @change="() => { filters.page = 1; fetchMessages(); }"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">Wszystkie</option>
             <option value="unread">Nieprzeczytane</option>
@@ -29,33 +32,17 @@
             <option value="replied">Odpowiedziane</option>
           </select>
         </div>
-        <div>
-          <label for="search-filter" class="block text-sm font-medium text-gray-700 mb-1">Wyszukaj</label>
-          <input 
-            type="text"
-            id="search-filter"
-            v-model="filters.search"
-            @input="debounceSearch"
-            placeholder="Imię, email lub treść..."
-            class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          >
-        </div>
-        <div class="flex-1 text-right self-end">
-          <button 
-            @click="clearFilters"
-            class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md"
-          >
-            Wyczyść filtry
-          </button>
-        </div>
-      </div>
-    </div>
+      </template>
+    </search-filters>
+
+    <!-- Loading indicator -->
+    <loading-spinner v-if="loading" />
     
     <!-- Contact Messages Table -->
     <admin-table
-      v-if="!loading && filteredMessages.length"
+      v-if="!loading && messages.data && messages.data.length"
       :columns="tableColumns"
-      :items="filteredMessages"
+      :items="messages.data"
       class="mt-6"
     >
       <template #cell-name="{ item }">
@@ -104,9 +91,17 @@
         </admin-button-group>
       </template>
     </admin-table>
-    <div v-else-if="!loading" class="bg-white shadow overflow-hidden sm:rounded-md p-6 text-center text-gray-500">
-      Brak wiadomości kontaktowych do wyświetlenia
-    </div>
+    
+    <!-- Pagination -->
+    <pagination 
+      v-if="messages.data && messages.data.length > 0 && messages.last_page > 1"
+      :pagination="messages" 
+      items-label="wiadomości" 
+      @page-change="goToPage" 
+    />
+    
+    <!-- No data message -->
+    <no-data-message v-if="!loading && (!messages.data || messages.data.length === 0)" message="Brak wiadomości kontaktowych do wyświetlenia" />
     
     <!-- Message Details Modal -->
     <div v-if="showDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
@@ -293,13 +288,19 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
+import { debounce } from 'lodash'
 import AdminTable from '../../components/admin/ui/AdminTable.vue'
 import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
 import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
+import SearchFilters from '../../components/admin/SearchFilters.vue'
+import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
+import NoDataMessage from '../../components/admin/NoDataMessage.vue'
+import Pagination from '../../components/admin/Pagination.vue'
+import PageHeader from '../../components/admin/PageHeader.vue'
 
 export default {
   name: 'AdminContactMessages',
@@ -307,18 +308,51 @@ export default {
     AdminTable,
     AdminButtonGroup,
     AdminButton,
-    AdminBadge
+    AdminBadge,
+    SearchFilters,
+    LoadingSpinner,
+    NoDataMessage,
+    Pagination,
+    PageHeader
   },
   setup() {
     const alertStore = useAlertStore()
+    
+    // Data
     const loading = ref(true)
-    const messages = ref([])
+    const messages = ref({
+      data: [],
+      current_page: 1,
+      from: 1,
+      to: 0,
+      total: 0,
+      last_page: 1,
+      per_page: 10
+    })
     const showDetailsModal = ref(false)
     const showDeleteModal = ref(false)
     const selectedMessage = ref(null)
     const messageToDelete = ref(null)
-    const searchTimeout = ref(null)
     const responseSending = ref(false)
+    
+    // Sort options for the filter component
+    const sortOptions = [
+      { value: 'created_at', label: 'Data dodania' },
+      { value: 'name', label: 'Imię' },
+      { value: 'email', label: 'Email' },
+      { value: 'subject', label: 'Temat' },
+      { value: 'status', label: 'Status' }
+    ]
+    
+    // Table columns definition
+    const tableColumns = [
+      { key: 'name', label: 'Imię', width: '200px' },
+      { key: 'email', label: 'Email', width: '280px' },
+      { key: 'subject', label: 'Temat', width: '180px' },
+      { key: 'status', label: 'Status', width: '100px' },
+      { key: 'created_at', label: 'Data', type: 'date', width: '100px' },
+      { key: 'actions', label: 'Akcje', align: 'right', width: '160px' }
+    ]
     
     // Response system data
     const responseData = ref({
@@ -328,23 +362,14 @@ export default {
       addToNotes: true
     })
     
-    // Filters
-    const filters = ref({
-      status: '',
+    // Filters and pagination
+    const filters = reactive({
       search: '',
-      sort_field: '',
-      sort_direction: 'asc'
+      status: '',
+      sort_field: 'created_at',
+      sort_direction: 'desc',
+      page: 1
     })
-    
-    // Table columns definition
-    const tableColumns = [
-      { key: 'name', label: 'Imię', sortable: true, width: '200px' },
-      { key: 'email', label: 'Email', sortable: true, width: '280px' },
-      { key: 'subject', label: 'Temat', sortable: false, width: '180px' },
-      { key: 'status', label: 'Status', sortable: false, width: '100px' },
-      { key: 'created_at', label: 'Data', sortable: true, type: 'date', width: '100px' },
-      { key: 'actions', label: 'Akcje', align: 'right', width: '160px' }
-    ]
     
     // Handle table sorting
 
@@ -373,7 +398,18 @@ export default {
     const fetchMessages = async () => {
       try {
         loading.value = true
-        const response = await axios.get('/api/admin/contact-messages')
+        
+        const params = {
+          page: filters.page,
+          search: filters.search,
+          status: filters.status,
+          sort_field: filters.sort_field,
+          sort_direction: filters.sort_direction
+        }
+        
+        console.log('Fetching messages with params:', params)
+        
+        const response = await axios.get('/api/admin/contact-messages', { params })
         messages.value = response.data
       } catch (error) {
         console.error('Error fetching contact messages:', error)
@@ -382,6 +418,8 @@ export default {
         loading.value = false
       }
     }
+    
+    const debouncedFetchMessages = debounce(fetchMessages, 300)
     
     // View message details
     const viewMessage = (message) => {
@@ -416,9 +454,9 @@ export default {
         })
         
         // Update status in messages list
-        const index = messages.value.findIndex(m => m.id === selectedMessage.value.id)
+        const index = messages.value.data.findIndex(m => m.id === selectedMessage.value.id)
         if (index !== -1) {
-          messages.value[index].status = selectedMessage.value.status
+          messages.value.data[index].status = selectedMessage.value.status
         }
         
         alertStore.success('Status wiadomości został zaktualizowany.')
@@ -436,9 +474,9 @@ export default {
         })
         
         // Update notes in messages list
-        const index = messages.value.findIndex(m => m.id === selectedMessage.value.id)
+        const index = messages.value.data.findIndex(m => m.id === selectedMessage.value.id)
         if (index !== -1) {
-          messages.value[index].notes = selectedMessage.value.notes
+          messages.value.data[index].notes = selectedMessage.value.notes
         }
         
         alertStore.success('Notatki zostały zapisane.')
@@ -475,9 +513,9 @@ export default {
           })
           
           // Update status in messages list
-          const index = messages.value.findIndex(m => m.id === selectedMessage.value.id)
+          const index = messages.value.data.findIndex(m => m.id === selectedMessage.value.id)
           if (index !== -1) {
-            messages.value[index].status = 'replied'
+            messages.value.data[index].status = 'replied'
           }
         }
         
@@ -498,9 +536,9 @@ export default {
           })
           
           // Update notes in messages list
-          const index = messages.value.findIndex(m => m.id === selectedMessage.value.id)
+          const index = messages.value.data.findIndex(m => m.id === selectedMessage.value.id)
           if (index !== -1) {
-            messages.value[index].notes = selectedMessage.value.notes
+            messages.value.data[index].notes = selectedMessage.value.notes
           }
         }
         
@@ -532,7 +570,7 @@ export default {
     const deleteMessage = async () => {
       try {
         await axios.delete(`/api/admin/contact-messages/${messageToDelete.value.id}`)
-        messages.value = messages.value.filter(message => message.id !== messageToDelete.value.id)
+        messages.value.data = messages.value.data.filter(message => message.id !== messageToDelete.value.id)
         alertStore.success('Wiadomość została usunięta.')
         showDeleteModal.value = false
       } catch (error) {
@@ -557,57 +595,11 @@ export default {
       }
     }
     
-    // Apply filters with debounce for search
-    const debounceSearch = () => {
-      if (searchTimeout.value) {
-        clearTimeout(searchTimeout.value)
-      }
-      
-      searchTimeout.value = setTimeout(() => {
-        applyFilters()
-      }, 300)
+    // Pagination
+    const goToPage = (page) => {
+      filters.page = page
+      fetchMessages()
     }
-    
-    // Apply filters
-    const applyFilters = () => {
-      // This is just a UI function to trigger the filteredMessages computed property
-      console.log('Applying filters:', filters.value)
-    }
-    
-    // Clear filters
-    const clearFilters = () => {
-      filters.value = {
-        status: '',
-        search: '',
-        sort_field: '',
-        sort_direction: 'asc'
-      }
-    }
-    
-    // Filtered messages
-    const filteredMessages = computed(() => {
-      return messages.value.filter(message => {
-        // Filter by status
-        if (filters.value.status && message.status !== filters.value.status) {
-          return false
-        }
-        
-        // Filter by search
-        if (filters.value.search) {
-          const searchTerm = filters.value.search.toLowerCase()
-          const matchesName = message.name.toLowerCase().includes(searchTerm)
-          const matchesEmail = message.email.toLowerCase().includes(searchTerm)
-          const matchesSubject = message.subject.toLowerCase().includes(searchTerm)
-          const matchesMessage = message.message.toLowerCase().includes(searchTerm)
-          
-          if (!matchesName && !matchesEmail && !matchesSubject && !matchesMessage) {
-            return false
-          }
-        }
-        
-        return true
-      })
-    })
     
 
     
@@ -618,12 +610,12 @@ export default {
     return {
       loading,
       messages,
-      filteredMessages,
       showDetailsModal,
       showDeleteModal,
       selectedMessage,
       messageToDelete,
       filters,
+      sortOptions,
       responseData,
       responseSending,
       tableColumns,
@@ -638,9 +630,7 @@ export default {
       deleteMessage,
       formatDate,
       getStatusClass,
-      debounceSearch,
-      applyFilters,
-      clearFilters,
+      goToPage,
       sendResponse
     }
   }
