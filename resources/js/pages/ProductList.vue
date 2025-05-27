@@ -237,8 +237,8 @@
         </div>
         
         <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <div v-for="product in productStore.products" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.1;">
-            <div class="relative h-3/5 overflow-hidden">
+          <div v-for="product in productStore.products" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
+            <div class="relative h-4/5 overflow-hidden">
               <img 
                 :src="product.image_url || 'https://via.placeholder.com/400x400/indigo/fff?text=' + product.name" 
                 :alt="product.name" 

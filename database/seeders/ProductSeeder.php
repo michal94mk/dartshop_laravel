@@ -24,7 +24,7 @@ class ProductSeeder extends Seeder
                 'weight' => 2.5,
                 'category_id' => 2, // Dartboards/Tarcze
                 'brand_id' => 4, // Winmau
-                'image' => 'winmau-blade-6-triple-core-carbon.jpg',
+                'image' => 'product01.png',
             ],
             [
                 'name' => 'Target Aspar',
@@ -33,7 +33,7 @@ class ProductSeeder extends Seeder
                 'weight' => 2.3,
                 'category_id' => 2, // Dartboards/Tarcze
                 'brand_id' => 3, // Target
-                'image' => 'target-aspar.jpg',
+                'image' => 'product02.png',
             ],
             [
                 'name' => 'Unicorn Eclipse Ultra',
@@ -42,7 +42,7 @@ class ProductSeeder extends Seeder
                 'weight' => 2.4,
                 'category_id' => 2, // Dartboards/Tarcze
                 'brand_id' => 1, // Unicorn
-                'image' => 'unicorn-eclipse-ultra.jpg',
+                'image' => 'product03.png',
             ],
             
             // Lotki Steel
@@ -53,7 +53,7 @@ class ProductSeeder extends Seeder
                 'weight' => 0.1,
                 'category_id' => 1, // Darts/Lotki
                 'brand_id' => 3, // Target
-                'image' => 'target-vapor-8-black.jpg',
+                'image' => 'product04.png',
             ],
             [
                 'name' => 'Red Dragon Amberjack 25g',
@@ -62,7 +62,7 @@ class ProductSeeder extends Seeder
                 'weight' => 0.1,
                 'category_id' => 1, // Darts/Lotki
                 'brand_id' => 5, // Red Dragon
-                'image' => 'red-dragon-amberjack-25g.jpg',
+                'image' => 'product05.png',
             ],
             [
                 'name' => 'Winmau Blackout',
@@ -71,7 +71,7 @@ class ProductSeeder extends Seeder
                 'weight' => 0.1,
                 'category_id' => 1, // Darts/Lotki
                 'brand_id' => 4, // Winmau
-                'image' => 'winmau-blackout.jpg',
+                'image' => 'product06.png',
             ],
             
             // Lotki Soft
@@ -82,7 +82,7 @@ class ProductSeeder extends Seeder
                 'weight' => 0.1,
                 'category_id' => 1, // Darts/Lotki 
                 'brand_id' => 3, // Target
-                'image' => 'target-bolide-01.jpg',
+                'image' => 'product07.png',
             ],
             [
                 'name' => 'Harrows Spina',
@@ -91,7 +91,7 @@ class ProductSeeder extends Seeder
                 'weight' => 0.1,
                 'category_id' => 1, // Darts/Lotki
                 'brand_id' => 2, // Harrows
-                'image' => 'harrows-spina.jpg',
+                'image' => 'product08.png',
             ],
             
             // Akcesoria
@@ -102,7 +102,7 @@ class ProductSeeder extends Seeder
                 'weight' => 0.5,
                 'category_id' => 3, // Accessories/Akcesoria
                 'brand_id' => 3, // Target
-                'image' => 'target-corona-vision.jpg',
+                'image' => 'product09.png',
             ],
             [
                 'name' => 'Winmau Simon Whitlock Case',
@@ -111,7 +111,7 @@ class ProductSeeder extends Seeder
                 'weight' => 0.2,
                 'category_id' => 5, // Cases/Etui
                 'brand_id' => 4, // Winmau
-                'image' => 'winmau-simon-whitlock-case.jpg',
+                'image' => 'shop01.png',
             ],
             
             // Lotki
@@ -122,7 +122,7 @@ class ProductSeeder extends Seeder
                 'weight' => 0.1,
                 'category_id' => 1, // Darts/Lotki
                 'brand_id' => 7, // Mission
-                'image' => 'mission-snakebite-champion.jpg',
+                'image' => 'shop02.png',
             ],
             
             // Shafty
@@ -133,7 +133,7 @@ class ProductSeeder extends Seeder
                 'weight' => 0.05,
                 'category_id' => 7, // Shafts/Shafty
                 'brand_id' => 3, // Target
-                'image' => 'target-pro-grip-shafts.jpg',
+                'image' => 'shop03.png',
             ],
             [
                 'name' => 'Designa DSX Flights',
@@ -142,7 +142,7 @@ class ProductSeeder extends Seeder
                 'weight' => 0.05,
                 'category_id' => 6, // Flights/Piórka
                 'brand_id' => 9, // Designa
-                'image' => 'designa-dsx-flights.jpg',
+                'image' => 'hotdeal.png',
             ],
             [
                 'name' => 'Bull\'s Dartmate Plus Scorepad',
@@ -151,7 +151,7 @@ class ProductSeeder extends Seeder
                 'weight' => 0.1,
                 'category_id' => 3, // Accessories/Akcesoria
                 'brand_id' => 8, // Bull's
-                'image' => 'bulls-dartmate-plus.jpg',
+                'image' => 'hotdeal.jpg',
             ],
             [
                 'name' => 'One80 Reflex Points',
@@ -160,7 +160,7 @@ class ProductSeeder extends Seeder
                 'weight' => 0.05,
                 'category_id' => 3, // Accessories/Akcesoria
                 'brand_id' => 10, // One80
-                'image' => 'one80-reflex-points.jpg',
+                'image' => 'logo.png',
             ]
         ];
 

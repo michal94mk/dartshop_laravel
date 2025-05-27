@@ -77,8 +77,8 @@
           <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <!-- Display API products if available -->
             <template v-if="productStore.featuredProducts && productStore.featuredProducts.length > 0">
-              <div v-for="product in productStore.featuredProducts" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.1;">
-                <div class="relative h-3/5 overflow-hidden">
+              <div v-for="product in productStore.featuredProducts" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
+                <div class="relative h-4/5 overflow-hidden">
                   <img 
                     :src="product.image_url || 'https://via.placeholder.com/400x400/indigo/fff?text=' + product.name" 
                     :alt="product.name" 
@@ -156,8 +156,8 @@
             
             <!-- Fallback products if API fails -->
             <template v-else>
-              <div v-for="product in fallbackProducts" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.1;">
-                <div class="relative h-3/5 overflow-hidden">
+              <div v-for="product in fallbackProducts" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
+                <div class="relative h-4/5 overflow-hidden">
                   <img 
                     :src="product.image_url" 
                     :alt="product.name" 
@@ -384,28 +384,28 @@ export default {
           name: 'Lotki Target Agora A30',
           description: 'Profesjonalne lotki ze stali wolframowej 90%',
           price: 149.99,
-          image_url: 'https://via.placeholder.com/300x300/indigo/fff?text=Lotki+Target'
+          image_url: '/img/product01.png'
         },
         {
           id: 2,
           name: 'Tarcza elektroniczna Winmau Blade 6',
           description: 'Zaawansowana tarcza dla profesjonalistów',
           price: 299.99,
-          image_url: 'https://via.placeholder.com/300x300/indigo/fff?text=Tarcza+Winmau'
+          image_url: '/img/product02.png'
         },
         {
           id: 3,
           name: 'Zestaw punktowy XQ Max',
           description: 'Zestaw do zapisywania punktów z kredą i ścierką',
           price: 49.99,
-          image_url: 'https://via.placeholder.com/300x300/indigo/fff?text=Zestaw+XQ+Max'
+          image_url: '/img/product03.png'
         },
         {
           id: 4,
           name: 'Lotki Red Dragon Razor Edge',
           description: 'Lotki z wysokiej jakości stali wolframowej',
           price: 129.99,
-          image_url: 'https://via.placeholder.com/300x300/indigo/fff?text=Lotki+Red+Dragon'
+          image_url: '/img/product04.png'
         }
       ],
       testimonials: [

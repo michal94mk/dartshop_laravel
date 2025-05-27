@@ -62,6 +62,33 @@ class Product extends Model
 
     public function getImageUrlAttribute(): ?string
     {
-        return $this->image ? asset('storage/' . $this->image) : null;
+        if (!$this->image) {
+            return null;
+        }
+        
+        // Jeśli obrazek już zawiera pełną ścieżkę storage
+        if (str_starts_with($this->image, '/storage/') || str_starts_with($this->image, 'storage/')) {
+            return asset($this->image);
+        }
+        
+        // Jeśli to pełny URL (http/https)
+        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
+            return $this->image;
+        }
+        
+        // Sprawdź czy plik istnieje w storage/products
+        $storagePath = 'storage/products/' . $this->image;
+        if (file_exists(public_path($storagePath))) {
+            return asset($storagePath);
+        }
+        
+        // Sprawdź czy plik istnieje w img
+        $imgPath = 'img/' . $this->image;
+        if (file_exists(public_path($imgPath))) {
+            return asset($imgPath);
+        }
+        
+        // Fallback - spróbuj storage
+        return asset('storage/' . $this->image);
     }
 }
