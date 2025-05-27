@@ -13,14 +13,61 @@ class TutorialController extends BaseAdminController
     /**
      * Display a listing of the tutorials.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $tutorials = Tutorial::with('user:id,name')
-            ->latest()
-            ->get()
-            ->map(function ($tutorial) {
+        try {
+            $query = Tutorial::with('user:id,name');
+            
+            // Apply search filter
+            if ($request->has('search') && !empty($request->search)) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                      ->orWhere('excerpt', 'like', "%{$search}%")
+                      ->orWhere('content', 'like', "%{$search}%");
+                });
+            }
+            
+            // Apply status filter
+            if ($request->has('status') && !empty($request->status)) {
+                switch ($request->status) {
+                    case 'published':
+                        $query->where('is_published', true);
+                        break;
+                    case 'draft':
+                        $query->where('is_published', false);
+                        break;
+                    case 'scheduled':
+                        $query->where('is_published', false)
+                              ->whereNotNull('published_at')
+                              ->where('published_at', '>', now());
+                        break;
+                }
+            }
+            
+            // Apply sorting
+            $sortField = $request->sort_field ?? 'created_at';
+            $sortDirection = $request->sort_direction ?? 'desc';
+            
+            // Map frontend sort fields to database fields
+            $sortFieldMap = [
+                'created_at' => 'created_at',
+                'published_at' => 'published_at',
+                'title' => 'title'
+            ];
+            
+            $dbSortField = $sortFieldMap[$sortField] ?? 'created_at';
+            $query->orderBy($dbSortField, $sortDirection);
+            
+            // Paginate results
+            $perPage = $this->getPerPage($request);
+            $tutorials = $query->paginate($perPage);
+            
+            // Transform the data
+            $tutorials->getCollection()->transform(function ($tutorial) {
                 return [
                     'id' => $tutorial->id,
                     'title' => $tutorial->title,
@@ -39,7 +86,10 @@ class TutorialController extends BaseAdminController
                 ];
             });
             
-        return response()->json($tutorials);
+            return response()->json($tutorials);
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error fetching tutorials: ' . $e->getMessage(), 500);
+        }
     }
 
     /**

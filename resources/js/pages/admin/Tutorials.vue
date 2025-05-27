@@ -11,8 +11,8 @@
     <!-- Search and filters -->
     <search-filters
       v-if="!loading"
-      :filters="filters.value"
-      @update:filters="(newFilters) => { Object.assign(filters.value, newFilters); filters.value.page = 1; }"
+      :filters="filters"
+      @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
       :sort-options="sortOptions"
       search-label="Wyszukaj"
       search-placeholder="Szukaj poradników..."
@@ -24,7 +24,7 @@
           <select
             id="status"
             name="status"
-            v-model="filters.value.status"
+            v-model="filters.status"
             @change="fetchTutorials"
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
@@ -40,7 +40,7 @@
           <select
             id="featured"
             name="featured"
-            v-model="filters.value.featured"
+            v-model="filters.featured"
             @change="fetchTutorials"
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
@@ -57,9 +57,9 @@
     
     <!-- Tutorials Table -->
     <admin-table
-      v-if="!loading && tutorials.length > 0"
+      v-if="!loading && tutorials.data && tutorials.data.length > 0"
       :columns="tableColumns"
-      :items="tutorials"
+      :items="tutorials.data"
       :force-horizontal-scroll="true"
       class="mt-6"
     >
@@ -112,8 +112,17 @@
       </template>
     </admin-table>
     
+    <!-- Pagination -->
+    <pagination 
+      v-if="tutorials.data && tutorials.data.length > 0 && tutorials.last_page > 1"
+      :pagination="tutorials" 
+      items-label="poradników" 
+      @page-change="goToPage" 
+      class="mt-6"
+    />
+    
     <!-- No data message -->
-    <no-data-message v-if="!loading && tutorials.length === 0" message="Brak poradników do wyświetlenia" />
+    <no-data-message v-if="!loading && (!tutorials.data || tutorials.data.length === 0)" message="Brak poradników do wyświetlenia" />
     
     <!-- Add/Edit Modal -->
     <admin-modal
@@ -275,7 +284,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
 import { useAuthStore } from '../../stores/authStore'
@@ -288,6 +297,7 @@ import SearchFilters from '../../components/admin/SearchFilters.vue'
 import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
 import NoDataMessage from '../../components/admin/NoDataMessage.vue'
 import PageHeader from '../../components/admin/PageHeader.vue'
+import Pagination from '../../components/admin/Pagination.vue'
 
 export default {
   name: 'AdminTutorials',
@@ -300,7 +310,8 @@ export default {
     SearchFilters,
     LoadingSpinner,
     NoDataMessage,
-    PageHeader
+    PageHeader,
+    Pagination
   },
   setup() {
     const alertStore = useAlertStore()
@@ -347,11 +358,11 @@ export default {
     }
     
     // Filters
-    const filters = ref({
+    const filters = reactive({
       search: '',
       status: '',
       featured: '',
-      sort_field: 'published_at',
+      sort_field: 'created_at',
       sort_direction: 'desc',
       page: 1
     })
@@ -373,7 +384,16 @@ export default {
     const fetchTutorials = async () => {
       try {
         loading.value = true
-        const response = await axios.get('/api/admin/tutorials', { params: filters.value })
+        
+        const params = {
+          page: filters.page,
+          search: filters.search,
+          status: filters.status,
+          sort_field: filters.sort_field,
+          sort_direction: filters.sort_direction
+        }
+        
+        const response = await axios.get('/api/admin/tutorials', { params })
         tutorials.value = response.data
       } catch (error) {
         console.error('Error fetching tutorials:', error)
@@ -383,13 +403,34 @@ export default {
       }
     }
     
-
+    // Debounced version for search
+    const debounce = (func, wait) => {
+      let timeout
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout)
+          func(...args)
+        }
+        clearTimeout(timeout)
+        timeout = setTimeout(later, wait)
+      }
+    }
+    
+    const debouncedFetchTutorials = debounce(fetchTutorials, 300)
+    
+    // Pagination
+    const goToPage = (page) => {
+      if (page === '...') return
+      filters.page = page
+      fetchTutorials()
+    }
     
     // Add new tutorial
     const addTutorial = async () => {
       try {
         const response = await axios.post('/api/admin/tutorials', form.value)
-        tutorials.value.push(response.data)
+        // Refresh the list to get updated data
+        fetchTutorials()
         alertStore.success('Poradnik został dodany.')
         closeForm()
       } catch (error) {
@@ -406,7 +447,7 @@ export default {
         tutorial = tutorialOrId;
       } else {
         // Find the tutorial by ID
-        tutorial = tutorials.value.find(t => t.id === tutorialOrId);
+        tutorial = tutorials.value.data ? tutorials.value.data.find(t => t.id === tutorialOrId) : null;
         if (!tutorial) {
           console.error('Tutorial not found with ID:', tutorialOrId);
           return;
@@ -433,10 +474,8 @@ export default {
     const updateTutorial = async () => {
       try {
         const response = await axios.put(`/api/admin/tutorials/${form.value.id}`, form.value)
-        const index = tutorials.value.findIndex(tutorial => tutorial.id === form.value.id)
-        if (index !== -1) {
-          tutorials.value[index] = response.data
-        }
+        // Refresh the list to get updated data
+        fetchTutorials()
         alertStore.success('Poradnik został zaktualizowany.')
         closeForm()
       } catch (error) {
@@ -453,7 +492,7 @@ export default {
         tutorial = tutorialOrId;
       } else {
         // Find the tutorial by ID
-        tutorial = tutorials.value.find(t => t.id === tutorialOrId);
+        tutorial = tutorials.value.data ? tutorials.value.data.find(t => t.id === tutorialOrId) : null;
         if (!tutorial) {
           console.error('Tutorial not found with ID:', tutorialOrId);
           return;
@@ -468,7 +507,8 @@ export default {
     const deleteTutorial = async () => {
       try {
         await axios.delete(`/api/admin/tutorials/${tutorialToDelete.value.id}`)
-        tutorials.value = tutorials.value.filter(tutorial => tutorial.id !== tutorialToDelete.value.id)
+        // Refresh the list to get updated data
+        fetchTutorials()
         alertStore.success('Poradnik został usunięty.')
         showDeleteModal.value = false
       } catch (error) {
@@ -560,6 +600,12 @@ export default {
       }
     }
     
+    // Watch for search changes to trigger debounced fetch
+    watch(() => filters.search, () => {
+      filters.page = 1
+      debouncedFetchTutorials()
+    })
+    
     onMounted(() => {
       fetchTutorials()
     })
@@ -576,6 +622,7 @@ export default {
       sortOptions,
       tableColumns,
       fetchTutorials,
+      goToPage,
       addTutorial,
       editTutorial,
       updateTutorial,
