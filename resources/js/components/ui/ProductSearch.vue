@@ -80,7 +80,23 @@
               <p class="text-base font-semibold text-gray-900 mb-1" v-html="highlightMatch(product.name)"></p>
               <div class="flex items-center justify-between">
                 <p class="text-sm text-gray-500">{{ product.category?.name || 'Bez kategorii' }}</p>
-                <p class="text-lg font-bold text-indigo-600">{{ formatPrice(product.price) }} zł</p>
+                <!-- Price display with promotion support -->
+                <div class="flex flex-col items-end">
+                  <div v-if="hasPromotion(product)" class="space-y-1">
+                    <!-- Original price (crossed out) -->
+                    <div class="text-xs text-gray-400 line-through">
+                      {{ formatPrice(product.price) }} zł
+                    </div>
+                    <!-- Promotional price -->
+                    <div class="text-lg font-bold text-red-600">
+                      {{ formatPrice(product.promotion_price) }} zł
+                    </div>
+                  </div>
+                  <!-- Regular price (no promotion) -->
+                  <div v-else class="text-lg font-bold text-indigo-600">
+                    {{ formatPrice(product.price) }} zł
+                  </div>
+                </div>
               </div>
             </div>
             <div class="ml-2 flex-shrink-0">
@@ -266,6 +282,10 @@ export default {
       event.target.src = 'https://via.placeholder.com/64x64/indigo/fff?text=P'
     }
 
+    const hasPromotion = (product) => {
+      return product.promotion_price && product.promotion_price < product.price
+    }
+
     // Click outside handler
     const handleClickOutside = (event) => {
       if (searchContainer.value && !searchContainer.value.contains(event.target)) {
@@ -306,7 +326,8 @@ export default {
       closeDropdown,
       highlightMatch,
       formatPrice,
-      handleImageError
+      handleImageError,
+      hasPromotion
     }
   }
 }
