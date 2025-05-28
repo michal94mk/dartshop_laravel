@@ -372,7 +372,7 @@ export default {
     }
 
     const checkCanReview = async () => {
-      if (!authStore.isAuthenticated || !product.value) {
+      if (!authStore.isLoggedIn || !product.value) {
         canAddReview.value = false
         return
       }

@@ -2,7 +2,7 @@
   <div class="p-6">
     <!-- Page Header -->
     <page-header 
-      title="Recenzje"
+      title="Recenzje produktów"
       add-button-label="Dodaj recenzję"
       @add="handleAddButtonClick"
     />

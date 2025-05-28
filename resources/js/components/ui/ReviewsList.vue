@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between mb-6">
         <h3 class="text-xl font-bold text-gray-900">Recenzje produktu</h3>
         <button
-          v-if="canAddReview"
+          v-if="canAddReview && statistics && statistics.reviews_count > 0"
           @click="$emit('add-review')"
           class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
