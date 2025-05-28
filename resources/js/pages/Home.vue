@@ -106,6 +106,28 @@
                 <div class="p-4 flex-1 flex flex-col justify-between">
                   <div>
                     <h3 class="text-base font-bold text-gray-900 line-clamp-2 mb-2 leading-tight">{{ product.name }}</h3>
+                    
+                    <!-- Reviews rating -->
+                    <div v-if="product.reviews_count > 0" class="mb-2">
+                      <StarRating 
+                        :model-value="product.average_rating" 
+                        :review-count="product.reviews_count"
+                        size="sm"
+                        show-text
+                        :precision="0.1"
+                      />
+                    </div>
+                    <div v-else class="mb-2">
+                      <div class="flex items-center text-gray-400 text-sm">
+                        <StarRating 
+                          :model-value="0" 
+                          size="sm"
+                          :precision="0.1"
+                        />
+                        <span class="ml-2 text-xs">Brak recenzji</span>
+                      </div>
+                    </div>
+                    
                     <p class="text-xs text-gray-600 line-clamp-2 mb-3 leading-relaxed">{{ product.short_description || product.description }}</p>
                   </div>
                   
@@ -192,8 +214,22 @@
                 <div class="p-4 flex-1 flex flex-col justify-between">
                   <div>
                     <h3 class="text-base font-bold text-gray-900 line-clamp-2 mb-2 leading-tight">{{ product.name }}</h3>
+                    
+                    <!-- Reviews rating for fallback products (usually no reviews) -->
+                    <div class="mb-2">
+                      <div class="flex items-center text-gray-400 text-sm">
+                        <StarRating 
+                          :model-value="0" 
+                          size="sm"
+                          :precision="0.1"
+                        />
+                        <span class="ml-2 text-xs">Brak recenzji</span>
+                      </div>
+                    </div>
+                    
                     <p class="text-xs text-gray-600 line-clamp-2 mb-3 leading-relaxed">{{ product.description }}</p>
                   </div>
+                  
                   <div>
                     <div class="flex items-center justify-between mb-3">
                       <!-- Price section with promotion support -->
@@ -412,13 +448,15 @@ import { useCartStore } from '../stores/cartStore';
 import { useFavoriteStore } from '../stores/favoriteStore';
 import { useCategoryStore } from '../stores/categoryStore';
 import FavoriteButton from '../components/ui/FavoriteButton.vue';
+import StarRating from '../components/ui/StarRating.vue';
 import { useToast } from 'vue-toastification';
 import { useReviewStore } from '../stores/reviewStore';
 
 export default {
   name: 'HomePage',
   components: {
-    FavoriteButton
+    FavoriteButton,
+    StarRating
   },
   data() {
     return {

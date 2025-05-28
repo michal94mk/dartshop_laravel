@@ -126,7 +126,30 @@ export const useProductStore = defineStore('product', {
     async fetchFeaturedProducts() {
       try {
         const response = await axios.get('/api/products/featured');
-        this.featuredProducts = response.data;
+        console.log('Featured products API response:', response.data);
+        
+        // Handle the response structure which includes data and meta
+        if (response.data.data && Array.isArray(response.data.data)) {
+          this.featuredProducts = response.data.data.map(product => ({
+            ...product,
+            price: product.price || 0,
+            name: product.name || 'Unnamed Product',
+            image_url: product.image_url || product.image || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
+          }));
+        } else if (Array.isArray(response.data)) {
+          // Fallback for direct array response
+          this.featuredProducts = response.data.map(product => ({
+            ...product,
+            price: product.price || 0,
+            name: product.name || 'Unnamed Product',
+            image_url: product.image_url || product.image || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
+          }));
+        } else {
+          console.error('Unexpected featured products API response format:', response.data);
+          this.featuredProducts = [];
+        }
+        
+        console.log('Processed featured products:', this.featuredProducts);
       } catch (error) {
         console.error('Error fetching featured products:', error);
         this.featuredProducts = [];

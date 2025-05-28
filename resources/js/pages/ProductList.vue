@@ -430,6 +430,28 @@
             <div class="p-4 flex-1 flex flex-col justify-between">
               <div>
                 <h3 class="text-base font-bold text-gray-900 line-clamp-2 mb-2 leading-tight">{{ product.name }}</h3>
+                
+                <!-- Reviews rating -->
+                <div v-if="product.reviews_count > 0" class="mb-2">
+                  <StarRating 
+                    :model-value="product.average_rating" 
+                    :review-count="product.reviews_count"
+                    size="sm"
+                    show-text
+                    :precision="0.1"
+                  />
+                </div>
+                <div v-else class="mb-2">
+                  <div class="flex items-center text-gray-400 text-sm">
+                    <StarRating 
+                      :model-value="0" 
+                      size="sm"
+                      :precision="0.1"
+                    />
+                    <span class="ml-2 text-xs">Brak recenzji</span>
+                  </div>
+                </div>
+                
                 <p class="text-xs text-gray-600 line-clamp-2 mb-3 leading-relaxed">{{ product.short_description || product.description }}</p>
               </div>
               
@@ -572,13 +594,15 @@ import { useCartStore } from '../stores/cartStore';
 import { useFavoriteStore } from '../stores/favoriteStore';
 import { useCategoryStore } from '../stores/categoryStore';
 import FavoriteButton from '../components/ui/FavoriteButton.vue';
+import StarRating from '../components/ui/StarRating.vue';
 import { useToast } from 'vue-toastification';
 import axios from 'axios';
 
 export default {
   name: 'ProductList',
   components: {
-    FavoriteButton
+    FavoriteButton,
+    StarRating
   },
   setup() {
     const route = useRoute();
@@ -593,38 +617,16 @@ export default {
     const cartLoading = ref(false);
     const selectedCategory = ref(null);
     
-    // Debugging information
-    console.log('ProductList: Setup running...');
-    console.log('ProductList: ProductStore instance:', productStore);
-    console.log('ProductList: Route query:', route.query);
-    
     // Define loadProducts function first
     const loadProducts = async () => {
-      console.log('Loading products method called');
-      
-      // Get the Laravel configuration
-      console.log('Laravel config:', window.Laravel);
-      
-      // Add diagnostic request to check products API
-      try {
-        const response = await axios.get('/api/debug/products');
-        console.log('Debug info:', response.data);
-      } catch (error) {
-        console.error('Debug API error:', error);
-      }
-      
       await productStore.fetchProducts();
-      console.log('Products loaded successfully:', productStore.products);
     };
     
     // Load categories on mount
     onMounted(async () => {
-      console.log('ProductList component mounted');
-      
       // Load categories first
       try {
         await categoryStore.fetchCategories();
-        console.log('Categories loaded in ProductList.vue:', categoryStore.categories.length);
       } catch (error) {
         console.error('Error loading categories in ProductList.vue:', error);
       }
@@ -649,8 +651,6 @@ export default {
     
     // Watch for route changes to update filters  
     watch(() => route.query, (newQuery, oldQuery) => {
-      console.log('ProductList: Route changed, query:', newQuery);
-      
       // Only proceed if this is not the initial load
       if (oldQuery) {
         // Update productStore filters from route query
@@ -710,8 +710,6 @@ export default {
       // Zanim zastosujemy filtry, konwertujemy wartości priceRange na liczby
       const minPrice = priceRange.value[0] !== '' && priceRange.value[0] !== undefined ? parseFloat(priceRange.value[0]) : null;
       const maxPrice = priceRange.value[1] !== '' && priceRange.value[1] !== undefined ? parseFloat(priceRange.value[1]) : null;
-      
-      console.log('Applying filters with price range:', [minPrice, maxPrice]);
       
       // Przekazujemy zakres cen do filtrów
       productStore.filters.priceRange = [minPrice, maxPrice];

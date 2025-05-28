@@ -304,11 +304,32 @@ class ProductController extends Controller
         DB::enableQueryLog();
         
         try {
+            // Check if Review model exists
+            $hasReviews = false;
+            try {
+                if (class_exists('App\\Models\\Review') && 
+                    Schema::hasTable('reviews') && 
+                    method_exists('App\\Models\\Review', 'scopeApproved')) {
+                    $hasReviews = true;
+                }
+            } catch (Exception $e) {
+                Log::warning('Error checking for Review model in featured', [
+                    'error' => $e->getMessage()
+                ]);
+            }
+            
             // Cache featured products for 1 hour
-            $products = Cache::remember('featured_products', 3600, function () {
+            $products = Cache::remember('featured_products', 3600, function () use ($hasReviews) {
                 // First try to get featured products
                 $query = Product::with(['category', 'brand', 'activePromotions'])
                               ->where('is_active', true);
+                
+                // Add reviews if available
+                if ($hasReviews) {
+                    $query->with(['reviews' => function($query) {
+                        $query->approved()->latest();
+                    }]);
+                }
                 
                 // Check if 'featured' column exists in the products table
                 $columns = DB::getSchemaBuilder()->getColumnListing('products');
@@ -321,11 +342,16 @@ class ProductController extends Controller
                 
                 // If no featured products, just get any recent products
                 if ($products->isEmpty()) {
-                    $products = Product::with(['category', 'brand', 'activePromotions'])
-                        ->where('is_active', true)
-                        ->latest()
-                        ->take(8)
-                        ->get();
+                    $query = Product::with(['category', 'brand', 'activePromotions'])
+                        ->where('is_active', true);
+                        
+                    if ($hasReviews) {
+                        $query->with(['reviews' => function($query) {
+                            $query->approved()->latest();
+                        }]);
+                    }
+                    
+                    $products = $query->latest()->take(8)->get();
                 }
                 
                 return $products;
