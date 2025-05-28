@@ -263,4 +263,44 @@ class UserReviewController extends Controller
             return response()->json(['error' => 'Nie udało się sprawdzić uprawnień'], 500);
         }
     }
+
+    /**
+     * Get the latest approved reviews for the homepage
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function getLatestReviews(Request $request)
+    {
+        $limit = $request->get('limit', 6); // Default to 6 reviews
+        
+        $reviews = Review::with(['user', 'product'])
+            ->approved()
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get()
+            ->map(function ($review) {
+                return [
+                    'id' => $review->id,
+                    'title' => $review->title,
+                    'content' => $review->content,
+                    'rating' => $review->rating,
+                    'created_at' => $review->created_at,
+                    'user' => [
+                        'id' => $review->user->id,
+                        'name' => $review->user->first_name . ' ' . $review->user->last_name
+                    ],
+                    'product' => [
+                        'id' => $review->product->id,
+                        'name' => $review->product->name,
+                        'slug' => $review->product->slug ?? null
+                    ]
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'reviews' => $reviews
+        ]);
+    }
 } 

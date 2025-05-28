@@ -345,23 +345,45 @@
         </div>
 
         <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <div v-for="testimonial in testimonials" :key="testimonial.id" class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/20 hover:bg-white/20 transition-all duration-300">
+          <div v-if="reviewStore.loading" class="col-span-full text-center py-10">
+            <div class="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p class="mt-2 text-indigo-100">Ładowanie recenzji...</p>
+          </div>
+          
+          <div v-else-if="reviewStore.error" class="col-span-full text-center py-10">
+            <p class="text-red-200">{{ reviewStore.error }}</p>
+            <button @click="loadLatestReviews" class="mt-4 inline-flex items-center px-4 py-2 border border-white text-sm font-medium rounded-md text-white bg-white/20 hover:bg-white/30">
+              Spróbuj ponownie
+            </button>
+          </div>
+          
+          <div v-else-if="reviewStore.hasReviews" v-for="review in reviewStore.latestReviews" :key="review.id" class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/20 hover:bg-white/20 transition-all duration-300">
             <div class="flex items-center mb-4">
               <div class="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                {{ testimonial.name.charAt(0) }}
+                {{ review.user.name.charAt(0) }}
               </div>
               <div class="ml-4">
-                <h3 class="text-lg font-semibold text-white">{{ testimonial.name }}</h3>
-                <div class="flex text-yellow-400">
+                <h3 class="text-lg font-semibold text-white">{{ review.user.name }}</h3>
+                <div class="flex text-yellow-400 mb-1">
                   <span v-for="i in 5" :key="i" class="mr-1">
-                    <svg class="w-4 h-4" :class="i <= testimonial.rating ? 'text-yellow-400' : 'text-gray-400'" fill="currentColor" viewBox="0 0 20 20">
+                    <svg class="w-4 h-4" :class="i <= review.rating ? 'text-yellow-400' : 'text-gray-400'" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                     </svg>
                   </span>
                 </div>
+                <p class="text-sm text-indigo-200">{{ review.product.name }}</p>
               </div>
             </div>
-            <p class="text-indigo-100 leading-relaxed">"{{ testimonial.text }}"</p>
+            <h4 class="text-white font-semibold mb-2">"{{ review.title }}"</h4>
+            <p class="text-indigo-100 leading-relaxed">"{{ review.content }}"</p>
+            <div class="mt-3 text-xs text-indigo-200">
+              {{ formatDate(review.created_at) }}
+            </div>
+          </div>
+          
+          <!-- Fallback message if no reviews -->
+          <div v-else class="col-span-full text-center py-10">
+            <p class="text-indigo-100">Brak recenzji do wyświetlenia.</p>
           </div>
         </div>
       </div>
@@ -375,6 +397,7 @@ import { useCartStore } from '../stores/cartStore';
 import { useFavoriteStore } from '../stores/favoriteStore';
 import FavoriteButton from '../components/ui/FavoriteButton.vue';
 import { useToast } from 'vue-toastification';
+import { useReviewStore } from '../stores/reviewStore';
 
 export default {
   name: 'HomePage',
@@ -433,29 +456,6 @@ export default {
           image_url: '/img/product04.png'
         }
       ],
-      testimonials: [
-        {
-          id: 1,
-          name: 'Jan Kowalski',
-          avatar: 'https://via.placeholder.com/150/indigo/fff?text=JK',
-          rating: 5,
-          text: 'Świetny sklep z szerokim asortymentem. Polecam każdemu, kto szuka profesjonalnego sprzętu do dart.'
-        },
-        {
-          id: 2,
-          name: 'Anna Nowak',
-          avatar: 'https://via.placeholder.com/150/indigo/fff?text=AN',
-          rating: 4,
-          text: 'Dobra jakość i szybka dostawa. Jedyny minus za nieco wysokie ceny, ale jakość warta swojej ceny.'
-        },
-        {
-          id: 3,
-          name: 'Piotr Wiśniewski',
-          avatar: 'https://via.placeholder.com/150/indigo/fff?text=PW',
-          rating: 5,
-          text: 'Profesjonalna obsługa i świetne doradztwo. Polecam szczególnie początkującym graczom.'
-        }
-      ],
       cartLoading: false
     }
   },
@@ -464,9 +464,11 @@ export default {
     this.cartStore = useCartStore();
     this.favoriteStore = useFavoriteStore();
     this.toast = useToast();
+    this.reviewStore = useReviewStore();
   },
   mounted() {
     this.loadFeaturedProducts();
+    this.loadLatestReviews();
   },
   methods: {
     loadFeaturedProducts() {
@@ -579,6 +581,17 @@ export default {
         return 'Promocja';
       }
       return null;
+    },
+    loadLatestReviews() {
+      this.reviewStore.fetchLatestReviews();
+    },
+    formatDate(date) {
+      const formattedDate = new Date(date).toLocaleDateString('pl-PL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      return formattedDate;
     }
   }
 }

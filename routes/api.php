@@ -56,6 +56,9 @@ Route::get('/products/featured', [ProductController::class, 'featured']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/products/{productId}/reviews', [UserReviewController::class, 'getProductReviews']);
 
+// Reviews API - Public endpoint for latest reviews
+Route::get('/reviews/latest', [UserReviewController::class, 'getLatestReviews']);
+
 // Categories API
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{id}', [CategoryController::class, 'show']);
