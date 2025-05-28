@@ -77,7 +77,7 @@
           <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <!-- Display API products if available -->
             <template v-if="productStore.featuredProducts && productStore.featuredProducts.length > 0">
-              <div v-for="product in productStore.featuredProducts" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col relative" style="aspect-ratio: 1 / 1.5;">
+              <div v-for="product in productStore.featuredProducts" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
                 <div class="relative h-4/5 overflow-hidden">
                   <img 
                     :src="product.image_url || 'https://via.placeholder.com/400x400/indigo/fff?text=' + product.name" 
@@ -86,29 +86,21 @@
                     loading="lazy"
                   >
                   <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <!-- Product badge -->
-                  <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-indigo-600">
-                    NOWOŚĆ
-                  </div>
-                </div>
-                
-                <!-- Notification Messages (Absolute positioned) -->
-                <div v-if="product.id === cartMessageProductId" class="absolute top-2 left-2 right-2 z-10 p-2 rounded text-sm shadow-lg" :class="cartSuccess ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-700 border border-red-300'">
-                  <div v-if="cartSuccess" class="flex flex-col">
-                    <span>{{ cartMessage }}</span>
-                    <div class="mt-1 flex justify-end">
-                      <router-link to="/cart" class="text-xs font-medium text-indigo-600 hover:text-indigo-500">
-                        Przejdź do koszyka &rarr;
-                      </router-link>
+                  
+                  <!-- Promotion Badge -->
+                  <div v-if="hasPromotion(product)" class="absolute top-3 left-3">
+                    <div 
+                      class="px-2 py-1 rounded-full text-xs font-bold text-white shadow-lg"
+                      :style="{ backgroundColor: getPromotionBadgeColor(product) }"
+                    >
+                      {{ getPromotionBadgeText(product) || `${getDiscountPercentage(product)}% OFF` }}
                     </div>
                   </div>
-                  <div v-else>
-                    {{ cartMessage }}
+                  
+                  <!-- Product badge -->
+                  <div v-else class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-blue-600">
+                    PRODUKT
                   </div>
-                </div>
-                
-                <div v-if="product.id === favoriteMessageProductId" class="absolute top-2 left-2 right-2 z-10 p-2 rounded text-sm shadow-lg" :class="favoriteSuccess ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-700 border border-red-300'">
-                  {{ favoriteMessage }}
                 </div>
                 
                 <div class="p-4 flex-1 flex flex-col justify-between">
@@ -116,6 +108,7 @@
                     <h3 class="text-base font-bold text-gray-900 line-clamp-2 mb-2 leading-tight">{{ product.name }}</h3>
                     <p class="text-xs text-gray-600 line-clamp-2 mb-3 leading-relaxed">{{ product.short_description || product.description }}</p>
                   </div>
+                  
                   <div>
                     <div class="flex items-center justify-between mb-3">
                       <!-- Price section with promotion support -->
@@ -136,7 +129,7 @@
                           </div>
                         </div>
                         <!-- Regular price (no promotion) -->
-                        <div v-else class="text-lg font-bold text-indigo-600">
+                        <div v-else class="text-lg font-bold text-blue-600">
                           {{ formatPrice(product.price) }} zł
                         </div>
                       </div>
@@ -150,10 +143,10 @@
                     <div class="space-y-2">
                       <button 
                         @click="addToCart(product)"
-                        :disabled="cartStore.isLoadingProduct(product.id)" 
-                        class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 text-sm"
+                        :disabled="cartLoading" 
+                        class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 text-sm"
                       >
-                        <template v-if="cartStore.isLoadingProduct(product.id)">
+                        <template v-if="cartLoading">
                           <svg class="animate-spin w-4 h-4 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -169,7 +162,7 @@
                       </button>
                       <router-link 
                         :to="`/products/${product.id}`" 
-                        class="w-full block text-center py-2 px-4 border border-indigo-600 text-indigo-600 font-medium rounded-lg hover:bg-indigo-50 transition-colors duration-200 text-sm"
+                        class="w-full block text-center py-2 px-4 border border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors duration-200 text-sm"
                       >
                         Zobacz szczegóły
                       </router-link>
@@ -181,7 +174,7 @@
             
             <!-- Fallback products if API fails -->
             <template v-else>
-              <div v-for="product in fallbackProducts" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col relative" style="aspect-ratio: 1 / 1.5;">
+              <div v-for="product in fallbackProducts" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
                 <div class="relative h-4/5 overflow-hidden">
                   <img 
                     :src="product.image_url" 
@@ -194,25 +187,6 @@
                   <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-indigo-600">
                     NOWOŚĆ
                   </div>
-                </div>
-                
-                <!-- Notification Messages (Absolute positioned) -->
-                <div v-if="product.id === cartMessageProductId" class="absolute top-2 left-2 right-2 z-10 p-2 rounded text-sm shadow-lg" :class="cartSuccess ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-700 border border-red-300'">
-                  <div v-if="cartSuccess" class="flex flex-col">
-                    <span>{{ cartMessage }}</span>
-                    <div class="mt-1 flex justify-end">
-                      <router-link to="/cart" class="text-xs font-medium text-indigo-600 hover:text-indigo-500">
-                        Przejdź do koszyka &rarr;
-                      </router-link>
-                    </div>
-                  </div>
-                  <div v-else>
-                    {{ cartMessage }}
-                  </div>
-                </div>
-                
-                <div v-if="product.id === favoriteMessageProductId" class="absolute top-2 left-2 right-2 z-10 p-2 rounded text-sm shadow-lg" :class="favoriteSuccess ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-700 border border-red-300'">
-                  {{ favoriteMessage }}
                 </div>
                 
                 <div class="p-4 flex-1 flex flex-col justify-between">
@@ -255,9 +229,9 @@
                       <button 
                         @click="addToCart(product)"
                         class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 text-sm"
-                        :disabled="cartStore.isLoadingProduct(product.id)"
+                        :disabled="cartLoading"
                       >
-                        <template v-if="cartStore.isLoadingProduct(product.id)">
+                        <template v-if="cartLoading">
                           <svg class="animate-spin w-4 h-4 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -400,6 +374,7 @@ import { useProductStore } from '../stores/productStore';
 import { useCartStore } from '../stores/cartStore';
 import { useFavoriteStore } from '../stores/favoriteStore';
 import FavoriteButton from '../components/ui/FavoriteButton.vue';
+import { useToast } from 'vue-toastification';
 
 export default {
   name: 'HomePage',
@@ -481,18 +456,14 @@ export default {
           text: 'Profesjonalna obsługa i świetne doradztwo. Polecam szczególnie początkującym graczom.'
         }
       ],
-      cartMessage: '',
-      cartSuccess: false,
-      cartMessageProductId: null,
-      favoriteMessage: '',
-      favoriteSuccess: false,
-      favoriteMessageProductId: null
+      cartLoading: false
     }
   },
   created() {
     this.productStore = useProductStore();
     this.cartStore = useCartStore();
     this.favoriteStore = useFavoriteStore();
+    this.toast = useToast();
   },
   mounted() {
     this.loadFeaturedProducts();
@@ -508,34 +479,34 @@ export default {
       }
       return parseFloat(price).toFixed(2);
     },
-    addToCart(product) {
-      this.cartMessageProductId = product.id;
-      this.cartStore.addToCart(product.id)
-        .then(() => {
-          this.cartMessage = `Produkt "${product.name || 'wybrany'}" został dodany do koszyka.`;
-          this.cartSuccess = true;
-          
-          // Clear message after 3 seconds
-          setTimeout(() => {
-            if (this.cartMessageProductId === product.id) {
-              this.cartMessage = '';
-              this.cartMessageProductId = null;
-            }
-          }, 3000);
-        })
-        .catch(error => {
-          console.error('Failed to add to cart:', error);
-          this.cartMessage = 'Nie udało się dodać produktu do koszyka';
-          this.cartSuccess = false;
-          
-          // Clear message after 3 seconds
-          setTimeout(() => {
-            if (this.cartMessageProductId === product.id) {
-              this.cartMessage = '';
-              this.cartMessageProductId = null;
-            }
-          }, 3000);
+    async addToCart(product) {
+      this.cartLoading = true;
+      
+      try {
+        const success = await this.cartStore.addToCart(product.id);
+        if (success) {
+          this.toast.success(`Produkt "${product.name}" został dodany do koszyka!`, {
+            position: "top-center",
+            timeout: 4000,
+            icon: "🛒"
+          });
+        } else {
+          this.toast.error('Nie udało się dodać produktu do koszyka', {
+            position: "top-center",
+            timeout: 4000,
+            icon: "❌"
+          });
+        }
+      } catch (error) {
+        this.toast.error('Wystąpił błąd podczas dodawania produktu do koszyka', {
+          position: "top-center",
+          timeout: 4000,
+          icon: "❌"
         });
+        console.error('Error adding product to cart:', error);
+      } finally {
+        this.cartLoading = false;
+      }
     },
     toggleFavorite(product) {
       this.favoriteStore.toggleFavoriteItem(product);
@@ -544,28 +515,18 @@ export default {
       return this.favoriteStore.isInFavorites(productId);
     },
     handleFavoriteAdded(product) {
-      this.favoriteMessage = `Produkt "${product.name}" został dodany do ulubionych.`;
-      this.favoriteSuccess = true;
-      this.favoriteMessageProductId = product.id;
-      
-      // Clear the message after 3 seconds
-      setTimeout(() => {
-        if (this.favoriteMessageProductId === product.id) {
-          this.favoriteMessageProductId = null;
-        }
-      }, 3000);
+      this.toast.success(`Produkt "${product.name}" dodany do ulubionych!`, {
+        position: "top-center",
+        timeout: 3000,
+        icon: "❤️"
+      });
     },
     handleFavoriteRemoved(product) {
-      this.favoriteMessage = `Produkt "${product.name}" został usunięty z ulubionych.`;
-      this.favoriteSuccess = false;
-      this.favoriteMessageProductId = product.id;
-      
-      // Clear the message after 3 seconds
-      setTimeout(() => {
-        if (this.favoriteMessageProductId === product.id) {
-          this.favoriteMessageProductId = null;
-        }
-      }, 3000);
+      this.toast.info(`Produkt "${product.name}" usunięty z ulubionych`, {
+        position: "top-center",
+        timeout: 3000,
+        icon: "💔"
+      });
     },
     // Promotion helper functions
     hasPromotion(product) {
@@ -576,6 +537,26 @@ export default {
       const originalPrice = parseFloat(product.price);
       const promotionalPrice = parseFloat(product.promotion_price);
       return Math.round(((originalPrice - promotionalPrice) / originalPrice) * 100);
+    },
+    getPromotionBadgeColor(product) {
+      if (this.hasPromotion(product)) {
+        const discountPercentage = this.getDiscountPercentage(product);
+        if (discountPercentage > 50) return '#ef4444'; // red-500
+        if (discountPercentage > 30) return '#f97316'; // orange-500
+        if (discountPercentage > 10) return '#eab308'; // yellow-500
+        return '#22c55e'; // green-500
+      }
+      return '#6b7280'; // gray-500
+    },
+    getPromotionBadgeText(product) {
+      if (this.hasPromotion(product)) {
+        const discountPercentage = this.getDiscountPercentage(product);
+        if (discountPercentage > 50) return 'Duża zniżka';
+        if (discountPercentage > 30) return 'Zniżka';
+        if (discountPercentage > 10) return 'Okazja';
+        return 'Promocja';
+      }
+      return null;
     }
   }
 }

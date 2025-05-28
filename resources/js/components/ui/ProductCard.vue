@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col relative" style="aspect-ratio: 1 / 1.5;">
+  <div class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
     <div class="relative h-4/5 overflow-hidden">
       <img 
         :src="product.image_url || 'https://via.placeholder.com/400x400/indigo/fff?text=' + encodeURIComponent(product.name)" 
@@ -23,25 +23,6 @@
       <div v-else class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-blue-600">
         PRODUKT
       </div>
-    </div>
-    
-    <!-- Notification Messages (Absolute positioned) -->
-    <div v-if="cartMessage" class="absolute top-2 left-2 right-2 z-10 p-2 rounded text-sm shadow-lg" :class="cartSuccess ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-700 border border-red-300'">
-      <div v-if="cartSuccess" class="flex flex-col">
-        <span>{{ cartMessage }}</span>
-        <div class="mt-1 flex justify-end">
-          <router-link to="/cart" class="text-xs font-medium text-indigo-600 hover:text-indigo-500">
-            Przejdź do koszyka &rarr;
-          </router-link>
-        </div>
-      </div>
-      <div v-else>
-        {{ cartMessage }}
-      </div>
-    </div>
-    
-    <div v-if="favoriteMessage" class="absolute top-2 left-2 right-2 z-10 p-2 rounded text-sm shadow-lg" :class="favoriteSuccess ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-700 border border-red-300'">
-      {{ favoriteMessage }}
     </div>
     
     <div class="p-4 flex-1 flex flex-col justify-between">
@@ -118,6 +99,7 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import FavoriteButton from './FavoriteButton.vue'
 import { useCartStore } from '../../stores/cartStore'
+import { useToast } from 'vue-toastification'
 
 export default {
   name: 'ProductCard',
@@ -133,13 +115,10 @@ export default {
   setup(props) {
     const router = useRouter()
     const cartStore = useCartStore()
+    const toast = useToast()
     
     // State
     const cartLoading = ref(false)
-    const cartMessage = ref('')
-    const cartSuccess = ref(false)
-    const favoriteMessage = ref('')
-    const favoriteSuccess = ref(false)
 
     // Computed properties for promotion logic
     const hasPromotion = computed(() => {
@@ -178,26 +157,28 @@ export default {
 
     const addToCart = async () => {
       cartLoading.value = true
-      cartMessage.value = ''
-      cartSuccess.value = false
       
       try {
         const success = await cartStore.addToCart(props.product.id, 1)
         if (success) {
-          cartMessage.value = `Produkt "${props.product.name}" został dodany do koszyka.`
-          cartSuccess.value = true
-          
-          // Reset the message after 5 seconds
-          setTimeout(() => {
-            cartMessage.value = ''
-          }, 5000)
+          toast.success(`Produkt "${props.product.name}" został dodany do koszyka!`, {
+            position: "top-center",
+            timeout: 4000,
+            icon: "🛒"
+          })
         } else {
-          cartMessage.value = 'Nie udało się dodać produktu do koszyka.'
-          cartSuccess.value = false
+          toast.error('Nie udało się dodać produktu do koszyka', {
+            position: "top-center",
+            timeout: 4000,
+            icon: "❌"
+          })
         }
       } catch (error) {
-        cartMessage.value = 'Wystąpił błąd podczas dodawania produktu do koszyka.'
-        cartSuccess.value = false
+        toast.error('Wystąpił błąd podczas dodawania produktu do koszyka', {
+          position: "top-center",
+          timeout: 4000,
+          icon: "❌"
+        })
         console.error('Error adding product to cart:', error)
       } finally {
         cartLoading.value = false
@@ -205,23 +186,19 @@ export default {
     }
 
     const handleFavoriteAdded = (product) => {
-      favoriteMessage.value = `Produkt "${product.name}" został dodany do ulubionych.`
-      favoriteSuccess.value = true
-      
-      // Clear message after 3 seconds
-      setTimeout(() => {
-        favoriteMessage.value = ''
-      }, 3000)
+      toast.success(`Produkt "${product.name}" dodany do ulubionych!`, {
+        position: "top-center",
+        timeout: 3000,
+        icon: "❤️"
+      })
     }
 
     const handleFavoriteRemoved = (product) => {
-      favoriteMessage.value = `Produkt "${product.name}" został usunięty z ulubionych.`
-      favoriteSuccess.value = false
-      
-      // Clear message after 3 seconds
-      setTimeout(() => {
-        favoriteMessage.value = ''
-      }, 3000)
+      toast.info(`Produkt "${product.name}" usunięty z ulubionych`, {
+        position: "top-center",
+        timeout: 3000,
+        icon: "💔"
+      })
     }
 
     return {
@@ -233,10 +210,6 @@ export default {
       promotionBadgeText,
       promotionBadgeColor,
       cartLoading,
-      cartMessage,
-      cartSuccess,
-      favoriteMessage,
-      favoriteSuccess,
       formatPrice,
       addToCart,
       handleFavoriteAdded,

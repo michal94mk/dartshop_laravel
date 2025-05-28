@@ -255,7 +255,7 @@
         </div>
         
         <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <div v-for="product in productStore.products" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col relative" style="aspect-ratio: 1 / 1.5;">
+          <div v-for="product in productStore.products" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
             <div class="relative h-4/5 overflow-hidden">
               <img 
                 :src="product.image_url || 'https://via.placeholder.com/400x400/indigo/fff?text=' + product.name" 
@@ -264,29 +264,21 @@
                 loading="lazy"
               >
               <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <!-- Product badge -->
-              <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-blue-600">
-                PRODUKT
-              </div>
-            </div>
-            
-            <!-- Notification Messages (Absolute positioned) -->
-            <div v-if="product.id === cartMessageProductId" class="absolute top-2 left-2 right-2 z-10 p-2 rounded text-sm shadow-lg" :class="cartSuccess ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-700 border border-red-300'">
-              <div v-if="cartSuccess" class="flex flex-col">
-                <span>{{ cartMessage }}</span>
-                <div class="mt-1 flex justify-end">
-                  <router-link to="/cart" class="text-xs font-medium text-indigo-600 hover:text-indigo-500">
-                    Przejdź do koszyka &rarr;
-                  </router-link>
+              
+              <!-- Promotion Badge -->
+              <div v-if="hasPromotion(product)" class="absolute top-3 left-3">
+                <div 
+                  class="px-2 py-1 rounded-full text-xs font-bold text-white shadow-lg"
+                  :style="{ backgroundColor: getPromotionBadgeColor(product) }"
+                >
+                  {{ getPromotionBadgeText(product) || `${getDiscountPercentage(product)}% OFF` }}
                 </div>
               </div>
-              <div v-else>
-                {{ cartMessage }}
+              
+              <!-- Product badge -->
+              <div v-else class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-blue-600">
+                PRODUKT
               </div>
-            </div>
-            
-            <div v-if="product.id === favoriteMessageProductId" class="absolute top-2 left-2 right-2 z-10 p-2 rounded text-sm shadow-lg" :class="favoriteSuccess ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-700 border border-red-300'">
-              {{ favoriteMessage }}
             </div>
             
             <div class="p-4 flex-1 flex flex-col justify-between">
@@ -294,6 +286,7 @@
                 <h3 class="text-base font-bold text-gray-900 line-clamp-2 mb-2 leading-tight">{{ product.name }}</h3>
                 <p class="text-xs text-gray-600 line-clamp-2 mb-3 leading-relaxed">{{ product.short_description || product.description }}</p>
               </div>
+              
               <div>
                 <div class="flex items-center justify-between mb-3">
                   <!-- Price section with promotion support -->
@@ -327,11 +320,11 @@
                 </div>
                 <div class="space-y-2">
                   <button 
-                    @click="addToCart(product.id)"
-                    :disabled="isCartLoading(product.id)" 
+                    @click="addToCart(product)"
+                    :disabled="cartLoading"
                     class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 text-sm"
                   >
-                    <template v-if="isCartLoading(product.id)">
+                    <template v-if="cartLoading">
                       <svg class="animate-spin w-4 h-4 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -432,6 +425,7 @@ import { useProductStore } from '../stores/productStore';
 import { useCartStore } from '../stores/cartStore';
 import { useFavoriteStore } from '../stores/favoriteStore';
 import FavoriteButton from '../components/ui/FavoriteButton.vue';
+import { useToast } from 'vue-toastification';
 import axios from 'axios';
 
 export default {
@@ -445,15 +439,10 @@ export default {
     const productStore = useProductStore();
     const cartStore = useCartStore();
     const favoriteStore = useFavoriteStore();
+    const toast = useToast();
     const mobileFiltersOpen = ref(false);
     const priceRange = ref([null, null]);
-    const cartMessageProductId = ref(null);
-    const cartMessage = ref('');
-    const cartSuccess = ref(false);
-    const cartLoadingItems = ref(new Set());
-    const favoriteMessageProductId = ref(null);
-    const favoriteMessage = ref('');
-    const favoriteSuccess = ref(false);
+    const cartLoading = ref(false);
     
     // Debugging information
     console.log('ProductList component setup started');
@@ -576,40 +565,22 @@ export default {
       return parseFloat(price).toFixed(2);
     };
 
-    const addToCart = async (productId) => {
+    const addToCart = async (product) => {
       // Show loading indicator for this product
-      cartLoadingItems.value.add(productId);
-      cartMessageProductId.value = null;
-      cartMessage.value = '';
-      cartSuccess.value = false;
+      cartLoading.value = true;
       
       try {
-        const success = await cartStore.addToCart(productId, 1);
+        const success = await cartStore.addToCart(product.id, 1);
         if (success) {
-          cartSuccess.value = true;
-          cartMessageProductId.value = productId;
-          const product = productStore.products.find(p => p.id === productId);
-          cartMessage.value = `Produkt "${product?.name || 'wybrany'}" został dodany do koszyka.`;
-          
-          // Hide the message after a few seconds
-          setTimeout(() => {
-            if (cartMessageProductId.value === productId) {
-              cartMessageProductId.value = null;
-              cartMessage.value = '';
-            }
-          }, 3000);
+          toast.success(`Produkt "${product.name}" został dodany do koszyka.`);
         } else {
-          cartSuccess.value = false;
-          cartMessageProductId.value = productId;
-          cartMessage.value = 'Nie udało się dodać produktu do koszyka.';
+          toast.error('Nie udało się dodać produktu do koszyka.');
         }
       } catch (error) {
-        cartSuccess.value = false;
-        cartMessageProductId.value = productId;
-        cartMessage.value = 'Wystąpił błąd podczas dodawania produktu do koszyka.';
+        toast.error('Wystąpił błąd podczas dodawania produktu do koszyka.');
         console.error('Error adding product to cart:', error);
       } finally {
-        cartLoadingItems.value.delete(productId);
+        cartLoading.value = false;
       }
     };
 
@@ -628,29 +599,11 @@ export default {
     };
 
     const handleFavoriteAdded = (product) => {
-      favoriteMessage.value = `Produkt "${product.name}" został dodany do ulubionych.`;
-      favoriteSuccess.value = true;
-      favoriteMessageProductId.value = product.id;
-      
-      // Clear the message after 3 seconds
-      setTimeout(() => {
-        if (favoriteMessageProductId.value === product.id) {
-          favoriteMessageProductId.value = null;
-        }
-      }, 3000);
+      toast.success(`Produkt "${product.name}" został dodany do ulubionych.`);
     };
     
     const handleFavoriteRemoved = (product) => {
-      favoriteMessage.value = `Produkt "${product.name}" został usunięty z ulubionych.`;
-      favoriteSuccess.value = false;
-      favoriteMessageProductId.value = product.id;
-      
-      // Clear the message after 3 seconds
-      setTimeout(() => {
-        if (favoriteMessageProductId.value === product.id) {
-          favoriteMessageProductId.value = null;
-        }
-      }, 3000);
+      toast.success(`Produkt "${product.name}" został usunięty z ulubionych.`);
     };
 
     const clearSearch = () => {
@@ -672,17 +625,33 @@ export default {
       return Math.round(((originalPrice - promotionalPrice) / originalPrice) * 100);
     };
 
+    const getPromotionBadgeColor = (product) => {
+      if (hasPromotion(product)) {
+        const discountPercentage = getDiscountPercentage(product);
+        if (discountPercentage > 50) return 'bg-red-500';
+        if (discountPercentage > 30) return 'bg-orange-500';
+        if (discountPercentage > 10) return 'bg-yellow-500';
+        return 'bg-green-500';
+      }
+      return 'bg-gray-500';
+    };
+
+    const getPromotionBadgeText = (product) => {
+      if (hasPromotion(product)) {
+        const discountPercentage = getDiscountPercentage(product);
+        if (discountPercentage > 50) return 'Duża zniżka';
+        if (discountPercentage > 30) return 'Zniżka';
+        if (discountPercentage > 10) return 'Niska zniżka';
+        return 'Brak zniżki';
+      }
+      return null;
+    };
+
     return {
       productStore,
       mobileFiltersOpen,
       priceRange,
-      cartMessageProductId,
-      cartMessage,
-      cartSuccess,
-      cartLoadingItems,
-      favoriteMessageProductId,
-      favoriteMessage,
-      favoriteSuccess,
+      cartLoading,
       paginationPages,
       loadProducts,
       applyFilters,
@@ -697,7 +666,9 @@ export default {
       handleFavoriteRemoved,
       clearSearch,
       hasPromotion,
-      getDiscountPercentage
+      getDiscountPercentage,
+      getPromotionBadgeColor,
+      getPromotionBadgeText
     };
   }
 }
