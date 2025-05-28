@@ -57,7 +57,7 @@ class StripeController extends Controller
         try {
             $user = Auth::user();
             $cartItems = CartItem::where('user_id', $user->id)
-                ->with('product')
+                ->with(['product.activePromotions'])
                 ->get();
 
             if ($cartItems->isEmpty()) {
@@ -69,14 +69,17 @@ class StripeController extends Controller
             // Przygotuj line items dla Stripe
             $lineItems = [];
             foreach ($cartItems as $item) {
+                $product = $item->product;
+                $finalPrice = $product->getPromotionalPrice(); // Użyj promocyjnej ceny
+                
                 $lineItems[] = [
                     'price_data' => [
                         'currency' => 'pln',
                         'product_data' => [
-                            'name' => $item->product->name,
-                            'description' => $item->product->description ?? '',
+                            'name' => $product->name,
+                            'description' => $product->description ?? '',
                         ],
-                        'unit_amount' => (int) ($item->product->price * 100), // w groszach
+                        'unit_amount' => (int) ($finalPrice * 100), // w groszach
                     ],
                     'quantity' => $item->quantity,
                 ];
@@ -142,8 +145,10 @@ class StripeController extends Controller
             // Przygotuj line items dla Stripe
             $lineItems = [];
             foreach ($cartData as $item) {
-                $product = Product::find($item['product_id']);
+                $product = Product::with('activePromotions')->find($item['product_id']);
                 if ($product) {
+                    $finalPrice = $product->getPromotionalPrice(); // Użyj promocyjnej ceny
+                    
                     $lineItems[] = [
                         'price_data' => [
                             'currency' => 'pln',
@@ -151,7 +156,7 @@ class StripeController extends Controller
                                 'name' => $product->name,
                                 'description' => $product->description ?? '',
                             ],
-                            'unit_amount' => (int) ($product->price * 100), // w groszach
+                            'unit_amount' => (int) ($finalPrice * 100), // w groszach
                         ],
                         'quantity' => $item['quantity'],
                     ];
@@ -203,7 +208,7 @@ class StripeController extends Controller
         try {
             $user = Auth::user();
             $cartItems = CartItem::where('user_id', $user->id)
-                ->with('product')
+                ->with(['product.activePromotions'])
                 ->get();
 
             if ($cartItems->isEmpty()) {
@@ -212,9 +217,9 @@ class StripeController extends Controller
                 ], 400);
             }
 
-            // Oblicz sumę
+            // Oblicz sumę z promocyjnymi cenami
             $total = $cartItems->sum(function ($item) {
-                return $item->product->price * $item->quantity;
+                return $item->product->getPromotionalPrice() * $item->quantity;
             });
 
             // Konwertuj na grosze (Stripe wymaga kwoty w najmniejszej jednostce waluty)
@@ -267,9 +272,9 @@ class StripeController extends Controller
             $total = 0;
 
             foreach ($cartData as $item) {
-                $product = Product::find($item['product_id']);
+                $product = Product::with('activePromotions')->find($item['product_id']);
                 if ($product) {
-                    $total += $product->price * $item['quantity'];
+                    $total += $product->getPromotionalPrice() * $item['quantity'];
                 }
             }
 
@@ -333,7 +338,7 @@ class StripeController extends Controller
 
             $user = Auth::user();
             $cartItems = CartItem::where('user_id', $user->id)
-                ->with('product')
+                ->with(['product.activePromotions'])
                 ->get();
 
             if ($cartItems->isEmpty()) {
@@ -351,9 +356,9 @@ class StripeController extends Controller
                 ], 400);
             }
 
-            // Oblicz sumy
+            // Oblicz sumy z promocyjnymi cenami
             $subtotal = $cartItems->sum(function ($item) {
-                return $item->product->price * $item->quantity;
+                return $item->product->getPromotionalPrice() * $item->quantity;
             });
 
             // Validate and calculate shipping cost
@@ -393,15 +398,16 @@ class StripeController extends Controller
                 'shipping_method' => $shippingMethod,
             ]);
 
-            // Utwórz pozycje zamówienia
+            // Utwórz pozycje zamówienia z promocyjnymi cenami
             foreach ($cartItems as $cartItem) {
+                $promotionalPrice = $cartItem->product->getPromotionalPrice();
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $cartItem->product_id,
                     'product_name' => $cartItem->product->name,
                     'quantity' => $cartItem->quantity,
-                    'price' => $cartItem->product->price,
-                    'total' => $cartItem->product->price * $cartItem->quantity,
+                    'price' => $promotionalPrice,
+                    'total' => $promotionalPrice * $cartItem->quantity,
                 ]);
             }
 
@@ -466,19 +472,20 @@ class StripeController extends Controller
             $subtotal = 0;
 
             foreach ($cartData as $item) {
-                $product = Product::find($item['product_id']);
+                $product = Product::with('activePromotions')->find($item['product_id']);
                 if (!$product) {
                     throw new \Exception("Produkt o ID {$item['product_id']} nie istnieje");
                 }
 
+                $promotionalPrice = $product->getPromotionalPrice();
                 $cartItems[] = [
                     'product' => $product,
                     'quantity' => $item['quantity'],
-                    'price' => $product->price,
-                    'total' => $product->price * $item['quantity']
+                    'price' => $promotionalPrice,
+                    'total' => $promotionalPrice * $item['quantity']
                 ];
 
-                $subtotal += $product->price * $item['quantity'];
+                $subtotal += $promotionalPrice * $item['quantity'];
             }
 
             // Validate and calculate shipping cost
@@ -593,16 +600,16 @@ class StripeController extends Controller
                 }
 
                 $cartItems = CartItem::where('user_id', $user->id)
-                    ->with('product')
+                    ->with(['product.activePromotions'])
                     ->get();
 
                 if ($cartItems->isEmpty()) {
                     throw new \Exception('Koszyk jest pusty');
                 }
 
-                // Oblicz sumy
+                // Oblicz sumy z promocyjnymi cenami
                 $subtotal = $cartItems->sum(function ($item) {
-                    return $item->product->price * $item->quantity;
+                    return $item->product->getPromotionalPrice() * $item->quantity;
                 });
 
                 // Calculate shipping cost
@@ -635,15 +642,16 @@ class StripeController extends Controller
                     'shipping_method' => $shippingMethod,
                 ]);
 
-                // Utwórz pozycje zamówienia
+                // Utwórz pozycje zamówienia z promocyjnymi cenami
                 foreach ($cartItems as $cartItem) {
+                    $promotionalPrice = $cartItem->product->getPromotionalPrice();
                     OrderItem::create([
                         'order_id' => $order->id,
                         'product_id' => $cartItem->product_id,
                         'product_name' => $cartItem->product->name,
                         'quantity' => $cartItem->quantity,
-                        'price' => $cartItem->product->price,
-                        'total' => $cartItem->product->price * $cartItem->quantity,
+                        'price' => $promotionalPrice,
+                        'total' => $promotionalPrice * $cartItem->quantity,
                     ]);
                 }
 
@@ -657,19 +665,20 @@ class StripeController extends Controller
                 $subtotal = 0;
 
                 foreach ($cartData as $item) {
-                    $product = Product::find($item['product_id']);
+                    $product = Product::with('activePromotions')->find($item['product_id']);
                     if (!$product) {
                         throw new \Exception("Produkt o ID {$item['product_id']} nie istnieje");
                     }
 
+                    $promotionalPrice = $product->getPromotionalPrice();
                     $cartItems[] = [
                         'product' => $product,
                         'quantity' => $item['quantity'],
-                        'price' => $product->price,
-                        'total' => $product->price * $item['quantity']
+                        'price' => $promotionalPrice,
+                        'total' => $promotionalPrice * $item['quantity']
                     ];
 
-                    $subtotal += $product->price * $item['quantity'];
+                    $subtotal += $promotionalPrice * $item['quantity'];
                 }
 
                 // Calculate shipping cost

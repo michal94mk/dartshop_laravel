@@ -43,8 +43,19 @@ class GuestCheckoutController extends Controller
             $cartItems = [];
 
             foreach ($cartData as $item) {
-                $product = Product::find($item['product_id']);
+                $product = Product::with('activePromotions')->find($item['product_id']);
                 if ($product) {
+                    // Add promotional price information
+                    if ($product->hasActivePromotion()) {
+                        $product->promotion_price = $product->getPromotionalPrice();
+                        $product->savings = $product->getSavingsAmount();
+                        $product->promotion = $product->getBestActivePromotion();
+                    } else {
+                        $product->promotion_price = $product->price;
+                        $product->savings = 0;
+                        $product->promotion = null;
+                    }
+                    
                     $cartItems[] = [
                         'product_id' => $product->id,
                         'quantity' => $item['quantity'],
@@ -59,9 +70,9 @@ class GuestCheckoutController extends Controller
                 ], 400);
             }
 
-            // Calculate cart total
+            // Calculate cart total with promotional prices
             $cartTotal = collect($cartItems)->sum(function ($item) {
-                return $item['product']->price * $item['quantity'];
+                return $item['product']->getPromotionalPrice() * $item['quantity'];
             });
 
             // Get shipping methods with calculated costs
@@ -114,19 +125,20 @@ class GuestCheckoutController extends Controller
             $subtotal = 0;
 
             foreach ($cartData as $item) {
-                $product = Product::find($item['product_id']);
+                $product = Product::with('activePromotions')->find($item['product_id']);
                 if (!$product) {
                     throw new \Exception("Produkt o ID {$item['product_id']} nie istnieje");
                 }
 
+                $promotionalPrice = $product->getPromotionalPrice();
                 $cartItems[] = [
                     'product' => $product,
                     'quantity' => $item['quantity'],
-                    'price' => $product->price,
-                    'total' => $product->price * $item['quantity']
+                    'price' => $promotionalPrice,
+                    'total' => $promotionalPrice * $item['quantity']
                 ];
 
-                $subtotal += $product->price * $item['quantity'];
+                $subtotal += $promotionalPrice * $item['quantity'];
             }
 
             if (empty($cartItems)) {

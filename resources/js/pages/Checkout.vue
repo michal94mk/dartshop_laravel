@@ -256,7 +256,7 @@
                       <p class="text-xs text-gray-500">Ilość: {{ item.quantity }}</p>
                     </div>
                     <div class="text-sm font-medium text-gray-900">
-                      {{ formatPrice(item.product.price * item.quantity) }}
+                      {{ formatPrice(getPromotionalPrice(item.product) * item.quantity) }}
                     </div>
                   </div>
                 </div>
@@ -370,7 +370,7 @@ export default {
     const subtotal = computed(() => {
       if (!cartItems.value?.length) return 0
       return cartItems.value.reduce((sum, item) => {
-        return sum + (item.product.price * item.quantity)
+        return sum + (getPromotionalPrice(item.product) * item.quantity)
       }, 0)
     })
 
@@ -528,6 +528,13 @@ export default {
       }).format(price)
     }
 
+    const getPromotionalPrice = (product) => {
+      const hasPromotion = product.promotion_price !== undefined && 
+                          product.promotion_price !== null && 
+                          parseFloat(product.promotion_price) < parseFloat(product.price);
+      return hasPromotion ? parseFloat(product.promotion_price) : parseFloat(product.price);
+    }
+
     const processStripeCheckout = async () => {
       try {
         loading.value = true
@@ -594,6 +601,7 @@ export default {
       processCheckout,
       processStripeCheckout,
       formatPrice,
+      getPromotionalPrice,
       privacyPolicyAccepted
     }
   }

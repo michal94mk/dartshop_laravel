@@ -19,12 +19,12 @@ use App\Http\Controllers\Api\Admin\BrandController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\OrderController;
 use App\Http\Controllers\Api\Admin\ReviewController as AdminReviewController;
-use App\Http\Controllers\Api\Admin\PromotionController;
+use App\Http\Controllers\API\Admin\PromotionController;
 use App\Http\Controllers\Api\Admin\TutorialController as AdminTutorialController;
 use App\Http\Controllers\Api\Admin\ContactMessageController as AdminContactMessageController;
 use App\Http\Controllers\Api\Admin\AboutPageController;
-use App\Http\Controllers\Api\Admin\ImageUploadController;
 use App\Http\Controllers\Api\Admin\NewsletterController as AdminNewsletterController;
+use App\Http\Controllers\API\Admin\ImageUploadController;
 use App\Http\Controllers\Api\AboutUsController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\FavoriteProductController;
@@ -188,6 +188,14 @@ Route::prefix('stripe')->group(function () {
 // Public order endpoint for success page
 Route::get('/orders/{order}', [CheckoutController::class, 'showOrder']);
 
+// Public Promotions API
+Route::prefix('promotions')->group(function () {
+    Route::get('/', [PromotionController::class, 'indexPublic']);
+    Route::get('/featured', [PromotionController::class, 'featured']);
+    Route::get('/{promotion}', [PromotionController::class, 'showPublic']);
+    Route::get('/{promotion}/products', [PromotionController::class, 'getPromotionProducts']);
+});
+
 // Admin API Routes
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
     // Dashboard statistics
@@ -212,7 +220,12 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     
     // Promotions management
     Route::apiResource('/promotions', PromotionController::class);
-    Route::get('/promotions/generate-code', [PromotionController::class, 'generateCode']);
+    Route::post('/promotions/{promotion}/toggle-active', [PromotionController::class, 'toggleActive']);
+    Route::post('/promotions/{promotion}/toggle-featured', [PromotionController::class, 'toggleFeatured']);
+    Route::post('/promotions/{id}/attach-products', [PromotionController::class, 'attachProducts']);
+    Route::post('/promotions/{id}/detach-products', [PromotionController::class, 'detachProducts']);
+    Route::post('/promotions/update-order', [PromotionController::class, 'updateOrder']);
+    Route::get('/available-products', [PromotionController::class, 'getAvailableProducts']);
     
     // Orders management
     Route::apiResource('/orders', OrderController::class);

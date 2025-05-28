@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Carbon\Carbon;
 
 class Promotion extends Model
@@ -16,17 +17,18 @@ class Promotion extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'title',
         'name',
-        'code',
         'description',
         'discount_type',
         'discount_value',
-        'minimum_order_value',
         'starts_at',
         'ends_at',
         'is_active',
-        'usage_limit',
-        'used_count'
+        'display_order',
+        'is_featured',
+        'badge_text',
+        'badge_color'
     ];
 
     /**
@@ -38,11 +40,97 @@ class Promotion extends Model
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
         'is_active' => 'boolean',
+        'is_featured' => 'boolean',
         'discount_value' => 'decimal:2',
-        'minimum_order_value' => 'decimal:2',
-        'usage_limit' => 'integer',
-        'used_count' => 'integer',
+        'display_order' => 'integer'
     ];
+
+    /**
+     * Relacja many-to-many z produktami
+     */
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'product_promotions')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Scope dla aktywnych promocji
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true)
+                    ->where('starts_at', '<=', now())
+                    ->where(function ($q) {
+                        $q->whereNull('ends_at')
+                          ->orWhere('ends_at', '>=', now());
+                    });
+    }
+
+    /**
+     * Scope dla promocji wyróżnionych
+     */
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
+    }
+
+    /**
+     * Scope dla sortowania według kolejności wyświetlania
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('display_order', 'asc')
+                    ->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Sprawdza czy promocja jest aktywna
+     */
+    public function isActive(): bool
+    {
+        if (!$this->is_active) {
+            return false;
+        }
+
+        if ($this->starts_at > now()) {
+            return false;
+        }
+
+        if ($this->ends_at && $this->ends_at < now()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Oblicza cenę po rabacie
+     */
+    public function calculateDiscountedPrice(float $originalPrice): float
+    {
+        if (!$this->isActive()) {
+            return $originalPrice;
+        }
+
+        if ($this->discount_type === 'percentage') {
+            return $originalPrice * (1 - ($this->discount_value / 100));
+        }
+
+        if ($this->discount_type === 'fixed') {
+            return max(0, $originalPrice - $this->discount_value);
+        }
+
+        return $originalPrice;
+    }
+
+    /**
+     * Zwraca kwotę rabatu
+     */
+    public function getDiscountAmount(float $originalPrice): float
+    {
+        return $originalPrice - $this->calculateDiscountedPrice($originalPrice);
+    }
 
     /**
      * Check if the promotion is currently valid (active and within date range)
@@ -65,11 +153,6 @@ class Promotion extends Model
         
         // Check if promotion has ended (if end date is set)
         if ($this->ends_at && $now->gt($this->ends_at)) {
-            return false;
-        }
-        
-        // Check if usage limit has been reached (if limit is set)
-        if ($this->usage_limit && $this->used_count >= $this->usage_limit) {
             return false;
         }
         
@@ -104,26 +187,7 @@ class Promotion extends Model
         return 'gray';
     }
     
-    /**
-     * Calculate discount amount for a given order value
-     *
-     * @param float $orderValue
-     * @return float
-     */
-    public function calculateDiscountAmount(float $orderValue): float
-    {
-        // Check if minimum order value is met
-        if ($this->minimum_order_value && $orderValue < $this->minimum_order_value) {
-            return 0;
-        }
-        
-        if ($this->discount_type === 'percentage') {
-            return round($orderValue * ($this->discount_value / 100), 2);
-        }
-        
-        // Fixed amount discount
-        return min($this->discount_value, $orderValue);
-    }
+
 
     /**
      * Increment the usage count

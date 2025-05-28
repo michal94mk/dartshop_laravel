@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\Promotion;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Carbon\Carbon;
+use App\Models\Promotion;
+use App\Models\Product;
 
 class PromotionSeeder extends Seeder
 {
@@ -14,79 +14,75 @@ class PromotionSeeder extends Seeder
      */
     public function run(): void
     {
-        // Sample promotion codes
-        $promotions = [
-            [
-                'name' => 'Promocja Powitalna',
-                'code' => 'WELCOME10',
-                'description' => 'Rabat 10% na pierwsze zakupy',
-                'discount_type' => 'percentage',
-                'discount_value' => 10,
-                'minimum_order_value' => 100,
-                'usage_limit' => 1000,
-                'used_count' => 45,
-                'starts_at' => Carbon::now()->subMonths(1),
-                'ends_at' => Carbon::now()->addMonths(2),
-                'is_active' => true
-            ],
-            [
-                'name' => 'Letnia Wyprzedaż',
-                'code' => 'SUMMER20',
-                'description' => 'Rabat 20% na wszystkie produkty letnie',
-                'discount_type' => 'percentage',
-                'discount_value' => 20,
-                'minimum_order_value' => 150,
-                'usage_limit' => 500,
-                'used_count' => 125,
-                'starts_at' => Carbon::now()->startOfMonth(),
-                'ends_at' => Carbon::now()->addDays(30),
-                'is_active' => true
-            ],
-            [
-                'name' => 'Darmowa Dostawa',
-                'code' => 'FREEDEL',
-                'description' => 'Darmowa dostawa na każde zamówienie',
-                'discount_type' => 'fixed',
-                'discount_value' => 20,
-                'minimum_order_value' => 200,
-                'usage_limit' => 300,
-                'used_count' => 85,
-                'starts_at' => Carbon::now()->subDays(15),
-                'ends_at' => Carbon::now()->addDays(15),
-                'is_active' => true
-            ],
-            [
-                'name' => 'Rabat dla VIP',
-                'code' => 'VIP15',
-                'description' => 'Specjalny rabat dla stałych klientów',
-                'discount_type' => 'percentage',
-                'discount_value' => 15,
-                'minimum_order_value' => null,
-                'usage_limit' => null,
-                'used_count' => 27,
-                'starts_at' => Carbon::now()->subMonths(3),
-                'ends_at' => Carbon::now()->addMonths(3),
-                'is_active' => true
-            ],
-            [
-                'name' => 'Wygasła Promocja',
-                'code' => 'EXPIRED30',
-                'description' => 'Promocja która już wygasła',
-                'discount_type' => 'percentage',
-                'discount_value' => 30,
-                'minimum_order_value' => 250,
-                'usage_limit' => 100,
-                'used_count' => 100,
-                'starts_at' => Carbon::now()->subMonths(3),
-                'ends_at' => Carbon::now()->subDays(5),
-                'is_active' => false
-            ]
-        ];
+        // Pobierz wszystkie produkty
+        $products = Product::all();
         
-        foreach ($promotions as $promotion) {
-            Promotion::create($promotion);
+        if ($products->count() < 5) {
+            $this->command->info('Potrzeba co najmniej 5 produktów w bazie danych');
+            return;
         }
+
+        // Promocja 1: Wielka Wyprzedaż Dart
+        $promotion1 = Promotion::create([
+            'title' => 'Wielka Wyprzedaż Dart',
+            'name' => 'wielka_wyprzedaz_dart',
+            'description' => 'Najlepsze produkty do dart w promocyjnych cenach! Nie przegap okazji na profesjonalny sprzęt.',
+            'discount_type' => 'percentage',
+            'discount_value' => 25,
+            'starts_at' => now(),
+            'ends_at' => now()->addDays(7),
+            'is_active' => true,
+            'is_featured' => true,
+            'badge_text' => 'HOT DEAL',
+            'badge_color' => '#ef4444',
+            'display_order' => 1
+        ]);
         
-        $this->command->info('Promotions created successfully!');
+        // Przypisz pierwsze 5 produktów
+        $promotion1->products()->attach($products->take(5)->pluck('id'));
+
+        // Promocja 2: Wyprzedaż Końca Miesiąca
+        $promotion2 = Promotion::create([
+            'title' => 'Wyprzedaż Końca Miesiąca',
+            'name' => 'wyprzedaz_konca_miesiaca',
+            'description' => 'Ostatnia szansa na zakup w niskich cenach! Wybrane produkty z rabatem.',
+            'discount_type' => 'fixed',
+            'discount_value' => 50,
+            'starts_at' => now(),
+            'ends_at' => now()->addDays(3),
+            'is_active' => true,
+            'is_featured' => false,
+            'badge_text' => 'OSTATNIA SZANSA',
+            'badge_color' => '#f59e0b',
+            'display_order' => 2
+        ]);
+        
+        // Przypisz produkty 6-10
+        if ($products->count() >= 10) {
+            $promotion2->products()->attach($products->skip(5)->take(5)->pluck('id'));
+        }
+
+        // Promocja 3: Nowości w Promocji
+        $promotion3 = Promotion::create([
+            'title' => 'Nowości w Promocji',
+            'name' => 'nowosci_w_promocji',
+            'description' => 'Najnowsze produkty w naszej ofercie już dostępne w promocyjnych cenach!',
+            'discount_type' => 'percentage',
+            'discount_value' => 15,
+            'starts_at' => now(),
+            'ends_at' => now()->addDays(14),
+            'is_active' => true,
+            'is_featured' => true,
+            'badge_text' => 'NOWOŚĆ',
+            'badge_color' => '#10b981',
+            'display_order' => 3
+        ]);
+        
+        // Przypisz pozostałe produkty
+        if ($products->count() >= 15) {
+            $promotion3->products()->attach($products->skip(10)->take(5)->pluck('id'));
+        }
+
+        $this->command->info('Utworzono 3 przykładowe promocje z produktami');
     }
 }

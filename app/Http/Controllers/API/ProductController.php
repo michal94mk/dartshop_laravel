@@ -35,8 +35,8 @@ class ProductController extends Controller
         ]);
         
         try {
-            // Create base query
-            $query = Product::with(['category', 'brand']);
+            // Create base query with promotions
+            $query = Product::with(['category', 'brand', 'activePromotions']);
             
             // Apply filters if any
             if ($request->has('category_id')) {
@@ -80,6 +80,27 @@ class ProductController extends Controller
             }
             
             $products = $query->paginate($perPage);
+            
+            // Add promotion information to each product
+            $products->getCollection()->transform(function ($product) {
+                $bestPromotion = $product->getBestActivePromotion();
+                if ($bestPromotion) {
+                    $product->promotion_price = $product->getPromotionalPrice();
+                    $product->savings = $product->getSavingsAmount();
+                    $product->promotion = [
+                        'id' => $bestPromotion->id,
+                        'title' => $bestPromotion->title,
+                        'badge_text' => $bestPromotion->badge_text,
+                        'badge_color' => $bestPromotion->badge_color,
+                        'discount_type' => $bestPromotion->discount_type,
+                        'discount_value' => $bestPromotion->discount_value
+                    ];
+                } else {
+                    $product->promotion_price = $product->price;
+                    $product->savings = 0;
+                }
+                return $product;
+            });
             
             Log::info('Products query successful', [
                 'total' => $products->total(),
@@ -134,11 +155,29 @@ class ProductController extends Controller
             
             // Jeśli model Review istnieje, pobierz również recenzje
             if ($hasReviews) {
-                $product = Product::with(['category', 'brand', 'reviews' => function($query) {
+                $product = Product::with(['category', 'brand', 'activePromotions', 'reviews' => function($query) {
                     $query->approved()->latest();
                 }])->findOrFail($id);
             } else {
-                $product = Product::with(['category', 'brand'])->findOrFail($id);
+                $product = Product::with(['category', 'brand', 'activePromotions'])->findOrFail($id);
+            }
+            
+            // Add promotion information
+            $bestPromotion = $product->getBestActivePromotion();
+            if ($bestPromotion) {
+                $product->promotion_price = $product->getPromotionalPrice();
+                $product->savings = $product->getSavingsAmount();
+                $product->promotion = [
+                    'id' => $bestPromotion->id,
+                    'title' => $bestPromotion->title,
+                    'badge_text' => $bestPromotion->badge_text,
+                    'badge_color' => $bestPromotion->badge_color,
+                    'discount_type' => $bestPromotion->discount_type,
+                    'discount_value' => $bestPromotion->discount_value
+                ];
+            } else {
+                $product->promotion_price = $product->price;
+                $product->savings = 0;
             }
             
             Log::info('Product detail response', [
@@ -178,7 +217,7 @@ class ProductController extends Controller
         
         try {
             // First try to get featured products
-            $query = Product::with(['category', 'brand']);
+            $query = Product::with(['category', 'brand', 'activePromotions']);
             
             // Check if 'featured' column exists in the products table
             $columns = DB::getSchemaBuilder()->getColumnListing('products');
@@ -191,11 +230,32 @@ class ProductController extends Controller
             
             // If no featured products, just get any recent products
             if ($products->isEmpty()) {
-                $products = Product::with(['category', 'brand'])
+                $products = Product::with(['category', 'brand', 'activePromotions'])
                     ->latest()
                     ->take(8)
                     ->get();
             }
+            
+            // Add promotion information to each product
+            $products->transform(function ($product) {
+                $bestPromotion = $product->getBestActivePromotion();
+                if ($bestPromotion) {
+                    $product->promotion_price = $product->getPromotionalPrice();
+                    $product->savings = $product->getSavingsAmount();
+                    $product->promotion = [
+                        'id' => $bestPromotion->id,
+                        'title' => $bestPromotion->title,
+                        'badge_text' => $bestPromotion->badge_text,
+                        'badge_color' => $bestPromotion->badge_color,
+                        'discount_type' => $bestPromotion->discount_type,
+                        'discount_value' => $bestPromotion->discount_value
+                    ];
+                } else {
+                    $product->promotion_price = $product->price;
+                    $product->savings = 0;
+                }
+                return $product;
+            });
             
             Log::info('Featured products response', [
                 'count' => $products->count(),

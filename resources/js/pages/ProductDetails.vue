@@ -138,11 +138,32 @@
             </div>
           
           <div class="mb-6">
-            <p class="text-xl font-bold text-indigo-600">{{ formatPrice(product.price) }} zł</p>
-            <p v-if="product.old_price" class="mt-1 text-sm text-gray-500">
-              <span class="line-through">{{ formatPrice(product.old_price) }} zł</span>
-              <span class="ml-2 text-green-600">{{ calculateDiscount(product.price, product.old_price) }}% taniej</span>
-            </p>
+            <!-- Price section with promotion support -->
+            <div v-if="hasPromotion(product)" class="space-y-2">
+              <!-- Original price (crossed out) -->
+              <div class="text-lg text-gray-500 line-through">
+                {{ formatPrice(product.price) }} zł
+              </div>
+              <!-- Promotional price -->
+              <div class="flex items-center space-x-3">
+                <p class="text-2xl font-bold text-red-600">{{ formatPrice(product.promotion_price) }} zł</p>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  -{{ getDiscountPercentage(product) }}%
+                </span>
+              </div>
+              <!-- Savings amount -->
+              <div class="text-sm text-green-600 font-medium">
+                Oszczędzasz {{ formatPrice(product.savings) }} zł
+              </div>
+              <!-- Promotion badge -->
+              <div v-if="product.promotion && product.promotion.badge_text" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold text-white" :style="{ backgroundColor: product.promotion.badge_color || '#ef4444' }">
+                {{ product.promotion.badge_text }}
+              </div>
+            </div>
+            <!-- Regular price (no promotion) -->
+            <div v-else>
+              <p class="text-2xl font-bold text-indigo-600">{{ formatPrice(product.price) }} zł</p>
+            </div>
           </div>
           
           <div class="mb-6">
@@ -397,6 +418,20 @@ export default {
       setTimeout(() => {
         this.favoriteMessage = '';
       }, 3000);
+    },
+
+    // Promotion helper functions
+    hasPromotion(product) {
+      return product && product.promotion_price !== undefined && 
+             product.promotion_price !== null && 
+             parseFloat(product.promotion_price) < parseFloat(product.price);
+    },
+
+    getDiscountPercentage(product) {
+      if (!this.hasPromotion(product)) return 0;
+      const originalPrice = parseFloat(product.price);
+      const promotionalPrice = parseFloat(product.promotion_price);
+      return Math.round(((originalPrice - promotionalPrice) / originalPrice) * 100);
     }
   }
 }

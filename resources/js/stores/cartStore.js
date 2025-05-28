@@ -18,8 +18,12 @@ export const useCartStore = defineStore('cart', {
     
     subtotal: (state) => {
       return state.items.reduce((total, item) => {
-        // Ensure product.price exists and is a number
-        const price = item.product && item.product.price ? parseFloat(item.product.price) : 0;
+        // Use promotional price if available, otherwise use regular price
+        const hasPromotion = item.product && item.product.promotion_price && 
+                            parseFloat(item.product.promotion_price) < parseFloat(item.product.price);
+        const price = hasPromotion ? 
+                     parseFloat(item.product.promotion_price) : 
+                     (item.product && item.product.price ? parseFloat(item.product.price) : 0);
         return total + (price * item.quantity);
       }, 0);
     },
@@ -46,7 +50,12 @@ export const useCartStore = defineStore('cart', {
     // Add formatted price getters
     formattedSubtotal: (state) => {
       const subtotal = state.items.reduce((total, item) => {
-        const price = item.product && item.product.price ? parseFloat(item.product.price) : 0;
+        // Use promotional price if available, otherwise use regular price
+        const hasPromotion = item.product && item.product.promotion_price && 
+                            parseFloat(item.product.promotion_price) < parseFloat(item.product.price);
+        const price = hasPromotion ? 
+                     parseFloat(item.product.promotion_price) : 
+                     (item.product && item.product.price ? parseFloat(item.product.price) : 0);
         return total + (price * item.quantity);
       }, 0);
       return subtotal.toFixed(2) + ' zł';
@@ -59,7 +68,12 @@ export const useCartStore = defineStore('cart', {
     
     formattedTotal: (state) => {
       const total = state.items.reduce((total, item) => {
-        const price = item.product && item.product.price ? parseFloat(item.product.price) : 0;
+        // Use promotional price if available, otherwise use regular price
+        const hasPromotion = item.product && item.product.promotion_price && 
+                            parseFloat(item.product.promotion_price) < parseFloat(item.product.price);
+        const price = hasPromotion ? 
+                     parseFloat(item.product.promotion_price) : 
+                     (item.product && item.product.price ? parseFloat(item.product.price) : 0);
         return total + (price * item.quantity);
       }, 0);
       // Discount is 0 for now

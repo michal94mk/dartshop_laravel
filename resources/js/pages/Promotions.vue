@@ -86,138 +86,145 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
               </svg>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900 mb-1">Do 50%</h3>
+            <h3 class="text-2xl font-bold text-gray-900 mb-1">{{ maxDiscount }}{{ maxDiscountType === 'percentage' ? '%' : ' zł' }}</h3>
             <p class="text-gray-600">Maksymalna zniżka</p>
           </div>
           
           <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 text-center">
             <div class="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center mx-auto mb-4">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
               </svg>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900 mb-1">24/7</h3>
-            <p class="text-gray-600">Dostęp do ofert</p>
+            <h3 class="text-2xl font-bold text-gray-900 mb-1">{{ totalProducts }}</h3>
+            <p class="text-gray-600">Produktów w promocji</p>
           </div>
         </div>
 
-        <!-- Sample Promotions -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <!-- Sample promotion cards with modern design -->
-          <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group border border-gray-100 transform hover:-translate-y-1">
+        <!-- Promotions Section -->
+        <div class="space-y-12">
+          <div 
+            v-for="promotion in promotions" 
+            :key="promotion.id"
+            class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100"
+          >
+            <!-- Promotion Header -->
             <div class="relative">
-              <div class="h-48 bg-gradient-to-br from-red-400 to-pink-500 flex items-center justify-center">
+              <div 
+                class="h-32 flex items-center justify-center"
+                :style="{ background: `linear-gradient(135deg, ${promotion.badge_color || '#ef4444'}, ${adjustColor(promotion.badge_color || '#ef4444', -20)})` }"
+              >
                 <div class="text-center text-white">
-                  <div class="text-4xl font-bold mb-2">-30%</div>
-                  <div class="text-lg">Wszystkie lotki</div>
+                  <div class="text-3xl font-bold mb-1">
+                    {{ promotion.discount_type === 'percentage' ? `-${promotion.discount_value}%` : `-${promotion.discount_value} zł` }}
+                  </div>
+                  <div class="text-xl">{{ promotion.title }}</div>
                 </div>
               </div>
-              <div class="absolute top-4 right-4">
-                <div class="bg-yellow-400 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold">
-                  PROMOCJA
+              <div v-if="promotion.badge_text" class="absolute top-4 right-4">
+                <div 
+                  class="px-3 py-1 rounded-full text-sm font-semibold text-gray-900"
+                  :style="{ backgroundColor: lightenColor(promotion.badge_color || '#fbbf24') }"
+                >
+                  {{ promotion.badge_text }}
                 </div>
               </div>
-            </div>
-            <div class="p-6">
-              <h3 class="text-xl font-bold text-gray-900 mb-2">Mega promocja na lotki</h3>
-              <p class="text-gray-600 mb-4">Zniżka 30% na wszystkie lotki w naszej ofercie. Idealna okazja na wymianę sprzętu!</p>
-              <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
-                <span>Ważne do: 31.12.2024</span>
-                <span class="flex items-center">
-                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              <div v-if="promotion.is_featured" class="absolute top-4 left-4">
+                <div class="bg-yellow-400 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold flex items-center">
+                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                   </svg>
-                  Ograniczona
-                </span>
+                  WYRÓŻNIONA
+                </div>
               </div>
-              <router-link to="/products?category=lotki" 
-                           class="inline-flex items-center justify-center w-full px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200">
-                Zobacz produkty
-              </router-link>
             </div>
-          </div>
+            
+            <!-- Promotion Info -->
+            <div class="p-6 border-b border-gray-100">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ promotion.title }}</h3>
+                  <p class="text-gray-600">{{ promotion.description || 'Sprawdź produkty objęte promocją i skorzystaj z atrakcyjnych cen!' }}</p>
+                </div>
+                <div class="text-right text-sm text-gray-500">
+                  <div class="mb-1">
+                    {{ promotion.ends_at ? `Ważne do: ${formatDate(promotion.ends_at)}` : 'Bez daty końcowej' }}
+                  </div>
+                  <div class="flex items-center justify-end">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                    {{ promotion.products?.length || 0 }} produktów
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group border border-gray-100 transform hover:-translate-y-1">
-            <div class="relative">
-              <div class="h-48 bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
-                <div class="text-center text-white">
-                  <div class="text-4xl font-bold mb-2">-20%</div>
-                  <div class="text-lg">Tarcze elektroniczne</div>
-                </div>
+            <!-- Products Grid -->
+            <div v-if="promotion.products && promotion.products.length > 0" class="p-6">
+              <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <ProductCard
+                  v-for="product in promotion.products.slice(0, 6)"
+                  :key="product.id"
+                  :product="product"
+                />
               </div>
-              <div class="absolute top-4 right-4">
-                <div class="bg-green-400 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold">
-                  NOWOŚĆ
-                </div>
-              </div>
-            </div>
-            <div class="p-6">
-              <h3 class="text-xl font-bold text-gray-900 mb-2">Zniżka na tarcze elektroniczne</h3>
-              <p class="text-gray-600 mb-4">20% taniej wszystkie tarcze elektroniczne. Unowocześnij swoje wyposażenie!</p>
-              <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
-                <span>Ważne do: 15.01.2025</span>
-                <span class="flex items-center">
-                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              
+              <!-- Show More Button -->
+              <div v-if="promotion.products.length > 6" class="mt-6 text-center">
+                <button
+                  @click="viewPromotionProducts(promotion)"
+                  class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white transition-all duration-200"
+                  :style="{ background: `linear-gradient(135deg, ${promotion.badge_color || '#ef4444'}, ${adjustColor(promotion.badge_color || '#ef4444', -20)})` }"
+                >
+                  Zobacz wszystkie produkty ({{ promotion.products.length }})
+                  <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                   </svg>
-                  Bestseller
-                </span>
-              </div>
-              <router-link to="/products?category=tarcze" 
-                           class="inline-flex items-center justify-center w-full px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
-                Zobacz produkty
-              </router-link>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group border border-gray-100 transform hover:-translate-y-1">
-            <div class="relative">
-              <div class="h-48 bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center">
-                <div class="text-center text-white">
-                  <div class="text-3xl font-bold mb-2">2+1</div>
-                  <div class="text-lg">Akcesoria</div>
-                </div>
-              </div>
-              <div class="absolute top-4 right-4">
-                <div class="bg-orange-400 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold">
-                  PAKIET
-                </div>
+                </button>
               </div>
             </div>
-            <div class="p-6">
-              <h3 class="text-xl font-bold text-gray-900 mb-2">Pakiet akcesoriów 2+1</h3>
-              <p class="text-gray-600 mb-4">Kup 2 akcesoria, a trzecie otrzymasz gratis! Idealna oferta na kompletne wyposażenie.</p>
-              <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
-                <span>Ważne do: 28.02.2025</span>
-                <span class="flex items-center">
-                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
-                  </svg>
-                  Super oferta
-                </span>
-              </div>
-              <router-link to="/products?category=akcesoria" 
-                           class="inline-flex items-center justify-center w-full px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200">
-                Zobacz produkty
-              </router-link>
+            
+            <!-- No Products Message -->
+            <div v-else class="p-6 text-center text-gray-500">
+              <p>Brak produktów w tej promocji</p>
             </div>
           </div>
         </div>
 
-        <!-- Newsletter Section -->
-        <div class="mt-16 bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl shadow-xl p-8 text-center text-white">
-          <h2 class="text-3xl font-bold mb-4">Nie przegap żadnej promocji!</h2>
-          <p class="text-xl text-orange-100 mb-8 max-w-2xl mx-auto">
-            Zapisz się do naszego newslettera i bądź pierwszym, który dowie się o nowych promocjach i ofertach specjalnych.
-          </p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-            <input type="email" 
-                   placeholder="Twój adres e-mail" 
-                   class="flex-1 px-4 py-3 rounded-xl border-0 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-orange-600">
-            <button class="px-8 py-3 bg-white text-orange-600 font-semibold rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-orange-600 transition-all duration-200">
-              Zapisz się
+        <!-- Pagination -->
+        <div v-if="pagination.total > pagination.per_page" class="mt-12 flex justify-center">
+          <nav class="flex items-center space-x-2">
+            <button
+              @click="changePage(pagination.current_page - 1)"
+              :disabled="pagination.current_page <= 1"
+              class="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Poprzednia
             </button>
-          </div>
+            
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              @click="changePage(page)"
+              :class="[
+                'px-3 py-2 rounded-md text-sm font-medium',
+                page === pagination.current_page
+                  ? 'bg-red-600 text-white'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              ]"
+            >
+              {{ page }}
+            </button>
+            
+            <button
+              @click="changePage(pagination.current_page + 1)"
+              :disabled="pagination.current_page >= pagination.last_page"
+              class="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Następna
+            </button>
+          </nav>
         </div>
       </div>
     </div>
@@ -225,39 +232,132 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import ProductCard from '../components/ui/ProductCard.vue'
 
 export default {
   name: 'Promotions',
+  components: {
+    ProductCard
+  },
   setup() {
-    const promotions = ref([])
+    const router = useRouter()
     const loading = ref(false)
     const error = ref(null)
+    const promotions = ref([])
+    
+    const pagination = reactive({
+      current_page: 1,
+      last_page: 1,
+      per_page: 12,
+      total: 0
+    })
+
+    const maxDiscount = computed(() => {
+      if (promotions.value.length === 0) return 0
+      return Math.max(...promotions.value.map(p => p.discount_value))
+    })
+
+    const maxDiscountType = computed(() => {
+      if (promotions.value.length === 0) return 'percentage'
+      const maxPromotion = promotions.value.find(p => p.discount_value === maxDiscount.value)
+      return maxPromotion?.discount_type || 'percentage'
+    })
+
+    const totalProducts = computed(() => {
+      return promotions.value.reduce((total, promotion) => {
+        return total + (promotion.products?.length || 0)
+      }, 0)
+    })
+
+    const visiblePages = computed(() => {
+      const pages = []
+      const start = Math.max(1, pagination.current_page - 2)
+      const end = Math.min(pagination.last_page, pagination.current_page + 2)
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i)
+      }
+      
+      return pages
+    })
 
     const fetchPromotions = async () => {
+      loading.value = true
+      error.value = null
+      
       try {
-        loading.value = true
-        error.value = null
-        // In a real app, this would fetch promotions data from an API
-        // const response = await axios.get('/api/promotions')
-        // promotions.value = response.data
+        const params = new URLSearchParams({
+          page: pagination.current_page,
+          per_page: pagination.per_page
+        })
+
+        const response = await window.axios.get(`/api/promotions?${params}`)
         
-        // For now, we'll set some sample data
-        setTimeout(() => {
-          promotions.value = [
-            { id: 1, title: 'Sample Promotion', discount: 30 },
-            { id: 2, title: 'Another Promotion', discount: 20 },
-            { id: 3, title: 'Special Offer', discount: 50 }
-          ]
-          loading.value = false
-        }, 1000)
+        promotions.value = response.data.data
+        Object.assign(pagination, {
+          current_page: response.data.current_page,
+          last_page: response.data.last_page,
+          per_page: response.data.per_page,
+          total: response.data.total
+        })
       } catch (err) {
-        console.error('Error fetching promotions:', err)
-        error.value = 'Wystąpił błąd podczas pobierania promocji. Spróbuj ponownie później.'
+        console.error('Błąd podczas pobierania promocji:', err)
+        error.value = 'Nie udało się pobrać promocji. Spróbuj ponownie później.'
       } finally {
         loading.value = false
       }
+    }
+
+    const changePage = (page) => {
+      if (page >= 1 && page <= pagination.last_page) {
+        pagination.current_page = page
+        fetchPromotions()
+      }
+    }
+
+    const viewPromotionProducts = (promotion) => {
+      // Przekieruj do strony produktów z filtrem promocji
+      router.push({
+        name: 'products',
+        query: { promotion: promotion.id }
+      })
+    }
+
+
+
+    const formatDate = (dateString) => {
+      return new Date(dateString).toLocaleDateString('pl-PL')
+    }
+
+    // Funkcje pomocnicze do kolorów
+    const hexToRgb = (hex) => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null
+    }
+
+    const rgbToHex = (r, g, b) => {
+      return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)
+    }
+
+    const adjustColor = (hex, amount) => {
+      const rgb = hexToRgb(hex)
+      if (!rgb) return hex
+      
+      const r = Math.max(0, Math.min(255, rgb.r + amount))
+      const g = Math.max(0, Math.min(255, rgb.g + amount))
+      const b = Math.max(0, Math.min(255, rgb.b + amount))
+      
+      return rgbToHex(r, g, b)
+    }
+
+    const lightenColor = (hex) => {
+      return adjustColor(hex, 60)
     }
 
     onMounted(() => {
@@ -265,10 +365,20 @@ export default {
     })
 
     return {
-      promotions,
       loading,
       error,
-      fetchPromotions
+      promotions,
+      pagination,
+      maxDiscount,
+      maxDiscountType,
+      totalProducts,
+      visiblePages,
+      fetchPromotions,
+      changePage,
+      viewPromotionProducts,
+      formatDate,
+      adjustColor,
+      lightenColor
     }
   }
 }

@@ -54,7 +54,20 @@ class FavoriteProductController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
         
-        $favoriteProducts = $user->favoriteProducts()->with(['category', 'brand'])->get();
+        $favoriteProducts = $user->favoriteProducts()->with(['category', 'brand', 'activePromotions'])->get();
+        
+        // Add promotional price information to each product
+        foreach ($favoriteProducts as $product) {
+            if ($product->hasActivePromotion()) {
+                $product->promotion_price = $product->getPromotionalPrice();
+                $product->savings = $product->getSavingsAmount();
+                $product->promotion = $product->getBestActivePromotion();
+            } else {
+                $product->promotion_price = $product->price;
+                $product->savings = 0;
+                $product->promotion = null;
+            }
+        }
         
         return response()->json([
             'favorite_products' => $favoriteProducts

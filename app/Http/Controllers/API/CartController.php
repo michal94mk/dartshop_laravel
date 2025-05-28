@@ -24,10 +24,31 @@ class CartController extends Controller
                 return response()->json(['message' => 'Unauthorized'], 401);
             }
             
-            $cartItems = $user->cartItems()->with('product')->get();
+            $cartItems = $user->cartItems()->with(['product.activePromotions'])->get();
+            
+            // Add promotion information to each cart item
+            $cartItems->each(function ($item) {
+                $product = $item->product;
+                $bestPromotion = $product->getBestActivePromotion();
+                if ($bestPromotion) {
+                    $product->promotion_price = $product->getPromotionalPrice();
+                    $product->savings = $product->getSavingsAmount();
+                    $product->promotion = [
+                        'id' => $bestPromotion->id,
+                        'title' => $bestPromotion->title,
+                        'badge_text' => $bestPromotion->badge_text,
+                        'badge_color' => $bestPromotion->badge_color,
+                        'discount_type' => $bestPromotion->discount_type,
+                        'discount_value' => $bestPromotion->discount_value
+                    ];
+                } else {
+                    $product->promotion_price = $product->price;
+                    $product->savings = 0;
+                }
+            });
             
             $subtotal = $cartItems->sum(function ($item) {
-                return $item->quantity * $item->product->price;
+                return $item->quantity * $item->product->getPromotionalPrice();
             });
             
             return response()->json([
@@ -78,9 +99,29 @@ class CartController extends Controller
                 ]);
             }
 
+            // Load product with promotions
+            $cartItem->load(['product.activePromotions']);
+            $product = $cartItem->product;
+            $bestPromotion = $product->getBestActivePromotion();
+            if ($bestPromotion) {
+                $product->promotion_price = $product->getPromotionalPrice();
+                $product->savings = $product->getSavingsAmount();
+                $product->promotion = [
+                    'id' => $bestPromotion->id,
+                    'title' => $bestPromotion->title,
+                    'badge_text' => $bestPromotion->badge_text,
+                    'badge_color' => $bestPromotion->badge_color,
+                    'discount_type' => $bestPromotion->discount_type,
+                    'discount_value' => $bestPromotion->discount_value
+                ];
+            } else {
+                $product->promotion_price = $product->price;
+                $product->savings = 0;
+            }
+
             return response()->json([
                 'message' => 'Product added to cart successfully',
-                'cart_item' => $cartItem->load('product'),
+                'cart_item' => $cartItem,
             ], 201);
         } catch (ValidationException $e) {
             return response()->json(['message' => 'Validation error', 'errors' => $e->errors()], 422);
@@ -109,9 +150,29 @@ class CartController extends Controller
                 'quantity' => $validated['quantity'],
             ]);
 
+            // Load product with promotions
+            $cartItem->load(['product.activePromotions']);
+            $product = $cartItem->product;
+            $bestPromotion = $product->getBestActivePromotion();
+            if ($bestPromotion) {
+                $product->promotion_price = $product->getPromotionalPrice();
+                $product->savings = $product->getSavingsAmount();
+                $product->promotion = [
+                    'id' => $bestPromotion->id,
+                    'title' => $bestPromotion->title,
+                    'badge_text' => $bestPromotion->badge_text,
+                    'badge_color' => $bestPromotion->badge_color,
+                    'discount_type' => $bestPromotion->discount_type,
+                    'discount_value' => $bestPromotion->discount_value
+                ];
+            } else {
+                $product->promotion_price = $product->price;
+                $product->savings = 0;
+            }
+
             return response()->json([
                 'message' => 'Cart item updated successfully',
-                'cart_item' => $cartItem->load('product'),
+                'cart_item' => $cartItem,
             ]);
         } catch (\Exception $e) {
             Log::error('Error updating cart item: ' . $e->getMessage());
@@ -170,9 +231,33 @@ class CartController extends Controller
                 ]);
             }
 
+            // Load cart items with promotions
+            $cartItems = $user->cartItems()->with(['product.activePromotions'])->get();
+            
+            // Add promotion information to each cart item
+            $cartItems->each(function ($item) {
+                $product = $item->product;
+                $bestPromotion = $product->getBestActivePromotion();
+                if ($bestPromotion) {
+                    $product->promotion_price = $product->getPromotionalPrice();
+                    $product->savings = $product->getSavingsAmount();
+                    $product->promotion = [
+                        'id' => $bestPromotion->id,
+                        'title' => $bestPromotion->title,
+                        'badge_text' => $bestPromotion->badge_text,
+                        'badge_color' => $bestPromotion->badge_color,
+                        'discount_type' => $bestPromotion->discount_type,
+                        'discount_value' => $bestPromotion->discount_value
+                    ];
+                } else {
+                    $product->promotion_price = $product->price;
+                    $product->savings = 0;
+                }
+            });
+
             return response()->json([
                 'message' => 'Cart synchronized successfully',
-                'items' => $user->cartItems()->with('product')->get(),
+                'items' => $cartItems,
             ]);
         } catch (ValidationException $e) {
             return response()->json([

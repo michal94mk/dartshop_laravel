@@ -349,7 +349,24 @@
                      </div>
                      <div class="ml-4 flex-grow">
                        <h4 class="font-semibold text-gray-900 mb-2">{{ product.name }}</h4>
-                       <p class="text-indigo-600 font-bold text-lg mb-3">{{ product.price_formatted }}</p>
+                       <!-- Price section with promotion support -->
+                       <div v-if="hasPromotion(product)" class="space-y-1 mb-3">
+                         <!-- Original price (crossed out) -->
+                         <div class="text-sm text-gray-500 line-through">
+                           {{ formatPrice(product.price) }} zł
+                         </div>
+                         <!-- Promotional price -->
+                         <div class="flex items-center space-x-2">
+                           <p class="text-lg font-bold text-red-600">{{ formatPrice(product.promotion_price) }} zł</p>
+                           <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                             -{{ getDiscountPercentage(product) }}%
+                           </span>
+                         </div>
+                       </div>
+                       <!-- Regular price (no promotion) -->
+                       <div v-else class="mb-3">
+                         <p class="text-indigo-600 font-bold text-lg">{{ formatPrice(product.price) }} zł</p>
+                       </div>
                        <div class="flex flex-col gap-2">
                          <router-link 
                            :to="`/products/${product.id}`" 
@@ -824,6 +841,24 @@ export default {
         day: 'numeric'
       });
     };
+
+    const formatPrice = (price) => {
+      return parseFloat(price).toFixed(2);
+    };
+
+    // Promotion helper functions
+    const hasPromotion = (product) => {
+      return product && product.promotion_price !== undefined && 
+             product.promotion_price !== null && 
+             parseFloat(product.promotion_price) < parseFloat(product.price);
+    };
+
+    const getDiscountPercentage = (product) => {
+      if (!hasPromotion(product)) return 0;
+      const originalPrice = parseFloat(product.price);
+      const promotionalPrice = parseFloat(product.promotion_price);
+      return Math.round(((originalPrice - promotionalPrice) / originalPrice) * 100);
+    };
     
     return {
       // Auth and profile
@@ -861,7 +896,10 @@ export default {
       loadingReviews,
       
       // Utilities
-      formatDate
+      formatDate,
+      formatPrice,
+      hasPromotion,
+      getDiscountPercentage
     };
   }
 }

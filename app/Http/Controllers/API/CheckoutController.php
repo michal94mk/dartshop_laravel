@@ -26,7 +26,7 @@ class CheckoutController extends Controller
     {
         $user = Auth::user();
         $cartItems = CartItem::where('user_id', $user->id)
-            ->with('product')
+            ->with(['product.activePromotions'])
             ->get();
 
         if ($cartItems->isEmpty()) {
@@ -35,9 +35,23 @@ class CheckoutController extends Controller
             ], 400);
         }
 
-        // Calculate cart total
+        // Add promotional price information to each product
+        foreach ($cartItems as $cartItem) {
+            $product = $cartItem->product;
+            if ($product->hasActivePromotion()) {
+                $product->promotion_price = $product->getPromotionalPrice();
+                $product->savings = $product->getSavingsAmount();
+                $product->promotion = $product->getBestActivePromotion();
+            } else {
+                $product->promotion_price = $product->price;
+                $product->savings = 0;
+                $product->promotion = null;
+            }
+        }
+
+        // Calculate cart total with promotional prices
         $cartTotal = $cartItems->sum(function ($item) {
-            return $item->product->price * $item->quantity;
+            return $item->product->getPromotionalPrice() * $item->quantity;
         });
 
         // Get shipping methods with calculated costs
@@ -56,7 +70,7 @@ class CheckoutController extends Controller
     {
         $user = Auth::user();
         $cartItems = CartItem::where('user_id', $user->id)
-            ->with('product')
+            ->with(['product.activePromotions'])
             ->get();
 
         if ($cartItems->isEmpty()) {
@@ -77,9 +91,9 @@ class CheckoutController extends Controller
         try {
             DB::beginTransaction();
 
-            // Calculate subtotal
+            // Calculate subtotal with promotional prices
             $subtotal = $cartItems->sum(function ($item) {
-                return $item->product->price * $item->quantity;
+                return $item->product->getPromotionalPrice() * $item->quantity;
             });
 
             // Validate and calculate shipping cost
@@ -118,15 +132,16 @@ class CheckoutController extends Controller
                 'shipping_method' => $shippingMethod,
             ]);
 
-            // Create order items
+            // Create order items with promotional prices
             foreach ($cartItems as $cartItem) {
+                $promotionalPrice = $cartItem->product->getPromotionalPrice();
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $cartItem->product_id,
                     'product_name' => $cartItem->product->name,
                     'quantity' => $cartItem->quantity,
-                    'price' => $cartItem->product->price,
-                    'total' => $cartItem->product->price * $cartItem->quantity,
+                    'price' => $promotionalPrice,
+                    'total' => $promotionalPrice * $cartItem->quantity,
                 ]);
             }
 

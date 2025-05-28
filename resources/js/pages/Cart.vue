@@ -118,7 +118,20 @@
               
               <!-- Price -->
               <div class="md:col-span-2 text-center mt-4 md:mt-0">
-                <span class="text-sm font-semibold text-gray-900">{{ formatPrice(item.product.price) }} zł</span>
+                <div v-if="hasPromotion(item.product)" class="space-y-1">
+                  <!-- Original price (crossed out) -->
+                  <div class="text-xs text-gray-500 line-through">
+                    {{ formatPrice(item.product.price) }} zł
+                  </div>
+                  <!-- Promotional price -->
+                  <div class="text-sm font-semibold text-red-600">
+                    {{ formatPrice(getPromotionalPrice(item.product)) }} zł
+                  </div>
+                </div>
+                <!-- Regular price (no promotion) -->
+                <div v-else class="text-sm font-semibold text-gray-900">
+                  {{ formatPrice(item.product.price) }} zł
+                </div>
               </div>
               
               <!-- Quantity -->
@@ -154,7 +167,7 @@
               
               <!-- Subtotal -->
               <div class="md:col-span-2 text-right mt-4 md:mt-0">
-                <span class="text-base font-bold text-indigo-600">{{ formatPrice(item.product.price * item.quantity) }} zł</span>
+                <span class="text-base font-bold text-indigo-600">{{ formatPrice(getPromotionalPrice(item.product) * item.quantity) }} zł</span>
               </div>
             </div>
           </div>
@@ -321,6 +334,15 @@ export default {
       if (confirm('Czy na pewno chcesz usunąć wszystkie produkty z koszyka?')) {
         this.cartStore.clearCart();
       }
+    },
+    
+    // Promotion helper functions
+    hasPromotion(product) {
+      return product.promotion_price && parseFloat(product.promotion_price) < parseFloat(product.price);
+    },
+    
+    getPromotionalPrice(product) {
+      return this.hasPromotion(product) ? parseFloat(product.promotion_price) : parseFloat(product.price);
     }
   }
 }

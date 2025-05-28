@@ -114,7 +114,28 @@
                   </div>
                   <div>
                     <div class="flex items-center justify-between mb-3">
-                      <span class="text-lg font-bold text-indigo-600">{{ formatPrice(product.price) }} zł</span>
+                      <!-- Price section with promotion support -->
+                      <div class="flex flex-col">
+                        <div v-if="hasPromotion(product)" class="space-y-1">
+                          <!-- Original price (crossed out) -->
+                          <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-500 line-through">
+                              {{ formatPrice(product.price) }} zł
+                            </span>
+                            <span class="text-xs text-red-600 font-medium bg-red-100 px-1.5 py-0.5 rounded">
+                              -{{ getDiscountPercentage(product) }}%
+                            </span>
+                          </div>
+                          <!-- Promotional price -->
+                          <div class="text-lg font-bold text-red-600">
+                            {{ formatPrice(product.promotion_price) }} zł
+                          </div>
+                        </div>
+                        <!-- Regular price (no promotion) -->
+                        <div v-else class="text-lg font-bold text-indigo-600">
+                          {{ formatPrice(product.price) }} zł
+                        </div>
+                      </div>
                       <FavoriteButton 
                         :product="product"
                         buttonClasses="p-1.5 rounded-full border border-gray-300 text-gray-400 hover:text-red-500 hover:border-red-300 transition-colors duration-200"
@@ -193,7 +214,28 @@
                   </div>
                   <div>
                     <div class="flex items-center justify-between mb-3">
-                      <span class="text-lg font-bold text-indigo-600">{{ formatPrice(product.price) }} zł</span>
+                      <!-- Price section with promotion support -->
+                      <div class="flex flex-col">
+                        <div v-if="hasPromotion(product)" class="space-y-1">
+                          <!-- Original price (crossed out) -->
+                          <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-500 line-through">
+                              {{ formatPrice(product.price) }} zł
+                            </span>
+                            <span class="text-xs text-red-600 font-medium bg-red-100 px-1.5 py-0.5 rounded">
+                              -{{ getDiscountPercentage(product) }}%
+                            </span>
+                          </div>
+                          <!-- Promotional price -->
+                          <div class="text-lg font-bold text-red-600">
+                            {{ formatPrice(product.promotion_price) }} zł
+                          </div>
+                        </div>
+                        <!-- Regular price (no promotion) -->
+                        <div v-else class="text-lg font-bold text-indigo-600">
+                          {{ formatPrice(product.price) }} zł
+                        </div>
+                      </div>
                       <FavoriteButton 
                         :product="product"
                         buttonClasses="p-1.5 rounded-full border border-gray-300 text-gray-400 hover:text-red-500 hover:border-red-300 transition-colors duration-200"
@@ -516,6 +558,16 @@ export default {
           this.favoriteMessageProductId = null;
         }
       }, 3000);
+    },
+    // Promotion helper functions
+    hasPromotion(product) {
+      return product.promotion_price && parseFloat(product.promotion_price) < parseFloat(product.price);
+    },
+    getDiscountPercentage(product) {
+      if (!this.hasPromotion(product)) return 0;
+      const originalPrice = parseFloat(product.price);
+      const promotionalPrice = parseFloat(product.promotion_price);
+      return Math.round(((originalPrice - promotionalPrice) / originalPrice) * 100);
     }
   }
 }
