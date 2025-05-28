@@ -329,6 +329,7 @@ export default {
     const reviewsLoading = ref(false)
     const canAddReview = ref(false)
     const showReviewForm = ref(false)
+    const existingReviewInfo = ref(null)
 
     // Methods
     const fetchProduct = async () => {
@@ -373,16 +374,19 @@ export default {
 
     const checkCanReview = async () => {
       if (!authStore.isLoggedIn || !product.value) {
-        canAddReview.value = false
-        return
+        canAddReview.value = false;
+        return;
       }
 
       try {
-        const response = await axios.get(`/api/products/${product.value.id}/can-review`)
-        canAddReview.value = response.data.can_review
+        const response = await axios.get(`/api/products/${product.value.id}/can-review`);
+        canAddReview.value = response.data.can_review;
+        if (response.data.existing_review) {
+          existingReviewInfo.value = response.data.existing_review;
+        }
       } catch (error) {
-        console.error('Error checking review permissions:', error)
-        canAddReview.value = false
+        console.error('Error checking review permissions:', error);
+        canAddReview.value = false;
       }
     }
 
@@ -456,6 +460,11 @@ export default {
       fetchProduct()
     })
 
+    // Watch for auth state changes
+    watch(() => authStore.isLoggedIn, () => {
+      checkCanReview();
+    })
+
     return {
       product,
       loading,
@@ -467,6 +476,7 @@ export default {
       reviewsLoading,
       canAddReview,
       showReviewForm,
+      authStore,
       fetchProduct,
       formatPrice,
       addToCart,
@@ -474,7 +484,8 @@ export default {
       handleFavoriteRemoved,
       handleReviewSuccess,
       hasPromotion,
-      getDiscountPercentage
+      getDiscountPercentage,
+      existingReviewInfo
     }
   }
 }

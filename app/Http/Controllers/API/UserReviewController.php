@@ -75,7 +75,7 @@ class UserReviewController extends Controller
                     'created_at' => $review->created_at,
                     'user' => [
                         'id' => $review->user->id,
-                        'name' => $review->user->first_name . ' ' . $review->user->last_name
+                        'name' => $review->user->full_name
                     ]
                 ];
             });
@@ -288,7 +288,7 @@ class UserReviewController extends Controller
                     'created_at' => $review->created_at,
                     'user' => [
                         'id' => $review->user->id,
-                        'name' => $review->user->first_name . ' ' . $review->user->last_name
+                        'name' => $review->user->full_name
                     ],
                     'product' => [
                         'id' => $review->product->id,
