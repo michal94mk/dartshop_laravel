@@ -164,11 +164,10 @@ class PromotionController extends BaseAdminController
                           ->ordered();
 
         // Filtrowanie
-        if ($request->has('search') && $request->search) {
+        if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('name', 'like', "%{$search}%")
+                $q->where('name', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%");
             });
         }
