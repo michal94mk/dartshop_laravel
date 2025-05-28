@@ -207,7 +207,7 @@ export default {
           content: form.value.content.trim()
         })
 
-        successMessage.value = response.data.message || 'Recenzja została dodana pomyślnie!'
+        successMessage.value = response.data.message || 'Recenzja została dodana i czeka na zatwierdzenie przez administratora'
         
         // Emit success event with the new review
         emit('success', response.data.review)

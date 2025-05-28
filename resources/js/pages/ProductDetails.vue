@@ -428,8 +428,8 @@ export default {
 
     const handleReviewSuccess = (newReview) => {
       showReviewForm.value = false
-      toast.success('✅ Recenzja została dodana pomyślnie!', {
-        timeout: 3000
+      toast.success('✅ Recenzja została dodana i czeka na zatwierdzenie przez administratora', {
+        timeout: 4000
       })
       // Refresh reviews and check permissions
       fetchReviews()

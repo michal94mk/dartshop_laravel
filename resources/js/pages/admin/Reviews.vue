@@ -83,9 +83,9 @@
     >
       <template #cell-product="{ item }">
         <div class="max-w-[190px]">
-          <a :href="`/products/${item.product.id}`" class="text-indigo-600 hover:text-indigo-900 text-sm truncate block" target="_blank" :title="item.product.name">
+          <router-link :to="`/products/${item.product.id}`" class="text-indigo-600 hover:text-indigo-900 text-sm truncate block" :title="item.product.name">
             {{ item.product.name }}
-          </a>
+          </router-link>
         </div>
       </template>
       
