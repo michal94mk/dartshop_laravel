@@ -343,10 +343,10 @@
             v-for="category in categories" 
             :key="category.id" 
             :to="`/products?category=${category.id}`"
-            class="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer"
+            class="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer will-change-transform"
           >
-            <div class="relative h-64 overflow-hidden">
-              <img :src="getCategoryImage(category)" alt="" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+            <div class="relative h-64 overflow-hidden rounded-2xl">
+              <img :src="getCategoryImage(category)" alt="" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 will-change-transform">
               <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
               
               <!-- Product count badge -->
@@ -359,8 +359,8 @@
                 <span class="text-sm font-semibold text-white">Kliknij aby przeglądać</span>
               </div>
               
-              <!-- Subtle hover overlay -->
-              <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
+              <!-- Subtle hover overlay - ensure it's contained within rounded container -->
+              <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 will-change-opacity"></div>
             </div>
             <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
               <h3 class="text-2xl font-bold mb-2 group-hover:text-yellow-300 transition-colors duration-300">{{ category.name }}</h3>
@@ -439,6 +439,21 @@
         </div>
       </div>
     </section>
+
+    <!-- Scroll to top button -->
+    <transition name="fade">
+      <button
+        v-show="showScrollButton"
+        @click="scrollToTop"
+        class="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white p-4 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-indigo-300 will-change-transform scroll-to-top"
+        aria-label="Przejdź na górę strony"
+        title="Przejdź na górę strony"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+        </svg>
+      </button>
+    </transition>
   </div>
 </template>
 
@@ -490,7 +505,8 @@ export default {
           image_url: '/img/product04.png'
         }
       ],
-      cartLoading: false
+      cartLoading: false,
+      showScrollButton: false
     }
   },
   computed: {
@@ -521,6 +537,12 @@ export default {
     // Load products and other data
     await this.loadLatestProducts();
     await this.loadLatestReviews();
+
+    // Add scroll listener for scroll to top button
+    this.handleScroll = () => {
+      this.showScrollButton = window.scrollY > 300;
+    };
+    window.addEventListener('scroll', this.handleScroll);
   },
   methods: {
     loadLatestProducts() {
@@ -656,6 +678,15 @@ export default {
         day: 'numeric'
       });
       return formattedDate;
+    },
+    scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  },
+  beforeUnmount() {
+    // Remove scroll listener
+    if (this.handleScroll) {
+      window.removeEventListener('scroll', this.handleScroll);
     }
   }
 }
@@ -664,5 +695,31 @@ export default {
 <style scoped>
 .aspect-square {
   aspect-ratio: 1 / 1;
+}
+
+/* Fade transition for scroll to top button */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+  transform: translateY(20px) scale(0.8);
+}
+
+.fade-enter-to, .fade-leave-from {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Enhanced scroll button styles */
+.scroll-to-top {
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.scroll-to-top:hover {
+  backdrop-filter: blur(15px);
+  box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.5);
 }
 </style>

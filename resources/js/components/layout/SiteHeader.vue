@@ -10,7 +10,7 @@
         </div>
         
         <!-- Navigation Links -->
-        <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+        <div class="hidden lg:ml-6 lg:flex lg:space-x-8">
           <router-link 
             to="/" 
             class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
@@ -136,7 +136,7 @@
               <button @click="logout" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Wyloguj</button>
             </div>
           </div>
-          <div v-else class="hidden sm:flex sm:items-center sm:ml-6">
+          <div v-else class="hidden lg:flex lg:items-center lg:ml-6">
             <router-link to="/login" class="text-sm text-gray-700 hover:text-indigo-600 mr-4">Logowanie</router-link>
             <router-link to="/register" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
               Rejestracja
@@ -144,7 +144,7 @@
           </div>
           
           <!-- Mobile menu button -->
-          <div class="flex items-center sm:hidden">
+          <div class="flex items-center lg:hidden">
             <button @click="toggleMobileMenu" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-controls="mobile-menu" aria-expanded="false">
               <span class="sr-only">Open main menu</span>
               <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -168,7 +168,7 @@
     </div>
     
     <!-- Mobile menu -->
-    <div v-show="mobileMenuOpen" class="sm:hidden z-40" id="mobile-menu">
+    <div v-show="mobileMenuOpen" class="lg:hidden z-40" id="mobile-menu">
       <!-- Mobile Search -->
       <div class="px-4 py-3 border-b border-gray-200">
         <product-search />
