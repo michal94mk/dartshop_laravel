@@ -28,6 +28,18 @@
     <div class="p-4 flex-1 flex flex-col justify-between">
       <div>
         <h3 class="text-base font-bold text-gray-900 line-clamp-2 mb-2 leading-tight">{{ product.name }}</h3>
+        
+        <!-- Reviews rating -->
+        <div v-if="product.reviews_count > 0" class="mb-2">
+          <StarRating 
+            :model-value="product.average_rating" 
+            :review-count="product.reviews_count"
+            size="sm"
+            show-text
+            :precision="0.1"
+          />
+        </div>
+        
         <p class="text-xs text-gray-600 line-clamp-2 mb-3 leading-relaxed">{{ product.short_description || product.description }}</p>
       </div>
       
@@ -98,13 +110,15 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import FavoriteButton from './FavoriteButton.vue'
+import StarRating from './StarRating.vue'
 import { useCartStore } from '../../stores/cartStore'
 import { useToast } from 'vue-toastification'
 
 export default {
   name: 'ProductCard',
   components: {
-    FavoriteButton
+    FavoriteButton,
+    StarRating
   },
   props: {
     product: {

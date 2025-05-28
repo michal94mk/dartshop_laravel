@@ -32,7 +32,7 @@ class Product extends Model
         'is_active' => 'boolean',
     ];
     
-    protected $appends = ['image_url'];
+    protected $appends = ['image_url', 'average_rating', 'reviews_count'];
 
     public function category(): BelongsTo
     {
@@ -150,5 +150,57 @@ class Product extends Model
         
         // Fallback - spróbuj storage
         return asset('storage/' . $this->image);
+    }
+
+    /**
+     * Get approved reviews for this product
+     */
+    public function approvedReviews(): HasMany
+    {
+        return $this->reviews()->where('is_approved', true);
+    }
+
+    /**
+     * Get average rating for this product
+     */
+    public function getAverageRatingAttribute(): float
+    {
+        return round($this->approvedReviews()->avg('rating') ?? 0, 1);
+    }
+
+    /**
+     * Get total number of approved reviews
+     */
+    public function getReviewsCountAttribute(): int
+    {
+        return $this->approvedReviews()->count();
+    }
+
+    /**
+     * Get distribution of review ratings
+     *
+     * @return array
+     */
+    public function getReviewsDistribution(): array
+    {
+        $distribution = [];
+        
+        for ($i = 1; $i <= 5; $i++) {
+            $distribution[$i] = $this->reviews()->where('rating', $i)->where('is_approved', true)->count();
+        }
+        
+        return $distribution;
+    }
+
+    /**
+     * Check if user can review this product (must be authenticated and not have reviewed before)
+     */
+    public function canBeReviewedBy($userId): bool
+    {
+        if (!$userId) {
+            return false;
+        }
+        
+        return !$this->reviews()->where('user_id', $userId)->exists();
     }
 }

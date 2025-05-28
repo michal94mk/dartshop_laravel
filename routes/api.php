@@ -54,6 +54,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/featured', [ProductController::class, 'featured']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
+Route::get('/products/{productId}/reviews', [UserReviewController::class, 'getProductReviews']);
 
 // Categories API
 Route::get('/categories', [CategoryController::class, 'index']);
@@ -84,6 +85,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // User reviews
     Route::get('/reviews/my-reviews', [UserReviewController::class, 'myReviews']);
     Route::get('/reviews/my-reviews/{id}', [UserReviewController::class, 'show']);
+    Route::post('/products/{productId}/reviews', [UserReviewController::class, 'store']);
+    Route::put('/reviews/{reviewId}', [UserReviewController::class, 'update']);
+    Route::delete('/reviews/{reviewId}', [UserReviewController::class, 'destroy']);
+    Route::get('/products/{productId}/can-review', [UserReviewController::class, 'canReview']);
     
     // Favorite products
     Route::get('/favorites', [FavoriteProductController::class, 'index']);
