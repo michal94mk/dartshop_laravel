@@ -69,15 +69,15 @@
           
           <div v-else-if="productStore.error" class="text-center py-10">
             <p class="text-red-500">{{ productStore.error }}</p>
-            <button @click="loadFeaturedProducts" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
+            <button @click="loadLatestProducts" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
               Spróbuj ponownie
             </button>
           </div>
           
           <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <!-- Display API products if available -->
-            <template v-if="productStore.featuredProducts && productStore.featuredProducts.length > 0">
-              <div v-for="product in productStore.featuredProducts" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
+            <template v-if="productStore.latestProducts && productStore.latestProducts.length > 0">
+              <div v-for="product in productStore.latestProducts" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
                 <div class="relative h-4/5 overflow-hidden">
                   <img 
                     :src="product.image_url || 'https://via.placeholder.com/400x400/indigo/fff?text=' + product.name" 
@@ -519,12 +519,12 @@ export default {
     }
 
     // Load products and other data
-    await this.loadFeaturedProducts();
+    await this.loadLatestProducts();
     await this.loadLatestReviews();
   },
   methods: {
-    loadFeaturedProducts() {
-      this.productStore.fetchFeaturedProducts();
+    loadLatestProducts() {
+      this.productStore.fetchLatestProducts();
     },
     loadLatestReviews() {
       this.reviewStore.fetchLatestReviews();

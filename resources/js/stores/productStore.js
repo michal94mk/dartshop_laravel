@@ -4,7 +4,7 @@ import axios from 'axios';
 export const useProductStore = defineStore('product', {
   state: () => ({
     products: [],
-    featuredProducts: [],
+    latestProducts: [],
     currentProduct: null,
     loading: false,
     error: null,
@@ -123,14 +123,14 @@ export const useProductStore = defineStore('product', {
       }
     },
 
-    async fetchFeaturedProducts() {
+    async fetchLatestProducts() {
       try {
-        const response = await axios.get('/api/products/featured');
-        console.log('Featured products API response:', response.data);
+        const response = await axios.get('/api/products/latest');
+        console.log('Latest products API response:', response.data);
         
         // Handle the response structure which includes data and meta
         if (response.data.data && Array.isArray(response.data.data)) {
-          this.featuredProducts = response.data.data.map(product => ({
+          this.latestProducts = response.data.data.map(product => ({
             ...product,
             price: product.price || 0,
             name: product.name || 'Unnamed Product',
@@ -138,21 +138,21 @@ export const useProductStore = defineStore('product', {
           }));
         } else if (Array.isArray(response.data)) {
           // Fallback for direct array response
-          this.featuredProducts = response.data.map(product => ({
+          this.latestProducts = response.data.map(product => ({
             ...product,
             price: product.price || 0,
             name: product.name || 'Unnamed Product',
             image_url: product.image_url || product.image || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
           }));
         } else {
-          console.error('Unexpected featured products API response format:', response.data);
-          this.featuredProducts = [];
+          console.error('Unexpected latest products API response format:', response.data);
+          this.latestProducts = [];
         }
         
-        console.log('Processed featured products:', this.featuredProducts);
+        console.log('Processed latest products:', this.latestProducts);
       } catch (error) {
-        console.error('Error fetching featured products:', error);
-        this.featuredProducts = [];
+        console.error('Error fetching latest products:', error);
+        this.latestProducts = [];
       }
     },
     

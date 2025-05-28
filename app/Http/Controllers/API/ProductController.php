@@ -293,13 +293,13 @@ class ProductController extends Controller
     }
     
     /**
-     * Display featured products.
+     * Display latest products.
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function featured()
+    public function latest()
     {
-        Log::info('ProductController@featured called');
+        Log::info('ProductController@latest called');
         
         DB::enableQueryLog();
         
@@ -313,14 +313,14 @@ class ProductController extends Controller
                     $hasReviews = true;
                 }
             } catch (Exception $e) {
-                Log::warning('Error checking for Review model in featured', [
+                Log::warning('Error checking for Review model in latest', [
                     'error' => $e->getMessage()
                 ]);
             }
             
-            // Cache featured products for 1 hour
-            $products = Cache::remember('featured_products', 3600, function () use ($hasReviews) {
-                // First try to get featured products
+            // Cache latest products for 30 minutes (shorter cache for fresh content)
+            $products = Cache::remember('latest_products', 1800, function () use ($hasReviews) {
+                // Get latest products sorted by creation date
                 $query = Product::with(['category', 'brand', 'activePromotions'])
                               ->where('is_active', true);
                 
@@ -331,28 +331,8 @@ class ProductController extends Controller
                     }]);
                 }
                 
-                // Check if 'featured' column exists in the products table
-                $columns = DB::getSchemaBuilder()->getColumnListing('products');
-                
-                if (in_array('featured', $columns)) {
-                    $query->where('featured', true);
-                }
-                
-                $products = $query->latest()->take(8)->get();
-                
-                // If no featured products, just get any recent products
-                if ($products->isEmpty()) {
-                    $query = Product::with(['category', 'brand', 'activePromotions'])
-                        ->where('is_active', true);
-                        
-                    if ($hasReviews) {
-                        $query->with(['reviews' => function($query) {
-                            $query->approved()->latest();
-                        }]);
-                    }
-                    
-                    $products = $query->latest()->take(8)->get();
-                }
+                // Order by creation date (newest first) and take 8 products
+                $products = $query->latest('created_at')->take(8)->get();
                 
                 return $products;
             });
@@ -378,23 +358,23 @@ class ProductController extends Controller
                 return $product;
             });
             
-            Log::info('Featured products response', [
+            Log::info('Latest products response', [
                 'count' => $products->count(),
                 'columns' => $products->count() > 0 ? array_keys($products->first()->toArray()) : [],
                 'query_log' => DB::getQueryLog(),
-                'cache_used' => Cache::has('featured_products'),
+                'cache_used' => Cache::has('latest_products'),
             ]);
             
             return response()->json([
                 'data' => $products,
                 'meta' => [
                     'count' => $products->count(),
-                    'cache_used' => Cache::has('featured_products'),
+                    'cache_used' => Cache::has('latest_products'),
                 ]
             ]);
             
         } catch (Exception $e) {
-            Log::error('Error fetching featured products', [
+            Log::error('Error fetching latest products', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'query_log' => DB::getQueryLog()
@@ -402,7 +382,7 @@ class ProductController extends Controller
             
             return response()->json([
                 'data' => [],
-                'error' => 'Wystąpił błąd podczas pobierania polecanych produktów'
+                'error' => 'Wystąpił błąd podczas pobierania najnowszych produktów'
             ], 500);
         }
     }
