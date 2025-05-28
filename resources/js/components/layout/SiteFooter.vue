@@ -25,27 +25,35 @@
           <h3 class="text-lg font-bold text-white tracking-wider uppercase mb-4">Kategorie</h3>
           <ul role="list" class="space-y-3">
             <li>
-              <router-link to="/products" class="text-indigo-200 hover:text-white transition-colors duration-200 flex items-center">
+              <router-link to="/products?category=1" class="text-indigo-200 hover:text-white transition-colors duration-200 flex items-center">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                 </svg>
                 Lotki
               </router-link>
             </li>
             <li>
-              <router-link to="/products" class="text-indigo-200 hover:text-white transition-colors duration-200 flex items-center">
+              <router-link to="/products?category=2" class="text-indigo-200 hover:text-white transition-colors duration-200 flex items-center">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 Tarcze
               </router-link>
             </li>
             <li>
-              <router-link to="/products" class="text-indigo-200 hover:text-white transition-colors duration-200 flex items-center">
+              <router-link to="/products?category=3" class="text-indigo-200 hover:text-white transition-colors duration-200 flex items-center">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                 </svg>
                 Akcesoria
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/products" class="text-indigo-200 hover:text-white transition-colors duration-200 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                Wszystkie produkty
               </router-link>
             </li>
           </ul>

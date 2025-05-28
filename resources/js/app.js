@@ -136,6 +136,7 @@ import { useProductStore } from './stores/productStore';
 import { useCartStore } from './stores/cartStore';
 import { useWishlistStore } from './stores/wishlistStore';
 import { useAuthStore } from './stores/authStore';
+import { useCategoryStore } from './stores/categoryStore';
 
 // Create Pinia (State Management)
 const pinia = createPinia();
@@ -197,6 +198,7 @@ const productStore = useProductStore();
 const cartStore = useCartStore();
 const wishlistStore = useWishlistStore();
 const authStore = useAuthStore();
+const categoryStore = useCategoryStore();
 
 // Mount the app when the DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {

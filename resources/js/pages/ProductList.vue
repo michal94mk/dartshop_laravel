@@ -15,6 +15,94 @@
 
     <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
       
+      <!-- Breadcrumbs -->
+      <nav class="mb-6" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-2 text-sm text-gray-500">
+          <li>
+            <router-link to="/" class="text-gray-500 hover:text-gray-700 transition-colors duration-200">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+              </svg>
+            </router-link>
+          </li>
+          <li class="flex items-center">
+            <svg class="w-4 h-4 text-gray-400 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+            <router-link to="/products" class="text-gray-500 hover:text-gray-700 transition-colors duration-200">
+              Produkty
+            </router-link>
+          </li>
+          <li v-if="selectedCategory" class="flex items-center">
+            <svg class="w-4 h-4 text-gray-400 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+            <span class="text-indigo-600 font-medium">{{ getCategoryName(selectedCategory) }}</span>
+          </li>
+        </ol>
+      </nav>
+      
+      <!-- Categories Filter Section -->
+      <div class="mb-8">
+        <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+          <div class="flex items-center mb-4">
+            <svg class="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900">Filtruj według kategorii</h3>
+          </div>
+          
+          <div class="flex flex-wrap gap-3">
+            <button 
+              @click="filterByCategory(null)" 
+              class="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm"
+              :class="{'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg': !selectedCategory, 'bg-gray-100 text-gray-700 hover:bg-indigo-50 border border-gray-200': selectedCategory}"
+            >
+              <span class="flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                Wszystkie kategorie
+              </span>
+            </button>
+            
+            <button 
+              v-for="category in categoryStore.orderedCategories.filter(cat => cat.is_active && cat.products_count > 0)"
+              :key="category.id"
+              @click="filterByCategory(category.id)" 
+              class="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm"
+              :class="{'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg': selectedCategory === category.id, 'bg-gray-100 text-gray-700 hover:bg-indigo-50 border border-gray-200': selectedCategory !== category.id}"
+            >
+              <span class="flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                {{ category.name }}
+                <span class="ml-2 text-xs opacity-75">({{ category.products_count }})</span>
+              </span>
+            </button>
+          </div>
+          
+          <!-- Active Category Info -->
+          <div v-if="selectedCategory" class="mt-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+            <div class="flex items-center">
+              <svg class="h-5 w-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              <span class="text-sm font-medium text-indigo-800">
+                Filtrowanie według kategorii: <span class="font-semibold">{{ getCategoryName(selectedCategory) }}</span>
+              </span>
+              <button 
+                @click="filterByCategory(null)"
+                class="ml-auto text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+              >
+                Usuń filtr
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <!-- Mobile filter dialog -->
       <div class="relative z-40 lg:hidden mb-4">
         <button @click="mobileFiltersOpen = true" class="w-full bg-white p-3 rounded-md shadow-sm flex items-center justify-center text-gray-700 hover:bg-gray-100 transition duration-150">
@@ -94,7 +182,7 @@
                   >
                     <span class="flex items-center">
                       <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4M7 4v12m0 0l4-4m-4 4L3 12"/>
                       </svg>
                       <span class="hidden sm:inline">Cena </span>↑
                     </span>
@@ -424,6 +512,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useProductStore } from '../stores/productStore';
 import { useCartStore } from '../stores/cartStore';
 import { useFavoriteStore } from '../stores/favoriteStore';
+import { useCategoryStore } from '../stores/categoryStore';
 import FavoriteButton from '../components/ui/FavoriteButton.vue';
 import { useToast } from 'vue-toastification';
 import axios from 'axios';
@@ -439,24 +528,49 @@ export default {
     const productStore = useProductStore();
     const cartStore = useCartStore();
     const favoriteStore = useFavoriteStore();
+    const categoryStore = useCategoryStore();
     const toast = useToast();
     const mobileFiltersOpen = ref(false);
     const priceRange = ref([null, null]);
     const cartLoading = ref(false);
+    const selectedCategory = ref(null);
     
     // Debugging information
-    console.log('ProductList component setup started');
+    console.log('ProductList: Setup running...');
+    console.log('ProductList: ProductStore instance:', productStore);
+    console.log('ProductList: Route query:', route.query);
     
-    // Watch for route changes to handle search parameter
-    watch(() => route.query.search, (newSearch) => {
-      if (newSearch) {
-        productStore.filters.search = newSearch;
-        productStore.fetchProducts();
+    // Define loadProducts function first
+    const loadProducts = async () => {
+      console.log('Loading products method called');
+      
+      // Get the Laravel configuration
+      console.log('Laravel config:', window.Laravel);
+      
+      // Add diagnostic request to check products API
+      try {
+        const response = await axios.get('/api/debug/products');
+        console.log('Debug info:', response.data);
+      } catch (error) {
+        console.error('Debug API error:', error);
       }
-    }, { immediate: true });
+      
+      await productStore.fetchProducts();
+      console.log('Products loaded successfully:', productStore.products);
+    };
     
+    // Load categories on mount
     onMounted(async () => {
       console.log('ProductList component mounted');
+      
+      // Load categories first
+      try {
+        await categoryStore.fetchCategories();
+        console.log('Categories loaded in ProductList.vue:', categoryStore.categories.length);
+      } catch (error) {
+        console.error('Error loading categories in ProductList.vue:', error);
+      }
+      
       // Initialize favorites when component is mounted
       await favoriteStore.initializeFavorites();
       
@@ -465,9 +579,43 @@ export default {
         productStore.filters.search = route.query.search;
       }
       
+      // Check for category parameter in URL
+      if (route.query.category) {
+        selectedCategory.value = parseInt(route.query.category);
+        productStore.filters.category = parseInt(route.query.category);
+      }
+      
       // Then load products
       await loadProducts();
     });
+    
+    // Watch for route changes to update filters  
+    watch(() => route.query, (newQuery, oldQuery) => {
+      console.log('ProductList: Route changed, query:', newQuery);
+      
+      // Only proceed if this is not the initial load
+      if (oldQuery) {
+        // Update productStore filters from route query
+        if (newQuery.search !== productStore.filters.search) {
+          productStore.filters.search = newQuery.search || '';
+        }
+        
+        if (newQuery.category && newQuery.category !== productStore.filters.category) {
+          productStore.filters.category = newQuery.category;
+          selectedCategory.value = parseInt(newQuery.category);
+        } else if (!newQuery.category) {
+          productStore.filters.category = null;
+          selectedCategory.value = null;
+        }
+        
+        if (newQuery.sort && newQuery.sort !== productStore.filters.sort) {
+          productStore.filters.sort = newQuery.sort;
+        }
+        
+        // Load products with new filters
+        loadProducts();
+      }
+    }, { deep: true });
 
     const paginationPages = computed(() => {
       const totalPages = productStore.pagination.totalPages;
@@ -499,24 +647,6 @@ export default {
         totalPages
       ];
     });
-
-    const loadProducts = async () => {
-      console.log('Loading products method called');
-      
-      // Get the Laravel configuration
-      console.log('Laravel config:', window.Laravel);
-      
-      // Add diagnostic request to check products API
-      try {
-        const response = await axios.get('/api/debug/products');
-        console.log('Debug info:', response.data);
-      } catch (error) {
-        console.error('Debug API error:', error);
-      }
-      
-      await productStore.fetchProducts();
-      console.log('Products loaded successfully:', productStore.products);
-    };
 
     const applyFilters = () => {
       // Zanim zastosujemy filtry, konwertujemy wartości priceRange na liczby
@@ -689,6 +819,26 @@ export default {
       return null;
     };
 
+    const filterByCategory = (category) => {
+      selectedCategory.value = category;
+      productStore.filters.category = category;
+      
+      // Update URL
+      const query = { ...route.query };
+      if (category) {
+        query.category = category;
+      } else {
+        delete query.category;
+      }
+      
+      router.push({ path: route.path, query });
+    };
+
+    const getCategoryName = (categoryId) => {
+      const category = categoryStore.getCategoryById(categoryId);
+      return category ? category.name : 'Inne';
+    };
+
     return {
       productStore,
       mobileFiltersOpen,
@@ -710,7 +860,11 @@ export default {
       hasPromotion,
       getDiscountPercentage,
       getPromotionBadgeColor,
-      getPromotionBadgeText
+      getPromotionBadgeText,
+      filterByCategory,
+      getCategoryName,
+      selectedCategory,
+      categoryStore
     };
   }
 }

@@ -6,136 +6,343 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\Product;
+use Exception;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
 {
     /**
      * Display a listing of categories.
      *
-     * @return \Illuminate\Http\Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Return some dummy data for now
-        $categories = [
-            [
-                'id' => 1,
-                'name' => 'Lotki',
-                'description' => 'Profesjonalne lotki różnych marek',
-                'image' => 'https://via.placeholder.com/600x400/indigo/fff?text=Lotki'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Tarcze',
-                'description' => 'Tarcze elektroniczne i klasyczne',
-                'image' => 'https://via.placeholder.com/600x400/indigo/fff?text=Tarcze'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Akcesoria',
-                'description' => 'Wszelkie akcesoria do gry w dart',
-                'image' => 'https://via.placeholder.com/600x400/indigo/fff?text=Akcesoria'
-            ]
-        ];
+        Log::info('CategoryController@index called', [
+            'query_params' => $request->all(),
+        ]);
 
-        return response()->json($categories);
+        try {
+            // Cache categories for 1 hour
+            $cacheKey = 'categories_list_' . md5(json_encode($request->all()));
+            
+            $categories = Cache::remember($cacheKey, 3600, function () use ($request) {
+                $query = Category::with(['activeProducts' => function($query) {
+                    $query->limit(3); // Load only first 3 products for preview
+                }]);
+
+                // Filter by active categories by default
+                if (!$request->has('include_inactive') || !$request->boolean('include_inactive')) {
+                    $query->active();
+                }
+
+                // Option to include only categories with products
+                if ($request->boolean('with_products_only')) {
+                    $query->withProducts();
+                }
+
+                // Apply sorting
+                $query->ordered();
+
+                return $query->get();
+            });
+
+            // Transform data for better frontend consumption
+            $categoriesData = $categories->map(function ($category) {
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'description' => $category->description,
+                    'slug' => $category->slug,
+                    'image_url' => $category->image_url,
+                    'products_count' => $category->products_count,
+                    'sort_order' => $category->sort_order,
+                    'is_active' => $category->is_active,
+                    'preview_products' => $category->activeProducts->map(function ($product) {
+                        return [
+                            'id' => $product->id,
+                            'name' => $product->name,
+                            'price' => $product->price,
+                            'image_url' => $product->image_url,
+                        ];
+                    }),
+                    'created_at' => $category->created_at,
+                    'updated_at' => $category->updated_at,
+                ];
+            });
+
+            Log::info('Categories fetched successfully', [
+                'count' => $categories->count(),
+                'cache_used' => Cache::has($cacheKey),
+            ]);
+
+            return response()->json([
+                'data' => $categoriesData,
+                'meta' => [
+                    'total' => $categories->count(),
+                    'cache_used' => Cache::has($cacheKey),
+                ],
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Error fetching categories', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'error' => 'Wystąpił błąd podczas pobierania kategorii',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
      * Display the specified category.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param  mixed  $identifier (ID or slug)
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id)
+    public function show($identifier)
     {
-        // Return dummy data for a specific category based on ID
-        $categories = [
-            1 => [
-                'id' => 1,
-                'name' => 'Lotki',
-                'description' => 'Profesjonalne lotki różnych marek',
-                'image' => 'https://via.placeholder.com/600x400/indigo/fff?text=Lotki'
-            ],
-            2 => [
-                'id' => 2,
-                'name' => 'Tarcze',
-                'description' => 'Tarcze elektroniczne i klasyczne',
-                'image' => 'https://via.placeholder.com/600x400/indigo/fff?text=Tarcze'
-            ],
-            3 => [
-                'id' => 3,
-                'name' => 'Akcesoria',
-                'description' => 'Wszelkie akcesoria do gry w dart',
-                'image' => 'https://via.placeholder.com/600x400/indigo/fff?text=Akcesoria'
-            ]
-        ];
+        Log::info('CategoryController@show called', [
+            'identifier' => $identifier,
+        ]);
 
-        if (!isset($categories[$id])) {
-            return response()->json(['message' => 'Category not found'], 404);
+        try {
+            // Try to find by ID first, then by slug
+            $category = null;
+            
+            if (is_numeric($identifier)) {
+                $category = Category::with(['activeProducts'])->find($identifier);
+            }
+            
+            if (!$category) {
+                $category = Category::with(['activeProducts'])->where('slug', $identifier)->first();
+            }
+
+            if (!$category) {
+                return response()->json([
+                    'error' => 'Kategoria nie została znaleziona'
+                ], 404);
+            }
+
+            // Cache category details for 30 minutes
+            $cacheKey = 'category_detail_' . $category->id;
+            
+            $categoryData = Cache::remember($cacheKey, 1800, function () use ($category) {
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'description' => $category->description,
+                    'slug' => $category->slug,
+                    'image_url' => $category->image_url,
+                    'products_count' => $category->products_count,
+                    'sort_order' => $category->sort_order,
+                    'is_active' => $category->is_active,
+                    'created_at' => $category->created_at,
+                    'updated_at' => $category->updated_at,
+                ];
+            });
+
+            Log::info('Category details fetched', [
+                'category_id' => $category->id,
+                'category_name' => $category->name,
+                'products_count' => $category->products_count,
+            ]);
+
+            return response()->json($categoryData);
+
+        } catch (Exception $e) {
+            Log::error('Error fetching category details', [
+                'identifier' => $identifier,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'error' => 'Wystąpił błąd podczas pobierania kategorii'
+            ], 500);
         }
-
-        return response()->json($categories[$id]);
     }
 
     /**
      * Display products for the specified category.
      *
-     * @param  int  $id
+     * @param  mixed  $identifier (ID or slug)
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function products($id, Request $request)
+    public function products($identifier, Request $request)
     {
-        // Dummy implementation - would use real database in production
-        $products = [
-            1 => [
-                [
-                    'id' => 1,
-                    'name' => 'Lotki Target Agora A30',
-                    'description' => 'Profesjonalne lotki ze stali wolframowej 90%',
-                    'price' => 149.99,
-                    'image_url' => 'https://via.placeholder.com/300x300/indigo/fff?text=Lotki+Target'
-                ],
-                [
-                    'id' => 4,
-                    'name' => 'Lotki Red Dragon Razor Edge',
-                    'description' => 'Lotki z wysokiej jakości stali wolframowej',
-                    'price' => 129.99,
-                    'image_url' => 'https://via.placeholder.com/300x300/indigo/fff?text=Lotki+Red+Dragon'
-                ]
-            ],
-            2 => [
-                [
-                    'id' => 2,
-                    'name' => 'Tarcza elektroniczna Winmau Blade 6',
-                    'description' => 'Zaawansowana tarcza dla profesjonalistów',
-                    'price' => 299.99,
-                    'image_url' => 'https://via.placeholder.com/300x300/indigo/fff?text=Tarcza+Winmau'
-                ]
-            ],
-            3 => [
-                [
-                    'id' => 3,
-                    'name' => 'Zestaw punktowy XQ Max',
-                    'description' => 'Zestaw do zapisywania punktów z kredą i ścierką',
-                    'price' => 49.99,
-                    'image_url' => 'https://via.placeholder.com/300x300/indigo/fff?text=Zestaw+XQ+Max'
-                ]
-            ]
-        ];
-
-        if (!isset($products[$id])) {
-            return response()->json(['data' => []], 200);
-        }
-
-        // Return with pagination structure for compatibility
-        return response()->json([
-            'data' => $products[$id],
-            'current_page' => 1,
-            'last_page' => 1,
-            'per_page' => count($products[$id]),
-            'total' => count($products[$id])
+        Log::info('CategoryController@products called', [
+            'identifier' => $identifier,
+            'query_params' => $request->all(),
         ]);
+
+        try {
+            // Find category by ID or slug
+            $category = null;
+            
+            if (is_numeric($identifier)) {
+                $category = Category::find($identifier);
+            }
+            
+            if (!$category) {
+                $category = Category::where('slug', $identifier)->first();
+            }
+
+            if (!$category) {
+                return response()->json([
+                    'error' => 'Kategoria nie została znaleziona'
+                ], 404);
+            }
+
+            // Build products query for this category
+            $query = Product::with(['category', 'brand', 'activePromotions'])
+                           ->where('category_id', $category->id)
+                           ->where('is_active', true);
+
+            // Apply additional filters
+            if ($request->has('brand_id')) {
+                $query->where('brand_id', $request->brand_id);
+            }
+
+            if ($request->has('search')) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            // Price range filtering
+            if ($request->has('price_min') && is_numeric($request->price_min)) {
+                $query->where('price', '>=', (float)$request->price_min);
+            }
+
+            if ($request->has('price_max') && is_numeric($request->price_max)) {
+                $query->where('price', '<=', (float)$request->price_max);
+            }
+
+            // Apply sorting
+            $sortField = $request->sort_by ?? 'created_at';
+            $sortDirection = $request->sort_direction ?? 'desc';
+
+            // Validate sort field to prevent SQL injection
+            $allowedSortFields = ['created_at', 'name', 'price', 'updated_at'];
+            if (!in_array($sortField, $allowedSortFields)) {
+                $sortField = 'created_at';
+            }
+
+            if (!in_array(strtolower($sortDirection), ['asc', 'desc'])) {
+                $sortDirection = 'desc';
+            }
+
+            $query->orderBy($sortField, $sortDirection);
+
+            // Pagination
+            $perPage = (int)($request->per_page ?? 12);
+            $perPage = max(1, min($perPage, 50)); // Limit between 1 and 50
+
+            $products = $query->paginate($perPage);
+
+            // Add promotion information to each product
+            $products->getCollection()->transform(function ($product) {
+                $bestPromotion = $product->getBestActivePromotion();
+                if ($bestPromotion) {
+                    $product->promotion_price = $product->getPromotionalPrice();
+                    $product->savings = $product->getSavingsAmount();
+                    $product->promotion = [
+                        'id' => $bestPromotion->id,
+                        'title' => $bestPromotion->title,
+                        'badge_text' => $bestPromotion->badge_text,
+                        'badge_color' => $bestPromotion->badge_color,
+                        'discount_type' => $bestPromotion->discount_type,
+                        'discount_value' => $bestPromotion->discount_value
+                    ];
+                } else {
+                    $product->promotion_price = $product->price;
+                    $product->savings = 0;
+                }
+                return $product;
+            });
+
+            Log::info('Category products fetched successfully', [
+                'category_id' => $category->id,
+                'category_name' => $category->name,
+                'total_products' => $products->total(),
+                'per_page' => $products->perPage(),
+                'current_page' => $products->currentPage(),
+                'filters_applied' => array_intersect_key($request->all(), array_flip(['brand_id', 'search', 'price_min', 'price_max', 'sort_by', 'sort_direction']))
+            ]);
+
+            // Add category information to response
+            $response = $products->toArray();
+            $response['category'] = [
+                'id' => $category->id,
+                'name' => $category->name,
+                'description' => $category->description,
+                'slug' => $category->slug,
+                'image_url' => $category->image_url,
+            ];
+
+            return response()->json($response);
+
+        } catch (Exception $e) {
+            Log::error('Error fetching category products', [
+                'identifier' => $identifier,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'error' => 'Wystąpił błąd podczas pobierania produktów kategorii',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get category statistics for dashboard/admin
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function statistics()
+    {
+        try {
+            $stats = Cache::remember('categories_statistics', 1800, function () {
+                return [
+                    'total_categories' => Category::count(),
+                    'active_categories' => Category::active()->count(),
+                    'categories_with_products' => Category::withProducts()->count(),
+                    'top_categories' => Category::withCount('activeProducts')
+                        ->active()
+                        ->orderByDesc('active_products_count')
+                        ->take(5)
+                        ->get()
+                        ->map(function ($category) {
+                            return [
+                                'id' => $category->id,
+                                'name' => $category->name,
+                                'products_count' => $category->active_products_count,
+                            ];
+                        }),
+                ];
+            });
+
+            return response()->json($stats);
+
+        } catch (Exception $e) {
+            Log::error('Error fetching category statistics', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'error' => 'Wystąpił błąd podczas pobierania statystyk kategorii'
+            ], 500);
+        }
     }
 } 

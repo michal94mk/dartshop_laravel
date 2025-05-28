@@ -178,9 +178,17 @@ export default {
     async fetchCategories() {
       try {
         const response = await axios.get('/api/categories');
-        this.categories = response.data;
+        // Handle new API response structure
+        if (response.data && response.data.data) {
+          this.categories = response.data.data;
+        } else if (Array.isArray(response.data)) {
+          this.categories = response.data;
+        } else {
+          this.categories = [];
+        }
       } catch (error) {
         console.error('Error fetching categories:', error);
+        this.categories = [];
       }
     },
 

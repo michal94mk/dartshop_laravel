@@ -19,14 +19,59 @@
           >
             Home
           </router-link>
-          <router-link 
-            to="/products" 
-            class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-            :class="[$route.path.includes('/categories') || $route.path.includes('/products') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']"
-            @click.prevent="navigateTo('/products', $event)"
-          >
-            Produkty
-          </router-link>
+          
+          <!-- Products with dropdown -->
+          <div class="relative flex items-center" @mouseenter="showProductsDropdown = true" @mouseleave="showProductsDropdown = false">
+            <router-link 
+              to="/products" 
+              class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium h-16"
+              :class="[$route.path.includes('/categories') || $route.path.includes('/products') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']"
+              @click.prevent="navigateTo('/products', $event)"
+            >
+              Produkty
+              <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </router-link>
+            
+            <!-- Dropdown Menu -->
+            <div 
+              v-show="showProductsDropdown"
+              class="absolute left-0 top-full mt-1 w-56 origin-top-left bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
+            >
+              <div class="py-1">
+                <router-link 
+                  to="/products" 
+                  class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
+                  @click="showProductsDropdown = false"
+                >
+                  <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                  </svg>
+                  Wszystkie produkty
+                </router-link>
+              </div>
+              <div class="py-1">
+                <div class="px-4 py-2">
+                  <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Kategorie</p>
+                </div>
+                <router-link 
+                  v-for="category in topCategories"
+                  :key="category.id"
+                  :to="`/products?category=${category.id}`" 
+                  class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
+                  @click="showProductsDropdown = false"
+                >
+                  <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                  </svg>
+                  {{ category.name }}
+                  <span class="ml-auto text-xs text-gray-400">({{ category.products_count }})</span>
+                </router-link>
+              </div>
+            </div>
+          </div>
+          
           <router-link 
             to="/promotions" 
             class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
@@ -138,14 +183,40 @@
         >
           Home
         </router-link>
-        <router-link
-          to="/products"
-          class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
-          :class="[$route.path.includes('/categories') || $route.path.includes('/products') ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']"
-          @click.prevent="navigateTo('/products', $event)"
-        >
-          Produkty
-        </router-link>
+        
+        <!-- Products with mobile dropdown -->
+        <div class="border-l-4 border-transparent">
+          <router-link
+            to="/products"
+            class="block pl-3 pr-4 py-2 text-base font-medium"
+            :class="[$route.path.includes('/categories') || $route.path.includes('/products') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800']"
+            @click.prevent="navigateTo('/products', $event)"
+          >
+            Produkty
+          </router-link>
+          
+          <!-- Mobile categories submenu -->
+          <div class="pl-6 space-y-1">
+            <router-link
+              to="/products"
+              class="block pl-3 pr-4 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              @click="mobileMenuOpen = false"
+            >
+              Wszystkie produkty
+            </router-link>
+            <router-link
+              v-for="category in topCategories"
+              :key="`mobile-${category.id}`"
+              :to="`/products?category=${category.id}`"
+              class="block pl-3 pr-4 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              @click="mobileMenuOpen = false"
+            >
+              {{ category.name }}
+              <span class="text-xs text-gray-400 ml-1">({{ category.products_count }})</span>
+            </router-link>
+          </div>
+        </div>
+        
         <router-link
           to="/promotions"
           class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
@@ -210,8 +281,10 @@
 <script>
 import { useAuthStore } from '../../stores/authStore';
 import { useCartStore } from '../../stores/cartStore';
+import { useCategoryStore } from '../../stores/categoryStore';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
+import { computed } from 'vue';
 import ProductSearch from '../ui/ProductSearch.vue';
 
 export default {
@@ -222,34 +295,46 @@ export default {
   data() {
     return {
       userMenuOpen: false,
-      mobileMenuOpen: false
+      mobileMenuOpen: false,
+      showProductsDropdown: false
     }
   },
   setup() {
     const authStore = useAuthStore();
     const cartStore = useCartStore();
+    const categoryStore = useCategoryStore();
     const router = useRouter();
     
     // Używamy storeToRefs, aby zachować reaktywność getterów i state w Pinia
     const { isLoggedIn, isAdmin, userName, userEmail, userInitial } = storeToRefs(authStore);
     const { totalItems: cartItemsCount } = storeToRefs(cartStore);
     
+    // Computed property for top categories (first 5 categories with products)
+    const topCategories = computed(() => {
+      return categoryStore.orderedCategories
+        .filter(cat => cat.is_active && cat.products_count > 0)
+        .slice(0, 5); // Show only first 5 categories in dropdown
+    });
+    
     return {
       authStore,
       cartStore,
+      categoryStore,
       router,
       isLoggedIn,
       isAdmin,
       userName,
       userEmail,
       userInitial,
-      cartItemsCount
+      cartItemsCount,
+      topCategories
     }
   },
   mounted() {
     // Inicjalizacja auth store i cart store
     this.authStore.initAuth();
     this.cartStore.initCart();
+    this.categoryStore.fetchCategories();
     
     // Zamykaj dropdown przy kliknięciu poza nim
     document.addEventListener('click', this.closeDropdowns);
@@ -268,6 +353,11 @@ export default {
       // Zamknij user menu jeśli kliknięto poza nim
       if (this.userMenuOpen && !event.target.closest('#user-menu-button') && !event.target.closest('[role="menuitem"]')) {
         this.userMenuOpen = false;
+      }
+      
+      // Zamknij products dropdown jeśli kliknięto poza nim
+      if (this.showProductsDropdown && !event.target.closest('.relative')) {
+        this.showProductsDropdown = false;
       }
     },
     logout() {
