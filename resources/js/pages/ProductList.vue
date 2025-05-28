@@ -152,126 +152,184 @@
       <div>
         <!-- Filters and sorting interface -->
         <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Enhanced sorting interface -->
-            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 flex-grow">
-              <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4">
+              <div class="flex flex-col gap-4">
                 <div class="flex items-center">
                   <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"/>
                   </svg>
                   <span class="text-sm font-semibold text-gray-700">Sortuj według:</span>
                 </div>
-                <div class="flex flex-wrap gap-2">
+                
+                <!-- Sortowanie ogólne -->
+                <div class="space-y-3">
+                  <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Ogólne</div>
                   <button 
                     @click="setSorting('newest')" 
-                    class="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm"
+                    class="w-full px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
                     :class="{'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg': productStore.filters.sort === 'newest', 'bg-white text-gray-700 hover:bg-blue-50 border border-gray-200': productStore.filters.sort !== 'newest'}"
                   >
-                    <span class="flex items-center">
-                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span class="flex items-center justify-center">
+                      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                       </svg>
                       Najnowsze
                     </span>
                   </button>
-                  <button 
-                    @click="setSorting('price_asc')" 
-                    class="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm"
-                    :class="{'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg': productStore.filters.sort === 'price_asc', 'bg-white text-gray-700 hover:bg-blue-50 border border-gray-200': productStore.filters.sort !== 'price_asc'}"
-                  >
-                    <span class="flex items-center">
-                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4M7 4v12m0 0l4-4m-4 4L3 12"/>
-                      </svg>
-                      <span class="hidden sm:inline">Cena </span>↑
-                    </span>
-                  </button>
-                  <button 
-                    @click="setSorting('price_desc')" 
-                    class="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm"
-                    :class="{'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg': productStore.filters.sort === 'price_desc', 'bg-white text-gray-700 hover:bg-blue-50 border border-gray-200': productStore.filters.sort !== 'price_desc'}"
-                  >
-                    <span class="flex items-center">
-                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8V20m0 0l4-4m-4 4l-4-4M7 4v12m0 0l4-4m-4 4L3 12"/>
-                      </svg>
-                      <span class="hidden sm:inline">Cena </span>↓
-                    </span>
-                  </button>
-                  <button 
-                    @click="setSorting('name_asc')" 
-                    class="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm"
-                    :class="{'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg': productStore.filters.sort === 'name_asc', 'bg-white text-gray-700 hover:bg-blue-50 border border-gray-200': productStore.filters.sort !== 'name_asc'}"
-                  >
-                    <span class="flex items-center">
-                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m-4 4l4 4"/>
-                      </svg>
-                      A-Z
-                    </span>
-                  </button>
-                  <button 
-                    @click="setSorting('name_desc')" 
-                    class="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm"
-                    :class="{'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg': productStore.filters.sort === 'name_desc', 'bg-white text-gray-700 hover:bg-blue-50 border border-gray-200': productStore.filters.sort !== 'name_desc'}"
-                  >
-                    <span class="flex items-center">
-                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m-4 4l4 4"/>
-                      </svg>
-                      Z-A
-                    </span>
-                  </button>
+                </div>
+
+                <!-- Sortowanie po cenie -->
+                <div class="space-y-3">
+                  <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Cena</div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <button 
+                      @click="setSorting('price_asc')" 
+                      class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
+                      :class="{'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg': productStore.filters.sort === 'price_asc', 'bg-white text-gray-700 hover:bg-green-50 border border-gray-200': productStore.filters.sort !== 'price_asc'}"
+                    >
+                      <span class="flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4"/>
+                        </svg>
+                        Od najtańszych
+                      </span>
+                    </button>
+                    <button 
+                      @click="setSorting('price_desc')" 
+                      class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
+                      :class="{'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg': productStore.filters.sort === 'price_desc', 'bg-white text-gray-700 hover:bg-red-50 border border-gray-200': productStore.filters.sort !== 'price_desc'}"
+                    >
+                      <span class="flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8V20m0 0l4-4m-4 4l-4-4"/>
+                        </svg>
+                        Od najdroższych
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Sortowanie po nazwie -->
+                <div class="space-y-3">
+                  <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Nazwa</div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <button 
+                      @click="setSorting('name_asc')" 
+                      class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
+                      :class="{'bg-gradient-to-r from-purple-600 to-violet-600 text-white shadow-lg': productStore.filters.sort === 'name_asc', 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200': productStore.filters.sort !== 'name_asc'}"
+                    >
+                      <span class="flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m-4 4l4 4"/>
+                        </svg>
+                        A-Z
+                      </span>
+                    </button>
+                    <button 
+                      @click="setSorting('name_desc')" 
+                      class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
+                      :class="{'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-lg': productStore.filters.sort === 'name_desc', 'bg-white text-gray-700 hover:bg-orange-50 border border-gray-200': productStore.filters.sort !== 'name_desc'}"
+                    >
+                      <span class="flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m-4 4l4 4"/>
+                        </svg>
+                        Z-A
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
 
             <!-- Price range filter -->
             <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4">
-              <div class="grid grid-cols-1 gap-3">
+              <div class="flex flex-col gap-4">
                 <div class="flex items-center">
                   <svg class="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
                   </svg>
                   <span class="text-sm font-semibold text-gray-700">Zakres cen:</span>
                 </div>
-                <div class="flex items-center gap-3">
-                  <div class="flex items-center bg-white rounded-xl shadow-sm">
+                
+                <!-- Pola wprowadzania cen -->
+                <div class="space-y-3">
+                  <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Filtruj po cenie</div>
+                  <div class="flex items-center gap-2">
                     <input 
                       type="number" 
                       v-model="priceRange[0]"
                       placeholder="Od" 
                       min="0" 
-                      class="w-20 px-3 py-2 rounded-l-xl border-0 focus:ring-2 focus:ring-indigo-500 text-center text-sm"
+                      class="flex-1 px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center text-sm"
                     >
-                    <span class="px-2 text-gray-400 bg-gray-50">-</span>
+                    <span class="text-gray-400 font-medium">-</span>
                     <input 
                       type="number" 
                       v-model="priceRange[1]"
                       placeholder="Do" 
                       min="0" 
-                      class="w-20 px-3 py-2 rounded-r-xl border-0 focus:ring-2 focus:ring-indigo-500 text-center text-sm"
+                      class="flex-1 px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center text-sm"
                     >
                   </div>
-                  <button 
-                    @click="applyPriceFilter"
-                    class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm font-medium"
-                  >
-                    <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                    </svg>
-                    Filtruj
-                  </button>
-                  <button 
-                    @click="resetFilters"
-                    class="px-4 py-2 bg-white text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 border border-gray-200 text-sm font-medium"
-                  >
-                    <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                    </svg>
-                    Reset
-                  </button>
+                </div>
+
+                <!-- Przyciski akcji -->
+                <div class="space-y-3">
+                  <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Akcje</div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <button 
+                      @click="applyPriceFilter"
+                      class="px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm font-medium"
+                    >
+                      <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                      </svg>
+                      Filtruj
+                    </button>
+                    <button 
+                      @click="resetFilters"
+                      class="px-4 py-3 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 border border-gray-200 text-sm font-medium"
+                    >
+                      <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                      </svg>
+                      Reset
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Szybkie filtry cenowe -->
+                <div class="space-y-3">
+                  <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Szybkie filtry</div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <button 
+                      @click="setQuickPriceFilter(0, 50)"
+                      class="px-3 py-2 bg-white text-gray-700 rounded-lg hover:bg-indigo-50 transition-all duration-200 border border-gray-200 text-xs font-medium"
+                    >
+                      0-50 zł
+                    </button>
+                    <button 
+                      @click="setQuickPriceFilter(50, 100)"
+                      class="px-3 py-2 bg-white text-gray-700 rounded-lg hover:bg-indigo-50 transition-all duration-200 border border-gray-200 text-xs font-medium"
+                    >
+                      50-100 zł
+                    </button>
+                    <button 
+                      @click="setQuickPriceFilter(100, 200)"
+                      class="px-3 py-2 bg-white text-gray-700 rounded-lg hover:bg-indigo-50 transition-all duration-200 border border-gray-200 text-xs font-medium"
+                    >
+                      100-200 zł
+                    </button>
+                    <button 
+                      @click="setQuickPriceFilter(200, null)"
+                      class="px-3 py-2 bg-white text-gray-700 rounded-lg hover:bg-indigo-50 transition-all duration-200 border border-gray-200 text-xs font-medium"
+                    >
+                      200+ zł
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -839,6 +897,11 @@ export default {
       return category ? category.name : 'Inne';
     };
 
+    const setQuickPriceFilter = (min, max) => {
+      priceRange.value = [min, max];
+      applyPriceFilter();
+    };
+
     return {
       productStore,
       mobileFiltersOpen,
@@ -864,7 +927,8 @@ export default {
       filterByCategory,
       getCategoryName,
       selectedCategory,
-      categoryStore
+      categoryStore,
+      setQuickPriceFilter
     };
   }
 }

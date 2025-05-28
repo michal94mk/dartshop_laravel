@@ -218,13 +218,45 @@ class CategoryController extends Controller
                 });
             }
 
-            // Price range filtering
+            // Price range filtering - uwzględnia również ceny promocyjne
             if ($request->has('price_min') && is_numeric($request->price_min)) {
-                $query->where('price', '>=', (float)$request->price_min);
+                $priceMin = (float)$request->price_min;
+                $query->where(function($q) use ($priceMin) {
+                    // Produkty gdzie oryginalna cena jest >= min
+                    $q->where('price', '>=', $priceMin)
+                      // LUB produkty z promocją gdzie cena promocyjna jest >= min
+                      ->orWhereHas('activePromotions', function($promotionQuery) use ($priceMin) {
+                          $promotionQuery->whereRaw('
+                              CASE 
+                                  WHEN promotions.discount_type = "percentage" THEN 
+                                      products.price * (1 - (promotions.discount_value / 100))
+                                  WHEN promotions.discount_type = "fixed" THEN 
+                                      GREATEST(0, products.price - promotions.discount_value)
+                                  ELSE products.price
+                              END >= ?
+                          ', [$priceMin]);
+                      });
+                });
             }
 
             if ($request->has('price_max') && is_numeric($request->price_max)) {
-                $query->where('price', '<=', (float)$request->price_max);
+                $priceMax = (float)$request->price_max;
+                $query->where(function($q) use ($priceMax) {
+                    // Produkty gdzie oryginalna cena jest <= max
+                    $q->where('price', '<=', $priceMax)
+                      // LUB produkty z promocją gdzie cena promocyjna jest <= max
+                      ->orWhereHas('activePromotions', function($promotionQuery) use ($priceMax) {
+                          $promotionQuery->whereRaw('
+                              CASE 
+                                  WHEN promotions.discount_type = "percentage" THEN 
+                                      products.price * (1 - (promotions.discount_value / 100))
+                                  WHEN promotions.discount_type = "fixed" THEN 
+                                      GREATEST(0, products.price - promotions.discount_value)
+                                  ELSE products.price
+                              END <= ?
+                          ', [$priceMax]);
+                      });
+                });
             }
 
             // Apply sorting
