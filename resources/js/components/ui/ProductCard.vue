@@ -161,23 +161,37 @@ export default {
       try {
         const success = await cartStore.addToCart(props.product.id, 1)
         if (success) {
-          toast.success(`Produkt "${props.product.name}" został dodany do koszyka!`, {
+          toast.success(`🛒 Dodano do koszyka: "${props.product.name}"`, {
             position: "top-center",
             timeout: 4000,
-            icon: "🛒"
+            closeOnClick: true,
+            pauseOnFocusLoss: true,
+            pauseOnHover: true,
+            draggable: true,
+            showCloseButtonOnHover: false,
+            hideProgressBar: false,
+            toastClassName: "cart-success-toast",
+            bodyClassName: "cart-success-body",
+            progressClassName: "cart-success-progress"
           })
         } else {
-          toast.error('Nie udało się dodać produktu do koszyka', {
+          toast.error('❌ Nie udało się dodać produktu do koszyka', {
             position: "top-center",
-            timeout: 4000,
-            icon: "❌"
+            timeout: 5000,
+            closeOnClick: true,
+            pauseOnHover: true,
+            toastClassName: "cart-error-toast",
+            bodyClassName: "cart-error-body"
           })
         }
       } catch (error) {
-        toast.error('Wystąpił błąd podczas dodawania produktu do koszyka', {
+        toast.error('⚠️ Wystąpił błąd podczas dodawania produktu do koszyka', {
           position: "top-center",
-          timeout: 4000,
-          icon: "❌"
+          timeout: 5000,
+          closeOnClick: true,
+          pauseOnHover: true,
+          toastClassName: "cart-error-toast",
+          bodyClassName: "cart-error-body"
         })
         console.error('Error adding product to cart:', error)
       } finally {
@@ -186,18 +200,26 @@ export default {
     }
 
     const handleFavoriteAdded = (product) => {
-      toast.success(`Produkt "${product.name}" dodany do ulubionych!`, {
+      toast.success(`💖 Dodano do ulubionych: "${product.name}"`, {
         position: "top-center",
-        timeout: 3000,
-        icon: "❤️"
+        timeout: 3500,
+        closeOnClick: true,
+        pauseOnHover: true,
+        toastClassName: "favorite-success-toast",
+        bodyClassName: "favorite-success-body",
+        progressClassName: "favorite-success-progress"
       })
     }
 
     const handleFavoriteRemoved = (product) => {
-      toast.info(`Produkt "${product.name}" usunięty z ulubionych`, {
+      toast.info(`💔 Usunięto z ulubionych: "${product.name}"`, {
         position: "top-center",
         timeout: 3000,
-        icon: "💔"
+        closeOnClick: true,
+        pauseOnHover: true,
+        toastClassName: "favorite-info-toast",
+        bodyClassName: "favorite-info-body",
+        progressClassName: "favorite-info-progress"
       })
     }
 

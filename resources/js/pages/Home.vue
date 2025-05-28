@@ -485,23 +485,37 @@ export default {
       try {
         const success = await this.cartStore.addToCart(product.id);
         if (success) {
-          this.toast.success(`Produkt "${product.name}" został dodany do koszyka!`, {
+          this.toast.success(`🛒 Dodano do koszyka: "${product.name}"`, {
             position: "top-center",
             timeout: 4000,
-            icon: "🛒"
+            closeOnClick: true,
+            pauseOnFocusLoss: true,
+            pauseOnHover: true,
+            draggable: true,
+            showCloseButtonOnHover: false,
+            hideProgressBar: false,
+            toastClassName: "cart-success-toast",
+            bodyClassName: "cart-success-body",
+            progressClassName: "cart-success-progress"
           });
         } else {
-          this.toast.error('Nie udało się dodać produktu do koszyka', {
+          this.toast.error('❌ Nie udało się dodać produktu do koszyka', {
             position: "top-center",
-            timeout: 4000,
-            icon: "❌"
+            timeout: 5000,
+            closeOnClick: true,
+            pauseOnHover: true,
+            toastClassName: "cart-error-toast",
+            bodyClassName: "cart-error-body"
           });
         }
       } catch (error) {
-        this.toast.error('Wystąpił błąd podczas dodawania produktu do koszyka', {
+        this.toast.error('⚠️ Wystąpił błąd podczas dodawania produktu do koszyka', {
           position: "top-center",
-          timeout: 4000,
-          icon: "❌"
+          timeout: 5000,
+          closeOnClick: true,
+          pauseOnHover: true,
+          toastClassName: "cart-error-toast",
+          bodyClassName: "cart-error-body"
         });
         console.error('Error adding product to cart:', error);
       } finally {
@@ -515,17 +529,25 @@ export default {
       return this.favoriteStore.isInFavorites(productId);
     },
     handleFavoriteAdded(product) {
-      this.toast.success(`Produkt "${product.name}" dodany do ulubionych!`, {
+      this.toast.success(`💖 Dodano do ulubionych: "${product.name}"`, {
         position: "top-center",
-        timeout: 3000,
-        icon: "❤️"
+        timeout: 3500,
+        closeOnClick: true,
+        pauseOnHover: true,
+        toastClassName: "favorite-success-toast",
+        bodyClassName: "favorite-success-body",
+        progressClassName: "favorite-success-progress"
       });
     },
     handleFavoriteRemoved(product) {
-      this.toast.info(`Produkt "${product.name}" usunięty z ulubionych`, {
+      this.toast.info(`💔 Usunięto z ulubionych: "${product.name}"`, {
         position: "top-center",
         timeout: 3000,
-        icon: "💔"
+        closeOnClick: true,
+        pauseOnHover: true,
+        toastClassName: "favorite-info-toast",
+        bodyClassName: "favorite-info-body",
+        progressClassName: "favorite-info-progress"
       });
     },
     // Promotion helper functions

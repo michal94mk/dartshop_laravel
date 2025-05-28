@@ -157,10 +157,10 @@ app.use(pinia);
 app.use(AdminUIComponents);
 app.use(Toast, {
   transition: "Vue-Toastification__bounce",
-  maxToasts: 5,
+  maxToasts: 3,
   newestOnTop: true,
   position: "top-center",
-  timeout: 5000,
+  timeout: 4000,
   closeOnClick: true,
   pauseOnFocusLoss: true,
   pauseOnHover: true,
@@ -169,25 +169,25 @@ app.use(Toast, {
   showCloseButtonOnHover: false,
   hideProgressBar: false,
   closeButton: "button",
-  icon: true,
+  icon: false,
   rtl: false,
   toastDefaults: {
     // Custom styling to match the app theme
     success: {
-      timeout: 6000,
-      icon: "🎯"
+      timeout: 4000,
+      icon: false
     },
     error: {
-      timeout: 5000,
-      icon: "❌"
+      timeout: 4000,
+      icon: false
     },
     warning: {
-      timeout: 5000,
-      icon: "⚠️"
+      timeout: 4000,
+      icon: false
     },
     info: {
-      timeout: 4000,
-      icon: "ℹ️"
+      timeout: 3000,
+      icon: false
     }
   }
 });
