@@ -103,56 +103,11 @@
         </div>
       </div>
       
-      <!-- Mobile filter dialog -->
-      <div class="relative z-40 lg:hidden mb-4">
-        <button @click="mobileFiltersOpen = true" class="w-full bg-white p-3 rounded-md shadow-sm flex items-center justify-center text-gray-700 hover:bg-gray-100 transition duration-150">
-          <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-          </svg>
-          Filtry i sortowanie
-        </button>
-        
-        <div v-if="mobileFiltersOpen" class="fixed inset-0 flex z-40">
-          <div class="fixed inset-0 bg-black bg-opacity-25" @click="mobileFiltersOpen = false"></div>
-          
-          <div class="ml-auto relative max-w-xs w-full h-full bg-white shadow-xl py-4 pb-12 flex flex-col overflow-y-auto">
-            <div class="px-4 flex items-center justify-between">
-              <h2 class="text-lg font-medium text-gray-900">Filtry</h2>
-              <button @click="mobileFiltersOpen = false" class="-mr-2 w-10 h-10 bg-white p-2 rounded-md flex items-center justify-center text-gray-400">
-                <span class="sr-only">Zamknij menu</span>
-                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            <!-- Mobile filters -->
-            <div class="mt-4 border-t border-gray-200">
-              <!-- Action buttons - Mobile -->
-              <div class="p-4 flex space-x-4">
-                <button 
-                  @click="applyFilters"
-                  class="flex-1 bg-indigo-600 border border-transparent rounded-md py-2 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  Zastosuj
-                </button>
-                <button 
-                  @click="resetFilters"
-                  class="flex-1 bg-gray-200 border border-transparent rounded-md py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                >
-                  Wyczyść
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Product grid and sorting bar -->
       <div>
         <!-- Filters and sorting interface -->
         <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
             <!-- Enhanced sorting interface -->
             <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4">
               <div class="flex flex-col gap-4">
@@ -183,7 +138,7 @@
                 <!-- Sortowanie po cenie -->
                 <div class="space-y-3">
                   <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Cena</div>
-                  <div class="grid grid-cols-2 gap-2">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button 
                       @click="setSorting('price_asc')" 
                       class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
@@ -214,7 +169,7 @@
                 <!-- Sortowanie po nazwie -->
                 <div class="space-y-3">
                   <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Nazwa</div>
-                  <div class="grid grid-cols-2 gap-2">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button 
                       @click="setSorting('name_asc')" 
                       class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
@@ -257,21 +212,21 @@
                 <!-- Pola wprowadzania cen -->
                 <div class="space-y-3">
                   <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Filtruj po cenie</div>
-                  <div class="flex items-center gap-2">
+                  <div class="flex flex-col sm:flex-row items-center gap-2">
                     <input 
                       type="number" 
                       v-model="priceRange[0]"
                       placeholder="Od" 
                       min="0" 
-                      class="flex-1 px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center text-sm"
+                      class="w-full sm:flex-1 px-2 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center text-sm min-w-0"
                     >
-                    <span class="text-gray-400 font-medium">-</span>
+                    <span class="text-gray-400 font-medium text-xs sm:text-sm">-</span>
                     <input 
                       type="number" 
                       v-model="priceRange[1]"
                       placeholder="Do" 
                       min="0" 
-                      class="flex-1 px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center text-sm"
+                      class="w-full sm:flex-1 px-2 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center text-sm min-w-0"
                     >
                   </div>
                 </div>
@@ -279,7 +234,7 @@
                 <!-- Przyciski akcji -->
                 <div class="space-y-3">
                   <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Akcje</div>
-                  <div class="grid grid-cols-2 gap-2">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button 
                       @click="applyPriceFilter"
                       class="px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm font-medium"
@@ -304,7 +259,7 @@
                 <!-- Szybkie filtry cenowe -->
                 <div class="space-y-3">
                   <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Szybkie filtry</div>
-                  <div class="grid grid-cols-2 gap-2">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button 
                       @click="setQuickPriceFilter(0, 50)"
                       class="px-3 py-2 bg-white text-gray-700 rounded-lg hover:bg-indigo-50 transition-all duration-200 border border-gray-200 text-xs font-medium"
@@ -612,7 +567,6 @@ export default {
     const favoriteStore = useFavoriteStore();
     const categoryStore = useCategoryStore();
     const toast = useToast();
-    const mobileFiltersOpen = ref(false);
     const priceRange = ref([null, null]);
     const cartLoading = ref(false);
     const selectedCategory = ref(null);
@@ -716,7 +670,6 @@ export default {
       
       // Pobieramy produkty z zastosowanymi filtrami
       productStore.fetchProducts();
-      mobileFiltersOpen.value = false;
     };
 
     const resetFilters = () => {
@@ -729,7 +682,6 @@ export default {
       };
       priceRange.value = [0, 1000];
       productStore.fetchProducts();
-      mobileFiltersOpen.value = false;
     };
 
     const goToPage = (page) => {
@@ -902,7 +854,6 @@ export default {
 
     return {
       productStore,
-      mobileFiltersOpen,
       priceRange,
       cartLoading,
       paginationPages,
