@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
+  <div class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col relative" style="aspect-ratio: 1 / 1.5;">
     <div class="relative h-4/5 overflow-hidden">
       <img 
         :src="product.image_url || 'https://via.placeholder.com/400x400/indigo/fff?text=' + encodeURIComponent(product.name)" 
@@ -25,29 +25,29 @@
       </div>
     </div>
     
+    <!-- Notification Messages (Absolute positioned) -->
+    <div v-if="cartMessage" class="absolute top-2 left-2 right-2 z-10 p-2 rounded text-sm shadow-lg" :class="cartSuccess ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-700 border border-red-300'">
+      <div v-if="cartSuccess" class="flex flex-col">
+        <span>{{ cartMessage }}</span>
+        <div class="mt-1 flex justify-end">
+          <router-link to="/cart" class="text-xs font-medium text-indigo-600 hover:text-indigo-500">
+            Przejdź do koszyka &rarr;
+          </router-link>
+        </div>
+      </div>
+      <div v-else>
+        {{ cartMessage }}
+      </div>
+    </div>
+    
+    <div v-if="favoriteMessage" class="absolute top-2 left-2 right-2 z-10 p-2 rounded text-sm shadow-lg" :class="favoriteSuccess ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-700 border border-red-300'">
+      {{ favoriteMessage }}
+    </div>
+    
     <div class="p-4 flex-1 flex flex-col justify-between">
       <div>
         <h3 class="text-base font-bold text-gray-900 line-clamp-2 mb-2 leading-tight">{{ product.name }}</h3>
         <p class="text-xs text-gray-600 line-clamp-2 mb-3 leading-relaxed">{{ product.short_description || product.description }}</p>
-      </div>
-      
-      <!-- Messages -->
-      <div v-if="cartMessage" class="mt-2 p-2 rounded text-sm" :class="cartSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
-        <div v-if="cartSuccess" class="flex flex-col">
-          <span>{{ cartMessage }}</span>
-          <div class="mt-1 flex justify-end">
-            <router-link to="/cart" class="text-xs font-medium text-indigo-600 hover:text-indigo-500">
-              Przejdź do koszyka &rarr;
-            </router-link>
-          </div>
-        </div>
-        <div v-else>
-          {{ cartMessage }}
-        </div>
-      </div>
-      
-      <div v-if="favoriteMessage" class="mt-2 p-2 rounded text-sm" :class="favoriteSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
-        {{ favoriteMessage }}
       </div>
       
       <div>
