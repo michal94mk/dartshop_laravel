@@ -36,6 +36,23 @@
       :items="categories.data"
       class="mt-8"
     >
+      <template #cell-image="{ item }">
+        <div v-if="item.image_url" class="flex justify-center">
+          <img 
+            :src="item.image_url" 
+            :alt="item.name" 
+            class="h-12 w-12 object-cover rounded-lg shadow-sm"
+          />
+        </div>
+        <div v-else class="flex justify-center">
+          <div class="h-12 w-12 bg-gray-200 rounded-lg flex items-center justify-center">
+            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        </div>
+      </template>
+      
       <template #cell-products_count="{ item }">
         {{ item.products_count || 0 }}
       </template>
@@ -78,16 +95,90 @@
       size="lg"
       @close="showModal = false"
     >
-      <form @submit.prevent="saveCategory" class="space-y-4">
+      <form @submit.prevent="saveCategory" class="space-y-6">
         <div>
-          <label for="name" class="block text-sm font-medium text-gray-700">Nazwa kategorii</label>
+          <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Nazwa kategorii</label>
           <input
             type="text"
             id="name"
             v-model="currentCategory.name"
             required
             class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+            placeholder="Np. Lotki, Tarcze, Akcesoria"
           />
+        </div>
+
+        <div>
+          <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Opis kategorii</label>
+          <textarea
+            id="description"
+            v-model="currentCategory.description"
+            rows="3"
+            class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+            placeholder="Krótki opis kategorii, który będzie wyświetlany na stronie głównej"
+          ></textarea>
+        </div>
+
+        <div>
+          <label for="image" class="block text-sm font-medium text-gray-700 mb-2">Obrazek kategorii</label>
+          <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-indigo-400 transition-colors">
+            <div class="space-y-1 text-center">
+              <!-- Preview current image -->
+              <div v-if="currentCategory.image_url || imagePreview" class="mb-4">
+                <img 
+                  :src="imagePreview || currentCategory.image_url" 
+                  alt="Podgląd obrazka" 
+                  class="mx-auto h-32 w-32 object-cover rounded-lg shadow-md"
+                />
+              </div>
+              
+              <!-- Upload icon -->
+              <svg v-else class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              
+              <div class="flex text-sm text-gray-600">
+                <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                  <span>{{ currentCategory.image_url || imagePreview ? 'Zmień obrazek' : 'Wybierz obrazek' }}</span>
+                  <input 
+                    id="file-upload" 
+                    name="file-upload" 
+                    type="file" 
+                    class="sr-only" 
+                    accept="image/*"
+                    @change="handleImageUpload"
+                  />
+                </label>
+                <p class="pl-1">lub przeciągnij i upuść</p>
+              </div>
+              <p class="text-xs text-gray-500">PNG, JPG, GIF do 2MB</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-2">Kolejność sortowania</label>
+          <input
+            type="number"
+            id="sort_order"
+            v-model.number="currentCategory.sort_order"
+            min="0"
+            class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+            placeholder="0"
+          />
+          <p class="mt-1 text-sm text-gray-500">Niższe wartości będą wyświetlane jako pierwsze</p>
+        </div>
+
+        <div class="flex items-center">
+          <input
+            id="is_active"
+            type="checkbox"
+            v-model="currentCategory.is_active"
+            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+          />
+          <label for="is_active" class="ml-2 block text-sm text-gray-900">
+            Kategoria aktywna
+          </label>
         </div>
       </form>
       
@@ -207,9 +298,10 @@ export default {
     
     // Table columns definition
     const tableColumns = [
-      { key: 'name', label: 'Nazwa', width: '350px' },
-      { key: 'products_count', label: 'Liczba produktów', width: '180px' },
-      { key: 'created_at', label: 'Data utworzenia', type: 'date', width: '180px' },
+      { key: 'name', label: 'Nazwa', width: '300px' },
+      { key: 'image', label: 'Obrazek', width: '100px' },
+      { key: 'products_count', label: 'Liczba produktów', width: '150px' },
+      { key: 'created_at', label: 'Data utworzenia', type: 'date', width: '150px' },
       { key: 'actions', label: 'Akcje', align: 'right', width: '160px' }
     ]
     
@@ -234,12 +326,20 @@ export default {
     const categoryToDelete = ref(null)
     const currentCategory = ref({
       id: null,
-      name: ''
+      name: '',
+      description: '',
+      image_url: null,
+      sort_order: 0,
+      is_active: true
     })
     
     // Detailed Error Modal
     const showErrorModal = ref(false)
     const errorMessage = ref('')
+    
+    // Image upload handling
+    const imagePreview = ref(null)
+    const selectedImageFile = ref(null)
     
     // Computed
     const paginationPages = computed(() => {
@@ -302,38 +402,74 @@ export default {
       if (category) {
         currentCategory.value = { 
           id: category.id,
-          name: category.name
+          name: category.name,
+          description: category.description,
+          image_url: category.image_url,
+          sort_order: category.sort_order,
+          is_active: category.is_active
         }
       } else {
         currentCategory.value = {
           id: null,
-          name: ''
+          name: '',
+          description: '',
+          image_url: null,
+          sort_order: 0,
+          is_active: true
         }
       }
+      // Reset image upload state
+      imagePreview.value = null
+      selectedImageFile.value = null
       showModal.value = true
     }
     
     const saveCategory = async () => {
       try {
+        const formData = new FormData()
+        formData.append('name', currentCategory.value.name)
+        formData.append('description', currentCategory.value.description || '')
+        formData.append('sort_order', currentCategory.value.sort_order || 0)
+        formData.append('is_active', currentCategory.value.is_active ? 1 : 0)
+        
+        // Add image if selected
+        if (selectedImageFile.value) {
+          formData.append('image', selectedImageFile.value)
+        }
+        
         if (currentCategory.value.id) {
-          // Update existing category
-          await axios.put(`/api/admin/categories/${currentCategory.value.id}`, { 
-            name: currentCategory.value.name 
+          // Update existing category - use POST with _method for file upload
+          formData.append('_method', 'PUT')
+          await axios.post(`/api/admin/categories/${currentCategory.value.id}`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
           })
           alertStore.success('Kategoria została zaktualizowana.')
         } else {
           // Create new category
-          await axios.post('/api/admin/categories', { 
-            name: currentCategory.value.name 
+          await axios.post('/api/admin/categories', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
           })
           alertStore.success('Kategoria została dodana.')
         }
         
         showModal.value = false
+        // Reset form and image upload
+        imagePreview.value = null
+        selectedImageFile.value = null
         fetchCategories()
       } catch (error) {
         console.error('Error saving category:', error)
-        alertStore.error('Wystąpił błąd podczas zapisywania kategorii.')
+        if (error.response && error.response.data && error.response.data.errors) {
+          const errors = error.response.data.errors
+          const errorMessages = Object.values(errors).flat().join('\n')
+          alertStore.error('Błędy walidacji:\n' + errorMessages)
+        } else {
+          alertStore.error('Wystąpił błąd podczas zapisywania kategorii.')
+        }
       }
     }
     
@@ -420,6 +556,33 @@ export default {
       fetchCategories()
     }
     
+    const handleImageUpload = (event) => {
+      const file = event.target.files[0]
+      if (file) {
+        // Validate file size (2MB max)
+        if (file.size > 2048 * 1024) {
+          alertStore.error('Plik jest za duży. Maksymalny rozmiar to 2MB.')
+          return
+        }
+        
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp']
+        if (!allowedTypes.includes(file.type)) {
+          alertStore.error('Nieprawidłowy typ pliku. Dozwolone formaty: JPEG, PNG, JPG, GIF, WEBP.')
+          return
+        }
+        
+        selectedImageFile.value = file
+        
+        // Create preview
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          imagePreview.value = e.target.result
+        }
+        reader.readAsDataURL(file)
+      }
+    }
+    
     // Lifecycle
     onMounted(() => {
       fetchCategories()
@@ -445,7 +608,10 @@ export default {
       sortOptions,
       tableColumns,
       showErrorModal,
-      errorMessage
+      errorMessage,
+      imagePreview,
+      selectedImageFile,
+      handleImageUpload
     }
   }
 }

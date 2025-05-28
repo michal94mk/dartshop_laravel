@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends BaseAdminController
 {
@@ -89,17 +90,34 @@ class CategoryController extends BaseAdminController
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255|unique:categories,name',
+                'description' => 'nullable|string|max:1000',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
                 'is_active' => 'nullable|boolean',
+                'sort_order' => 'nullable|integer|min:0',
             ]);
 
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $category = Category::create([
+            $categoryData = [
                 'name' => $request->name,
+                'description' => $request->description,
                 'is_active' => $request->has('is_active') ? $request->is_active : true,
-            ]);
+                'sort_order' => $request->sort_order ?? 0,
+            ];
+
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                
+                // Store in storage/app/public/categories
+                $image->storeAs('public/categories', $filename);
+                $categoryData['image'] = 'categories/' . $filename;
+            }
+
+            $category = Category::create($categoryData);
 
             return $this->successResponse('Category created successfully', $category, 201);
         } catch (\Exception $e) {
@@ -137,17 +155,42 @@ class CategoryController extends BaseAdminController
 
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255|unique:categories,name,' . $id,
+                'description' => 'nullable|string|max:1000',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
                 'is_active' => 'nullable|boolean',
+                'sort_order' => 'nullable|integer|min:0',
             ]);
 
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $category->update([
+            $updateData = [
                 'name' => $request->name,
+                'description' => $request->description,
                 'is_active' => $request->has('is_active') ? $request->is_active : $category->is_active,
-            ]);
+                'sort_order' => $request->sort_order ?? $category->sort_order,
+            ];
+
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                // Delete old image if exists
+                if ($category->image) {
+                    $oldImagePath = storage_path('app/public/' . $category->image);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
+                }
+
+                $image = $request->file('image');
+                $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                
+                // Store in storage/app/public/categories
+                $image->storeAs('public/categories', $filename);
+                $updateData['image'] = 'categories/' . $filename;
+            }
+
+            $category->update($updateData);
 
             return $this->successResponse('Category updated successfully', $category);
         } catch (\Exception $e) {
@@ -227,6 +270,15 @@ class CategoryController extends BaseAdminController
             }
             
             // If we reach here, the category has no products and can be deleted
+            
+            // Delete image file if exists
+            if ($category->image) {
+                $imagePath = storage_path('app/public/' . $category->image);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
+            }
+            
             $category->delete();
             \Illuminate\Support\Facades\Log::info('Category deleted successfully', ['id' => $id]);
 
