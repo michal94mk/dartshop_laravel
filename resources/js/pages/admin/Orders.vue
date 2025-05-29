@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6">
+  <div class="px-6 py-4">
     <!-- Page Header -->
     <page-header 
       title="Zamówienia"
@@ -460,7 +460,7 @@
             <button
               type="button"
               @click="addProduct"
-              class="mt-2 px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700"
+              class="mt-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700"
             >
               Dodaj produkt
             </button>

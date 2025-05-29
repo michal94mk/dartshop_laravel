@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6">
+  <div class="px-6 py-4">
     <!-- Page Header -->
     <page-header 
       title="Recenzje produktów"

@@ -1,7 +1,12 @@
 <template>
-  <div class="p-6 max-w-7xl mx-auto">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-semibold text-gray-900">Zarządzanie stroną "O nas"</h1>
+  <div class="px-6 py-4 max-w-7xl mx-auto">
+    <div class="sm:flex sm:items-center">
+      <div class="sm:flex-auto">
+        <h1 class="text-2xl font-semibold text-gray-900">O nas</h1>
+        <p class="mt-2 text-sm text-gray-700">
+          Zarządzaj treścią strony "O nas"
+        </p>
+      </div>
     </div>
     
     <!-- Loading indicator -->

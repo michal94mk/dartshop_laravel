@@ -1,5 +1,5 @@
 <template>
-  <div class="sm:flex sm:items-center p-6">
+  <div class="sm:flex sm:items-center px-6 py-4">
     <div class="sm:flex-auto">
       <h1 class="text-2xl font-semibold text-gray-900">{{ title }}</h1>
       <p v-if="subtitle" class="mt-2 text-sm text-gray-700">{{ subtitle }}</p>

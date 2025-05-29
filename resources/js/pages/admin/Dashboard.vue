@@ -1,6 +1,11 @@
 <template>
-  <div class="p-6">
-    <h1 class="text-2xl font-semibold text-gray-900">Panel administracyjny</h1>
+  <div class="px-6 py-4">
+    <div class="sm:flex sm:items-center">
+      <div class="sm:flex-auto">
+        <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
+        <p class="mt-2 text-sm text-gray-700">Przegląd statystyk sklepu</p>
+      </div>
+    </div>
     
     <!-- Dashboard Settings -->
     <div class="mt-4 bg-white p-4 rounded-lg shadow">
