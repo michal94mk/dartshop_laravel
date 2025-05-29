@@ -4,6 +4,7 @@
     <page-header 
       title="Wiadomości kontaktowe"
       subtitle="Lista wszystkich wiadomości kontaktowych z możliwością zarządzania i odpowiadania."
+      :show-add-button="false"
     />
 
     <!-- Search and filters -->

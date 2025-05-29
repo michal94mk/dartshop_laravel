@@ -12,10 +12,7 @@
             @click="showCreateModal = true" 
             variant="primary"
           >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            Nowa Polityka
+            Dodaj politykę
           </admin-button>
         </div>
       </div>
@@ -102,10 +99,7 @@
         <p class="mt-1 text-sm text-gray-500">Zacznij od utworzenia pierwszej polityki prywatności.</p>
         <div class="mt-6">
           <admin-button @click="showCreateModal = true" variant="primary">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            Nowa Polityka
+            Dodaj politykę
           </admin-button>
         </div>
       </div>
@@ -146,38 +140,25 @@
                 {{ formatDate(policy.created_at) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div class="flex gap-1 justify-end min-w-[200px]">
-                  <admin-button 
-                    @click="viewPolicy(policy)"
-                    variant="warning"
-                    size="sm"
-                  >
-                    Szczegóły
-                  </admin-button>
-                  <admin-button 
-                    @click="editPolicy(policy)"
-                    variant="warning"
-                    size="sm"
-                  >
-                    Edytuj
-                  </admin-button>
-                  <admin-button 
-                    v-if="!policy.is_active"
-                    @click="setAsActive(policy)"
-                    variant="primary"
-                    size="sm"
-                  >
-                    Aktywuj
-                  </admin-button>
-                  <admin-button 
-                    v-if="!policy.is_active"
-                    @click="confirmDelete(policy)"
-                    variant="danger"
-                    size="sm"
-                  >
-                    Usuń
-                  </admin-button>
-                </div>
+                <action-buttons 
+                  :item="policy" 
+                  :show-details="true"
+                  @details="viewPolicy"
+                  @edit="editPolicy"
+                  @delete="confirmDelete"
+                  :show-delete="!policy.is_active"
+                >
+                  <template #status-buttons="{ item }">
+                    <admin-button 
+                      v-if="!item.is_active"
+                      @click="setAsActive(item)"
+                      variant="primary"
+                      size="sm"
+                    >
+                      Aktywuj
+                    </admin-button>
+                  </template>
+                </action-buttons>
               </td>
             </tr>
           </tbody>
@@ -338,11 +319,13 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
+import ActionButtons from '../../components/admin/ActionButtons.vue'
 
 export default {
   name: 'AdminPrivacyPolicies',
   components: {
-    AdminButton
+    AdminButton,
+    ActionButtons
   },
   
   setup() {

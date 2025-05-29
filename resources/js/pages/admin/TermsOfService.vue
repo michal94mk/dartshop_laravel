@@ -12,10 +12,7 @@
             @click="showCreateModal = true" 
             variant="primary"
           >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            Nowy Regulamin
+            Dodaj regulamin
           </admin-button>
         </div>
       </div>
@@ -102,10 +99,7 @@
         <p class="mt-1 text-sm text-gray-500">Zacznij od utworzenia pierwszego regulaminu.</p>
         <div class="mt-6">
           <admin-button @click="showCreateModal = true" variant="primary">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            Nowy Regulamin
+            Dodaj regulamin
           </admin-button>
         </div>
       </div>
@@ -146,38 +140,25 @@
                 {{ formatDate(term.created_at) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div class="flex gap-1 justify-end min-w-[200px]">
-                  <admin-button 
-                    @click="viewTerm(term)"
-                    variant="warning"
-                    size="sm"
-                  >
-                    Szczegóły
-                  </admin-button>
-                  <admin-button 
-                    @click="editTerm(term)"
-                    variant="warning"
-                    size="sm"
-                  >
-                    Edytuj
-                  </admin-button>
-                  <admin-button 
-                    v-if="!term.is_active"
-                    @click="setAsActive(term)"
-                    variant="primary"
-                    size="sm"
-                  >
-                    Aktywuj
-                  </admin-button>
-                  <admin-button 
-                    v-if="!term.is_active"
-                    @click="confirmDelete(term)"
-                    variant="danger"
-                    size="sm"
-                  >
-                    Usuń
-                  </admin-button>
-                </div>
+                <action-buttons 
+                  :item="term" 
+                  :show-details="true"
+                  @details="viewTerm"
+                  @edit="editTerm"
+                  @delete="confirmDelete"
+                  :show-delete="!term.is_active"
+                >
+                  <template #status-buttons="{ item }">
+                    <admin-button 
+                      v-if="!item.is_active"
+                      @click="setAsActive(item)"
+                      variant="primary"
+                      size="sm"
+                    >
+                      Aktywuj
+                    </admin-button>
+                  </template>
+                </action-buttons>
               </td>
             </tr>
           </tbody>
@@ -338,11 +319,13 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
+import ActionButtons from '../../components/admin/ActionButtons.vue'
 
 export default {
   name: 'AdminTermsOfService',
   components: {
-    AdminButton
+    AdminButton,
+    ActionButtons
   },
   
   setup() {
