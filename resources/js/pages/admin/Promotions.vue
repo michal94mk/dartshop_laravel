@@ -138,33 +138,31 @@
             </div>
 
             <div class="flex items-center space-x-2">
-              <button
+              <admin-button
                 @click="toggleActive(promotion)"
-                :class="[
-                  'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2',
-                  promotion.is_active
-                    ? 'text-red-700 bg-red-100 hover:bg-red-200 focus:ring-red-500'
-                    : 'text-green-700 bg-green-100 hover:bg-green-200 focus:ring-green-500'
-                ]"
+                :variant="promotion.is_active ? 'danger' : 'success'"
+                size="sm"
               >
                 {{ promotion.is_active ? 'Dezaktywuj' : 'Aktywuj' }}
-              </button>
+              </admin-button>
               
-              <button
+              <admin-button
                 @click="editPromotion(promotion)"
-                class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                variant="warning"
+                size="sm"
               >
                 <PencilIcon class="h-4 w-4 mr-1" />
                 Edytuj
-              </button>
+              </admin-button>
               
-              <button
+              <admin-button
                 @click="deletePromotion(promotion)"
-                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                variant="danger"
+                size="sm"
               >
                 <TrashIcon class="h-4 w-4 mr-1" />
                 Usuń
-              </button>
+              </admin-button>
             </div>
           </div>
         </li>
@@ -303,6 +301,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { PlusIcon, PencilIcon, TrashIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 import PromotionModal from '../../components/admin/PromotionModal.vue'
 import { useAlertStore } from '../../stores/alertStore'
+import AdminButton from '../../components/admin/ui/AdminButton.vue'
 
 export default {
   name: 'AdminPromotions',
@@ -312,7 +311,8 @@ export default {
     TrashIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
-    PromotionModal
+    PromotionModal,
+    AdminButton
   },
   setup() {
     const alertStore = useAlertStore()

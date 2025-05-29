@@ -102,22 +102,11 @@
       </template>
       
       <template #cell-actions="{ item }">
-        <admin-button-group spacing="xs">
-          <admin-button
-            @click="openModal(item)"
-            variant="primary"
-            size="sm"
-          >
-            Edytuj
-          </admin-button>
-          <admin-button
-            @click="deleteProduct(item.id)"
-            variant="danger"
-            size="sm"
-          >
-            Usuń
-          </admin-button>
-        </admin-button-group>
+        <action-buttons 
+          :item="item" 
+          @edit="openModal" 
+          @delete="deleteProduct"
+        />
       </template>
     </admin-table>
     
@@ -337,6 +326,7 @@ import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
 import NoDataMessage from '../../components/admin/NoDataMessage.vue'
 import Pagination from '../../components/admin/Pagination.vue'
 import PageHeader from '../../components/admin/PageHeader.vue'
+import ActionButtons from '../../components/admin/ActionButtons.vue'
 
 export default {
   name: 'AdminProducts',
@@ -348,7 +338,8 @@ export default {
     LoadingSpinner,
     NoDataMessage,
     Pagination,
-    PageHeader
+    PageHeader,
+    ActionButtons
   },
   setup() {
     const alertStore = useAlertStore()
@@ -689,7 +680,7 @@ export default {
           };
           
           // Ensure CSRF token is available
-          const csrfToken = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)');
+          const csrfToken = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)')
           
           if (currentProduct.value.id) {
             // Update existing product
@@ -747,22 +738,45 @@ export default {
       showDeleteModal.value = true
     }
     
-    const confirmDelete = async () => {
+    const confirmDelete = async (productOrId) => {
       try {
         loading.value = true
         
-        // Ensure we have a product ID to delete
-        if (!productToDelete.value) {
+        // Handle both ID and object from ActionButtons
+        let productId;
+        if (typeof productOrId === 'object' && productOrId !== null) {
+          productId = productOrId.id || productOrId;
+        } else {
+          productId = productOrId || productToDelete.value;
+        }
+        
+        if (!productId) {
+          productId = productToDelete.value;
+        }
+        
+        // If still no ID, set modal and return
+        if (!productId) {
           alertStore.error('Nie można usunąć produktu: brak ID.')
-          showDeleteModal.value = false
+          if (productOrId) {
+            productToDelete.value = productOrId;
+            showDeleteModal.value = true;
+          }
           return
+        }
+        
+        // If called with product object from ActionButtons, show modal first
+        if (typeof productOrId === 'object' && productOrId !== null && !showDeleteModal.value) {
+          productToDelete.value = productId;
+          showDeleteModal.value = true;
+          loading.value = false;
+          return;
         }
         
         // Ensure CSRF token is available
         const csrfToken = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)')
         
         // Send delete request with method spoofing for better compatibility
-        const url = `/api/admin/products/${productToDelete.value}`
+        const url = `/api/admin/products/${productId}`
         
         const response = await axios({
           method: 'post',

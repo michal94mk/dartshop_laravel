@@ -96,23 +96,12 @@
       </template>
       
       <template #cell-actions="{ item }">
-        <admin-button-group spacing="xs">
-          <admin-button
-            @click="openModal(item)"
-            variant="primary"
-            size="sm"
-          >
-            Edytuj
-          </admin-button>
-          <admin-button
-            @click="deleteUser(item.id)"
-            variant="danger"
-            size="sm"
-            :disabled="item.id === currentUserId"
-          >
-            Usuń
-          </admin-button>
-        </admin-button-group>
+        <action-buttons 
+          :item="item" 
+          @edit="openModal" 
+          @delete="deleteUser"
+          :disable-delete="item.id === currentUserId"
+        />
       </template>
     </admin-table>
     
@@ -384,6 +373,7 @@ import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
 import NoDataMessage from '../../components/admin/NoDataMessage.vue'
 import Pagination from '../../components/admin/Pagination.vue'
 import PageHeader from '../../components/admin/PageHeader.vue'
+import ActionButtons from '../../components/admin/ActionButtons.vue'
 
 export default {
   name: 'AdminUsers',
@@ -396,7 +386,8 @@ export default {
     LoadingSpinner,
     NoDataMessage,
     Pagination,
-    PageHeader
+    PageHeader,
+    ActionButtons
   },
   setup() {
     const alertStore = useAlertStore()

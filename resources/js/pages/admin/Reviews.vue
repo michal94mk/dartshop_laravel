@@ -138,52 +138,39 @@
       </template>
       
       <template #cell-actions="{ item }">
-        <div class="flex gap-1 justify-end min-w-[320px]">
-          <admin-button 
-            v-if="!item.is_approved" 
-            @click="approveReview(item)" 
-            variant="success"
-            size="sm"
-          >
-            Zatwierdź
-          </admin-button>
-          <admin-button 
-            v-if="item.is_approved" 
-            @click="rejectReview(item)" 
-            variant="danger"
-            size="sm"
-          >
-            Odrzuć
-          </admin-button>
-          <admin-button 
-            @click="toggleFeatured(item)" 
-            :variant="item.is_featured ? 'secondary' : 'info'"
-            size="sm"
-          >
-            {{ item.is_featured ? 'Usuń wyróż.' : 'Wyróżnij' }}
-          </admin-button>
-          <admin-button 
-            @click="editReview(item)" 
-            variant="warning"
-            size="sm"
-          >
-            Edytuj
-          </admin-button>
-          <admin-button 
-            @click="confirmDeleteReview(item)" 
-            variant="danger"
-            size="sm"
-          >
-            Usuń
-          </admin-button>
-          <admin-button 
-            @click="showReviewDetails(item)" 
-            variant="primary"
-            size="sm"
-          >
-            Szczegóły
-          </admin-button>
-        </div>
+        <action-buttons 
+          :item="item" 
+          :show-details="true"
+          @details="showReviewDetails"
+          @edit="editReview" 
+          @delete="confirmDeleteReview"
+        >
+          <template #status-buttons="{ item }">
+            <admin-button 
+              v-if="!item.is_approved" 
+              @click="approveReview(item)" 
+              variant="success"
+              size="sm"
+            >
+              Zatwierdź
+            </admin-button>
+            <admin-button 
+              v-if="item.is_approved" 
+              @click="rejectReview(item)" 
+              variant="danger"
+              size="sm"
+            >
+              Odrzuć
+            </admin-button>
+            <admin-button 
+              @click="toggleFeatured(item)" 
+              :variant="item.is_featured ? 'secondary' : 'info'"
+              size="sm"
+            >
+              {{ item.is_featured ? 'Usuń wyróż.' : 'Wyróżnij' }}
+            </admin-button>
+          </template>
+        </action-buttons>
       </template>
     </admin-table>
     
@@ -594,15 +581,16 @@ import { ref, computed, onMounted, reactive, watch } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
 import Modal from '../../components/Modal.vue'
-  import PageHeader from '../../components/admin/PageHeader.vue'
-  import AdminTable from '../../components/admin/ui/AdminTable.vue'
-  import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
-  import AdminButton from '../../components/admin/ui/AdminButton.vue'
-  import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
-  import SearchFilters from '../../components/admin/SearchFilters.vue'
-  import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
-  import NoDataMessage from '../../components/admin/NoDataMessage.vue'
-  import Pagination from '../../components/admin/Pagination.vue'
+import PageHeader from '../../components/admin/PageHeader.vue'
+import AdminTable from '../../components/admin/ui/AdminTable.vue'
+import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
+import AdminButton from '../../components/admin/ui/AdminButton.vue'
+import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
+import SearchFilters from '../../components/admin/SearchFilters.vue'
+import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
+import NoDataMessage from '../../components/admin/NoDataMessage.vue'
+import Pagination from '../../components/admin/Pagination.vue'
+import ActionButtons from '../../components/admin/ActionButtons.vue'
 
 export default {
   name: 'AdminReviews',
@@ -616,7 +604,8 @@ export default {
     SearchFilters,
     LoadingSpinner,
     NoDataMessage,
-    Pagination
+    Pagination,
+    ActionButtons
   },
   setup() {
     const alertStore = useAlertStore()
@@ -662,8 +651,6 @@ export default {
       { key: 'created_at', label: 'Data', type: 'date', width: '180px' },
       { key: 'actions', label: 'Akcje', align: 'right', width: '360px' }
     ]
-    
-
     
     // Default filters
     const defaultFilters = {

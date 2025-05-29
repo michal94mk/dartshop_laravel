@@ -1,14 +1,34 @@
 <template>
   <admin-button-group spacing="xs">
+    <!-- Details/View button -->
+    <admin-button 
+      v-if="showDetails"
+      @click="$emit('details', item)"
+      variant="secondary"
+      size="sm"
+      :title="detailsLabel"
+    >
+      {{ detailsLabel }}
+    </admin-button>
+    
+    <!-- Edit button -->
     <admin-button 
       v-if="showEdit"
       @click="$emit('edit', item)"
-      variant="primary"
+      variant="warning"
       size="sm"
       :title="editLabel"
     >
       {{ editLabel }}
     </admin-button>
+    
+    <!-- Status buttons slot (for approve/reject etc.) -->
+    <slot name="status-buttons" :item="item"></slot>
+    
+    <!-- Custom buttons slot -->
+    <slot name="custom-buttons" :item="item"></slot>
+    
+    <!-- Delete button -->
     <admin-button 
       v-if="showDelete"
       @click="handleDelete"
@@ -19,6 +39,8 @@
     >
       {{ deleteLabel }}
     </admin-button>
+    
+    <!-- Additional buttons slot -->
     <slot></slot>
   </admin-button-group>
 </template>
@@ -38,6 +60,10 @@ export default {
       type: Object,
       required: true
     },
+    showDetails: {
+      type: Boolean,
+      default: false
+    },
     showEdit: {
       type: Boolean,
       default: true
@@ -50,6 +76,10 @@ export default {
       type: Boolean,
       default: false
     },
+    detailsLabel: {
+      type: String,
+      default: 'Szczegóły'
+    },
     editLabel: {
       type: String,
       default: 'Edytuj'
@@ -59,6 +89,7 @@ export default {
       default: 'Usuń'
     }
   },
+  emits: ['edit', 'delete', 'details'],
   methods: {
     handleDelete() {
       // Always emit the ID itself, not the entire object

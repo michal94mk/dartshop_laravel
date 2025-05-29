@@ -93,22 +93,11 @@
       </template>
       
       <template #cell-actions="{ item }">
-        <admin-button-group spacing="xs">
-          <admin-button
-            @click="editTutorial(item)"
-            variant="primary"
-            size="sm"
-          >
-            Edytuj
-          </admin-button>
-          <admin-button
-            @click="confirmDelete(item)"
-            variant="danger"
-            size="sm"
-          >
-            Usuń
-          </admin-button>
-        </admin-button-group>
+        <action-buttons 
+          :item="item" 
+          @edit="editTutorial" 
+          @delete="confirmDelete"
+        />
       </template>
     </admin-table>
     
@@ -298,6 +287,7 @@ import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
 import NoDataMessage from '../../components/admin/NoDataMessage.vue'
 import PageHeader from '../../components/admin/PageHeader.vue'
 import Pagination from '../../components/admin/Pagination.vue'
+import ActionButtons from '../../components/admin/ActionButtons.vue'
 
 export default {
   name: 'AdminTutorials',
@@ -311,7 +301,8 @@ export default {
     LoadingSpinner,
     NoDataMessage,
     PageHeader,
-    Pagination
+    Pagination,
+    ActionButtons
   },
   setup() {
     const alertStore = useAlertStore()

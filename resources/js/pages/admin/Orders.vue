@@ -102,36 +102,23 @@
       </template>
       
       <template #cell-actions="{ item }">
-        <div class="flex gap-1 justify-end min-w-[260px]">
-          <admin-button 
-            @click="openOrderDetails(item)" 
-            variant="primary" 
-            size="sm"
-          >
-            Szczegóły
-          </admin-button>
-          <admin-button 
-            @click="openStatusModal(item)" 
-            variant="info" 
-            size="sm"
-          >
-            Status
-          </admin-button>
-          <admin-button 
-            @click="openEditModal(item)" 
-            variant="warning" 
-            size="sm"
-          >
-            Edytuj
-          </admin-button>
-          <admin-button 
-            @click="confirmDelete(item)" 
-            variant="danger" 
-            size="sm"
-          >
-            Usuń
-          </admin-button>
-        </div>
+        <action-buttons 
+          :item="item" 
+          :show-details="true"
+          @details="openOrderDetails"
+          @edit="editOrder" 
+          @delete="confirmDelete"
+        >
+          <template #status-buttons="{ item }">
+            <admin-button 
+              @click="changeStatus(item)" 
+              variant="info"
+              size="sm"
+            >
+              Zmień status
+            </admin-button>
+          </template>
+        </action-buttons>
       </template>
     </admin-table>
     
@@ -610,6 +597,7 @@ import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
 import AdminModal from '../../components/admin/ui/AdminModal.vue'
 import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
+import ActionButtons from '../../components/admin/ActionButtons.vue'
 
 // Add axios interceptors for debugging
 axios.interceptors.request.use(request => {
@@ -649,7 +637,8 @@ export default {
     AdminButtonGroup,
     AdminButton,
     AdminModal,
-    AdminBadge
+    AdminBadge,
+    ActionButtons
   },
   setup() {
     const alertStore = useAlertStore()
@@ -1364,6 +1353,14 @@ export default {
       showDeleteModal.value = true
     }
     
+    const editOrder = (order) => {
+      openEditModal(order)
+    }
+    
+    const changeStatus = (order) => {
+      openStatusModal(order)
+    }
+    
     const deleteOrder = async () => {
       try {
         await axios.delete(`/api/admin/orders/${orderToDelete.value.id}`)
@@ -1442,7 +1439,10 @@ export default {
       handleSubmit,
       confirmDelete,
       deleteOrder,
-      formatPrice
+      formatPrice,
+      editOrder,
+      changeStatus,
+      resetFilters
     }
   }
 }

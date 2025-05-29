@@ -73,22 +73,21 @@
       </template>
       
       <template #cell-actions="{ item }">
-        <admin-button-group spacing="xs">
-          <admin-button
-            @click="viewMessage(item)"
-            variant="primary"
-            size="sm"
-          >
-            Zarządzaj
-          </admin-button>
-          <admin-button
-            @click="confirmDelete(item)"
-            variant="danger"
-            size="sm"
-          >
-            Usuń
-          </admin-button>
-        </admin-button-group>
+        <action-buttons 
+          :item="item" 
+          :show-edit="false"
+          @delete="confirmDelete"
+        >
+          <template #custom-buttons="{ item }">
+            <admin-button
+              @click="viewMessage(item)"
+              variant="warning"
+              size="sm"
+            >
+              Zarządzaj
+            </admin-button>
+          </template>
+        </action-buttons>
       </template>
     </admin-table>
     
@@ -301,6 +300,7 @@ import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
 import NoDataMessage from '../../components/admin/NoDataMessage.vue'
 import Pagination from '../../components/admin/Pagination.vue'
 import PageHeader from '../../components/admin/PageHeader.vue'
+import ActionButtons from '../../components/admin/ActionButtons.vue'
 
 export default {
   name: 'AdminContactMessages',
@@ -313,7 +313,8 @@ export default {
     LoadingSpinner,
     NoDataMessage,
     Pagination,
-    PageHeader
+    PageHeader,
+    ActionButtons
   },
   setup() {
     const alertStore = useAlertStore()
