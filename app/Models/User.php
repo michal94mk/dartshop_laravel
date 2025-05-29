@@ -37,6 +37,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_admin',
         'privacy_policy_accepted',
         'privacy_policy_accepted_at',
+        'terms_of_service_accepted',
+        'terms_of_service_accepted_at',
     ];
 
     /**
@@ -59,6 +61,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_admin' => 'boolean',
         'privacy_policy_accepted' => 'boolean',
         'privacy_policy_accepted_at' => 'datetime',
+        'terms_of_service_accepted' => 'boolean',
+        'terms_of_service_accepted_at' => 'datetime',
     ];
     
     /**

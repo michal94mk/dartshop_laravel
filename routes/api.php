@@ -34,6 +34,7 @@ use App\Http\Controllers\Api\GuestCheckoutController;
 use App\Http\Controllers\API\StripeController;
 use App\Http\Controllers\Api\NewsletterController;
 use App\Http\Controllers\API\PrivacyPolicyController;
+use App\Http\Controllers\API\TermsOfServiceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -273,6 +274,12 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::post('/privacy-policies/{privacyPolicy}/set-active', [\App\Http\Controllers\API\Admin\PrivacyPolicyController::class, 'setActive']);
     Route::get('/privacy-policies/users/without-acceptance', [\App\Http\Controllers\API\Admin\PrivacyPolicyController::class, 'getUsersWithoutAcceptance']);
     Route::get('/privacy-policies/stats/acceptance', [\App\Http\Controllers\API\Admin\PrivacyPolicyController::class, 'getAcceptanceStats']);
+    
+    // Terms of Service management
+    Route::apiResource('/terms-of-service', \App\Http\Controllers\API\Admin\TermsOfServiceController::class);
+    Route::post('/terms-of-service/{termsOfService}/set-active', [\App\Http\Controllers\API\Admin\TermsOfServiceController::class, 'setActive']);
+    Route::get('/terms-of-service/users/without-acceptance', [\App\Http\Controllers\API\Admin\TermsOfServiceController::class, 'getUsersWithoutAcceptance']);
+    Route::get('/terms-of-service/stats/acceptance', [\App\Http\Controllers\API\Admin\TermsOfServiceController::class, 'getAcceptanceStats']);
 });
 
 // Privacy Policy API
@@ -280,5 +287,11 @@ Route::get('/privacy-policy', [PrivacyPolicyController::class, 'show']);
 
 // Privacy Policy acceptance for authenticated users
 Route::middleware('auth:sanctum')->post('/privacy-policy/accept', [PrivacyPolicyController::class, 'accept']);
+
+// Terms of Service API
+Route::get('/terms-of-service', [TermsOfServiceController::class, 'show']);
+
+// Terms of Service acceptance for authenticated users
+Route::middleware('auth:sanctum')->post('/terms-of-service/accept', [TermsOfServiceController::class, 'accept']);
 
 

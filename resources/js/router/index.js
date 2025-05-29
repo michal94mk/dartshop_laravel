@@ -11,6 +11,7 @@ import PaymentSuccess from '../pages/PaymentSuccess.vue';
 import About from '../pages/About.vue';
 import Contact from '../pages/Contact.vue';
 import Privacy from '../pages/Privacy.vue';
+import Terms from '../pages/Terms.vue';
 import Promotions from '../pages/Promotions.vue';
 import Tutorials from '../pages/Tutorials.vue';
 import Tutorial from '../pages/Tutorial.vue';
@@ -39,6 +40,7 @@ import AdminContactMessages from '../pages/admin/ContactMessages.vue';
 import AdminAbout from '../pages/admin/About.vue';
 import AdminNewsletter from '../pages/admin/Newsletter.vue';
 import AdminPrivacyPolicies from '../pages/admin/PrivacyPolicies.vue';
+import AdminTermsOfService from '../pages/admin/TermsOfService.vue';
 
 const routes = [
   {
@@ -111,6 +113,14 @@ const routes = [
     path: '/privacy',
     name: 'privacy',
     component: Privacy,
+    meta: {
+      layout: 'default'
+    }
+  },
+  {
+    path: '/terms',
+    name: 'terms',
+    component: Terms,
     meta: {
       layout: 'default'
     }
@@ -291,6 +301,11 @@ const routes = [
         path: 'privacy-policies',
         name: 'admin-privacy-policies',
         component: AdminPrivacyPolicies
+      },
+      {
+        path: 'terms-of-service',
+        name: 'admin-terms-of-service',
+        component: AdminTermsOfService
       }
     ]
   },

@@ -231,6 +231,16 @@
               </svg>
               <span>Polityki Prywatności</span>
             </router-link>
+            <router-link 
+              to="/admin/terms-of-service"
+              class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
+              :class="[$route.path.includes('/admin/terms-of-service') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
+            >
+              <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+              </svg>
+              <span>Regulaminy</span>
+            </router-link>
           </div>
         </div>
       </div>
@@ -315,6 +325,7 @@ export default {
       if (route.path.includes('/admin/users')) return 'Użytkownicy'
       if (route.path.includes('/admin/newsletter')) return 'Newsletter'
       if (route.path.includes('/admin/privacy-policies')) return 'Polityki Prywatności'
+      if (route.path.includes('/admin/terms-of-service')) return 'Regulaminy'
       return 'Panel Administratora'
     })
     
