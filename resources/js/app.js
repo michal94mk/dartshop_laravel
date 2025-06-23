@@ -201,30 +201,20 @@ const authStore = useAuthStore();
 const categoryStore = useCategoryStore();
 
 // Mount the app when the DOM is ready
-document.addEventListener('DOMContentLoaded', async () => {
-  // Inicjalizuj stan autoryzacji przed montowaniem aplikacji z mechanizmem ponownych prób
-  try {
-    await authStore.initAuthWithRetry(3, 1000);
-    console.log('Auth initialized before app mount:', authStore.isLoggedIn ? 'User is logged in' : 'User is not logged in');
-  } catch (error) {
-    console.error('Failed to initialize auth before app mount:', error);
-  }
-  
-  // Montuj aplikację po inicjalizacji stanu autoryzacji
+document.addEventListener('DOMContentLoaded', () => {
+  // Mount Vue app immediately
   app.mount('#app');
+  console.log('Vue app mounted');
   
-  // Ustaw okresowe odświeżanie sesji (co 15 minut)
-  if (authStore.isLoggedIn) {
-    console.log('Setting up session refresh interval');
-    // Odświeżaj co 15 minut (900000 ms)
-    const sessionRefreshInterval = setInterval(async () => {
-      if (authStore.isLoggedIn) {
-        console.log('Refreshing session automatically');
-        await authStore.refreshSession();
-      } else {
-        // Jeśli użytkownik wylogował się, zatrzymaj interwał
-        clearInterval(sessionRefreshInterval);
-      }
-    }, 900000);
-  }
+  // Hide blade loader after short delay to allow smooth transition
+  setTimeout(() => {
+    const fallbackLoader = document.getElementById('vue-fallback-loader') || document.getElementById('admin-fallback-loader');
+    if (fallbackLoader) {
+      fallbackLoader.style.transition = 'opacity 0.3s ease-out';
+      fallbackLoader.style.opacity = '0';
+      setTimeout(() => {
+        fallbackLoader.style.display = 'none';
+      }, 300);
+    }
+  }, 800); // Hide after Vue has time to load and auth to complete
 });
