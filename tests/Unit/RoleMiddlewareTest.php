@@ -14,9 +14,15 @@ use App\Http\Middleware\RoleMiddleware;
 
 class RoleMiddlewareTest extends TestCase
 {
+    use \Illuminate\Foundation\Testing\RefreshDatabase;
+
     public function testAuthorizedUserWithCorrectRoleCanAccessRoute()
     {
-        $user = User::factory()->create(['role' => 'admin']);
+        // Create admin role
+        \Spatie\Permission\Models\Role::create(['name' => 'admin']);
+        
+        $user = User::factory()->create(['is_admin' => true]);
+        $user->assignRole('admin');
         Auth::login($user);
         $request = Request::create('/protected-route');
         $middleware = new RoleMiddleware();
@@ -29,12 +35,16 @@ class RoleMiddlewareTest extends TestCase
 
     public function testUnauthorizedUserIsBlockedFromRoute()
     {
-        $user = User::factory()->create(['role' => 'user']);
+        // Create user role
+        \Spatie\Permission\Models\Role::create(['name' => 'user']);
+        
+        $user = User::factory()->create(['is_admin' => false]);
+        $user->assignRole('user');
         $this->actingAs($user);
         $request = Request::create('/protected-route');
         $this->expectException(AuthorizationException::class);
         $middleware = new RoleMiddleware();
-        $middleware->handle($request, function () {});
+        $middleware->handle($request, function () {}, 'admin');
     }
 
 

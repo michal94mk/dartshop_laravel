@@ -25,32 +25,23 @@ class ProductTest extends TestCase
 
     public function testProductNameIsRequired()
     {
-        $product = Product::factory()->make(['name' => '']);
-
-        $validator = Validator::make($product->toArray(), Product::$rules);
-
-        $this->assertFalse($validator->passes());
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $this->expectException(\Illuminate\Database\QueryException::class);
+        
+        Product::factory()->create(['name' => null]);
     }
 
     public function testProductPriceIsRequired()
     {
-        $product = Product::factory()->make(['price' => 0]);
-
-        $validator = Validator::make($product->toArray(), Product::$rules);
-
-        $this->assertFalse($validator->passes());
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('price', $validator->errors()->toArray());
+        $this->expectException(\Illuminate\Database\QueryException::class);
+        
+        Product::factory()->create(['price' => null]);
     }
 
     public function testProductPriceIsNumeric()
     {
-        $product = Product::factory()->make(['price' => 'invalid-price']);
-
-        $this->assertFalse($product->validate(['price' => 'invalid-price']));
-        $this->assertFalse($product->getErrors()->has('price'));
+        $this->expectException(\Illuminate\Database\QueryException::class);
+        
+        Product::factory()->create(['price' => 'invalid-price']);
     }
 
     public function testProductCanBeUpdated()

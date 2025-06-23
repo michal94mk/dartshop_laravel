@@ -38,11 +38,16 @@ class UserTest extends TestCase
 
     public function testEmailIsRequired()
     {
-        $response = $this->post('/register', [
+        $response = $this->postJson('/api/register', [
             'name' => 'username',
-            'password' => '123abc',
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'password' => '123abc123',
+            'password_confirmation' => '123abc123',
+            'privacy_policy_accepted' => true,
         ]);
 
-        $response->assertSessionHasErrors(['email']);
+        $response->assertStatus(422)
+                 ->assertJsonValidationErrors(['email']);
     }
 }

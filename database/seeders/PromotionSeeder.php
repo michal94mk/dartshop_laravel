@@ -26,6 +26,7 @@ class PromotionSeeder extends Seeder
         $promotion1 = Promotion::create([
             'title' => 'Wielka Wyprzedaż Dart',
             'name' => 'wielka_wyprzedaz_dart',
+            'code' => 'DART25',
             'description' => 'Najlepsze produkty do dart w promocyjnych cenach! Nie przegap okazji na profesjonalny sprzęt.',
             'discount_type' => 'percentage',
             'discount_value' => 25,
@@ -45,6 +46,7 @@ class PromotionSeeder extends Seeder
         $promotion2 = Promotion::create([
             'title' => 'Wyprzedaż Końca Miesiąca',
             'name' => 'wyprzedaz_konca_miesiaca',
+            'code' => 'MONTH50',
             'description' => 'Ostatnia szansa na zakup w niskich cenach! Wybrane produkty z rabatem.',
             'discount_type' => 'fixed',
             'discount_value' => 50,
@@ -66,6 +68,7 @@ class PromotionSeeder extends Seeder
         $promotion3 = Promotion::create([
             'title' => 'Nowości w Promocji',
             'name' => 'nowosci_w_promocji',
+            'code' => 'NEW15',
             'description' => 'Najnowsze produkty w naszej ofercie już dostępne w promocyjnych cenach!',
             'discount_type' => 'percentage',
             'discount_value' => 15,

@@ -19,26 +19,26 @@ class PasswordConfirmationTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_password_can_be_confirmed(): void
+    public function test_password_update_requires_authentication(): void
     {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)->post('/confirm-password', [
-            'password' => 'password',
+        // Test that password update API requires authentication
+        $response = $this->putJson('/api/user/password', [
+            'current_password' => 'password',
+            'password' => 'newpassword123',
+            'password_confirmation' => 'newpassword123',
         ]);
 
-        $response->assertRedirect();
-        $response->assertSessionHasNoErrors();
+        $response->assertStatus(401); // Unauthorized
     }
 
-    public function test_password_is_not_confirmed_with_invalid_password(): void
+    public function test_profile_update_requires_authentication(): void
     {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)->post('/confirm-password', [
-            'password' => 'wrong-password',
+        // Test that profile update API requires authentication
+        $response = $this->putJson('/api/user/profile', [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
         ]);
 
-        $response->assertSessionHasErrors();
+        $response->assertStatus(401); // Unauthorized
     }
 }

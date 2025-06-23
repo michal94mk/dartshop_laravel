@@ -11,30 +11,35 @@ use App\Models\User;
 
 class CategoryControllerTest extends TestCase
 {
-    //use RefreshDatabase;
+    use RefreshDatabase;
 
     public function setUp(): void
     {
         parent::setUp();
 
-        $adminUser = User::factory()->create(['role' => 'admin']);
+        // Create admin role
+        \Spatie\Permission\Models\Role::create(['name' => 'admin']);
+        
+        $adminUser = User::factory()->create(['is_admin' => true]);
+        $adminUser->assignRole('admin');
         $this->actingAs($adminUser);
     }
 
 
     public function testIndexReturnsCategories()
     {
-        $response = $this->get(route('admin.categories.index'));
+        $response = $this->getJson('/api/admin/categories');
         $response->assertStatus(200);
-        $response->assertViewIs('admin.categories.index');
+        $response->assertJsonStructure(['data', 'current_page', 'total']);
     }
 
     public function testCreateCategory()
     {
-        $response = $this->post(route('admin.categories.store'), [
+        $response = $this->postJson('/api/admin/categories', [
             'name' => 'New Category Name',
         ]);
-        $response->assertRedirect(route('admin.categories.index'));
+        $response->assertStatus(201);
+        $response->assertJsonStructure(['success', 'message', 'data']);
         $this->assertDatabaseHas('categories', [
             'name' => 'New Category Name',
         ]);
@@ -43,19 +48,20 @@ class CategoryControllerTest extends TestCase
     public function testEditCategory()
     {
         $category = Category::factory()->create();
-        $response = $this->get(route('admin.categories.edit', $category->id));
+        $response = $this->getJson("/api/admin/categories/{$category->id}");
         $response->assertStatus(200);
-        $response->assertViewIs('admin.categories.edit');
+        $response->assertJsonStructure(['id', 'name']);
     }
 
 
     public function testUpdateCategory()
     {
         $category = Category::factory()->create();
-        $response = $this->put(route('admin.categories.update', $category->id), [
+        $response = $this->putJson("/api/admin/categories/{$category->id}", [
             'name' => 'Updated Category Name',
         ]);
-        $response->assertRedirect(route('admin.categories.index'));
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['success', 'message', 'data']);
         $this->assertDatabaseHas('categories', [
             'id' => $category->id,
             'name' => 'Updated Category Name',
@@ -65,8 +71,9 @@ class CategoryControllerTest extends TestCase
     public function testDeleteCategory()
     {
         $category = Category::factory()->create();
-        $response = $this->delete(route('admin.categories.destroy', $category->id));
-        $response->assertRedirect(route('admin.categories.index'));
+        $response = $this->deleteJson("/api/admin/categories/{$category->id}");
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['success', 'message']);
         $this->assertDatabaseMissing('categories', [
             'id' => $category->id,
         ]);

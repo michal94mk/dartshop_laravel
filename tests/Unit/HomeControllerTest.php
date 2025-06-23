@@ -15,6 +15,6 @@ class HomeControllerTest extends TestCase
     {
         $response = $this->get(route('home'));
         $response->assertStatus(200);
-        $response->assertViewIs('home');
+        $response->assertViewIs('app');
     }
 }

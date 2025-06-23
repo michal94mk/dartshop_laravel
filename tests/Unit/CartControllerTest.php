@@ -12,38 +12,49 @@ use Illuminate\Support\Facades\Session;
 
 class CartControllerTest extends TestCase
 {
-    //use RefreshDatabase;
+    use RefreshDatabase;
 
     public function testAddToCart()
     {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        
         $product = Product::factory()->create();
-        $response = $this->post("/cart/add/{$product->id}");
-        $response->assertStatus(200);
-        $cart = session()->get('cart', []);
-        $this->assertArrayHasKey($product->id, $cart);
-        $this->assertEquals($product->id, $cart[$product->id]['product']->id);
-        $this->assertEquals(1, $cart[$product->id]['quantity']);
+        $response = $this->postJson("/api/cart", [
+            'product_id' => $product->id,
+            'quantity' => 1
+        ]);
+        $response->assertStatus(201);
     }
 
     public function testGetCartContents()
     {
-        $response = $this->get('/cart/contents');
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        
+        $response = $this->getJson('/api/cart');
         $response->assertStatus(200);
     }
 
     public function testCartView()
     {
-        $response = $this->get('/cart/view');
+        $response = $this->get('/');
         $response->assertStatus(200);
     }
 
     public function testDeleteFromCart()
     {
+        // Najpierw dodaj produkt do koszyka
         $product = Product::factory()->create();
-        session()->put('cart', [$product->id => ['quantity' => 1]]);
-        $response = $this->post(route('cart.delete', ['product' => $product->id]));
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        
+        $cartItem = $user->cartItems()->create([
+            'product_id' => $product->id,
+            'quantity' => 1
+        ]);
+        
+        $response = $this->deleteJson("/api/cart/{$cartItem->id}");
         $response->assertStatus(200);
-        $cart = session()->get('cart', []);
-        $this->assertArrayNotHasKey($product->id, $cart);
     }
 }

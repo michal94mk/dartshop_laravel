@@ -14,9 +14,12 @@ class PasswordResetTest extends TestCase
 
     public function test_reset_password_link_screen_can_be_rendered(): void
     {
-        $response = $this->get('/forgot-password');
+        // Test API endpoint validation instead of web route for SPA
+        $response = $this->postJson('/api/forgot-password', ['email' => '']);
 
-        $response->assertStatus(200);
+        // Should validate required email field
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['email']);
     }
 
     public function test_reset_password_link_can_be_requested(): void
@@ -25,26 +28,24 @@ class PasswordResetTest extends TestCase
 
         $user = User::factory()->create();
 
-        $this->post('/forgot-password', ['email' => $user->email]);
-
+        $response = $this->postJson('/api/forgot-password', ['email' => $user->email]);
+        
+        $response->assertOk();
         Notification::assertSentTo($user, ResetPassword::class);
     }
 
-    public function test_reset_password_screen_can_be_rendered(): void
+    public function test_reset_password_validation_works(): void
     {
-        Notification::fake();
+        // Test API validation for reset password
+        $response = $this->postJson('/api/reset-password', [
+            'token' => 'invalid-token',
+            'email' => 'test@example.com',
+            'password' => '123', // Too short
+            'password_confirmation' => '456', // Different
+        ]);
 
-        $user = User::factory()->create();
-
-        $this->post('/forgot-password', ['email' => $user->email]);
-
-        Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
-            $response = $this->get('/reset-password/'.$notification->token);
-
-            $response->assertStatus(200);
-
-            return true;
-        });
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['password']);
     }
 
     public function test_password_can_be_reset_with_valid_token(): void
@@ -53,17 +54,18 @@ class PasswordResetTest extends TestCase
 
         $user = User::factory()->create();
 
-        $this->post('/forgot-password', ['email' => $user->email]);
+        $this->postJson('/api/forgot-password', ['email' => $user->email]);
 
         Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
-            $response = $this->post('/reset-password', [
+            $response = $this->postJson('/api/reset-password', [
                 'token' => $notification->token,
                 'email' => $user->email,
-                'password' => 'password',
-                'password_confirmation' => 'password',
+                'password' => 'newpassword123',
+                'password_confirmation' => 'newpassword123',
             ]);
 
-            $response->assertSessionHasNoErrors();
+            $response->assertOk();
+            $response->assertJsonStructure(['message']);
 
             return true;
         });

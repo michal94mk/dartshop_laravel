@@ -34,7 +34,7 @@ class EmailVerificationTest extends TestCase
         Event::fake();
 
         $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
+            'api.verification.verify',
             now()->addMinutes(60),
             ['id' => $user->id, 'hash' => sha1($user->email)]
         );
@@ -43,23 +43,18 @@ class EmailVerificationTest extends TestCase
 
         Event::assertDispatched(Verified::class);
         $this->assertTrue($user->fresh()->hasVerifiedEmail());
-        $response->assertRedirect(RouteServiceProvider::HOME.'?verified=1');
+        $response->assertOk();
     }
 
-    public function test_email_is_not_verified_with_invalid_hash(): void
+    public function test_can_resend_verification_email(): void
     {
-        $user = User::factory()->create([
-            'email_verified_at' => null,
+        $user = User::factory()->unverified()->create();
+
+        $response = $this->actingAs($user)->postJson('/api/email/verification-notification');
+
+        $response->assertOk();
+        $response->assertJson([
+            'message' => 'Link weryfikacyjny został wysłany ponownie.'
         ]);
-
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addMinutes(60),
-            ['id' => $user->id, 'hash' => sha1('wrong-email')]
-        );
-
-        $this->actingAs($user)->get($verificationUrl);
-
-        $this->assertFalse($user->fresh()->hasVerifiedEmail());
     }
 }

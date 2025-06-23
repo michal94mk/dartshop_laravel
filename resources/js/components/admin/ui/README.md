@@ -4,6 +4,74 @@ Ten katalog zawiera zunifikowane komponenty UI dla panelu administracyjnego. Wsz
 
 ## Dostępne Komponenty
 
+### AdminTabsLayout
+Uniwersalny komponent dla zakładek w panelu administracyjnym zapewniający jednolity wygląd i funkcjonalność.
+
+```vue
+<admin-tabs-layout
+  title="Zarządzanie produktami"
+  subtitle="Pełne zarządzanie produktami i kategoriami"
+  :tabs="tabs"
+  v-model="activeTab"
+  @tab-change="handleTabChange"
+>
+  <!-- Globalne przyciski -->
+  <template #header>
+    <admin-button variant="primary" @click="addNew">
+      Dodaj nowy
+    </admin-button>
+  </template>
+
+  <!-- Zawartość zakładek -->
+  <template #default="{ activeTab }">
+    <admin-tab-panel
+      tab-id="products"
+      :active-tab="activeTab"
+      title="Lista produktów"
+    >
+      <!-- Zawartość -->
+    </admin-tab-panel>
+  </template>
+</admin-tabs-layout>
+```
+
+**Props:**
+- `title`: String (wymagane) - główny tytuł strony
+- `subtitle`: String - podtytuł strony
+- `tabs`: Array (wymagane) - tablica definicji zakładek
+- `defaultTab`: String - ID domyślnie aktywnej zakładki
+- `modelValue`: String - ID aktywnej zakładki (v-model)
+
+### AdminTabPanel
+Komponent dla zawartości pojedynczej zakładki z jednolitym paddingiem i strukturą.
+
+```vue
+<admin-tab-panel
+  tab-id="settings"
+  :active-tab="activeTab"
+  title="Ustawienia produktów"
+  description="Konfiguracja wyświetlania i zarządzania"
+  padding="lg"
+>
+  <!-- Główna zawartość -->
+  <div class="space-y-6">
+    <!-- Formularze, tabele itp. -->
+  </div>
+
+  <!-- Akcje -->
+  <template #footer>
+    <admin-button variant="primary">Zapisz</admin-button>
+  </template>
+</admin-tab-panel>
+```
+
+**Props:**
+- `tabId`: String (wymagane) - ID zakładki
+- `activeTab`: String (wymagane) - ID aktualnie aktywnej zakładki
+- `title`: String - tytuł panelu
+- `description`: String - opis panelu
+- `padding`: String - rozmiar paddingu: none, sm, default, lg
+
 ### AdminButton
 Zunifikowany przycisk z różnymi wariantami i rozmiarami.
 

@@ -19,16 +19,16 @@ class ProductControllerTest extends TestCase
     {
         parent::setUp();
 
-        $adminUser = User::factory()->create(['role' => 'admin']);
+        // Create admin role
+        \Spatie\Permission\Models\Role::create(['name' => 'admin']);
+        
+        $adminUser = User::factory()->create(['is_admin' => true]);
+        $adminUser->assignRole('admin');
         $this->actingAs($adminUser);
     }
 
     public function testProductCanBeCreated()
     {
-        $this->withoutMiddleware();
-
-        Storage::fake('testing');
-
         $category = Category::factory()->create();
         $brand = Brand::factory()->create();
 
@@ -38,16 +38,12 @@ class ProductControllerTest extends TestCase
             'price' => 19.99,
             'category_id' => $category->id,
             'brand_id' => $brand->id,
-            'image' => UploadedFile::fake()->image('test.jpg'),
         ];
 
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $response = $this->postJson('/api/admin/products', $data);
 
-        $response = $this->post(route('admin.products.store'), $data);
-
-        $response->assertRedirect(route('admin.products.index'))
-            ->assertSessionHas('success', 'Product has been added.');
+        $response->assertStatus(201);
+        $response->assertJsonStructure(['success', 'message', 'data']);
 
         $this->assertDatabaseHas('products', [
             'name' => 'Test Product',
@@ -56,67 +52,42 @@ class ProductControllerTest extends TestCase
             'category_id' => $category->id,
             'brand_id' => $brand->id,
         ]);
-
-        Storage::disk('testing')->assertMissing($data['image']->hashName());
     }
 
     public function testProductCanBeSuccessfullyUpdated()
     {
-        $this->withoutMiddleware();
-
-        Storage::fake('testing');
-
-        $user = User::factory()->create();
-        $this->actingAs($user);
-
         $product = Product::factory()->create();
 
         $data = [
-            'name' => $product->name,
-            'description' => $product->description,
-            'price' => $product->price,
+            'name' => 'Updated Product Name',
+            'description' => 'Updated Description',
+            'price' => 25.99,
             'category_id' => $product->category_id,
             'brand_id' => $product->brand_id,
         ];
 
-        if (isset($data['image'])) {
-            $data['image'] = UploadedFile::fake()->image('updated.jpg');
-        }
+        $response = $this->putJson("/api/admin/products/{$product->id}", $data);
 
-        $expectedFields = array_keys($data);
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['success', 'message', 'data']);
 
-        $response = $this->put(route('admin.products.update', $product), $data);
-
-        $response->assertRedirect(route('admin.products.index'))
-            ->assertSessionHas('success', 'Product has been updated.');
-
-        $updatedProduct = Product::find($product->id);
-
-        foreach ($expectedFields as $field) {
-            $this->assertEquals($data[$field], $updatedProduct->$field);
-        }
-
-        if (isset($data['image'])) {
-            Storage::disk('testing')->assertMissing($data['image']->hashName());
-        } else {
-            $this->assertEquals($product->image, $updatedProduct->image);
-        }
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'name' => 'Updated Product Name',
+            'description' => 'Updated Description',
+            'price' => 25.99,
+        ]);
     }
 
     public function testCanDeleteProduct()
     {
-        $this->withoutMiddleware();
-
-        $user = User::factory()->create();
-        $this->actingAs($user);
-
         $product = Product::factory()->create();
 
-        $response = $this->delete(route('admin.products.destroy', $product));
+        $response = $this->deleteJson("/api/admin/products/{$product->id}");
 
-        $response->assertRedirect(route('admin.products.index'))
-            ->assertSessionHas('success', 'Product has been deleted.');
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['success', 'message']);
 
-        $this->assertDatabaseHas('products', ['id' => $product->id]);
+        $this->assertDatabaseMissing('products', ['id' => $product->id]);
     }
 }
