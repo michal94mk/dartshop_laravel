@@ -261,22 +261,9 @@
       <!-- Page Content -->
       <main class="p-6 bg-gray-100 min-h-screen">
         <div class="mx-auto max-w-7xl">
-          <!-- Router-view with transitions -->
+          <!-- Router-view without transitions for better stability -->
           <div class="overflow-hidden rounded-lg bg-white shadow-sm">
-            <router-view v-slot="{ Component }">
-              <transition 
-                name="fade" 
-                mode="out-in"
-                enter-active-class="transition ease-out duration-200"
-                enter-from-class="opacity-0 transform scale-95"
-                enter-to-class="opacity-100 transform scale-100"
-                leave-active-class="transition ease-in duration-150"
-                leave-from-class="opacity-100 transform scale-100"
-                leave-to-class="opacity-0 transform scale-95"
-              >
-                <component :is="Component" :key="$route.fullPath" />
-              </transition>
-            </router-view>
+            <router-view :key="$route.fullPath" />
           </div>
         </div>
       </main>

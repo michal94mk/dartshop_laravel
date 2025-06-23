@@ -1,327 +1,177 @@
 <template>
-  <admin-tabs-layout
-    title="Zarządzanie produktami"
-    subtitle="Lista wszystkich produktów w sklepie z możliwością dodawania, edycji i usuwania"
-    :tabs="tabs"
-    v-model="activeTab"
-    @tab-change="handleTabChange"
-  >
-    <!-- Header slot - global buttons -->
-    <template #header>
-      <admin-button-group spacing="sm">
-        <admin-button
-          variant="primary"
-          @click="openModal()"
-        >
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-          Dodaj produkt
-        </admin-button>
-        <admin-button
-          variant="secondary"
-          outline
-          @click="exportProducts"
-        >
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-          Eksportuj
-        </admin-button>
-      </admin-button-group>
-    </template>
+  <div class="space-y-6">
+    <!-- Page Header -->
+    <page-header
+      title="Zarządzanie produktami"
+      subtitle="Lista wszystkich produktów w sklepie z możliwością dodawania, edycji i usuwania"
+    >
+      <template #actions>
+        <admin-button-group spacing="sm">
+          <admin-button
+            variant="primary"
+            @click="openModal()"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Dodaj produkt
+          </admin-button>
+          <admin-button
+            variant="secondary"
+            outline
+            @click="exportProducts"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            Eksportuj
+          </admin-button>
+        </admin-button-group>
+      </template>
+    </page-header>
 
-    <!-- Toolbar slot - filters and search -->
-    <template #toolbar>
-      <search-filters
-        v-if="!loading"
-        :filters="filters"
-        :sort-options="sortOptions"
-        :default-filters="defaultFilters"
-        search-label="Wyszukaj"
-        search-placeholder="Nazwa produktu..."
-        @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
-        @filter-change="fetchProducts"
-        @reset-filters="resetFilters"
+    <!-- Filters -->
+    <search-filters
+      v-if="!loading"
+      :filters="filters"
+      :sort-options="sortOptions"
+      :default-filters="defaultFilters"
+      search-label="Wyszukaj"
+      search-placeholder="Nazwa produktu..."
+      @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
+      @filter-change="fetchProducts"
+      @reset-filters="resetFilters"
+    >
+      <template v-slot:filters>
+        <div class="w-full sm:w-auto">
+          <label for="category" class="block text-sm font-medium text-gray-700">Kategoria</label>
+          <select
+            id="category"
+            name="category"
+            v-model="filters.category_id"
+            @change="() => { filters.page = 1; fetchProducts(); }"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="">Wszystkie kategorie</option>
+            <option v-for="category in categories" :key="category.id" :value="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+        </div>
+        
+        <div class="w-full sm:w-auto">
+          <label for="brand" class="block text-sm font-medium text-gray-700">Marka</label>
+          <select
+            id="brand"
+            name="brand"
+            v-model="filters.brand_id"
+            @change="() => { filters.page = 1; fetchProducts(); }"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="">Wszystkie marki</option>
+            <option v-for="brand in brands" :key="brand.id" :value="brand.id">
+              {{ brand.name }}
+            </option>
+          </select>
+        </div>
+      </template>
+    </search-filters>
+
+    <!-- Content -->
+    <div class="bg-white shadow rounded-lg">
+      <!-- Loading indicator -->
+      <loading-spinner v-if="loading" />
+
+      <!-- Products table -->
+      <admin-table
+        v-if="products.data && products.data.length > 0"
+        :columns="tableColumns"
+        :items="products.data"
       >
-        <template v-slot:filters>
-          <div class="w-full sm:w-auto">
-            <label for="category" class="block text-sm font-medium text-gray-700">Kategoria</label>
-            <select
-              id="category"
-              name="category"
-              v-model="filters.category_id"
-              @change="() => { filters.page = 1; fetchProducts(); }"
-              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-            >
-              <option value="">Wszystkie kategorie</option>
-              <option v-for="category in categories" :key="category.id" :value="category.id">
-                {{ category.name }}
-              </option>
-            </select>
-          </div>
-          
-          <div class="w-full sm:w-auto">
-            <label for="brand" class="block text-sm font-medium text-gray-700">Marka</label>
-            <select
-              id="brand"
-              name="brand"
-              v-model="filters.brand_id"
-              @change="() => { filters.page = 1; fetchProducts(); }"
-              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-            >
-              <option value="">Wszystkie marki</option>
-              <option v-for="brand in brands" :key="brand.id" :value="brand.id">
-                {{ brand.name }}
-              </option>
-            </select>
+        <template #cell-product="{ item }">
+          <div class="flex items-center">
+            <div class="h-10 w-10 flex-shrink-0">
+              <img 
+                v-if="item.image && !item.imageError" 
+                :src="item.fallbackSrc || getImageSrc(item.image)" 
+                class="h-10 w-10 rounded-full object-cover" 
+                @error="tryFallbackImage(item)"
+                alt="Product image" 
+              />
+              <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                <svg class="h-6 w-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="font-medium text-gray-900">{{ item.name }}</div>
+              <div class="text-gray-500 truncate max-w-xs">{{ truncate(item.description, 50) }}</div>
+            </div>
           </div>
         </template>
-      </search-filters>
-    </template>
-
-    <!-- Main tab content -->
-    <template #default="{ activeTab }">
-      <!-- Products list -->
-      <admin-tab-panel
-        tab-id="list"
-        :active-tab="activeTab"
-        title="Lista produktów"
-        description="Przeglądaj i zarządzaj wszystkimi produktami w sklepie"
-      >
-        <!-- Loading indicator -->
-        <loading-spinner v-if="loading" />
-
-        <!-- Products table -->
-        <admin-table
-          v-if="products.data && products.data.length > 0"
-          :columns="tableColumns"
-          :items="products.data"
-        >
-          <template #cell-product="{ item }">
-            <div class="flex items-center">
-              <div class="h-10 w-10 flex-shrink-0">
-                <img 
-                  v-if="item.image && !item.imageError" 
-                  :src="item.fallbackSrc || getImageSrc(item.image)" 
-                  class="h-10 w-10 rounded-full object-cover" 
-                  @error="tryFallbackImage(item)"
-                  alt="Product image" 
-                />
-                <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                  <svg class="h-6 w-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-              </div>
-              <div class="ml-4">
-                <div class="font-medium text-gray-900">{{ item.name }}</div>
-                <div class="text-gray-500 truncate max-w-xs">{{ truncate(item.description, 50) }}</div>
-              </div>
-            </div>
-          </template>
-          
-          <template #cell-category="{ item }">
-            <admin-badge v-if="item.category" variant="secondary">
-              {{ item.category.name }}
-            </admin-badge>
-            <span v-else class="text-gray-400">-</span>
-          </template>
-          
-          <template #cell-brand="{ item }">
-            <admin-badge v-if="item.brand" variant="secondary">
-              {{ item.brand.name }}
-            </admin-badge>
-            <span v-else class="text-gray-400">-</span>
-          </template>
-          
-          <template #cell-price="{ item }">
-            <span class="font-medium text-gray-900">{{ item.price }} PLN</span>
-          </template>
-
-          <template #cell-stock_status="{ item }">
-            <admin-badge :variant="getStockStatusVariant(item.stock_quantity)">
-              {{ getStockStatusLabel(item.stock_quantity) }}
-            </admin-badge>
-          </template>
-          
-          <template #cell-actions="{ item }">
-            <action-buttons 
-              :item="item" 
-              :show-details="true"
-              @details="showProductDetails"
-              @edit="openModal" 
-              @delete="deleteProduct"
-            >
-              <template #custom-buttons="{ item }">
-                <admin-button
-                  variant="info"
-                  size="sm"
-                  @click="duplicateProduct(item)"
-                  title="Duplikuj produkt"
-                >
-                  Duplikuj
-                </admin-button>
-              </template>
-            </action-buttons>
-          </template>
-        </admin-table>
         
-        <!-- Pagination -->
-        <pagination 
-          v-if="products.data && products.data.length > 0 && products.last_page > 1"
-          :pagination="products" 
-          items-label="produktów" 
-          @page-change="goToPage" 
-        />
-        
-        <!-- No data message -->
-        <no-data-message 
-          v-if="!loading && (!products.data || products.data.length === 0)" 
-          message="Brak produktów do wyświetlenia" 
-        />
-      </admin-tab-panel>
-
-      <!-- Categories and brands -->
-      <admin-tab-panel
-        tab-id="categories"
-        :active-tab="activeTab"
-        title="Kategorie i marki"
-        description="Zarządzaj kategoriami i markami produktów"
-      >
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <!-- Categories -->
-          <div>
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-medium text-gray-900">Kategorie</h3>
-              <admin-button variant="primary" size="sm" @click="openCategoryModal">
-                Dodaj kategorię
-              </admin-button>
-            </div>
-            <div class="bg-white border border-gray-200 rounded-lg">
-              <div v-if="categories.length === 0" class="p-6 text-center text-gray-500">
-                Brak kategorii
-              </div>
-              <div v-else class="divide-y divide-gray-200">
-                <div v-for="category in categories" :key="category.id" class="p-4 flex items-center justify-between">
-                  <div>
-                    <div class="font-medium text-gray-900">{{ category.name }}</div>
-                    <div class="text-sm text-gray-500">{{ category.products_count || 0 }} produktów</div>
-                  </div>
-                  <admin-button-group spacing="xs">
-                    <admin-button variant="secondary" size="sm" @click="editCategory(category)">
-                      Edytuj
-                    </admin-button>
-                  </admin-button-group>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Marki -->
-          <div>
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-medium text-gray-900">Marki</h3>
-              <admin-button variant="primary" size="sm" @click="openBrandModal">
-                Dodaj markę
-              </admin-button>
-            </div>
-            <div class="bg-white border border-gray-200 rounded-lg">
-              <div v-if="brands.length === 0" class="p-6 text-center text-gray-500">
-                Brak marek
-              </div>
-              <div v-else class="divide-y divide-gray-200">
-                <div v-for="brand in brands" :key="brand.id" class="p-4 flex items-center justify-between">
-                  <div>
-                    <div class="font-medium text-gray-900">{{ brand.name }}</div>
-                    <div class="text-sm text-gray-500">{{ brand.products_count || 0 }} produktów</div>
-                  </div>
-                  <admin-button-group spacing="xs">
-                    <admin-button variant="secondary" size="sm" @click="editBrand(brand)">
-                      Edytuj
-                    </admin-button>
-                  </admin-button-group>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </admin-tab-panel>
-
-      <!-- Product settings -->
-      <admin-tab-panel
-        tab-id="settings"
-        :active-tab="activeTab"
-        title="Ustawienia produktów"
-        description="Konfiguracja wyświetlania i zarządzania produktami"
-      >
-        <div class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-4">
-              <h4 class="text-lg font-medium text-gray-900">Wyświetlanie</h4>
-              
-              <div>
-                <label class="flex items-center">
-                  <input type="checkbox" v-model="settings.showOutOfStock" class="rounded border-gray-300">
-                  <span class="ml-2 text-sm text-gray-700">Pokazuj produkty niedostępne</span>
-                </label>
-              </div>
-
-              <div>
-                <label class="flex items-center">
-                  <input type="checkbox" v-model="settings.showProductImages" class="rounded border-gray-300">
-                  <span class="ml-2 text-sm text-gray-700">Wyświetlaj miniaturki produktów</span>
-                </label>
-              </div>
-
-              <div>
-                <label class="flex items-center">
-                  <input type="checkbox" v-model="settings.showStockStatus" class="rounded border-gray-300">
-                  <span class="ml-2 text-sm text-gray-700">Pokazuj status magazynowy</span>
-                </label>
-              </div>
-            </div>
-
-            <div class="space-y-4">
-              <h4 class="text-lg font-medium text-gray-900">Zarządzanie</h4>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Domyślny status nowego produktu
-                </label>
-                <select v-model="settings.defaultStatus" class="block w-full rounded-md border-gray-300">
-                  <option value="draft">Szkic</option>
-                  <option value="active">Aktywny</option>
-                  <option value="inactive">Nieaktywny</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Próg ostrzeżenia o niskim stanie
-                </label>
-                <input 
-                  type="number" 
-                  v-model.number="settings.lowStockThreshold" 
-                  min="0"
-                  class="block w-full rounded-md border-gray-300"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <template #footer>
-          <admin-button variant="secondary" outline>
-            Przywróć domyślne
-          </admin-button>
-          <admin-button variant="primary" @click="saveSettings" :loading="submitting">
-            Zapisz ustawienia
-          </admin-button>
+        <template #cell-category="{ item }">
+          <admin-badge v-if="item.category" variant="secondary">
+            {{ item.category.name }}
+          </admin-badge>
+          <span v-else class="text-gray-400">-</span>
         </template>
-      </admin-tab-panel>
-    </template>
-  </admin-tabs-layout>
+        
+        <template #cell-brand="{ item }">
+          <admin-badge v-if="item.brand" variant="secondary">
+            {{ item.brand.name }}
+          </admin-badge>
+          <span v-else class="text-gray-400">-</span>
+        </template>
+        
+        <template #cell-price="{ item }">
+          <span class="font-medium text-gray-900">{{ item.price }} PLN</span>
+        </template>
+
+        <template #cell-stock_status="{ item }">
+          <admin-badge :variant="getStockStatusVariant(item.stock_quantity)">
+            {{ getStockStatusLabel(item.stock_quantity) }}
+          </admin-badge>
+        </template>
+        
+        <template #cell-actions="{ item }">
+          <action-buttons 
+            :item="item" 
+            :show-details="true"
+            @details="showProductDetails"
+            @edit="openModal" 
+            @delete="deleteProduct"
+          >
+            <template #custom-buttons="{ item }">
+              <admin-button
+                variant="info"
+                size="sm"
+                @click="duplicateProduct(item)"
+                title="Duplikuj produkt"
+              >
+                Duplikuj
+              </admin-button>
+            </template>
+          </action-buttons>
+        </template>
+      </admin-table>
+      
+      <!-- Pagination -->
+      <pagination 
+        v-if="products.data && products.data.length > 0 && products.last_page > 1"
+        :pagination="products" 
+        items-label="produktów" 
+        @page-change="goToPage" 
+      />
+      
+      <!-- No data message -->
+      <no-data-message 
+        v-if="!loading && (!products.data || products.data.length === 0)" 
+        message="Brak produktów do wyświetlenia" 
+      />
+    </div>
+  </div>
 
   <!-- Product Modal -->
   <div v-if="showModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -517,6 +367,7 @@
 <script>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useAlertStore } from '../../stores/alertStore'
+import { useAuthStore } from '../../stores/authStore'
 import axios from 'axios'
 import debounce from 'lodash/debounce'
 import AdminTable from '../../components/admin/ui/AdminTable.vue'
@@ -528,8 +379,6 @@ import NoDataMessage from '../../components/admin/NoDataMessage.vue'
 import Pagination from '../../components/admin/Pagination.vue'
 import PageHeader from '../../components/admin/PageHeader.vue'
 import ActionButtons from '../../components/admin/ActionButtons.vue'
-import AdminTabsLayout from '../../components/admin/AdminTabsLayout.vue'
-import AdminTabPanel from '../../components/admin/AdminTabPanel.vue'
 import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
 
 export default {
@@ -544,47 +393,14 @@ export default {
     Pagination,
     PageHeader,
     ActionButtons,
-    AdminTabsLayout,
-    AdminTabPanel,
     AdminBadge
   },
   setup() {
     const alertStore = useAlertStore()
+    const authStore = useAuthStore()
     
-    // Tabs configuration
-    const activeTab = ref('list')
-    const tabs = [
-      {
-        id: 'list',
-        label: 'Lista produktów',
-        iconPath: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
-        badge: {
-          value: computed(() => products.value.total || 0),
-          variant: 'primary'
-        }
-      },
-      {
-        id: 'categories',
-        label: 'Kategorie i marki',
-        iconPath: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z',
-        badge: {
-          value: computed(() => (categories.value.length || 0) + (brands.value.length || 0)),
-          variant: 'secondary'
-        }
-      },
-      {
-        id: 'settings',
-        label: 'Ustawienia',
-        iconPath: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'
-      }
-    ]
-
-    // Settings configuration
+    // Simple settings for stock status calculation
     const settings = reactive({
-      showOutOfStock: true,
-      showProductImages: true,
-      showStockStatus: true,
-      defaultStatus: 'draft',
       lowStockThreshold: 10
     })
 
@@ -692,8 +508,15 @@ export default {
         }
         
         console.log('Fetching products with params:', params)
+        console.log('Auth state:', {
+          isLoggedIn: authStore.isLoggedIn,
+          isAdmin: authStore.isAdmin,
+          user: authStore.user
+        })
         
         const response = await axios.get('/api/admin/products', { params })
+        
+        console.log('Products API response:', response.data)
         
         // Initialize imageError property for each product
         if (response.data && response.data.data) {
@@ -716,7 +539,9 @@ export default {
       } catch (error) {
         console.error('Error fetching products:', error)
         console.error('Error details:', error.response?.data)
-        alertStore.error('Wystąpił błąd podczas pobierania produktów.')
+        console.error('Status:', error.response?.status)
+        console.error('Status text:', error.response?.statusText)
+        alertStore.error('Wystąpił błąd podczas pobierania produktów: ' + (error.response?.data?.message || error.message))
       } finally {
         loading.value = false
       }
@@ -1191,31 +1016,6 @@ export default {
       return `Dostępny (${stockQuantity})`
     }
 
-    // Tab and settings methods
-    const handleTabChange = (newTab, oldTab) => {
-      console.log(`Zmiana zakładki z ${oldTab} na ${newTab}`)
-      activeTab.value = newTab
-    }
-
-    const saveSettings = async () => {
-      try {
-        submitting.value = true
-        
-        // Tutaj można dodać logikę zapisywania ustawień do backendu
-        // await axios.put('/api/admin/products/settings', settings)
-        
-        // Na razie tylko symulujemy zapis
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        alertStore.success('Ustawienia zostały zapisane.')
-      } catch (error) {
-        console.error('Error saving settings:', error)
-        alertStore.error('Wystąpił błąd podczas zapisywania ustawień.')
-      } finally {
-        submitting.value = false
-      }
-    }
-
     const exportProducts = async () => {
       try {
         alertStore.info('Rozpoczynanie eksportu produktów...')
@@ -1260,26 +1060,6 @@ export default {
       }
     }
 
-    const openCategoryModal = () => {
-      // Przekierowanie do strony kategorii lub otwarcie modala
-      alertStore.info('Funkcja dodawania kategorii - można zintegrować z modułem kategorii')
-    }
-
-    const openBrandModal = () => {
-      // Przekierowanie do strony marek lub otwarcie modala
-      alertStore.info('Funkcja dodawania marki - można zintegrować z modułem marek')
-    }
-
-    const editCategory = (category) => {
-      console.log('Edytuj kategorię:', category)
-      alertStore.info(`Edycja kategorii: ${category.name}`)
-    }
-
-    const editBrand = (brand) => {
-      console.log('Edytuj markę:', brand)
-      alertStore.info(`Edycja marki: ${brand.name}`)
-    }
-
     return {
       loading,
       products,
@@ -1294,8 +1074,6 @@ export default {
       showDeleteModal,
       currentProduct,
       currentProductImageError,
-      activeTab,
-      tabs,
       settings,
       submitting,
       fetchProducts,
@@ -1317,15 +1095,9 @@ export default {
       resetFilters,
       getStockStatusVariant,
       getStockStatusLabel,
-      handleTabChange,
-      saveSettings,
       exportProducts,
       showProductDetails,
-      duplicateProduct,
-      openCategoryModal,
-      openBrandModal,
-      editCategory,
-      editBrand
+      duplicateProduct
     }
   }
 }

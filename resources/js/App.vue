@@ -51,20 +51,17 @@ export default {
       return window.Laravel && window.Laravel.isAdmin === true;
     });
     
-    // Wybierz właściwy layout na podstawie wszystkich warunków dostępu
+    // Wybierz właściwy layout na podstawie trasy
     const currentLayout = computed(() => {
       // Sprawdź, czy użytkownik jest zalogowany i czy jest administratorem
       const isUserAdmin = authStore.isAdmin;
       
       // Jeśli ścieżka zaczyna się od /admin, używamy layoutu admin
       if (route.path.startsWith('/admin')) {
-        // ...ale użytkownik nie jest adminem - przekieruj do głównego layoutu
-        if (!isUserAdmin) {
-          console.warn('User is not admin but tries to access admin layout, using default layout instead');
-          setTimeout(() => {
-            // Przekieruj na stronę główną, jeśli próbuje uzyskać dostęp do panelu admina
-            router.push('/');
-          }, 100);
+        // Sprawdź czy user jest adminem, ale nie rób przekierowań tutaj
+        // (router guard powinien się tym zająć)
+        if (!isUserAdmin && authStore.authInitialized) {
+          console.warn('User is not admin but tries to access admin layout');
           return 'DefaultLayout';
         }
         

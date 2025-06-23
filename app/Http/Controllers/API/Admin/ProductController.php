@@ -37,6 +37,11 @@ class ProductController extends BaseAdminController
             \Illuminate\Support\Facades\Log::info('Admin ProductController@index called with filters:', $request->all());
             \Illuminate\Support\Facades\Log::info('Request URI: ' . $request->getRequestUri());
             \Illuminate\Support\Facades\Log::info('Request method: ' . $request->method());
+            \Illuminate\Support\Facades\Log::info('Authenticated user:', [
+                'id' => auth()->id(),
+                'email' => auth()->user()->email ?? 'none',
+                'is_admin' => auth()->user()->is_admin ?? false
+            ]);
             
             $query = Product::with(['category', 'brand']);
             

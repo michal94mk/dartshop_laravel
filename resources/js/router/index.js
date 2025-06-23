@@ -361,28 +361,34 @@ router.beforeEach(async (to, from, next) => {
         path: '/login',
         query: { redirect: to.fullPath }
       });
-    } else {
-      // Sprawdź, czy trasa wymaga uprawnień administratora
-      if (to.matched.some(record => record.meta.requiresAdmin)) {
-        if (!authStore.isAdmin) {
-          console.log('Route requires admin but user is not admin, redirecting to home');
-          // Przekieruj na stronę główną, jeśli użytkownik nie jest adminem
-          next({ path: '/' });
-        } else {
-          console.log('User is admin, proceeding to admin route');
-          next();
-        }
-      }
-      // Sprawdź, czy użytkownik zweryfikował email (jeśli wymagane)
-      else if (to.matched.some(record => record.meta.requiresVerified) && 
-          authStore.user && !authStore.user.email_verified_at) {
-        console.log('Route requires verified email but user email is not verified');
-        next({ path: '/email/verify' });
+      return;
+    }
+    
+    // Sprawdź, czy trasa wymaga uprawnień administratora
+    if (to.matched.some(record => record.meta.requiresAdmin)) {
+      if (!authStore.isAdmin) {
+        console.log('Route requires admin but user is not admin, redirecting to home');
+        // Przekieruj na stronę główną, jeśli użytkownik nie jest adminem
+        next({ path: '/' });
+        return;
       } else {
-        console.log('User is authenticated, proceeding to protected route');
+        console.log('User is admin, proceeding to admin route');
         next();
+        return;
       }
     }
+    
+    // Sprawdź, czy użytkownik zweryfikował email (jeśli wymagane)
+    if (to.matched.some(record => record.meta.requiresVerified) && 
+        authStore.user && !authStore.user.email_verified_at) {
+      console.log('Route requires verified email but user email is not verified');
+      next({ path: '/email/verify' });
+      return;
+    }
+    
+    console.log('User is authenticated, proceeding to protected route');
+    next();
+    return;
   } 
   // Sprawdź, czy trasa wymaga, aby użytkownik nie był zalogowany (np. login, register)
   else if (to.matched.some(record => record.meta.guest)) {

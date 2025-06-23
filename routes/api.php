@@ -208,6 +208,16 @@ Route::prefix('promotions')->group(function () {
 
 // Admin API Routes
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
+    // Test endpoint to check middleware
+    Route::get('/test', function () {
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin middleware is working!',
+            'user' => auth()->user(),
+            'is_admin' => auth()->user()->is_admin ?? false
+        ]);
+    });
+    
     // Dashboard statistics
     Route::get('/dashboard', [DashboardController::class, 'index']);
     

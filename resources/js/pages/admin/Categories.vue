@@ -1,214 +1,103 @@
 <template>
-  <admin-tabs-layout
-    title="Zarządzanie kategoriami"
-    subtitle="Lista wszystkich kategorii produktów z możliwością dodawania, edycji i usuwania"
-    :tabs="tabs"
-    v-model="activeTab"
-    @tab-change="handleTabChange"
-  >
-    <!-- Header slot -->
-    <template #header>
-      <admin-button
-        variant="primary"
-        @click="openModal()"
-      >
-        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-        </svg>
-        Dodaj kategorię
-      </admin-button>
-    </template>
-
-    <!-- Toolbar slot -->
-    <template #toolbar>
-      <search-filters
-        v-if="!loading"
-        :filters="filters"
-        :sort-options="sortOptions"
-        :default-filters="defaultFilters"
-        search-label="Wyszukaj"
-        search-placeholder="Nazwa kategorii..."
-        @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
-        @filter-change="fetchCategories"
-        @reset-filters="resetFilters"
-      >
-        <template v-slot:filters>
-          <!-- No additional filters needed -->
-        </template>
-      </search-filters>
-    </template>
-
-    <!-- Main tab content -->
-    <template #default="{ activeTab }">
-      <!-- Categories list -->
-      <admin-tab-panel
-        tab-id="list"
-        :active-tab="activeTab"
-        title="Lista kategorii"
-        description="Zarządzaj wszystkimi kategoriami produktów"
-      >
-        <template #header>
-          <admin-button variant="secondary" outline>
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            Eksportuj kategorie
-          </admin-button>
-        </template>
-
-        <!-- Loading indicator -->
-        <loading-spinner v-if="loading" />
-        
-        <!-- Categories table -->
-        <admin-table
-          v-if="categories.data && categories.data.length > 0"
-          :columns="tableColumns"
-          :items="categories.data"
+  <div class="space-y-6">
+    <!-- Page Header -->
+    <page-header
+      title="Zarządzanie kategoriami"
+      subtitle="Lista wszystkich kategorii produktów z możliwością dodawania, edycji i usuwania"
+    >
+      <template #actions>
+        <admin-button
+          variant="primary"
+          @click="openModal()"
         >
-          <template #cell-image="{ item }">
-            <div class="flex justify-center">
-              <img 
-                v-if="item.image_url"
-                :src="item.image_url" 
-                :alt="item.name" 
-                class="h-12 w-12 object-cover rounded-lg shadow-sm"
-              />
-              <div v-else class="h-12 w-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-            </div>
-          </template>
-          
-          <template #cell-products_count="{ item }">
-            <admin-badge variant="secondary">
-              {{ item.products_count || 0 }}
-            </admin-badge>
-          </template>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Dodaj kategorię
+        </admin-button>
+      </template>
+    </page-header>
 
-          <template #cell-is_active="{ item }">
-            <admin-badge :variant="item.is_active ? 'success' : 'danger'">
-              {{ item.is_active ? 'Aktywna' : 'Nieaktywna' }}
-            </admin-badge>
-          </template>
-          
-          <template #cell-actions="{ item }">
-            <action-buttons 
-              :item="item" 
-              @edit="openModal" 
-              @delete="confirmDelete"
-            />
-          </template>
-        </admin-table>
-        
-        <!-- Pagination -->
-        <pagination 
-          v-if="categories.data && categories.data.length > 0 && categories.last_page > 1"
-          :pagination="categories" 
-          items-label="kategorii" 
-          @page-change="goToPage" 
-        />
-        
-        <!-- No data message -->
-        <no-data-message 
-          v-if="!loading && (!categories.data || categories.data.length === 0)" 
-          message="Brak kategorii do wyświetlenia" 
-        />
-      </admin-tab-panel>
+    <!-- Filters -->
+    <search-filters
+      v-if="!loading"
+      :filters="filters"
+      :sort-options="sortOptions"
+      :default-filters="defaultFilters"
+      search-label="Wyszukaj"
+      search-placeholder="Nazwa kategorii..."
+      @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
+      @filter-change="fetchCategories"
+      @reset-filters="resetFilters"
+    >
+      <template v-slot:filters>
+        <!-- No additional filters needed -->
+      </template>
+    </search-filters>
 
-      <!-- Category settings -->
-      <admin-tab-panel
-        tab-id="settings"
-        :active-tab="activeTab"
-        title="Ustawienia kategorii"
-        description="Konfiguracja wyświetlania i zarządzania kategoriami"
+    <!-- Content -->
+    <div class="bg-white shadow rounded-lg">
+      <!-- Loading indicator -->
+      <loading-spinner v-if="loading" />
+      
+      <!-- Categories table -->
+      <admin-table
+        v-if="categories.data && categories.data.length > 0"
+        :columns="tableColumns"
+        :items="categories.data"
       >
-        <div class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-4">
-              <h4 class="text-lg font-medium text-gray-900">Wyświetlanie</h4>
-              
-              <div>
-                <label class="flex items-center">
-                  <input type="checkbox" v-model="settings.showInactiveCategories" class="rounded border-gray-300">
-                  <span class="ml-2 text-sm text-gray-700">Pokazuj nieaktywne kategorie</span>
-                </label>
-              </div>
-
-              <div>
-                <label class="flex items-center">
-                  <input type="checkbox" v-model="settings.showProductCount" class="rounded border-gray-300">
-                  <span class="ml-2 text-sm text-gray-700">Pokazuj liczbę produktów</span>
-                </label>
-              </div>
-
-              <div>
-                <label class="flex items-center">
-                  <input type="checkbox" v-model="settings.showCategoryImages" class="rounded border-gray-300">
-                  <span class="ml-2 text-sm text-gray-700">Wyświetlaj obrazki kategorii</span>
-                </label>
-              </div>
-            </div>
-
-            <div class="space-y-4">
-              <h4 class="text-lg font-medium text-gray-900">Zarządzanie</h4>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Domyślny status nowej kategorii
-                </label>
-                <select v-model="settings.defaultStatus" class="block w-full rounded-md border-gray-300">
-                  <option value="active">Aktywna</option>
-                  <option value="inactive">Nieaktywna</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Sortowanie kategorii
-                </label>
-                <select v-model="settings.defaultSortOrder" class="block w-full rounded-md border-gray-300">
-                  <option value="sort_order">Kolejność ręczna</option>
-                  <option value="name">Alfabetycznie</option>
-                  <option value="created_at">Data utworzenia</option>
-                  <option value="products_count">Liczba produktów</option>
-                </select>
-              </div>
+        <template #cell-image="{ item }">
+          <div class="flex justify-center">
+            <img 
+              v-if="item.image_url"
+              :src="item.image_url" 
+              :alt="item.name" 
+              class="h-12 w-12 object-cover rounded-lg shadow-sm"
+            />
+            <div v-else class="h-12 w-12 bg-gray-200 rounded-lg flex items-center justify-center">
+              <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
             </div>
           </div>
-
-          <!-- Import/Export categories -->
-          <div class="bg-gray-50 rounded-lg p-6">
-            <h4 class="text-sm font-medium text-gray-900 mb-4">Import/Export</h4>
-            <div class="flex space-x-3">
-              <admin-button variant="secondary" size="sm" outline>
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
-                </svg>
-                Import kategorii
-              </admin-button>
-              <admin-button variant="secondary" size="sm" outline>
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                </svg>
-                Export kategorii
-              </admin-button>
-            </div>
-          </div>
-        </div>
-
-        <template #footer>
-          <admin-button variant="secondary" outline>
-            Przywróć domyślne
-          </admin-button>
-          <admin-button variant="primary" @click="saveSettings">
-            Zapisz ustawienia
-          </admin-button>
         </template>
-      </admin-tab-panel>
-    </template>
-  </admin-tabs-layout>
+        
+        <template #cell-products_count="{ item }">
+          <admin-badge variant="secondary">
+            {{ item.products_count || 0 }}
+          </admin-badge>
+        </template>
+
+        <template #cell-is_active="{ item }">
+          <admin-badge :variant="item.is_active ? 'success' : 'danger'">
+            {{ item.is_active ? 'Aktywna' : 'Nieaktywna' }}
+          </admin-badge>
+        </template>
+        
+        <template #cell-actions="{ item }">
+          <action-buttons 
+            :item="item" 
+            @edit="openModal" 
+            @delete="confirmDelete"
+          />
+        </template>
+      </admin-table>
+      
+      <!-- Pagination -->
+      <pagination 
+        v-if="categories.data && categories.data.length > 0 && categories.last_page > 1"
+        :pagination="categories" 
+        items-label="kategorii" 
+        @page-change="goToPage" 
+      />
+      
+      <!-- No data message -->
+      <no-data-message 
+        v-if="!loading && (!categories.data || categories.data.length === 0)" 
+        message="Brak kategorii do wyświetlenia" 
+      />
+    </div>
+  </div>
 
   <!-- Category Modal -->
   <admin-modal
@@ -348,6 +237,7 @@
 <script>
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useAlertStore } from '../../stores/alertStore'
+import { useAuthStore } from '../../stores/authStore'
 import axios from 'axios'
 import DetailedErrorModal from '../../components/ui/DetailedErrorModal.vue'
 import AdminTable from '../../components/admin/ui/AdminTable.vue'
@@ -360,8 +250,6 @@ import NoDataMessage from '../../components/admin/NoDataMessage.vue'
 import Pagination from '../../components/admin/Pagination.vue'
 import PageHeader from '../../components/admin/PageHeader.vue'
 import ActionButtons from '../../components/admin/ActionButtons.vue'
-import AdminTabsLayout from '../../components/admin/AdminTabsLayout.vue'
-import AdminTabPanel from '../../components/admin/AdminTabPanel.vue'
 import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
 
 export default {
@@ -378,40 +266,13 @@ export default {
     Pagination,
     PageHeader,
     ActionButtons,
-    AdminTabsLayout,
-    AdminTabPanel,
     AdminBadge
   },
   setup() {
     const alertStore = useAlertStore()
+    const authStore = useAuthStore()
     
-    // Tabs configuration
-    const activeTab = ref('list')
-    const tabs = [
-      {
-        id: 'list',
-        label: 'Lista kategorii',
-        iconPath: 'M4 6h16M4 10h16M4 14h16M4 18h16',
-        badge: {
-          value: computed(() => categories.value.total || 0),
-          variant: 'primary'
-        }
-      },
-      {
-        id: 'settings',
-        label: 'Ustawienia',
-        iconPath: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'
-      }
-    ]
 
-    // Settings configuration
-    const settings = reactive({
-      showInactiveCategories: true,
-      showProductCount: true,
-      showCategoryImages: true,
-      defaultStatus: 'active',
-      defaultSortOrder: 'sort_order'
-    })
 
     // Other reactive data
     const submitting = ref(false)
@@ -514,13 +375,21 @@ export default {
         }
         
         console.log('Fetching categories with params:', params)
+        console.log('Auth state:', {
+          isLoggedIn: authStore.isLoggedIn,
+          isAdmin: authStore.isAdmin,
+          user: authStore.user
+        })
         
         const response = await axios.get('/api/admin/categories', { params })
+        console.log('Categories API response:', response.data)
         categories.value = response.data
       } catch (error) {
         console.error('Error fetching categories:', error)
         console.error('Error details:', error.response?.data)
-        alertStore.error('Wystąpił błąd podczas pobierania kategorii.')
+        console.error('Status:', error.response?.status)
+        console.error('Status text:', error.response?.statusText)
+        alertStore.error('Wystąpił błąd podczas pobierania kategorii: ' + (error.response?.data?.message || error.message))
       } finally {
         loading.value = false
       }
@@ -748,30 +617,7 @@ export default {
         typeof obj.type === 'string'
     }
 
-    // Tab and settings methods
-    const handleTabChange = (newTab, oldTab) => {
-      console.log(`Zmiana zakładki z ${oldTab} na ${newTab}`)
-      activeTab.value = newTab
-    }
 
-    const saveSettings = async () => {
-      try {
-        submitting.value = true
-        
-        // Tutaj można dodać logikę zapisywania ustawień do backendu
-        // await axios.put('/api/admin/categories/settings', settings)
-        
-        // Na razie tylko symulujemy zapis
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        alertStore.success('Ustawienia zostały zapisane.')
-      } catch (error) {
-        console.error('Error saving settings:', error)
-        alertStore.error('Wystąpił błąd podczas zapisywania ustawień.')
-      } finally {
-        submitting.value = false
-      }
-    }
     
     // Lifecycle
     onMounted(() => {
@@ -804,12 +650,7 @@ export default {
       handleImageUpload,
       triggerFileUpload,
       removeImage,
-      isFileObject,
-      activeTab,
-      tabs,
-      settings,
-      handleTabChange,
-      saveSettings
+      isFileObject
     }
   }
 }

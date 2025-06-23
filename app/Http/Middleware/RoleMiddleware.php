@@ -26,10 +26,20 @@ class RoleMiddleware
             throw new AuthenticationException('Unauthenticated.');
         }
 
+        $user = Auth::user();
+        
         // Check if user has any of the requested roles
         $hasRole = false;
+        
         foreach ($roles as $role) {
-            if (Auth::user()->hasRole($role)) {
+            // Check admin role specifically with is_admin field for backward compatibility
+            if ($role === 'admin' && $user->is_admin) {
+                $hasRole = true;
+                break;
+            }
+            
+            // Also check using Spatie roles if method exists
+            if (method_exists($user, 'hasRole') && $user->hasRole($role)) {
                 $hasRole = true;
                 break;
             }
@@ -39,7 +49,8 @@ class RoleMiddleware
             throw new AuthorizationException('Unauthorized. You do not have access to this page.');
         }
 
-        view()->share('is_admin', Auth::user()->hasRole('admin'));
+        // Share admin status with views
+        view()->share('is_admin', $user->is_admin || (method_exists($user, 'hasRole') && $user->hasRole('admin')));
 
         return $next($request);
     }
