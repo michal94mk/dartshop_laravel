@@ -15,8 +15,6 @@ class TermsOfServiceSeeder extends Seeder
     {
         TermsOfService::create([
             'title' => 'Regulamin sklepu DartShop',
-            'version' => '1.0',
-            'effective_date' => now(),
             'is_active' => true,
             'content' => '
 <h2>§ 1. Postanowienia ogólne</h2>

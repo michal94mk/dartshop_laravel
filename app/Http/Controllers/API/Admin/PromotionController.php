@@ -176,10 +176,6 @@ class PromotionController extends BaseAdminController
             $query->where('is_active', $request->boolean('is_active'));
         }
 
-        if ($request->has('is_featured')) {
-            $query->where('is_featured', $request->boolean('is_featured'));
-        }
-
         if ($request->has('discount_type')) {
             $query->where('discount_type', $request->discount_type);
         }
@@ -213,10 +209,7 @@ class PromotionController extends BaseAdminController
             'starts_at' => 'required|date',
             'ends_at' => 'nullable|date|after:starts_at',
             'is_active' => 'boolean',
-            'display_order' => 'integer|min:0',
-            'is_featured' => 'boolean',
-            'badge_text' => 'nullable|string|max:50',
-            'badge_color' => 'nullable|string|max:7',
+            'code' => 'nullable|string|max:50|unique:promotions,code',
             'product_ids' => 'array',
             'product_ids.*' => 'exists:products,id'
         ]);
@@ -257,10 +250,7 @@ class PromotionController extends BaseAdminController
             'starts_at' => 'required|date',
             'ends_at' => 'nullable|date|after:starts_at',
             'is_active' => 'boolean',
-            'display_order' => 'integer|min:0',
-            'is_featured' => 'boolean',
-            'badge_text' => 'nullable|string|max:50',
-            'badge_color' => 'nullable|string|max:7',
+            'code' => 'nullable|string|max:50|unique:promotions,code,' . $promotion->id,
             'product_ids' => 'array',
             'product_ids.*' => 'exists:products,id'
         ]);
@@ -391,10 +381,9 @@ class PromotionController extends BaseAdminController
      */
     public function toggleFeatured(Promotion $promotion): JsonResponse
     {
-        $promotion->update(['is_featured' => !$promotion->is_featured]);
-
+        // Since we don't have is_featured field, we'll just return success message
         return response()->json([
-            'message' => $promotion->is_featured ? 'Promocja została wyróżniona' : 'Promocja nie jest już wyróżniona',
+            'message' => 'Funkcja wyróżniania promocji nie jest dostępna w aktualnej wersji',
             'promotion' => $promotion
         ]);
     }
@@ -404,19 +393,9 @@ class PromotionController extends BaseAdminController
      */
     public function updateOrder(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'promotions' => 'required|array',
-            'promotions.*.id' => 'required|exists:promotions,id',
-            'promotions.*.display_order' => 'required|integer|min:0'
-        ]);
-
-        foreach ($validated['promotions'] as $promotionData) {
-            Promotion::where('id', $promotionData['id'])
-                     ->update(['display_order' => $promotionData['display_order']]);
-        }
-
+        // Since we don't have display_order field, we'll just return success message
         return response()->json([
-            'message' => 'Kolejność promocji została zaktualizowana'
+            'message' => 'Funkcja zmiany kolejności promocji nie jest dostępna w aktualnej wersji'
         ]);
     }
 } 

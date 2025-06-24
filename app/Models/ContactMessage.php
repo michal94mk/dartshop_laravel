@@ -19,9 +19,18 @@ class ContactMessage extends Model
         'email',
         'subject',
         'message',
-        'reply',
-        'notes',
-        'status'
+        'is_read',
+        'read_at'
+    ];
+    
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'is_read' => 'boolean',
+        'read_at' => 'datetime',
     ];
     
     /**
@@ -31,12 +40,7 @@ class ContactMessage extends Model
      */
     public function getStatusLabelAttribute()
     {
-        return match($this->status) {
-            'unread' => 'Nieprzeczytana',
-            'read' => 'Przeczytana',
-            'replied' => 'Odpowiedziano',
-            default => 'Nieznany'
-        };
+        return $this->is_read ? 'Przeczytana' : 'Nieprzeczytana';
     }
     
     /**
@@ -46,11 +50,35 @@ class ContactMessage extends Model
      */
     public function getStatusColorAttribute()
     {
-        return match($this->status) {
-            'unread' => 'yellow',
-            'read' => 'blue',
-            'replied' => 'green',
-            default => 'gray'
-        };
+        return $this->is_read ? 'green' : 'yellow';
+    }
+    
+    /**
+     * Mark message as read
+     *
+     * @return void
+     */
+    public function markAsRead()
+    {
+        $this->update([
+            'is_read' => true,
+            'read_at' => now()
+        ]);
+    }
+    
+    /**
+     * Scope for unread messages
+     */
+    public function scopeUnread($query)
+    {
+        return $query->where('is_read', false);
+    }
+    
+    /**
+     * Scope for read messages
+     */
+    public function scopeRead($query)
+    {
+        return $query->where('is_read', true);
     }
 }

@@ -15,9 +15,9 @@ class TutorialController extends Controller
      */
     public function index()
     {
-        $tutorials = Tutorial::with('user:id,name')
-            ->published()
-            ->latest('published_at')
+        $tutorials = Tutorial::published()
+            ->orderBy('order', 'asc')
+            ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($tutorial) {
                 return [
@@ -30,8 +30,10 @@ class TutorialController extends Controller
                     'category' => $tutorial->category,
                     'difficulty' => $tutorial->difficulty,
                     'published_at' => $tutorial->published_at,
-                    'author' => $tutorial->user->name,
+                    'author' => $tutorial->user->name ?? 'DartShop Admin',
                     'views' => $tutorial->views,
+                    'order' => $tutorial->order,
+                    'video_url' => $tutorial->video_url,
                 ];
             });
             
@@ -46,13 +48,9 @@ class TutorialController extends Controller
      */
     public function show($slug)
     {
-        $tutorial = Tutorial::with('user:id,name')
-            ->published()
+        $tutorial = Tutorial::published()
             ->where('slug', $slug)
             ->firstOrFail();
-
-        // Increment views
-        $tutorial->increment('views');
             
         return response()->json([
             'id' => $tutorial->id,
@@ -65,10 +63,12 @@ class TutorialController extends Controller
             'category' => $tutorial->category,
             'difficulty' => $tutorial->difficulty,
             'published_at' => $tutorial->published_at,
-            'author' => $tutorial->user->name,
+            'author' => $tutorial->user->name ?? 'DartShop Admin',
             'views' => $tutorial->views,
             'meta_title' => $tutorial->meta_title,
             'meta_description' => $tutorial->meta_description,
+            'order' => $tutorial->order,
+            'video_url' => $tutorial->video_url,
         ]);
     }
 } 

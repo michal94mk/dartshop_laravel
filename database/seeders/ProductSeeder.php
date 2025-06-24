@@ -161,6 +161,98 @@ class ProductSeeder extends Seeder
                 'category_id' => 3, // Accessories/Akcesoria
                 'brand_id' => 10, // One80
                 'image' => 'logo.png',
+            ],
+            
+            // Dodatkowe produkty dla wzbogacenia bazy
+            [
+                'name' => 'Target Swiss Point Silver',
+                'description' => 'Lotki z 90% wolframu z systemem Swiss Point umożliwiającym łatwą wymianę grotów.',
+                'price' => 74.95,
+                'weight' => 0.1,
+                'category_id' => 1, // Darts/Lotki
+                'brand_id' => 3, // Target
+                'image' => 'product01.png',
+            ],
+            [
+                'name' => 'Harrows Assassin 85%',
+                'description' => 'Klasyczne lotki z 85% wolframu o sprawdzonej geometrii i doskonałej równowadze.',
+                'price' => 32.95,
+                'weight' => 0.1,
+                'category_id' => 1, // Darts/Lotki
+                'brand_id' => 2, // Harrows
+                'image' => 'product02.png',
+            ],
+            [
+                'name' => 'Unicorn Core XL Trainer',
+                'description' => 'Tarcza treningowa z pogrubionymi drutami idealna dla początkujących graczy.',
+                'price' => 34.95,
+                'weight' => 2.1,
+                'category_id' => 2, // Dartboards/Tarcze
+                'brand_id' => 1, // Unicorn
+                'image' => 'product03.png',
+            ],
+            [
+                'name' => 'Red Dragon Championship Shirt',
+                'description' => 'Oficjalna koszulka turniejowa z oddychającego materiału.',
+                'price' => 29.95,
+                'weight' => 0.2,
+                'category_id' => 4, // Odzież
+                'brand_id' => 5, // Red Dragon
+                'image' => 'product04.png',
+            ],
+            [
+                'name' => 'Winmau Xtreme Cabinet Oak',
+                'description' => 'Ekskluzywna szafka dębowa z oświetleniem LED i miejscem na akcesoria.',
+                'price' => 199.95,
+                'weight' => 15.0,
+                'category_id' => 7, // Szafy i Szafki
+                'brand_id' => 4, // Winmau
+                'image' => 'product05.png',
+            ],
+            [
+                'name' => 'Target Takoma Wallet',
+                'description' => 'Kompaktowe etui na lotki z miejscem na 2 komplety i akcesoria.',
+                'price' => 14.95,
+                'weight' => 0.1,
+                'category_id' => 5, // Walizki i Etui
+                'brand_id' => 3, // Target
+                'image' => 'product06.png',
+            ],
+            [
+                'name' => 'Harrows Quantum Soft Tips',
+                'description' => 'Końcówki soft tip z polimeru najwyższej jakości o zwiększonej trwałości.',
+                'price' => 3.95,
+                'weight' => 0.02,
+                'category_id' => 6, // Lotki Końcówki
+                'brand_id' => 2, // Harrows
+                'image' => 'product07.png',
+            ],
+            [
+                'name' => 'Mission LED Surround',
+                'description' => 'Podświetlenie LED wokół tarczy eliminujące cienie i poprawiające widoczność.',
+                'price' => 89.95,
+                'weight' => 1.2,
+                'category_id' => 8, // Oświetlenie
+                'brand_id' => 7, // Mission
+                'image' => 'product08.png',
+            ],
+            [
+                'name' => 'Bull\'s Fighting Pig',
+                'description' => 'Limitowana edycja lotek z 95% wolframu z charakterystycznym wzorem świni.',
+                'price' => 124.95,
+                'weight' => 0.1,
+                'category_id' => 1, // Darts/Lotki
+                'brand_id' => 8, // Bull's
+                'image' => 'product09.png',
+            ],
+            [
+                'name' => 'Designa Patriot X UK',
+                'description' => 'Patriotyczne lotki z motywami brytyjskimi, 90% wolfram.',
+                'price' => 42.95,
+                'weight' => 0.1,
+                'category_id' => 1, // Darts/Lotki
+                'brand_id' => 9, // Designa
+                'image' => 'shop01.png',
             ]
         ];
 

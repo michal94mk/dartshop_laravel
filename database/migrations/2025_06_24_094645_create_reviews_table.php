@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('reviews', function (Blueprint $table) {
@@ -19,14 +16,10 @@ return new class extends Migration
             $table->string('title');
             $table->text('content');
             $table->boolean('is_approved')->default(false);
-            $table->boolean('is_featured')->default(false);
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('reviews');

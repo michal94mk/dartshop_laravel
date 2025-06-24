@@ -19,16 +19,9 @@ class Tutorial extends Model
         'title',
         'slug',
         'content',
-        'featured_image',
-        'thumbnail_image',
-        'category',
-        'difficulty',
-        'is_published',
-        'published_at',
-        'meta_title',
-        'meta_description',
-        'excerpt',
-        'user_id'
+        'video_url',
+        'order',
+        'is_published'
     ];
 
     /**
@@ -38,7 +31,7 @@ class Tutorial extends Model
      */
     protected $casts = [
         'is_published' => 'boolean',
-        'published_at' => 'datetime',
+        'order' => 'integer'
     ];
 
     /**
@@ -52,19 +45,11 @@ class Tutorial extends Model
             if (empty($tutorial->slug)) {
                 $tutorial->slug = Str::slug($tutorial->title);
             }
-            
-            if (empty($tutorial->excerpt) && !empty($tutorial->content)) {
-                $tutorial->excerpt = Str::limit(strip_tags($tutorial->content), 150);
-            }
         });
         
         static::updating(function ($tutorial) {
             if (empty($tutorial->slug)) {
                 $tutorial->slug = Str::slug($tutorial->title);
-            }
-            
-            if (empty($tutorial->excerpt) && !empty($tutorial->content)) {
-                $tutorial->excerpt = Str::limit(strip_tags($tutorial->content), 150);
             }
         });
     }
@@ -77,8 +62,7 @@ class Tutorial extends Model
      */
     public function scopePublished($query)
     {
-        return $query->where('is_published', true)
-                     ->where('published_at', '<=', now());
+        return $query->where('is_published', true);
     }
 
     /**
@@ -92,36 +76,83 @@ class Tutorial extends Model
     }
 
     /**
-     * Get the tutorial's featured image URL.
-     *
-     * @return string
+     * Get excerpt from content (first 150 characters).
+     */
+    public function getExcerptAttribute()
+    {
+        return Str::limit(strip_tags($this->content), 150);
+    }
+
+    /**
+     * Get default image URL for tutorials.
      */
     public function getFeaturedImageUrlAttribute()
     {
-        if (!$this->featured_image) {
-            return asset('images/default-tutorial.jpg');
-        }
-        return asset('storage/images/' . $this->featured_image);
+        return asset('img/tutorial-default.jpg');
     }
 
     /**
-     * Get the tutorial's thumbnail image URL.
-     *
-     * @return string
+     * Get default thumbnail URL for tutorials.
      */
     public function getThumbnailImageUrlAttribute()
     {
-        if (!$this->thumbnail_image) {
-            return asset('images/default-tutorial-thumbnail.jpg');
-        }
-        return asset('storage/images/' . $this->thumbnail_image);
+        return asset('img/tutorial-thumbnail-default.jpg');
     }
 
     /**
-     * Get the user that authored the tutorial.
+     * Get default category.
+     */
+    public function getCategoryAttribute()
+    {
+        return 'Darts';
+    }
+
+    /**
+     * Get default difficulty.
+     */
+    public function getDifficultyAttribute()
+    {
+        return 'Początkujący';
+    }
+
+    /**
+     * Get published date (use created_at since we don't have published_at).
+     */
+    public function getPublishedAtAttribute()
+    {
+        return $this->created_at;
+    }
+
+    /**
+     * Get meta title (use title if not set).
+     */
+    public function getMetaTitleAttribute()
+    {
+        return $this->title;
+    }
+
+    /**
+     * Get meta description (use excerpt).
+     */
+    public function getMetaDescriptionAttribute()
+    {
+        return $this->excerpt;
+    }
+
+    /**
+     * Get views count (default to 0 since we don't track views yet).
+     */
+    public function getViewsAttribute()
+    {
+        return 0;
+    }
+
+    /**
+     * Get the user that authored the tutorial (return default admin user).
      */
     public function user()
     {
-        return $this->belongsTo(User::class);
+        // Since we don't have user_id in table, return a default admin user
+        return (object) ['name' => 'DartShop Admin'];
     }
 }

@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_favorite_products', function (Blueprint $table) {
+        Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
+            $table->string('name')->unique();
+            $table->text('description')->nullable();
+            $table->string('image')->nullable();
+            $table->string('slug')->unique();
+            $table->integer('sort_order')->default(0);
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
-            
-            // Ensure a user can favorite a product only once
-            $table->unique(['user_id', 'product_id']);
         });
     }
 
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_favorite_products');
+        Schema::dropIfExists('categories');
     }
 };

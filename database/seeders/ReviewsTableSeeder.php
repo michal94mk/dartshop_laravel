@@ -30,36 +30,31 @@ class ReviewsTableSeeder extends Seeder
                 'title' => 'Najlepsze lotki na rynku!',
                 'content' => 'Kupiłem te lotki miesiąc temu i jestem zachwycony. Lot jest stabilny, a wykonanie na najwyższym poziomie. Polecam każdemu, kto szuka profesjonalnego sprzętu.',
                 'rating' => 5,
-                'is_approved' => true,
-                'is_featured' => true
+                'is_approved' => true
             ],
             [
                 'title' => 'Bardzo dobra jakość',
                 'content' => 'Tarcza jest wykonana z solidnych materiałów, które wytrzymają lata użytkowania. Polecam początkującym i średniozaawansowanym graczom.',
                 'rating' => 4,
-                'is_approved' => true,
-                'is_featured' => true
+                'is_approved' => true
             ],
             [
                 'title' => 'Idealny zestaw do nauki',
                 'content' => 'Kupiłem ten zestaw, aby nauczyć moje dzieci gry w darta. Świetny stosunek jakości do ceny. Polecam wszystkim początkującym!',
                 'rating' => 5,
-                'is_approved' => true,
-                'is_featured' => true
+                'is_approved' => true
             ],
             [
                 'title' => 'Świetny design i funkcjonalność',
                 'content' => 'To już mój drugi zakup w tym sklepie i ponownie jestem bardzo zadowolony. Szybka dostawa, produkty zgodne z opisem. DartShop to mój ulubiony sklep z akcesoriami do darta!',
                 'rating' => 5,
-                'is_approved' => true,
-                'is_featured' => true
+                'is_approved' => true
             ],
             [
                 'title' => 'Dobry stosunek jakości do ceny',
                 'content' => 'Nie spodziewałem się tak dobrej jakości w tej cenie. Polecam każdemu, kto szuka solidnego sprzętu bez wydawania fortuny.',
                 'rating' => 4,
-                'is_approved' => true,
-                'is_featured' => false
+                'is_approved' => true
             ]
         ];
         
@@ -81,8 +76,7 @@ class ReviewsTableSeeder extends Seeder
                     'title' => $reviewData['title'],
                     'content' => $reviewData['content'],
                     'rating' => $reviewData['rating'],
-                    'is_approved' => $reviewData['is_approved'],
-                    'is_featured' => $reviewData['is_featured']
+                    'is_approved' => $reviewData['is_approved']
                 ]);
             }
         }

@@ -11,26 +11,30 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Tabela użytkowników
+        // Users table with all fields consolidated
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->boolean('is_admin')->default(false);
+            $table->boolean('privacy_policy_accepted')->default(false);
+            $table->boolean('terms_of_service_accepted')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });
 
-        // Tabela resetowania haseł
+        // Password resets table
         Schema::create('password_resets', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
 
-        // Tabela nieudanych zadań
+        // Failed jobs table
         Schema::create('failed_jobs', function (Blueprint $table) {
             $table->id();
             $table->string('uuid')->unique();
@@ -41,7 +45,7 @@ return new class extends Migration
             $table->timestamp('failed_at')->useCurrent();
         });
 
-        // Tabela tokenów dostępu
+        // Personal access tokens table
         Schema::create('personal_access_tokens', function (Blueprint $table) {
             $table->id();
             $table->morphs('tokenable');

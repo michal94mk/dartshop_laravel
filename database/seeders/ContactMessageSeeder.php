@@ -34,7 +34,7 @@ class ContactMessageSeeder extends Seeder
             'Opinia'
         ];
         
-        // Create different types of messages with various statuses
+        // Create different types of messages
         
         // Type 1: Unread messages (newest)
         for ($i = 0; $i < 5; $i++) {
@@ -43,50 +43,45 @@ class ContactMessageSeeder extends Seeder
                 'email' => $faker->email,
                 'subject' => $subjects[array_rand($subjects)] . ' - ' . $faker->word,
                 'message' => $faker->paragraph(4, true) . "\n\n" . $faker->paragraph(3, true),
-                'status' => 'unread',
+                'is_read' => false,
+                'read_at' => null,
                 'created_at' => $faker->dateTimeBetween('-1 week', 'now'),
                 'updated_at' => $faker->dateTimeBetween('-1 week', 'now'),
             ]);
         }
         
         // Type 2: Read messages
-        for ($i = 0; $i < 7; $i++) {
+        for ($i = 0; $i < 10; $i++) {
             $createdAt = $faker->dateTimeBetween('-2 months', '-2 weeks');
-            $updatedAt = Carbon::instance($createdAt)->addDays(rand(1, 5));
+            $readAt = Carbon::instance($createdAt)->addDays(rand(1, 5));
             
             ContactMessage::create([
                 'name' => $faker->name,
                 'email' => $faker->email,
                 'subject' => $subjects[array_rand($subjects)] . ' - ' . $faker->word,
-                'message' => $faker->paragraph(3, true) . "\n\n" . $faker->paragraph(2, true),
-                'notes' => rand(0, 1) ? $faker->sentence(10, true) : null,
-                'status' => 'read',
+                'message' => $faker->paragraph(3, true) . "\n\n" . $faker->paragraph(2, true) . "\n\nPozdrawiam,\n" . $faker->firstName,
+                'is_read' => true,
+                'read_at' => $readAt,
                 'created_at' => $createdAt,
-                'updated_at' => $updatedAt,
+                'updated_at' => $readAt,
             ]);
         }
         
-        // Type 3: Replied messages
-        for ($i = 0; $i < 8; $i++) {
+        // Type 3: Some older messages (mix of read/unread)
+        for ($i = 0; $i < 5; $i++) {
             $createdAt = $faker->dateTimeBetween('-3 months', '-1 month');
-            $updatedAt = Carbon::instance($createdAt)->addDays(rand(1, 10));
-            $responseDate = Carbon::instance($updatedAt)->format('d.m.Y H:i');
-            
-            $reply = $faker->paragraph(3, true);
-            $notes = rand(0, 1) ? 
-                "--- Odpowiedź wysłana {$responseDate} ---\n{$reply}\n\n" . $faker->sentence(8, true) : 
-                "--- Odpowiedź wysłana {$responseDate} ---\n{$reply}";
+            $isRead = $faker->boolean(70); // 70% chance of being read
+            $readAt = $isRead ? Carbon::instance($createdAt)->addDays(rand(1, 30)) : null;
             
             ContactMessage::create([
                 'name' => $faker->name,
                 'email' => $faker->email,
                 'subject' => $subjects[array_rand($subjects)] . ' - ' . $faker->word,
-                'message' => $faker->paragraph(3, true) . "\n\nPozdrawiam,\n" . $faker->firstName,
-                'reply' => $reply,
-                'notes' => $notes,
-                'status' => 'replied',
+                'message' => $faker->paragraph(2, true) . "\n\n" . $faker->paragraph(1, true),
+                'is_read' => $isRead,
+                'read_at' => $readAt,
                 'created_at' => $createdAt,
-                'updated_at' => $updatedAt,
+                'updated_at' => $readAt ?? $createdAt,
             ]);
         }
         

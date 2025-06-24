@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class TermsOfService extends Model
 {
@@ -15,14 +14,11 @@ class TermsOfService extends Model
     protected $fillable = [
         'title',
         'content',
-        'version',
         'is_active',
-        'effective_date',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
-        'effective_date' => 'datetime',
     ];
 
     /**
@@ -31,8 +27,7 @@ class TermsOfService extends Model
     public static function getActive()
     {
         return self::where('is_active', true)
-            ->where('effective_date', '<=', now())
-            ->orderBy('effective_date', 'desc')
+            ->orderBy('created_at', 'desc')
             ->first();
     }
 
@@ -54,13 +49,5 @@ class TermsOfService extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
-    }
-
-    /**
-     * Scope for current terms (effective now).
-     */
-    public function scopeCurrent($query)
-    {
-        return $query->where('effective_date', '<=', now());
     }
 }

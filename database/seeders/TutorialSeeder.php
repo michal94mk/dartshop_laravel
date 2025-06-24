@@ -3,9 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Tutorial;
-use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Carbon;
 
 class TutorialSeeder extends Seeder
 {
@@ -16,14 +14,6 @@ class TutorialSeeder extends Seeder
     {
         // Usuwamy wszystkie istniejące poradniki przed dodaniem nowych
         Tutorial::truncate();
-        
-        // Get admin users to assign as authors
-        $adminUsers = User::where('is_admin', true)->get();
-        
-        if ($adminUsers->isEmpty()) {
-            $this->command->error('No admin users found. Run UserSeeder first.');
-            return;
-        }
 
         $tutorials = [
             [
@@ -85,15 +75,9 @@ class TutorialSeeder extends Seeder
                 </ul>
                 
                 <p>Pamiętaj, że najważniejsza jest regularność i cierpliwość. Każdy profesjonalny gracz zaczynał od podstaw!</p>',
-                'featured_image' => null,
-                'thumbnail_image' => null,
-                'category' => 'Podstawy',
-                'difficulty' => 'beginner',
-                'is_published' => true,
-                'published_at' => Carbon::now()->subDays(30),
-                'meta_title' => 'Podstawy gry w rzutki dla początkujących | Poradnik',
-                'meta_description' => 'Poznaj podstawy gry w rzutki - sprzęt, postawę, technikę rzutu i pierwsze gry. Praktyczny poradnik dla osób rozpoczynających przygodę z dartem.',
-                'excerpt' => 'Gra w rzutki to świetna rozrywka, która może przerodzić się w pasję na lata. Ten poradnik przeprowadzi Cię przez podstawy, które pozwolą Ci rozpocząć przygodę z darts.',
+                'video_url' => null,
+                'order' => 1,
+                'is_published' => true
             ],
             [
                 'title' => 'Jak wybrać pierwsze lotki?',
@@ -152,15 +136,9 @@ class TutorialSeeder extends Seeder
                 </ol>
                 
                 <p>Pamiętaj, że najważniejsze jest, aby lotki były wygodne dla Ciebie. Każdy gracz ma swoje preferencje, które wykształcają się z czasem i praktyką.</p>',
-                'featured_image' => null,
-                'thumbnail_image' => null,
-                'category' => 'Sprzęt',
-                'difficulty' => 'beginner',
-                'is_published' => true,
-                'published_at' => Carbon::now()->subDays(25),
-                'meta_title' => 'Jak wybrać pierwsze lotki? | Poradnik dla początkujących',
-                'meta_description' => 'Dowiedz się, jak wybrać odpowiednie lotki dla początkującego - waga, materiał, kształt i inne cechy, które warto wziąć pod uwagę przy zakupie pierwszych lotek.',
-                'excerpt' => 'Wybór pierwszych lotek to ważna decyzja, która może znacząco wpłynąć na Twoje początkowe doświadczenia z darts. W tym poradniku pomożemy Ci dokonać właściwego wyboru.',
+                'video_url' => null,
+                'order' => 2,
+                'is_published' => true
             ],
             [
                 'title' => 'Techniki treningowe dla średniozaawansowanych graczy',
@@ -234,15 +212,9 @@ class TutorialSeeder extends Seeder
                 </ul>
                 
                 <p>Pamiętaj, że kluczem do sukcesu jest regularność i skupienie na jakości, nie na ilości rzutów. Lepiej trenować 30 minut z pełną koncentracją niż 2 godziny bez zaangażowania.</p>',
-                'featured_image' => null,
-                'thumbnail_image' => null,
-                'category' => 'Trening',
-                'difficulty' => 'intermediate',
-                'is_published' => true,
-                'published_at' => Carbon::now()->subDays(15),
-                'meta_title' => 'Techniki treningowe dla średniozaawansowanych graczy | Poradnik',
-                'meta_description' => 'Odkryj zaawansowane techniki treningowe dla średniozaawansowanych graczy w rzutki - ćwiczenia precyzji, finiszów i planowanie treningów.',
-                'excerpt' => 'Gdy opanowałeś już podstawy gry w rzutki, czas na podniesienie swoich umiejętności na wyższy poziom. Ten poradnik przedstawia zaawansowane techniki treningowe dla średniozaawansowanych graczy.',
+                'video_url' => null,
+                'order' => 3,
+                'is_published' => true
             ],
             [
                 'title' => 'Zasady gry w turniejach darts - co musisz wiedzieć',
@@ -318,15 +290,9 @@ class TutorialSeeder extends Seeder
                 </ul>
                 
                 <p>Pamiętaj, że udział w turniejach to świetna okazja do rozwoju - zarówno pod względem umiejętności, jak i mentalnym. Niezależnie od wyniku, każdy turniej to cenne doświadczenie!</p>',
-                'featured_image' => null,
-                'thumbnail_image' => null,
-                'category' => 'Turnieje',
-                'difficulty' => 'intermediate',
-                'is_published' => true,
-                'published_at' => Carbon::now()->subDays(10),
-                'meta_title' => 'Zasady gry w turniejach darts - co musisz wiedzieć | Poradnik',
-                'meta_description' => 'Poznaj najważniejsze zasady, etykietę i formaty gry obowiązujące podczas turniejów darts. Praktyczny przewodnik dla graczy planujących start w zawodach.',
-                'excerpt' => 'Uczestnictwo w turniejach to ekscytujący krok w rozwoju każdego dartera. Ten poradnik przybliży najważniejsze zasady i etykietę turniejową, których powinieneś przestrzegać.',
+                'video_url' => null,
+                'order' => 4,
+                'is_published' => true
             ],
             [
                 'title' => 'Zaawansowane strategie gry w 501 dla profesjonalistów',
@@ -389,22 +355,13 @@ class TutorialSeeder extends Seeder
                 </ul>
                 
                 <p>Pamiętaj, że na najwyższym poziomie różnica między zwycięstwem a porażką często nie leży w technice, ale w strategii i psychologii. Doskonalenie tych aspektów może dać Ci przewagę nad równie utalentowanymi technicznie przeciwnikami.</p>',
-                'featured_image' => null,
-                'thumbnail_image' => null,
-                'category' => 'Strategia',
-                'difficulty' => 'advanced',
-                'is_published' => true,
-                'published_at' => Carbon::now()->subDays(5),
-                'meta_title' => 'Zaawansowane strategie gry w 501 dla profesjonalistów | Poradnik',
-                'meta_description' => 'Odkryj zaawansowane strategie gry w 501 na poziomie profesjonalnym - taktyki punktowania, finisze, psychologię gry i analizę statystyczną.',
-                'excerpt' => 'Gra 501 na poziomie profesjonalnym wymaga nie tylko precyzji, ale także doskonałego zrozumienia strategii. Ten poradnik omawia zaawansowane koncepcje, które mogą podnieść Twoją grę na najwyższy poziom.',
+                'video_url' => null,
+                'order' => 5,
+                'is_published' => true
             ]
         ];
         
         foreach ($tutorials as $tutorialData) {
-            // Assign a random admin user as the author
-            $tutorialData['user_id'] = $adminUsers->random()->id;
-            
             Tutorial::create($tutorialData);
         }
         

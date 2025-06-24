@@ -20,6 +20,8 @@ return new class extends Migration
             $table->foreignId('category_id')->constrained();
             $table->foreignId('brand_id')->constrained();
             $table->string('image')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->boolean('featured')->default(false);
             $table->timestamps();
         });
     }

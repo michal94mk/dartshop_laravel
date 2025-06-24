@@ -25,10 +25,7 @@ class Promotion extends Model
         'starts_at',
         'ends_at',
         'is_active',
-        'display_order',
-        'is_featured',
-        'badge_text',
-        'badge_color'
+        'code'
     ];
 
     /**
@@ -40,9 +37,7 @@ class Promotion extends Model
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
         'is_active' => 'boolean',
-        'is_featured' => 'boolean',
-        'discount_value' => 'decimal:2',
-        'display_order' => 'integer'
+        'discount_value' => 'decimal:2'
     ];
 
     /**
@@ -72,7 +67,8 @@ class Promotion extends Model
      */
     public function scopeFeatured($query)
     {
-        return $query->where('is_featured', true);
+        // Since we don't have is_featured field, return all active promotions
+        return $query->where('is_active', true);
     }
 
     /**
@@ -80,8 +76,7 @@ class Promotion extends Model
      */
     public function scopeOrdered($query)
     {
-        return $query->orderBy('display_order', 'asc')
-                    ->orderBy('created_at', 'desc');
+        return $query->orderBy('created_at', 'desc');
     }
 
     /**
@@ -198,5 +193,39 @@ class Promotion extends Model
     {
         $this->used_count += 1;
         return $this->save();
+    }
+
+    /**
+     * Get default display order.
+     */
+    public function getDisplayOrderAttribute()
+    {
+        return 0;
+    }
+
+    /**
+     * Get default is_featured value.
+     */
+    public function getIsFeaturedAttribute()
+    {
+        return true; // All active promotions are considered featured
+    }
+
+    /**
+     * Get default badge text.
+     */
+    public function getBadgeTextAttribute()
+    {
+        return $this->discount_type === 'percentage' 
+            ? "-{$this->discount_value}%" 
+            : "-{$this->discount_value} PLN";
+    }
+
+    /**
+     * Get default badge color.
+     */
+    public function getBadgeColorAttribute()
+    {
+        return 'red';
     }
 }

@@ -15,9 +15,7 @@ class PrivacyPolicySeeder extends Seeder
     {
         PrivacyPolicy::create([
             'title' => 'Polityka Prywatności DartShop',
-            'version' => '1.0',
             'content' => $this->getDefaultContent(),
-            'effective_date' => now(),
             'is_active' => true,
         ]);
     }
