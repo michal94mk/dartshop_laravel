@@ -150,79 +150,48 @@
         </div>
       </div>
 
-      <!-- Statistics Section -->
-      <div class="bg-gradient-to-r from-purple-600 to-indigo-600 py-16">
+      <!-- Combined Statistics & CTA Section -->
+      <div class="bg-gradient-to-b from-purple-600 via-indigo-600 to-purple-700 py-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold text-white mb-4">Nasze osiągnięcia w liczbach</h2>
-            <p class="text-xl text-purple-100">Zaufało nam już tysiące zadowolonych klientów</p>
-          </div>
-          
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div class="text-center">
-              <div class="text-4xl md:text-5xl font-bold text-white mb-2">10K+</div>
-              <div class="text-purple-100">Zadowolonych klientów</div>
-            </div>
-            <div class="text-center">
-              <div class="text-4xl md:text-5xl font-bold text-white mb-2">500+</div>
-              <div class="text-purple-100">Produktów w ofercie</div>
-            </div>
-            <div class="text-center">
-              <div class="text-4xl md:text-5xl font-bold text-white mb-2">5+</div>
-              <div class="text-purple-100">Lat doświadczenia</div>
-            </div>
-            <div class="text-center">
-              <div class="text-4xl md:text-5xl font-bold text-white mb-2">99%</div>
-              <div class="text-purple-100">Pozytywnych opinii</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Team Section -->
-      <div class="py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">Poznaj nasz zespół</h2>
-            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-              Grupa pasjonatów, którzy każdego dnia pracują nad tym, aby dostarczyć Ci najlepsze produkty
-            </p>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-              <div class="h-64 bg-gradient-to-br from-purple-400 to-indigo-500"></div>
-              <div class="p-6 text-center">
-                <h3 class="text-xl font-semibold text-gray-900 mb-2">Anna Kowalska</h3>
-                <p class="text-purple-600 font-medium mb-3">CEO & Założycielka</p>
-                <p class="text-gray-600">Pasjonatka e-commerce z 10-letnim doświadczeniem w branży.</p>
+          <!-- Statistics Part -->
+          <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Nasze osiągnięcia w liczbach</h2>
+            <p class="text-xl text-purple-100 mb-12">Zaufało nam już tysiące zadowolonych klientów</p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
+              <div class="text-center group">
+                <div class="text-4xl md:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform duration-300">10K+</div>
+                <div class="text-purple-100">Zadowolonych klientów</div>
+              </div>
+              <div class="text-center group">
+                <div class="text-4xl md:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform duration-300">500+</div>
+                <div class="text-purple-100">Produktów w ofercie</div>
+              </div>
+              <div class="text-center group">
+                <div class="text-4xl md:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform duration-300">5+</div>
+                <div class="text-purple-100">Lat doświadczenia</div>
+              </div>
+              <div class="text-center group">
+                <div class="text-4xl md:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform duration-300">99%</div>
+                <div class="text-purple-100">Pozytywnych opinii</div>
               </div>
             </div>
             
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-              <div class="h-64 bg-gradient-to-br from-blue-400 to-purple-500"></div>
-              <div class="p-6 text-center">
-                <h3 class="text-xl font-semibold text-gray-900 mb-2">Piotr Nowak</h3>
-                <p class="text-blue-600 font-medium mb-3">CTO</p>
-                <p class="text-gray-600">Ekspert w dziedzinie technologii i rozwoju platform e-commerce.</p>
+            <!-- Decorative separator -->
+            <div class="flex items-center justify-center mb-12">
+              <div class="h-px bg-gradient-to-r from-transparent via-white/30 to-transparent w-full max-w-md"></div>
+              <div class="mx-4">
+                <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </div>
               </div>
-            </div>
-            
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-              <div class="h-64 bg-gradient-to-br from-green-400 to-blue-500"></div>
-              <div class="p-6 text-center">
-                <h3 class="text-xl font-semibold text-gray-900 mb-2">Maria Wiśniewska</h3>
-                <p class="text-green-600 font-medium mb-3">Head of Marketing</p>
-                <p class="text-gray-600">Specjalistka od marketingu digitalnego i budowania relacji z klientami.</p>
-              </div>
+              <div class="h-px bg-gradient-to-r from-transparent via-white/30 to-transparent w-full max-w-md"></div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- CTA Section -->
-      <div class="bg-gradient-to-r from-indigo-600 to-purple-600">
-        <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+          
+          <!-- CTA Part -->
           <div class="text-center">
             <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
               Gotowy na rozpoczęcie przygody z nami?
@@ -232,16 +201,16 @@
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
               <router-link to="/" 
-                           class="inline-flex items-center px-8 py-4 border border-transparent text-base font-semibold rounded-xl text-indigo-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-all duration-200 shadow-lg hover:shadow-xl">
+                           class="inline-flex items-center px-8 py-4 border border-transparent text-base font-semibold rounded-xl text-indigo-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6a2 2 0 002 2h4a2 2 0 002-2v-6M8 11h8"/>
                 </svg>
                 Przejdź do sklepu
               </router-link>
               <router-link to="/contact" 
-                           class="inline-flex items-center px-8 py-4 border-2 border-white text-base font-semibold rounded-xl text-white bg-transparent hover:bg-white hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-all duration-200">
+                           class="inline-flex items-center px-8 py-4 border-2 border-white text-base font-semibold rounded-xl text-white bg-transparent hover:bg-white hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-all duration-200 hover:scale-105">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z"/>
                 </svg>
                 Skontaktuj się z nami
               </router-link>

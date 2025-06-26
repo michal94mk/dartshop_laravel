@@ -338,37 +338,33 @@
           </p>
         </div>
 
-        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <router-link 
             v-for="category in categories" 
             :key="category.id" 
             :to="`/products?category=${category.id}`"
-            class="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer will-change-transform"
+            class="group relative bg-white rounded-xl border border-gray-200 p-8 hover:shadow-lg hover:border-gray-300 transition-all duration-200 cursor-pointer"
           >
-            <div class="relative h-64 overflow-hidden rounded-2xl">
-              <img :src="getCategoryImage(category)" alt="" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 will-change-transform">
-              <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-              
-              <!-- Product count badge -->
-              <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full transition-all duration-300 group-hover:bg-white group-hover:shadow-lg">
-                <span class="text-sm font-semibold text-gray-800">{{ getCategoryProductCount(category) }} produktów</span>
+            <!-- Content -->
+            <div class="space-y-4">
+              <div>
+                <h3 class="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors duration-200">
+                  {{ category.name }}
+                </h3>
+                <p class="text-sm text-gray-500 mt-1">
+                  {{ getCategoryProductCount(category) }} dostępnych produktów
+                </p>
               </div>
               
-              <!-- Click indicator -->
-              <div class="absolute top-4 left-4 bg-indigo-600/90 backdrop-blur-sm px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                <span class="text-sm font-semibold text-white">Kliknij aby przeglądać</span>
-              </div>
+              <!-- Simple decorative line -->
+              <div class="w-12 h-1 bg-gray-200 group-hover:bg-indigo-500 transition-colors duration-200 rounded-full"></div>
               
-              <!-- Subtle hover overlay - ensure it's contained within rounded container -->
-              <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 will-change-opacity"></div>
-            </div>
-            <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <h3 class="text-2xl font-bold mb-2 group-hover:text-yellow-300 transition-colors duration-300">{{ category.name }}</h3>
-              <div class="flex items-center text-white/80 group-hover:text-white transition-colors duration-300">
-                <svg class="w-5 h-5 mr-2 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <!-- Call to action -->
+              <div class="flex items-center text-gray-600 group-hover:text-indigo-600 transition-colors duration-200">
+                <span class="text-sm font-medium">Przeglądaj kategorię</span>
+                <svg class="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
-                <span class="font-medium">Zobacz produkty</span>
               </div>
             </div>
           </router-link>
@@ -547,11 +543,6 @@ export default {
     },
     loadLatestReviews() {
       this.reviewStore.fetchLatestReviews();
-    },
-    getCategoryImage(category) {
-      // Generate placeholder image based on category name
-      const encodedName = encodeURIComponent(category.name);
-      return `https://via.placeholder.com/600x400/6366f1/fff?text=${encodedName}`;
     },
     getCategoryProductCount(category) {
       return category.products_count || 0;

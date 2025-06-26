@@ -83,11 +83,8 @@
                 <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                   Marka
                 </th>
-                <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                  Cena
-                </th>
                 <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
-                  Stan magazynu
+                  Cena
                 </th>
                 <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
                   Akcje
@@ -139,13 +136,6 @@
                 <!-- Price Column -->
                 <td class="px-3 py-4 text-center">
                   <span class="text-sm font-medium text-gray-900">{{ item.price }} PLN</span>
-                </td>
-                
-                <!-- Stock Status Column -->
-                <td class="px-3 py-4 text-center">
-                  <admin-badge :variant="getStockStatusVariant(item.stock_quantity)" size="xs">
-                    {{ getStockStatusLabel(item.stock_quantity) }}
-                  </admin-badge>
                 </td>
                 
                 <!-- Actions Column -->
@@ -429,15 +419,6 @@
                   <div>
                     <h4 class="text-sm font-medium text-gray-500">Cena</h4>
                     <p class="mt-1 text-lg font-semibold text-green-600">{{ selectedProductForDetails.price }} PLN</p>
-                  </div>
-                  
-                  <div>
-                    <h4 class="text-sm font-medium text-gray-500">Stan magazynowy</h4>
-                    <p class="mt-1 text-sm text-gray-900">
-                      <admin-badge :variant="getStockStatusVariant(selectedProductForDetails.stock_quantity)">
-                        {{ getStockStatusLabel(selectedProductForDetails.stock_quantity) }}
-                      </admin-badge>
-                    </p>
                   </div>
                 </div>
                 
@@ -1107,21 +1088,6 @@ export default {
       fetchFormData()
       fetchProducts()
     })
-    
-    // New helper functions for stock status
-    const getStockStatusVariant = (stockQuantity) => {
-      if (stockQuantity === undefined || stockQuantity === null) return 'secondary'
-      if (stockQuantity === 0) return 'danger'
-      if (stockQuantity <= settings.lowStockThreshold) return 'warning'
-      return 'success'
-    }
-
-    const getStockStatusLabel = (stockQuantity) => {
-      if (stockQuantity === undefined || stockQuantity === null) return 'Brak danych'
-      if (stockQuantity === 0) return 'Niedostępny'
-      if (stockQuantity <= settings.lowStockThreshold) return `Niski stan (${stockQuantity})`
-      return `Dostępny (${stockQuantity})`
-    }
 
     const showProductDetails = (product) => {
       console.log('Pokazuj szczegóły produktu:', product)
@@ -1163,8 +1129,6 @@ export default {
       tryFallbackImage,
       tryModalFallbackImage,
       resetFilters,
-      getStockStatusVariant,
-      getStockStatusLabel,
       showProductDetails
     }
   }
