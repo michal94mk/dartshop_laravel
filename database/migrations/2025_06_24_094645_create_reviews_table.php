@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('content');
             $table->boolean('is_approved')->default(false);
+            $table->boolean('is_featured')->default(false);
             $table->timestamps();
         });
     }

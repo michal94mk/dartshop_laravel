@@ -1,6 +1,6 @@
 <template>
-  <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-    <div class="relative mx-auto p-6 border w-full max-w-4xl shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
+  <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-start justify-center z-50 py-8">
+    <div class="relative mx-auto p-6 border w-full max-w-4xl shadow-lg rounded-md bg-white">
       <div class="flex justify-between items-center mb-6">
         <h3 class="text-lg font-medium text-gray-900">
           {{ isEditing ? 'Edytuj promocję' : 'Dodaj nową promocję' }}

@@ -1,12 +1,13 @@
 <template>
-  <div class="px-6 py-4">
+  <div class="space-y-6 p-4 bg-white rounded-lg shadow-sm min-h-full">
     <!-- Page Header -->
-    <page-header 
-      title="Zarządzanie poradnikami"
-      subtitle="Lista wszystkich poradników z możliwością dodawania, edycji i usuwania."
-      add-button-label="Dodaj poradnik"
-      @add="showAddForm = true"
-    />
+    <div class="px-6 py-4">
+      <page-header 
+        title="Zarządzanie poradnikami"
+        add-button-label="Dodaj"
+        @add="showAddForm = true"
+      />
+    </div>
     
     <!-- Search and filters -->
     <search-filters
@@ -31,22 +32,6 @@
             <option value="">Wszystkie</option>
             <option value="draft">Szkice</option>
             <option value="published">Opublikowane</option>
-            <option value="scheduled">Zaplanowane</option>
-          </select>
-        </div>
-        
-        <div class="w-full sm:w-auto">
-          <label for="featured" class="block text-sm font-medium text-gray-700">Wyróżniony</label>
-          <select
-            id="featured"
-            name="featured"
-            v-model="filters.featured"
-            @change="fetchTutorials"
-            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">Wszystkie</option>
-            <option value="true">Wyróżnione</option>
-            <option value="false">Zwykłe</option>
           </select>
         </div>
       </template>
@@ -55,51 +40,84 @@
     <!-- Loading indicator -->
     <loading-spinner v-if="loading" />
     
-    <!-- Tutorials Table -->
-    <admin-table
-      v-if="!loading && tutorials.data && tutorials.data.length > 0"
-      :columns="tableColumns"
-      :items="tutorials.data"
-      :force-horizontal-scroll="true"
-      class="mt-6"
-    >
-      <template #cell-title="{ item }">
-        <div class="max-w-[340px]">
-          <span class="block truncate text-sm" :title="item.title">{{ item.title }}</span>
-        </div>
-      </template>
-      
-      <template #cell-slug="{ item }">
-        <div class="max-w-[210px]">
-          <span class="block truncate text-sm" :title="item.slug">{{ item.slug }}</span>
-        </div>
-      </template>
-      
-      <template #cell-author="{ item }">
-        <div class="max-w-[160px]">
-          <span class="block truncate text-sm" :title="item.author ? item.author.name : 'Brak autora'">
-            {{ item.author ? item.author.name : 'Brak autora' }}
-          </span>
-        </div>
-      </template>
-      
-      <template #cell-status="{ item }">
-        <admin-badge 
-          :variant="getStatusVariant(item)"
-          size="xs"
-        >
-          {{ getStatusLabel(item) }}
-        </admin-badge>
-      </template>
-      
-      <template #cell-actions="{ item }">
-        <action-buttons 
-          :item="item" 
-          @edit="editTutorial" 
-          @delete="confirmDelete"
-        />
-      </template>
-    </admin-table>
+    <!-- Tutorials Custom Table -->
+    <div v-if="!loading && tutorials.data && tutorials.data.length > 0" class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-64">
+                Tytuł
+              </th>
+              <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                Slug
+              </th>
+              <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                Autor
+              </th>
+              <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
+                Data
+              </th>
+              <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                Status
+              </th>
+              <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                Akcje
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr v-for="item in tutorials.data" :key="item.id" class="hover:bg-gray-50">
+              <!-- Title Column -->
+              <td class="px-4 py-4">
+                <div class="text-sm font-medium text-gray-900 max-w-[220px] truncate" :title="item.title">
+                  {{ item.title }}
+                </div>
+              </td>
+              
+              <!-- Slug Column -->
+              <td class="px-3 py-4">
+                <div class="text-xs text-gray-500 max-w-[140px] truncate" :title="item.slug">
+                  {{ item.slug }}
+                </div>
+              </td>
+              
+              <!-- Author Column -->
+              <td class="px-3 py-4 text-center">
+                <div class="text-xs text-gray-900 max-w-[110px] truncate mx-auto" :title="item.author ? item.author.name : 'Brak autora'">
+                  {{ item.author ? item.author.name : 'Brak autora' }}
+                </div>
+              </td>
+              
+              <!-- Published At Column -->
+              <td class="px-3 py-4 text-center">
+                <span class="text-xs text-gray-500">{{ formatDate(item.published_at) }}</span>
+              </td>
+              
+              <!-- Status Column -->
+              <td class="px-3 py-4 text-center">
+                <admin-badge 
+                  :variant="getStatusVariant(item)"
+                  size="xs"
+                >
+                  {{ getStatusLabel(item) }}
+                </admin-badge>
+              </td>
+              
+              <!-- Actions Column -->
+              <td class="px-4 py-4 text-right">
+                <action-buttons 
+                  :item="item" 
+                  @edit="editTutorial" 
+                  @delete="confirmDelete"
+                  justify="end"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
     
     <!-- Pagination -->
     <pagination 
@@ -147,17 +165,6 @@
         </div>
         
         <div>
-          <label for="excerpt" class="block text-sm font-medium text-gray-700">Krótki opis</label>
-          <textarea 
-            id="excerpt" 
-            v-model="form.excerpt" 
-            rows="3"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            required
-          ></textarea>
-        </div>
-        
-        <div>
           <label for="content" class="block text-sm font-medium text-gray-700">Treść</label>
           <textarea 
             id="content" 
@@ -170,22 +177,23 @@
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label for="image_url" class="block text-sm font-medium text-gray-700">URL obrazka</label>
+            <label for="video_url" class="block text-sm font-medium text-gray-700">URL wideo (opcjonalnie)</label>
             <input 
               type="url" 
-              id="image_url" 
-              v-model="form.image_url" 
+              id="video_url" 
+              v-model="form.video_url" 
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              required
+              placeholder="https://www.youtube.com/watch?v=..."
             >
           </div>
           
           <div>
-            <label for="published_at" class="block text-sm font-medium text-gray-700">Data publikacji</label>
+            <label for="order" class="block text-sm font-medium text-gray-700">Kolejność wyświetlania</label>
             <input 
-              type="datetime-local" 
-              id="published_at" 
-              v-model="form.published_at" 
+              type="number" 
+              id="order" 
+              v-model="form.order" 
+              min="0"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             >
           </div>
@@ -200,21 +208,8 @@
             >
               <option value="draft">Szkic</option>
               <option value="published">Opublikowany</option>
-              <option value="scheduled">Zaplanowany</option>
             </select>
           </div>
-        </div>
-        
-        <div class="flex items-center">
-          <input 
-            type="checkbox" 
-            id="is_featured" 
-            v-model="form.is_featured" 
-            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-          >
-          <label for="is_featured" class="ml-2 block text-sm text-gray-900">
-            Wyróżniony
-          </label>
         </div>
       </form>
       
@@ -277,7 +272,6 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
 import { useAuthStore } from '../../stores/authStore'
-import AdminTable from '../../components/admin/ui/AdminTable.vue'
 import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
 import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
@@ -292,7 +286,6 @@ import ActionButtons from '../../components/admin/ActionButtons.vue'
 export default {
   name: 'AdminTutorials',
   components: {
-    AdminTable,
     AdminButtonGroup,
     AdminButton,
     AdminBadge,
@@ -322,37 +315,10 @@ export default {
       { value: 'title', label: 'Tytuł' }
     ]
     
-    // Table columns definition
-    const tableColumns = [
-      { key: 'title', label: 'Tytuł', width: '350px' },
-      { key: 'slug', label: 'Slug', width: '220px' },
-      { key: 'author', label: 'Autor', width: '170px' },
-      { key: 'published_at', label: 'Data', type: 'date', width: '140px' },
-      { key: 'status', label: 'Status', align: 'center', width: '120px' },
-      { key: 'actions', label: 'Akcje', align: 'center', width: '140px' }
-    ]
-    
-
-    
-    // Get status variant for badge
-    const getStatusVariant = (tutorial) => {
-      switch (tutorial.status) {
-        case 'published':
-          return 'green'
-        case 'draft':
-          return 'gray'
-        case 'scheduled':
-          return 'blue'
-        default:
-          return 'gray'
-      }
-    }
-    
     // Filters
     const filters = reactive({
       search: '',
       status: '',
-      featured: '',
       sort_field: 'created_at',
       sort_direction: 'desc',
       page: 1
@@ -361,14 +327,10 @@ export default {
     const form = ref({
       title: '',
       slug: '',
-      excerpt: '',
       content: '',
-      image_url: '',
-      published_at: null,
-      status: 'draft',
-      meta_title: '',
-      meta_description: '',
-      featured: false
+      video_url: '',
+      order: 0,
+      status: 'draft'
     })
     
     // Fetch all tutorials
@@ -449,14 +411,10 @@ export default {
         id: tutorial.id,
         title: tutorial.title,
         slug: tutorial.slug,
-        excerpt: tutorial.excerpt || '',
         content: tutorial.content || '',
-        image_url: tutorial.image_url || '',
-        published_at: tutorial.published_at ? formatDateForInput(tutorial.published_at) : null,
-        status: tutorial.status || 'draft',
-        meta_title: tutorial.meta_title || '',
-        meta_description: tutorial.meta_description || '',
-        featured: tutorial.featured || false
+        video_url: tutorial.video_url || '',
+        order: tutorial.order || 0,
+        status: tutorial.status || 'draft'
       }
       showEditForm.value = true;
     }
@@ -513,14 +471,10 @@ export default {
       form.value = {
         title: '',
         slug: '',
-        excerpt: '',
         content: '',
-        image_url: '',
-        published_at: null,
-        status: 'draft',
-        meta_title: '',
-        meta_description: '',
-        featured: false
+        video_url: '',
+        order: 0,
+        status: 'draft'
       }
       showAddForm.value = false
       showEditForm.value = false
@@ -531,13 +485,6 @@ export default {
       if (!dateString) return '-'
       const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
       return new Date(dateString).toLocaleDateString('pl-PL', options)
-    }
-    
-    // Format date for input
-    const formatDateForInput = (dateString) => {
-      if (!dateString) return ''
-      const date = new Date(dateString)
-      return date.toISOString().slice(0, 16)
     }
     
     // Generate slug from title
@@ -558,16 +505,6 @@ export default {
       switch (tutorial.status) {
         case 'published': return 'Opublikowany'
         case 'draft': return 'Szkic'
-        case 'scheduled': 
-          if (tutorial.published_at) {
-            const publishDate = new Date(tutorial.published_at)
-            if (publishDate > new Date()) {
-              return 'Zaplanowany'
-            } else {
-              return 'Opublikowany'
-            }
-          }
-          return 'Zaplanowany'
         default: return tutorial.status
       }
     }
@@ -577,17 +514,19 @@ export default {
       switch (tutorial.status) {
         case 'published': return 'bg-green-100 text-green-800'
         case 'draft': return 'bg-gray-100 text-gray-800'
-        case 'scheduled': 
-          if (tutorial.published_at) {
-            const publishDate = new Date(tutorial.published_at)
-            if (publishDate > new Date()) {
-              return 'bg-yellow-100 text-yellow-800'
-            } else {
-              return 'bg-green-100 text-green-800'
-            }
-          }
-          return 'bg-yellow-100 text-yellow-800'
         default: return 'bg-gray-100 text-gray-800'
+      }
+    }
+    
+    // Get status variant for badge
+    const getStatusVariant = (tutorial) => {
+      switch (tutorial.status) {
+        case 'published':
+          return 'green'
+        case 'draft':
+          return 'gray'
+        default:
+          return 'gray'
       }
     }
     
@@ -611,7 +550,6 @@ export default {
       filters,
       form,
       sortOptions,
-      tableColumns,
       fetchTutorials,
       goToPage,
       addTutorial,
@@ -621,7 +559,6 @@ export default {
       deleteTutorial,
       closeForm,
       formatDate,
-      formatDateForInput,
       generateSlug,
       getStatusLabel,
       getStatusClass,

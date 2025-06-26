@@ -1,17 +1,15 @@
 <template>
-  <div class="pt-8 space-y-6">
-    <!-- Header -->
-    <div class="sm:flex sm:items-center px-6">
-      <div class="sm:flex-auto">
-        <h1 class="text-xl font-semibold text-gray-900">Newsletter</h1>
-        <p class="mt-1 text-sm text-gray-700">
-          Zarządzaj subskrypcjami newslettera i wysyłaj wiadomości do subskrybentów.
-        </p>
-      </div>
+  <div class="space-y-6 p-4 bg-white rounded-lg shadow-sm min-h-full">
+    <!-- Page Header -->
+    <div class="px-6 py-4">
+      <page-header 
+        title="Newsletter"
+        :show-add-button="false"
+      />
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 px-6">
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
       <div class="bg-white overflow-hidden shadow rounded-lg">
         <div class="p-5">
           <div class="flex items-center">
@@ -86,7 +84,7 @@
     </div>
 
     <!-- Search and filters -->
-    <div class="px-6">
+    <div>
       <search-filters
         v-if="!loading"
         :filters="filters"
@@ -109,21 +107,6 @@
             <option value="active">Aktywne</option>
             <option value="pending">Oczekujące</option>
             <option value="unsubscribed">Wypisane</option>
-          </select>
-        </div>
-        
-        <div class="w-full sm:w-auto">
-          <label for="source-filter" class="block text-sm font-medium text-gray-700">Źródło</label>
-          <select
-            id="source-filter"
-            v-model="filters.source"
-            @change="() => { filters.page = 1; loadSubscriptions(); }"
-            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">Wszystkie</option>
-            <option value="footer">Footer</option>
-            <option value="popup">Popup</option>
-            <option value="website">Strona</option>
           </select>
         </div>
 
@@ -164,13 +147,13 @@
       </search-filters>
     </div>
 
-        <!-- Loading indicator -->
-    <div class="px-6">
+    <!-- Loading indicator -->
+    <div>
       <loading-spinner v-if="loading" />
     </div>
     
     <!-- Newsletter subscriptions list -->
-    <div class="px-6">
+    <div>
       <admin-table
         v-if="subscriptions.length > 0"
         :columns="tableColumns"
@@ -187,10 +170,6 @@
         </span>
       </template>
       
-             <template #cell-source="{ item }">
-         {{ item.source || '-' }}
-       </template>
-       
        <template #cell-verified_at="{ item }">
          {{ item.verified_at ? formatDate(item.verified_at) : '-' }}
        </template>
@@ -230,6 +209,7 @@ import AdminButton from '../../components/admin/ui/AdminButton.vue';
 import LoadingSpinner from '../../components/admin/LoadingSpinner.vue';
 import NoDataMessage from '../../components/admin/NoDataMessage.vue';
 import Pagination from '../../components/admin/Pagination.vue';
+import PageHeader from '../../components/admin/PageHeader.vue';
 
 export default {
   name: 'AdminNewsletter',
@@ -240,7 +220,8 @@ export default {
     AdminButton,
     LoadingSpinner,
     NoDataMessage,
-    Pagination
+    Pagination,
+    PageHeader
   },
   setup() {
     const loading = ref(false);
@@ -256,25 +237,22 @@ export default {
       { value: 'created_at', label: 'Data subskrypcji' },
       { value: 'email', label: 'Email' },
       { value: 'status', label: 'Status' },
-      { value: 'source', label: 'Źródło' },
       { value: 'verified_at', label: 'Data weryfikacji' },
       { value: 'unsubscribed_at', label: 'Data wypisania' }
     ];
     
     // Table columns definition
     const tableColumns = [
-      { key: 'email', label: 'Email', width: '300px' },
-      { key: 'status', label: 'Status', width: '120px' },
-      { key: 'source', label: 'Źródło', width: '100px' },
-      { key: 'created_at', label: 'Data subskrypcji', type: 'datetime', width: '180px' },
-      { key: 'verified_at', label: 'Data weryfikacji', width: '180px' },
-      { key: 'actions', label: 'Akcje', align: 'right', width: '100px' }
+      { key: 'email', label: 'Email', width: '340px' },
+      { key: 'status', label: 'Status', width: '100px' },
+      { key: 'created_at', label: 'Data subskrypcji', type: 'datetime', width: '140px' },
+      { key: 'verified_at', label: 'Data weryfikacji', width: '140px' },
+      { key: 'actions', label: 'Akcje', align: 'right', width: '90px' }
     ];
     
     const filters = reactive({
       search: '',
       status: '',
-      source: '',
       date_from: '',
       date_to: '',
       sort_field: 'created_at',
@@ -290,8 +268,6 @@ export default {
       from: 0,
       to: 0
     });
-
-
 
     const loadSubscriptions = async (page = 1) => {
       loading.value = true;
@@ -343,7 +319,6 @@ export default {
     const resetFilters = () => {
       filters.search = '';
       filters.status = '';
-      filters.source = '';
       filters.date_from = '';
       filters.date_to = '';
       filters.sort_field = 'created_at';
@@ -401,8 +376,6 @@ export default {
         alert('Wystąpił błąd podczas usuwania subskrypcji');
       }
     };
-
-
 
     onMounted(() => {
       loadSubscriptions();

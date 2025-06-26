@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-100">
+  <div class="h-screen bg-gray-100 overflow-hidden">
     <!-- Top Header with Admin info -->
     <div class="fixed top-0 left-0 right-0 z-50 bg-indigo-800 shadow-lg">
       <div class="flex h-16 items-center justify-between px-6">
@@ -43,12 +43,12 @@
 
     <!-- Sidebar (przyklejony na desktop, wysuwalny na mobile) -->
     <aside 
-      class="fixed top-16 bottom-0 left-0 z-40 bg-indigo-800 shadow-lg transform transition-transform duration-300 lg:translate-x-0 flex flex-col"
+      class="fixed top-0 bottom-0 left-0 z-40 bg-indigo-800 shadow-lg transform transition-transform duration-300 lg:translate-x-0 flex flex-col h-screen"
       :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}"
       style="width: 256px;"
     >
       <!-- Sidebar header -->
-      <div class="flex h-16 items-center justify-between border-b border-indigo-700 px-6 flex-shrink-0">
+      <div class="flex h-16 items-center justify-between border-b border-indigo-700 px-6 flex-shrink-0 mt-16">
         <router-link to="/" class="text-xl font-bold text-white">
           <span>Dart</span><span class="text-indigo-200">Shop</span>
         </router-link>
@@ -63,7 +63,7 @@
       </div>
 
       <!-- Sidebar navigation -->
-      <div class="flex-1 py-4">
+      <div class="flex-1 py-4 overflow-y-auto">
         <div class="space-y-1 px-3">
           <!-- Dashboard -->
           <router-link 
@@ -254,18 +254,13 @@
     ></div>
 
     <!-- Główna treść -->
-    <div class="pt-16 lg:ml-64">
+    <div class="pt-16 lg:ml-64 h-screen overflow-hidden">
       <!-- Alerts Container -->
       <alerts-container />
 
       <!-- Page Content -->
-      <main class="p-6 bg-gray-100 min-h-screen">
-        <div class="mx-auto max-w-7xl">
-          <!-- Router-view without transitions for better stability -->
-          <div class="overflow-hidden rounded-lg bg-white shadow-sm">
-            <router-view :key="$route.fullPath" />
-          </div>
-        </div>
+      <main class="p-4 bg-gray-100 h-full overflow-y-auto">
+        <router-view :key="$route.fullPath" />
       </main>
     </div>
   </div>

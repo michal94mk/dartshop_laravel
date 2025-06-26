@@ -1,11 +1,12 @@
 <template>
-  <div>
+  <div class="space-y-6 p-4 bg-white rounded-lg shadow-sm min-h-full">
     <!-- Page Header -->
-    <page-header 
-      title="Wiadomości kontaktowe"
-      subtitle="Lista wszystkich wiadomości kontaktowych z możliwością zarządzania i odpowiadania."
-      :show-add-button="false"
-    />
+    <div class="px-6 py-4">
+      <page-header 
+        title="Wiadomości kontaktowe"
+        :show-add-button="false"
+      />
+    </div>
 
     <!-- Search and filters -->
     <search-filters
@@ -39,58 +40,93 @@
     <!-- Loading indicator -->
     <loading-spinner v-if="loading" />
     
-    <!-- Contact Messages Table -->
-    <admin-table
-      v-if="!loading && messages.data && messages.data.length"
-      :columns="tableColumns"
-      :items="messages.data"
-      class="mt-6"
-    >
-      <template #cell-name="{ item }">
-        <div class="max-w-[190px]">
-          <span class="block text-sm">{{ item.name }}</span>
-        </div>
-      </template>
-      
-      <template #cell-email="{ item }">
-        <div class="max-w-[270px]">
-          <span class="block text-sm">{{ item.email }}</span>
-        </div>
-      </template>
-      
-      <template #cell-subject="{ item }">
-        <div class="max-w-[170px]">
-          <span class="block truncate text-sm" :title="item.subject">{{ item.subject }}</span>
-        </div>
-      </template>
-      
-      <template #cell-status="{ item }">
-        <admin-badge 
-          :variant="getStatusVariant(item.status)"
-          size="xs"
-        >
-          {{ item.status_label || getStatusLabel(item.status) }}
-        </admin-badge>
-      </template>
-      
-      <template #cell-actions="{ item }">
-        <action-buttons 
-          :item="item" 
-          :show-edit="false"
-          @delete="confirmDelete"
-        >
-          <template #custom-buttons="{ item }">
-            <admin-button
-              @click="viewMessage(item)"
-              variant="warning"
-              size="sm"
-            >
-              Zarządzaj
-            </admin-button>
-          </template>
-        </action-buttons>
-      </template>
-    </admin-table>
+    <!-- Contact Messages Custom Table -->
+    <div v-if="!loading && messages.data && messages.data.length > 0" class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                Imię
+              </th>
+              <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                Email
+              </th>
+              <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                Temat
+              </th>
+              <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                Status
+              </th>
+              <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
+                Data
+              </th>
+              <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
+                Akcje
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr v-for="item in messages.data" :key="item.id" class="hover:bg-gray-50">
+              <!-- Name Column -->
+              <td class="px-4 py-4">
+                <div class="text-sm font-medium text-gray-900 max-w-[140px] truncate" :title="item.name">
+                  {{ item.name }}
+                </div>
+              </td>
+              
+              <!-- Email Column -->
+              <td class="px-3 py-4">
+                <div class="text-sm text-gray-900 max-w-[180px] truncate" :title="item.email">
+                  {{ item.email }}
+                </div>
+              </td>
+              
+              <!-- Subject Column -->
+              <td class="px-3 py-4">
+                <div class="text-sm text-gray-900 max-w-[140px] truncate" :title="item.subject">
+                  {{ item.subject }}
+                </div>
+              </td>
+              
+              <!-- Status Column -->
+              <td class="px-3 py-4 text-center">
+                <admin-badge 
+                  :variant="getStatusVariant(item.status)"
+                  size="xs"
+                >
+                  {{ item.status_label || getStatusLabel(item.status) }}
+                </admin-badge>
+              </td>
+              
+              <!-- Created At Column -->
+              <td class="px-3 py-4 text-center">
+                <span class="text-xs text-gray-500">{{ formatDate(item.created_at) }}</span>
+              </td>
+              
+              <!-- Actions Column -->
+              <td class="px-4 py-4 text-right">
+                <div class="flex items-center justify-end space-x-2">
+                  <admin-button
+                    @click="viewMessage(item)"
+                    variant="warning"
+                    size="sm"
+                  >
+                    Zarządzaj
+                  </admin-button>
+                  <action-buttons 
+                    :item="item" 
+                    :show-edit="false"
+                    @delete="confirmDelete"
+                    justify="end"
+                  />
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
     
     <!-- Pagination -->
     <pagination 
@@ -104,186 +140,182 @@
     <no-data-message v-if="!loading && (!messages.data || messages.data.length === 0)" message="Brak wiadomości kontaktowych do wyświetlenia" />
     
     <!-- Message Details Modal -->
-    <div v-if="showDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-      <div class="relative mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-medium text-gray-900">Szczegóły wiadomości</h3>
-          <button @click="closeDetails" class="text-gray-400 hover:text-gray-500">
-            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+    <admin-modal 
+      :show="showDetailsModal" 
+      title="Szczegóły wiadomości"
+      size="4xl"
+      @close="closeDetails"
+    >
+      <div v-if="selectedMessage" class="space-y-4">
+        <div class="flex justify-between">
+          <div>
+            <h4 class="text-sm font-medium text-gray-500">Od</h4>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedMessage.name }} ({{ selectedMessage.email }})</p>
+          </div>
+          <div>
+            <h4 class="text-sm font-medium text-gray-500">Data</h4>
+            <p class="mt-1 text-sm text-gray-900">{{ formatDate(selectedMessage.created_at) }}</p>
+          </div>
         </div>
         
-        <div v-if="selectedMessage" class="space-y-4">
-          <div class="flex justify-between">
-            <div>
-              <h4 class="text-sm font-medium text-gray-500">Od</h4>
-              <p class="mt-1 text-sm text-gray-900">{{ selectedMessage.name }} ({{ selectedMessage.email }})</p>
-            </div>
-            <div>
-              <h4 class="text-sm font-medium text-gray-500">Data</h4>
-              <p class="mt-1 text-sm text-gray-900">{{ formatDate(selectedMessage.created_at) }}</p>
-            </div>
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Temat</h4>
+          <p class="mt-1 text-sm font-semibold text-gray-900">{{ selectedMessage.subject }}</p>
+        </div>
+        
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Wiadomość</h4>
+          <div class="mt-1 bg-gray-50 p-3 rounded text-sm text-gray-900">
+            <p class="whitespace-pre-line">{{ selectedMessage.message }}</p>
           </div>
-          
-          <div>
-            <h4 class="text-sm font-medium text-gray-500">Temat</h4>
-            <p class="mt-1 text-sm font-semibold text-gray-900">{{ selectedMessage.subject }}</p>
+        </div>
+        
+        <div v-if="selectedMessage.notes">
+          <h4 class="text-sm font-medium text-gray-500">Notatki</h4>
+          <div class="mt-1 bg-yellow-50 p-3 rounded text-sm text-gray-900">
+            <p class="whitespace-pre-line">{{ selectedMessage.notes }}</p>
           </div>
-          
-          <div>
-            <h4 class="text-sm font-medium text-gray-500">Wiadomość</h4>
-            <div class="mt-1 bg-gray-50 p-3 rounded text-sm text-gray-900">
-              <p class="whitespace-pre-line">{{ selectedMessage.message }}</p>
-            </div>
-          </div>
-          
-          <div v-if="selectedMessage.notes">
-            <h4 class="text-sm font-medium text-gray-500">Notatki</h4>
-            <div class="mt-1 bg-yellow-50 p-3 rounded text-sm text-gray-900">
-              <p class="whitespace-pre-line">{{ selectedMessage.notes }}</p>
-            </div>
-          </div>
-          
-          <div>
-            <h4 class="text-sm font-medium text-gray-500">Status</h4>
-            <div class="mt-1">
-              <select 
-                v-model="selectedMessage.status"
-                @change="updateStatus"
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              >
-                <option value="unread">Nieprzeczytana</option>
-                <option value="read">Przeczytana</option>
-                <option value="replied">Odpowiedziana</option>
-              </select>
-            </div>
-          </div>
-          
-          <div>
-            <h4 class="text-sm font-medium text-gray-500">Notatki wewnętrzne</h4>
-            <textarea 
-              v-model="selectedMessage.notes" 
-              rows="3"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              placeholder="Dodaj notatki dotyczące tej wiadomości..."
-            ></textarea>
-          </div>
-          
-          <!-- New Response System -->
-          <div class="mt-6 border-t pt-4">
-            <h4 class="text-md font-medium text-gray-700">Odpowiedź bezpośrednia</h4>
-            <div class="mt-3 space-y-3">
-              <div>
-                <label for="response-subject" class="block text-sm font-medium text-gray-700">Temat</label>
-                <input 
-                  type="text" 
-                  id="response-subject" 
-                  v-model="responseData.subject" 
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  placeholder="Re: {{selectedMessage.subject}}"
-                />
-              </div>
-              
-              <div>
-                <label for="response-message" class="block text-sm font-medium text-gray-700">Treść odpowiedzi</label>
-                <textarea 
-                  id="response-message" 
-                  v-model="responseData.message" 
-                  rows="5"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  placeholder="Wpisz swoją odpowiedź..."
-                ></textarea>
-              </div>
-              
-              <div class="mt-2">
-                <label class="inline-flex items-center">
-                  <input type="checkbox" v-model="responseData.markAsReplied" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-offset-0">
-                  <span class="ml-2 text-sm text-gray-700">Oznacz jako odpowiedzianą po wysłaniu</span>
-                </label>
-              </div>
-              
-              <div class="mt-2">
-                <label class="inline-flex items-center">
-                  <input type="checkbox" v-model="responseData.addToNotes" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-offset-0">
-                  <span class="ml-2 text-sm text-gray-700">Dodaj odpowiedź do notatek</span>
-                </label>
-              </div>
-              
-              <div>
-                <button 
-                  @click="sendResponse" 
-                  class="mt-2 w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  :disabled="responseSending"
-                >
-                  <svg v-if="responseSending" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  {{ responseSending ? 'Wysyłanie...' : 'Wyślij odpowiedź' }}
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <div class="flex justify-between items-center space-x-3 mt-6">
-            <div class="flex space-x-3">
-              <button 
-                @click="confirmDelete(selectedMessage)" 
-                class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
-                Usuń
-              </button>
-              <button 
-                @click="saveNotes" 
-                class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                Zapisz zmiany
-              </button>
-            </div>
-            <button 
-              @click="closeDetails" 
-              class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+        </div>
+        
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Status</h4>
+          <div class="mt-1">
+            <select 
+              v-model="selectedMessage.status"
+              @change="updateStatus"
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             >
-              Zamknij
-            </button>
+              <option value="unread">Nieprzeczytana</option>
+              <option value="read">Przeczytana</option>
+              <option value="replied">Odpowiedziana</option>
+            </select>
+          </div>
+        </div>
+        
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Notatki wewnętrzne</h4>
+          <textarea 
+            v-model="selectedMessage.notes" 
+            rows="3"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            placeholder="Dodaj notatki dotyczące tej wiadomości..."
+          ></textarea>
+        </div>
+        
+        <!-- New Response System -->
+        <div class="mt-6 border-t pt-4">
+          <h4 class="text-md font-medium text-gray-700">Odpowiedź bezpośrednia</h4>
+          <div class="mt-3 space-y-3">
+            <div>
+              <label for="response-subject" class="block text-sm font-medium text-gray-700">Temat</label>
+              <input 
+                type="text" 
+                id="response-subject" 
+                v-model="responseData.subject" 
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                placeholder="Re: {{selectedMessage.subject}}"
+              />
+            </div>
+            
+            <div>
+              <label for="response-message" class="block text-sm font-medium text-gray-700">Treść odpowiedzi</label>
+              <textarea 
+                id="response-message" 
+                v-model="responseData.message" 
+                rows="5"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                placeholder="Wpisz swoją odpowiedź..."
+              ></textarea>
+            </div>
+            
+            <div class="mt-2">
+              <label class="inline-flex items-center">
+                <input type="checkbox" v-model="responseData.markAsReplied" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-offset-0">
+                <span class="ml-2 text-sm text-gray-700">Oznacz jako odpowiedzianą po wysłaniu</span>
+              </label>
+            </div>
+            
+            <div class="mt-2">
+              <label class="inline-flex items-center">
+                <input type="checkbox" v-model="responseData.addToNotes" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-offset-0">
+                <span class="ml-2 text-sm text-gray-700">Dodaj odpowiedź do notatek</span>
+              </label>
+            </div>
+            
+            <div>
+              <admin-button 
+                @click="sendResponse" 
+                variant="primary"
+                :loading="responseSending"
+                class="mt-2 w-full"
+              >
+                Wyślij odpowiedź
+              </admin-button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    
-    <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-      <div class="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
-        <div class="mt-3 text-center">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Potwierdź usunięcie</h3>
-          <div class="mt-2 px-7 py-3">
-            <p class="text-sm text-gray-500">
-              Czy na pewno chcesz usunąć tę wiadomość?
-              <br>
-              <span class="font-semibold">{{ messageToDelete.subject }}</span>
-              <br>
-              od {{ messageToDelete.name }}
-            </p>
-          </div>
-          <div class="flex justify-center mt-4 gap-4">
-            <button 
-              @click="showDeleteModal = false" 
-              class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Anuluj
-            </button>
-            <button 
-              @click="deleteMessage" 
-              class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+      
+      <template #footer>
+        <admin-button-group justify="between" spacing="sm">
+          <div class="flex space-x-3">
+            <admin-button 
+              @click="confirmDelete(selectedMessage)" 
+              variant="danger"
             >
               Usuń
-            </button>
+            </admin-button>
+            <admin-button 
+              @click="saveNotes" 
+              variant="primary"
+            >
+              Zapisz zmiany
+            </admin-button>
           </div>
-        </div>
-      </div>
-    </div>
+          <admin-button 
+            @click="closeDetails" 
+            variant="secondary"
+            outline
+          >
+            Zamknij
+          </admin-button>
+        </admin-button-group>
+      </template>
+    </admin-modal>
+    
+    <!-- Delete Confirmation Modal -->
+    <admin-modal 
+      :show="showDeleteModal" 
+      title="Potwierdź usunięcie"
+      size="md"
+      @close="showDeleteModal = false"
+    >
+      <p class="text-sm text-gray-500">
+        Czy na pewno chcesz usunąć tę wiadomość?
+        <br>
+        <span class="font-semibold">{{ messageToDelete.subject }}</span>
+        <br>
+        od {{ messageToDelete.name }}
+      </p>
+      
+      <template #footer>
+        <admin-button-group justify="end" spacing="sm">
+          <admin-button 
+            @click="showDeleteModal = false" 
+            variant="secondary"
+            outline
+          >
+            Anuluj
+          </admin-button>
+          <admin-button 
+            @click="deleteMessage" 
+            variant="danger"
+          >
+            Usuń
+          </admin-button>
+        </admin-button-group>
+      </template>
+    </admin-modal>
   </div>
 </template>
 
@@ -292,10 +324,10 @@ import { ref, computed, reactive, onMounted } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
 import { debounce } from 'lodash'
-import AdminTable from '../../components/admin/ui/AdminTable.vue'
 import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
 import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
+import AdminModal from '../../components/admin/ui/AdminModal.vue'
 import SearchFilters from '../../components/admin/SearchFilters.vue'
 import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
 import NoDataMessage from '../../components/admin/NoDataMessage.vue'
@@ -306,10 +338,10 @@ import ActionButtons from '../../components/admin/ActionButtons.vue'
 export default {
   name: 'AdminContactMessages',
   components: {
-    AdminTable,
     AdminButtonGroup,
     AdminButton,
     AdminBadge,
+    AdminModal,
     SearchFilters,
     LoadingSpinner,
     NoDataMessage,
@@ -346,24 +378,6 @@ export default {
       { value: 'status', label: 'Status' }
     ]
     
-    // Table columns definition
-    const tableColumns = [
-      { key: 'name', label: 'Imię', width: '200px' },
-      { key: 'email', label: 'Email', width: '280px' },
-      { key: 'subject', label: 'Temat', width: '180px' },
-      { key: 'status', label: 'Status', width: '100px' },
-      { key: 'created_at', label: 'Data', type: 'date', width: '100px' },
-      { key: 'actions', label: 'Akcje', align: 'right', width: '160px' }
-    ]
-    
-    // Response system data
-    const responseData = ref({
-      subject: '',
-      message: '',
-      markAsReplied: true,
-      addToNotes: true
-    })
-    
     // Filters and pagination
     const filters = reactive({
       search: '',
@@ -373,8 +387,13 @@ export default {
       page: 1
     })
     
-    // Handle table sorting
-
+    // Response system data
+    const responseData = ref({
+      subject: '',
+      message: '',
+      markAsReplied: true,
+      addToNotes: true
+    })
     
     // Get status variant for AdminBadge
     const getStatusVariant = (status) => {
@@ -581,29 +600,19 @@ export default {
       }
     }
     
-    // Format date
-    const formatDate = (dateString) => {
-      const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
-      return new Date(dateString).toLocaleDateString('pl-PL', options)
-    }
-    
-    // Get status class
-    const getStatusClass = (status) => {
-      switch (status) {
-        case 'unread': return 'bg-yellow-100 text-yellow-800'
-        case 'read': return 'bg-blue-100 text-blue-800'
-        case 'replied': return 'bg-green-100 text-green-800'
-        default: return 'bg-gray-100 text-gray-800'
-      }
-    }
-    
     // Pagination
     const goToPage = (page) => {
+      if (page === '...') return
       filters.page = page
       fetchMessages()
     }
     
-
+    // Format date
+    const formatDate = (dateString) => {
+      if (!dateString) return '-'
+      const options = { year: 'numeric', month: 'short', day: 'numeric' }
+      return new Date(dateString).toLocaleDateString('pl-PL', options)
+    }
     
     onMounted(() => {
       fetchMessages()
@@ -620,7 +629,6 @@ export default {
       sortOptions,
       responseData,
       responseSending,
-      tableColumns,
       getStatusVariant,
       getStatusLabel,
       fetchMessages,
@@ -631,7 +639,6 @@ export default {
       confirmDelete,
       deleteMessage,
       formatDate,
-      getStatusClass,
       goToPage,
       sendResponse
     }

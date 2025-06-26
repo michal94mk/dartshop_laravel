@@ -16,20 +16,16 @@ class Product extends Model
         'name',
         'description',
         'price',
-        'weight',
         'category_id',
         'brand_id',
         'image',
         'stock',
-        'featured',
-        'is_active'
+        'featured'
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
-        'weight' => 'decimal:2',
         'featured' => 'boolean',
-        'is_active' => 'boolean',
     ];
     
     protected $appends = ['image_url', 'average_rating', 'reviews_count'];

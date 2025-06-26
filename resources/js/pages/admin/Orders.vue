@@ -1,11 +1,13 @@
 <template>
-  <div class="px-6 py-4">
+  <div class="space-y-6 p-4 bg-white rounded-lg shadow-sm min-h-full">
     <!-- Page Header -->
-    <page-header 
-      title="Zamówienia"
-      add-button-label="Dodaj zamówienie"
-      @add="showCreateOrderModal = true"
-    />
+    <div class="px-6 py-4">
+      <page-header 
+        title="Zamówienia"
+        add-button-label="Dodaj"
+        @add="showCreateOrderModal = true"
+      />
+    </div>
 
     <!-- Search and filters -->
     <search-filters
@@ -69,58 +71,96 @@
     <!-- Loading indicator -->
     <loading-spinner v-if="loading" />
 
-    <!-- Orders list -->
-    <admin-table
-      v-if="orders.data && orders.data.length > 0"
-      :columns="tableColumns"
-      :items="orders.data"
-      :force-horizontal-scroll="true"
-      class="mt-8"
-    >
-      <template #cell-order_number="{ item }">
-        {{ item.order_number || '#' + item.id }}
-      </template>
-      
-      <template #cell-customer="{ item }">
-        <div>
-          <div class="font-medium text-gray-900">{{ item.user ? item.user.name : 'Gość' }}</div>
-          <div class="text-sm text-gray-400">{{ item.user ? item.user.email : item.email }}</div>
-        </div>
-      </template>
-      
-      <template #cell-total="{ item }">
-        <span class="font-medium">{{ item.total }} PLN</span>
-      </template>
-      
-      <template #cell-status="{ item }">
-        <admin-badge 
-          :variant="getStatusVariant(item.status)"
-          size="sm"
-        >
-          {{ translateStatus(item.status) }}
-        </admin-badge>
-      </template>
-      
-      <template #cell-actions="{ item }">
-        <action-buttons 
-          :item="item" 
-          :show-details="true"
-          @details="openOrderDetails"
-          @edit="editOrder" 
-          @delete="confirmDelete"
-        >
-          <template #status-buttons="{ item }">
-            <admin-button 
-              @click="changeStatus(item)" 
-              variant="info"
-              size="sm"
-            >
-              Zmień status
-            </admin-button>
-          </template>
-        </action-buttons>
-      </template>
-    </admin-table>
+    <!-- Orders Custom Table -->
+    <div v-if="!loading && orders.data && orders.data.length > 0" class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                Nr zamówienia
+              </th>
+              <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                Klient
+              </th>
+              <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                Data
+              </th>
+              <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                Kwota
+              </th>
+              <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                Status
+              </th>
+              <th scope="col" class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                Akcje
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr v-for="item in orders.data" :key="item.id" class="hover:bg-gray-50">
+              <!-- Order Number Column -->
+              <td class="px-3 py-4">
+                <div class="text-sm font-medium text-gray-900">
+                  {{ item.order_number || '#' + item.id }}
+                </div>
+              </td>
+              
+              <!-- Customer Column -->
+              <td class="px-3 py-4">
+                <div class="flex items-center">
+                  <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center text-xs font-semibold mr-3">
+                    {{ getCustomerInitials(item) }}
+                  </div>
+                  <div>
+                    <div class="text-sm font-medium text-gray-900">{{ item.user ? item.user.name : 'Gość' }}</div>
+                    <div class="text-xs text-gray-500 truncate max-w-[100px]" :title="item.user ? item.user.email : item.email">
+                      {{ item.user ? item.user.email : item.email }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              
+              <!-- Date Column -->
+              <td class="px-2 py-4 text-center">
+                <div class="text-xs text-gray-900">
+                  {{ formatShortDate(item.created_at) }}
+                </div>
+              </td>
+              
+              <!-- Total Column -->
+              <td class="px-2 py-4 text-center">
+                <span class="text-sm font-medium text-gray-900">{{ item.total }} PLN</span>
+              </td>
+              
+              <!-- Status Column -->
+              <td class="px-2 py-4 text-center">
+                <div 
+                  class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium cursor-pointer"
+                  :class="getStatusClasses(item.status)"
+                  @click="changeStatus(item)"
+                  :title="'Kliknij aby zmienić status: ' + translateStatus(item.status)"
+                >
+                  {{ getStatusShort(item.status) }}
+                </div>
+              </td>
+              
+              <!-- Actions Column -->
+              <td class="px-3 py-4 text-right">
+                <action-buttons 
+                  :item="item" 
+                  :show-details="true"
+                  @details="openOrderDetails"
+                  @edit="editOrder" 
+                  @delete="confirmDelete"
+                  justify="end"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
     
     <!-- No data message -->
     <no-data-message v-else-if="!loading" message="Brak zamówień do wyświetlenia" />
@@ -662,16 +702,6 @@ export default {
       { value: 'created_at', label: 'Data utworzenia' },
       { value: 'total', label: 'Kwota' },
       { value: 'id', label: 'Numer zamówienia' }
-    ]
-    
-    // Table columns definition
-    const tableColumns = [
-      { key: 'order_number', label: 'Nr zamówienia', width: '120px' },
-      { key: 'customer', label: 'Klient', width: '200px' },
-      { key: 'created_at', label: 'Data', type: 'date', width: '120px' },
-      { key: 'total', label: 'Kwota', width: '100px' },
-      { key: 'status', label: 'Status', align: 'center', width: '120px' },
-      { key: 'actions', label: 'Akcje', align: 'right', width: '260px' }
     ]
     
     // Order items table columns
@@ -1381,6 +1411,54 @@ export default {
       }).format(price)
     }
     
+    // Helper functions for custom table
+    const getCustomerInitials = (order) => {
+      if (order.user && order.user.name) {
+        const nameParts = order.user.name.split(' ')
+        if (nameParts.length > 1) {
+          return nameParts[0].charAt(0).toUpperCase() + nameParts[nameParts.length - 1].charAt(0).toUpperCase()
+        }
+        return nameParts[0].charAt(0).toUpperCase()
+      }
+      return 'G' // For "Gość"
+    }
+    
+    const formatShortDate = (dateString) => {
+      const date = new Date(dateString)
+      return date.toLocaleDateString('pl-PL', { 
+        day: '2-digit', 
+        month: '2-digit',
+        year: '2-digit'
+      })
+    }
+    
+    const getStatusClasses = (status) => {
+      const baseClasses = 'bg-opacity-10 border'
+      const statusClasses = {
+        'pending': 'text-yellow-800 bg-yellow-100 border-yellow-200',
+        'processing': 'text-blue-800 bg-blue-100 border-blue-200',
+        'completed': 'text-green-800 bg-green-100 border-green-200',
+        'shipped': 'text-purple-800 bg-purple-100 border-purple-200',
+        'delivered': 'text-green-800 bg-green-100 border-green-200',
+        'cancelled': 'text-red-800 bg-red-100 border-red-200',
+        'refunded': 'text-gray-800 bg-gray-100 border-gray-200'
+      }
+      return statusClasses[status] || 'text-gray-800 bg-gray-100 border-gray-200'
+    }
+    
+    const getStatusShort = (status) => {
+      const statusShortMap = {
+        'pending': 'Oczek.',
+        'processing': 'W real.',
+        'completed': 'Gotowe',
+        'shipped': 'Wysł.',
+        'delivered': 'Dostar.',
+        'cancelled': 'Anul.',
+        'refunded': 'Zwroc.'
+      }
+      return statusShortMap[status] || status
+    }
+    
     const resetFilters = () => {
       Object.assign(filters.value, defaultFilters)
       fetchOrders()
@@ -1408,7 +1486,6 @@ export default {
       users,
       filters,
       sortOptions,
-      tableColumns,
       orderItemsColumns,
       selectedOrder,
       showDetailsModal,
@@ -1442,7 +1519,11 @@ export default {
       formatPrice,
       editOrder,
       changeStatus,
-      resetFilters
+      resetFilters,
+      getCustomerInitials,
+      formatShortDate,
+      getStatusClasses,
+      getStatusShort
     }
   }
 }

@@ -1,12 +1,13 @@
 <template>
-  <div class="px-6 py-4">
+  <div class="space-y-6 p-4 bg-white rounded-lg shadow-sm min-h-full">
     <!-- Page Header -->
-    <page-header 
-      title="Zarządzanie markami"
-      subtitle="Lista wszystkich marek produktów z możliwością dodawania, edycji i usuwania."
-      add-button-label="Dodaj markę"
-      @add="showAddForm = true"
-    />
+    <div class="px-6 py-4">
+      <page-header 
+        title="Zarządzanie markami"
+        add-button-label="Dodaj"
+        @add="showAddForm = true"
+      />
+    </div>
     
     <!-- Search and filters -->
     <search-filters
@@ -24,21 +25,59 @@
     <!-- Loading indicator -->
     <loading-spinner v-if="loading" />
     
-    <!-- Brands Table -->
-    <admin-table
-      v-if="brands.data && brands.data.length"
-      :columns="tableColumns"
-      :items="brands.data"
-      class="mt-4"
-    >
-      <template #cell-actions="{ item }">
-        <action-buttons 
-          :item="item" 
-          @edit="editBrand" 
-          @delete="confirmDelete"
-        />
-      </template>
-    </admin-table>
+    <!-- Brands Custom Table -->
+    <div v-if="!loading && brands.data && brands.data.length > 0" class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-80">
+                Nazwa
+              </th>
+              <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                Liczba produktów
+              </th>
+              <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
+                Data utworzenia
+              </th>
+              <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
+                Akcje
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr v-for="item in brands.data" :key="item.id" class="hover:bg-gray-50">
+              <!-- Name Column -->
+              <td class="px-4 py-4">
+                <div class="text-sm font-medium text-gray-900">{{ item.name }}</div>
+              </td>
+              
+              <!-- Products Count Column -->
+              <td class="px-3 py-4 text-center">
+                <admin-badge variant="secondary" size="xs">
+                  {{ item.products_count || 0 }}
+                </admin-badge>
+              </td>
+              
+              <!-- Created At Column -->
+              <td class="px-3 py-4 text-center">
+                <span class="text-xs text-gray-500">{{ formatDate(item.created_at) }}</span>
+              </td>
+              
+              <!-- Actions Column -->
+              <td class="px-4 py-4 text-right">
+                <action-buttons 
+                  :item="item" 
+                  @edit="editBrand" 
+                  @delete="confirmDelete"
+                  justify="end"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
     
     <!-- No data message -->
     <no-data-message v-else-if="!loading" message="Brak marek do wyświetlenia" />
@@ -148,10 +187,10 @@ import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
 import NoDataMessage from '../../components/admin/NoDataMessage.vue'
 import Pagination from '../../components/admin/Pagination.vue'
 import PageHeader from '../../components/admin/PageHeader.vue'
-import AdminTable from '../../components/admin/ui/AdminTable.vue'
 import AdminModal from '../../components/admin/ui/AdminModal.vue'
 import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
+import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
 import ActionButtons from '../../components/admin/ActionButtons.vue'
 
 export default {
@@ -163,10 +202,10 @@ export default {
     NoDataMessage,
     Pagination,
     PageHeader,
-    AdminTable,
     AdminModal,
     AdminButtonGroup,
     AdminButton,
+    AdminBadge,
     ActionButtons
   },
   setup() {
@@ -212,14 +251,6 @@ export default {
     const form = ref({
       name: ''
     })
-    
-    // Table columns definition
-    const tableColumns = [
-      { key: 'name', label: 'Nazwa', width: '350px' },
-      { key: 'products_count', label: 'Liczba produktów', width: '180px' },
-      { key: 'created_at', label: 'Data utworzenia', type: 'date', width: '180px' },
-      { key: 'actions', label: 'Akcje', align: 'right', width: '160px' }
-    ]
     
     // Fetch all brands with pagination and filters
     const fetchBrands = async () => {
@@ -370,8 +401,6 @@ export default {
       showEditForm.value = false
     }
     
-
-    
     // Format date
     const formatDate = (dateString) => {
       if (!dateString) return '-';
@@ -399,7 +428,6 @@ export default {
       filters,
       defaultFilters,
       sortOptions,
-      tableColumns,
       fetchBrands,
       addBrand,
       editBrand,

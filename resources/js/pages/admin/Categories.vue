@@ -1,22 +1,20 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 p-4 bg-white rounded-lg shadow-sm min-h-full">
     <!-- Page Header -->
-    <page-header
-      title="Zarządzanie kategoriami"
-      subtitle="Lista wszystkich kategorii produktów z możliwością dodawania, edycji i usuwania"
-    >
-      <template #actions>
-        <admin-button
-          variant="primary"
-          @click="openModal()"
-        >
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-          Dodaj kategorię
-        </admin-button>
-      </template>
-    </page-header>
+    <div class="px-6 py-4">
+      <page-header
+        title="Zarządzanie kategoriami"
+      >
+        <template #actions>
+          <admin-button
+            variant="primary"
+            @click="openModal()"
+          >
+            Dodaj
+          </admin-button>
+        </template>
+      </page-header>
+    </div>
 
     <!-- Filters -->
     <search-filters
@@ -40,48 +38,59 @@
       <!-- Loading indicator -->
       <loading-spinner v-if="loading" />
       
-      <!-- Categories table -->
-      <admin-table
-        v-if="categories.data && categories.data.length > 0"
-        :columns="tableColumns"
-        :items="categories.data"
-      >
-        <template #cell-image="{ item }">
-          <div class="flex justify-center">
-            <img 
-              v-if="item.image_url"
-              :src="item.image_url" 
-              :alt="item.name" 
-              class="h-12 w-12 object-cover rounded-lg shadow-sm"
-            />
-            <div v-else class="h-12 w-12 bg-gray-200 rounded-lg flex items-center justify-center">
-              <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-          </div>
-        </template>
-        
-        <template #cell-products_count="{ item }">
-          <admin-badge variant="secondary">
-            {{ item.products_count || 0 }}
-          </admin-badge>
-        </template>
-
-        <template #cell-is_active="{ item }">
-          <admin-badge :variant="item.is_active ? 'success' : 'danger'">
-            {{ item.is_active ? 'Aktywna' : 'Nieaktywna' }}
-          </admin-badge>
-        </template>
-        
-        <template #cell-actions="{ item }">
-          <action-buttons 
-            :item="item" 
-            @edit="openModal" 
-            @delete="confirmDelete"
-          />
-        </template>
-      </admin-table>
+      <!-- Categories Custom Table -->
+      <div v-if="!loading && categories.data && categories.data.length > 0" class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-80">
+                  Nazwa
+                </th>
+                <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                  Liczba produktów
+                </th>
+                <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
+                  Data utworzenia
+                </th>
+                <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
+                  Akcje
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="item in categories.data" :key="item.id" class="hover:bg-gray-50">
+                <!-- Name Column -->
+                <td class="px-4 py-4">
+                  <div class="text-sm font-medium text-gray-900">{{ item.name }}</div>
+                </td>
+                
+                <!-- Products Count Column -->
+                <td class="px-3 py-4 text-center">
+                  <admin-badge variant="secondary" size="xs">
+                    {{ item.products_count || 0 }}
+                  </admin-badge>
+                </td>
+                
+                <!-- Created At Column -->
+                <td class="px-3 py-4 text-center">
+                  <span class="text-xs text-gray-500">{{ formatDate(item.created_at) }}</span>
+                </td>
+                
+                <!-- Actions Column -->
+                <td class="px-4 py-4 text-right">
+                  <action-buttons 
+                    :item="item" 
+                    @edit="openModal" 
+                    @delete="deleteCategory"
+                    justify="end"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
       
       <!-- Pagination -->
       <pagination 
@@ -118,99 +127,6 @@
           placeholder="Np. Lotki, Tarcze, Akcesoria"
         />
       </div>
-
-      <div>
-        <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Opis kategorii</label>
-        <textarea
-          id="description"
-          v-model="currentCategory.description"
-          rows="3"
-          class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-          placeholder="Krótki opis kategorii, który będzie wyświetlany na stronie głównej"
-        ></textarea>
-      </div>
-
-      <div>
-        <label for="image" class="block text-sm font-medium text-gray-700 mb-2">Obrazek kategorii</label>
-        <div class="mt-1 flex items-center">
-          <!-- Show existing image from URL -->
-          <span v-if="currentCategory.image_url && !isFileObject(currentCategory.image) && !imagePreview" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
-            <img
-              :src="currentCategory.image_url"
-              :alt="currentCategory.name || 'Category image'"
-              class="h-full w-full object-cover"
-              @error="$event.target.style.display = 'none'"
-            />
-          </span>
-          <!-- Show uploaded file preview -->
-          <span v-else-if="imagePreview" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
-            <img
-              :src="imagePreview"
-              :alt="currentCategory.name || 'Category image'"
-              class="h-full w-full object-cover"
-            />
-          </span>
-          <!-- Placeholder icon -->
-          <span v-else class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
-            <svg class="h-full w-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-          </span>
-          <input
-            type="file"
-            id="category-file-upload"
-            class="hidden"
-            accept="image/*"
-            @change="handleImageUpload"
-          />
-          <admin-button
-            type="button"
-            @click="triggerFileUpload"
-            variant="secondary"
-            outline
-            size="sm"
-          >
-            {{ currentCategory.image_url || imagePreview ? 'Zmień zdjęcie' : 'Dodaj zdjęcie' }}
-          </admin-button>
-          <admin-button
-            v-if="currentCategory.image_url || imagePreview"
-            type="button"
-            @click="removeImage"
-            variant="danger"
-            outline
-            size="sm"
-            class="ml-2"
-          >
-            Usuń
-          </admin-button>
-        </div>
-        <p class="mt-1 text-sm text-gray-500">PNG, JPG, GIF do 2MB</p>
-      </div>
-
-      <div>
-        <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-2">Kolejność sortowania</label>
-        <input
-          type="number"
-          id="sort_order"
-          v-model.number="currentCategory.sort_order"
-          min="0"
-          class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-          placeholder="0"
-        />
-        <p class="mt-1 text-sm text-gray-500">Niższe wartości będą wyświetlane jako pierwsze</p>
-      </div>
-
-      <div class="flex items-center">
-        <input
-          id="is_active"
-          type="checkbox"
-          v-model="currentCategory.is_active"
-          class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-        />
-        <label for="is_active" class="ml-2 block text-sm text-gray-900">
-          Kategoria aktywna
-        </label>
-      </div>
     </form>
     
     <template #footer>
@@ -232,6 +148,48 @@
       </admin-button-group>
     </template>
   </admin-modal>
+
+  <!-- Delete Confirmation Modal -->
+  <admin-modal
+    :show="showDeleteModal"
+    title="Usuń kategorię"
+    size="md"
+    icon-variant="danger"
+    @close="showDeleteModal = false"
+  >
+    <div class="sm:flex sm:items-start">
+      <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+        <div class="mt-2">
+          <p class="text-sm text-gray-500">
+            Czy na pewno chcesz usunąć tę kategorię? Ta operacja jest nieodwracalna.
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <template #footer>
+      <admin-button-group justify="end" spacing="sm">
+        <admin-button @click="showDeleteModal = false" variant="secondary" outline>
+          Anuluj
+        </admin-button>
+        <admin-button @click="confirmDelete" variant="danger">
+          Usuń kategorię
+        </admin-button>
+      </admin-button-group>
+    </template>
+  </admin-modal>
+
+  <!-- Detailed Error Modal -->
+  <detailed-error-modal
+    :show="showErrorModal"
+    :error-message="errorMessage"
+    @close="showErrorModal = false"
+  />
 </template>
 
 <script>
@@ -240,7 +198,6 @@ import { useAlertStore } from '../../stores/alertStore'
 import { useAuthStore } from '../../stores/authStore'
 import axios from 'axios'
 import DetailedErrorModal from '../../components/ui/DetailedErrorModal.vue'
-import AdminTable from '../../components/admin/ui/AdminTable.vue'
 import AdminModal from '../../components/admin/ui/AdminModal.vue'
 import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
@@ -256,7 +213,6 @@ export default {
   name: 'AdminCategories',
   components: {
     DetailedErrorModal,
-    AdminTable,
     AdminModal,
     AdminButtonGroup,
     AdminButton,
@@ -299,12 +255,10 @@ export default {
     
     // Table columns definition
     const tableColumns = [
-      { key: 'name', label: 'Nazwa', width: '300px' },
-      { key: 'image', label: 'Obrazek', width: '100px' },
-      { key: 'products_count', label: 'Liczba produktów', width: '150px' },
-      { key: 'is_active', label: 'Status', width: '120px' },
-      { key: 'created_at', label: 'Data utworzenia', type: 'date', width: '150px' },
-      { key: 'actions', label: 'Akcje', align: 'right', width: '160px' }
+      { key: 'name', label: 'Nazwa', width: '415px' },
+      { key: 'products_count', label: 'Liczba produktów', width: '153px' },
+      { key: 'created_at', label: 'Data utworzenia', type: 'date', width: '153px' },
+      { key: 'actions', label: 'Akcje', align: 'right', width: '165px' }
     ]
     
     // Default filters
@@ -324,20 +278,12 @@ export default {
     const categoryToDelete = ref(null)
     const currentCategory = ref({
       id: null,
-      name: '',
-      description: '',
-      image_url: null,
-      sort_order: 0,
-      is_active: true
+      name: ''
     })
     
     // Detailed Error Modal
     const showErrorModal = ref(false)
     const errorMessage = ref('')
-    
-    // Image upload handling
-    const imagePreview = ref(null)
-    const selectedImageFile = ref(null)
     
     // Computed
     const paginationPages = computed(() => {
@@ -406,25 +352,14 @@ export default {
       if (category) {
         currentCategory.value = { 
           id: category.id,
-          name: category.name,
-          description: category.description,
-          image_url: category.image_url,
-          sort_order: category.sort_order,
-          is_active: category.is_active
+          name: category.name
         }
       } else {
         currentCategory.value = {
           id: null,
-          name: '',
-          description: '',
-          image_url: null,
-          sort_order: 0,
-          is_active: true
+          name: ''
         }
       }
-      // Reset image upload state
-      imagePreview.value = null
-      selectedImageFile.value = null
       showModal.value = true
     }
     
@@ -433,14 +368,6 @@ export default {
         submitting.value = true
         const formData = new FormData()
         formData.append('name', currentCategory.value.name)
-        formData.append('description', currentCategory.value.description || '')
-        formData.append('sort_order', currentCategory.value.sort_order || 0)
-        formData.append('is_active', currentCategory.value.is_active ? 1 : 0)
-        
-        // Add image if selected
-        if (selectedImageFile.value) {
-          formData.append('image', selectedImageFile.value)
-        }
         
         if (currentCategory.value.id) {
           // Update existing category - use POST with _method for file upload
@@ -462,9 +389,6 @@ export default {
         }
         
         showModal.value = false
-        // Reset form and image upload
-        imagePreview.value = null
-        selectedImageFile.value = null
         fetchCategories()
       } catch (error) {
         console.error('Error saving category:', error)
@@ -563,62 +487,6 @@ export default {
       fetchCategories()
     }
     
-    const handleImageUpload = (event) => {
-      const file = event.target.files[0]
-      if (file) {
-        // Validate file size (2MB max)
-        if (file.size > 2048 * 1024) {
-          alertStore.error('Plik jest za duży. Maksymalny rozmiar to 2MB.')
-          return
-        }
-        
-        // Validate file type
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp']
-        if (!allowedTypes.includes(file.type)) {
-          alertStore.error('Nieprawidłowy typ pliku. Dozwolone formaty: JPEG, PNG, JPG, GIF, WEBP.')
-          return
-        }
-        
-        selectedImageFile.value = file
-        
-        // Create preview
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          imagePreview.value = e.target.result
-        }
-        reader.readAsDataURL(file)
-      }
-    }
-    
-    const triggerFileUpload = () => {
-      document.getElementById('category-file-upload').click()
-    }
-    
-    const removeImage = () => {
-      imagePreview.value = null
-      selectedImageFile.value = null
-      
-      // Reset the file input safely  
-      const fileInputElement = document.getElementById('category-file-upload')
-      if (fileInputElement) {
-        try {
-          fileInputElement.value = ''
-        } catch (e) {
-          console.error('Error resetting file input:', e)
-        }
-      }
-    }
-    
-    const isFileObject = (obj) => {
-      return obj && 
-        typeof obj === 'object' && 
-        typeof obj.name === 'string' && 
-        typeof obj.size === 'number' && 
-        typeof obj.type === 'string'
-    }
-
-
-    
     // Lifecycle
     onMounted(() => {
       fetchCategories()
@@ -632,6 +500,8 @@ export default {
       showModal,
       showDeleteModal,
       currentCategory,
+      categoryToDelete,
+      submitting,
       paginationPages,
       fetchCategories,
       openModal,
@@ -644,13 +514,7 @@ export default {
       sortOptions,
       tableColumns,
       showErrorModal,
-      errorMessage,
-      imagePreview,
-      selectedImageFile,
-      handleImageUpload,
-      triggerFileUpload,
-      removeImage,
-      isFileObject
+      errorMessage
     }
   }
 }

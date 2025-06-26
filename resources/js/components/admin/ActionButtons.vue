@@ -1,5 +1,5 @@
 <template>
-  <admin-button-group spacing="xs">
+  <admin-button-group :spacing="spacing" :justify="justify">
     <!-- Details/View button -->
     <admin-button 
       v-if="showDetails"
@@ -87,19 +87,24 @@ export default {
     deleteLabel: {
       type: String,
       default: 'Usuń'
+    },
+    spacing: {
+      type: String,
+      default: 'xs',
+      validator: (value) => ['xs', 'sm', 'md', 'lg'].includes(value)
+    },
+    justify: {
+      type: String,
+      default: 'start',
+      validator: (value) => ['start', 'center', 'end', 'between', 'around', 'evenly'].includes(value)
     }
   },
   emits: ['edit', 'delete', 'details'],
   methods: {
     handleDelete() {
-      // Always emit the ID itself, not the entire object
-      if (this.item && this.item.id !== undefined) {
-        console.log('ActionButtons: Emitting delete with ID:', this.item.id);
-        this.$emit('delete', this.item.id);
-      } else {
-        console.error('ActionButtons: Item has no ID property', this.item);
-        this.$emit('delete', this.item);
-      }
+      // Emit the entire object, like other events do
+      console.log('ActionButtons: Emitting delete with item:', this.item);
+      this.$emit('delete', this.item);
     }
   }
 }

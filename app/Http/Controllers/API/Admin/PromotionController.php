@@ -93,8 +93,7 @@ class PromotionController extends BaseAdminController
         }
 
         $promotion->load(['products' => function ($query) {
-            $query->where('is_active', true)
-                  ->with(['category:id,name', 'brand:id,name']);
+            $query->with(['category:id,name', 'brand:id,name']);
         }]);
         
         return response()->json($promotion);
@@ -110,7 +109,6 @@ class PromotionController extends BaseAdminController
         }
 
         $query = $promotion->products()
-                          ->where('is_active', true)
                           ->with(['category:id,name', 'brand:id,name']);
 
         // Filtrowanie
@@ -338,8 +336,7 @@ class PromotionController extends BaseAdminController
         $search = $request->get('search', '');
         $excludePromotionId = $request->get('exclude_promotion_id');
 
-        $query = Product::where('is_active', true)
-                       ->with(['category:id,name', 'brand:id,name']);
+        $query = Product::with(['category:id,name', 'brand:id,name']);
 
         // Wyszukiwanie
         if ($search) {

@@ -47,51 +47,53 @@ class ProductPromotionController extends Controller
      */
     public function getPromotedProducts(Request $request): JsonResponse
     {
-        $query = Product::withActivePromotions()
-            ->where('is_active', true);
-
-        // Filtruj tylko produkty które mają aktywne promocje
-        $query->whereHas('promotions', function ($q) {
-            $q->where('is_active', true)
-              ->where('starts_at', '<=', now())
-              ->where(function($subQ) {
-                  $subQ->whereNull('ends_at')
-                       ->orWhere('ends_at', '>=', now());
-              });
-        });
-
-        // Opcjonalne filtrowanie po kategorii
+        $query = Product::with(['activePromotions']);
+        
+        // Filtrowanie
         if ($request->has('category_id')) {
             $query->where('category_id', $request->category_id);
         }
 
-        // Opcjonalne filtrowanie po marce
-        if ($request->has('brand_id')) {
-            $query->where('brand_id', $request->brand_id);
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
         }
 
         // Sortowanie
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortDirection = $request->get('sort_direction', 'desc');
+        $sortBy = $request->get('sort_by', 'name');
+        $sortDirection = $request->get('sort_direction', 'asc');
         
-        $allowedSorts = ['created_at', 'name', 'price', 'discount_value'];
+        $allowedSorts = ['name', 'price', 'created_at'];
         if (in_array($sortBy, $allowedSorts)) {
-            if ($sortBy === 'discount_value') {
-                // Sortowanie po wartości zniżki wymaga join z tabelą promocji
-                $query->join('product_promotions', 'products.id', '=', 'product_promotions.product_id')
-                      ->join('promotions', 'product_promotions.promotion_id', '=', 'promotions.id')
-                      ->orderBy('promotions.discount_value', $sortDirection)
-                      ->select('products.*');
-            } else {
-                $query->orderBy($sortBy, $sortDirection);
-            }
+            $query->orderBy($sortBy, $sortDirection);
         }
 
-        // Paginacja
-        $perPage = min($request->get('per_page', 12), 50);
-        $products = $query->with(['category', 'brand'])->paginate($perPage);
+        $products = $query->with(['category', 'brand', 'activePromotions'])
+                          ->paginate($request->get('per_page', 12));
 
-        return response()->json($products);
+        // Dodaj obliczone ceny promocyjne do produktów
+        $products->getCollection()->each(function ($product) {
+            $bestPromotion = $product->getBestActivePromotion();
+            if ($bestPromotion) {
+                $product->promotional_price = $bestPromotion->calculatePromotionalPrice((float) $product->price);
+                $product->savings_amount = (float) $product->price - $product->promotional_price;
+                $product->savings_percentage = $product->price > 0 ? 
+                    round(($product->savings_amount / (float) $product->price) * 100, 1) : 0;
+            }
+        });
+
+        return response()->json([
+            'data' => $products,
+            'meta' => [
+                'total' => $products->total(),
+                'per_page' => $products->perPage(),
+                'current_page' => $products->currentPage(),
+                'last_page' => $products->lastPage(),
+            ]
+        ]);
     }
 
     /**
@@ -100,8 +102,7 @@ class ProductPromotionController extends Controller
     public function show($id): JsonResponse
     {
         $promotion = Promotion::with(['products' => function($query) {
-            $query->where('is_active', true)
-                  ->with(['category', 'brand']);
+            $query->with(['category', 'brand']);
         }])->findOrFail($id);
 
         // Sprawdź czy promocja jest aktywna
@@ -128,8 +129,7 @@ class ProductPromotionController extends Controller
     public function checkProductPromotion($productId): JsonResponse
     {
         $product = Product::with(['promotions' => function($query) {
-            $query->where('is_active', true)
-                  ->where('starts_at', '<=', now())
+            $query->where('starts_at', '<=', now())
                   ->where(function($q) {
                       $q->whereNull('ends_at')
                         ->orWhere('ends_at', '>=', now());

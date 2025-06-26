@@ -67,7 +67,7 @@
             </button>
             
             <button 
-              v-for="category in categoryStore.orderedCategories.filter(cat => cat.is_active && cat.products_count > 0)"
+              v-for="category in categoryStore.categoriesWithProducts"
               :key="category.id"
               @click="filterByCategory(category.id)" 
               class="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm"

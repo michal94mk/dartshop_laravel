@@ -19,14 +19,14 @@ class TutorialController extends BaseAdminController
     public function index(Request $request)
     {
         try {
-            $query = Tutorial::with('user:id,name');
+            // Don't try to eager load user since we don't have user_id in table
+            $query = Tutorial::query();
             
             // Apply search filter
             if ($request->has('search') && !empty($request->search)) {
                 $search = $request->search;
                 $query->where(function($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
-                      ->orWhere('excerpt', 'like', "%{$search}%")
                       ->orWhere('content', 'like', "%{$search}%");
                 });
             }
@@ -40,11 +40,6 @@ class TutorialController extends BaseAdminController
                     case 'draft':
                         $query->where('is_published', false);
                         break;
-                    case 'scheduled':
-                        $query->where('is_published', false)
-                              ->whereNotNull('published_at')
-                              ->where('published_at', '>', now());
-                        break;
                 }
             }
             
@@ -55,7 +50,6 @@ class TutorialController extends BaseAdminController
             // Map frontend sort fields to database fields
             $sortFieldMap = [
                 'created_at' => 'created_at',
-                'published_at' => 'published_at',
                 'title' => 'title'
             ];
             
@@ -72,15 +66,14 @@ class TutorialController extends BaseAdminController
                     'id' => $tutorial->id,
                     'title' => $tutorial->title,
                     'slug' => $tutorial->slug,
-                    'excerpt' => $tutorial->excerpt,
+                    'excerpt' => $tutorial->excerpt, // Uses getter
                     'content' => $tutorial->content,
-                    'image_url' => $tutorial->featured_image ? asset('storage/images/' . $tutorial->featured_image) : null,
-                    'published_at' => $tutorial->published_at,
+                    'video_url' => $tutorial->video_url,
+                    'order' => $tutorial->order,
+                    'published_at' => $tutorial->published_at, // Uses getter (returns created_at)
                     'status' => $tutorial->is_published ? 'published' : 'draft',
-                    'author' => $tutorial->user,
-                    'meta_title' => $tutorial->meta_title,
-                    'meta_description' => $tutorial->meta_description,
-                    'featured' => false, // Default value as it's not in the schema
+                    'author' => $tutorial->user(), // Uses getter method
+                    'is_published' => $tutorial->is_published,
                     'created_at' => $tutorial->created_at,
                     'updated_at' => $tutorial->updated_at
                 ];
@@ -102,15 +95,11 @@ class TutorialController extends BaseAdminController
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:tutorials',
-            'excerpt' => 'nullable|string',
+            'slug' => 'nullable|string|max:255|unique:tutorials',
             'content' => 'required|string',
-            'image_url' => 'nullable|url',
-            'published_at' => 'nullable|date',
-            'status' => 'required|string|in:draft,published,scheduled',
-            'meta_title' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string',
-            'featured' => 'boolean'
+            'video_url' => 'nullable|url',
+            'order' => 'nullable|integer',
+            'status' => 'required|string|in:draft,published'
         ]);
 
         if ($validator->fails()) {
@@ -118,37 +107,17 @@ class TutorialController extends BaseAdminController
         }
 
         // Generate slug if not provided
-        if (empty($request->slug)) {
-            $request->merge(['slug' => Str::slug($request->title)]);
-        }
+        $slug = $request->slug ?: Str::slug($request->title);
 
         // Transform the input data to match the database schema
         $tutorialData = [
             'title' => $request->title,
-            'slug' => $request->slug,
-            'excerpt' => $request->excerpt,
+            'slug' => $slug,
             'content' => $request->content,
-            'meta_title' => $request->meta_title,
-            'meta_description' => $request->meta_description,
-            'user_id' => \Illuminate\Support\Facades\Auth::id(), // Get the authenticated user ID
+            'video_url' => $request->video_url,
+            'order' => $request->order ?? 0,
+            'is_published' => $request->status === 'published'
         ];
-        
-        // Handle status
-        $tutorialData['is_published'] = $request->status === 'published';
-        
-        // Handle published date
-        if ($request->status === 'published' && !$request->published_at) {
-            $tutorialData['published_at'] = now();
-        } elseif ($request->status === 'scheduled') {
-            $tutorialData['published_at'] = $request->published_at;
-        }
-        
-        // Handle image URL
-        if ($request->image_url) {
-            // This would typically involve image processing/storage
-            // For now, just store the URL or filename
-            $tutorialData['featured_image'] = basename($request->image_url);
-        }
 
         $tutorial = Tutorial::create($tutorialData);
         
@@ -157,15 +126,14 @@ class TutorialController extends BaseAdminController
             'id' => $tutorial->id,
             'title' => $tutorial->title,
             'slug' => $tutorial->slug,
-            'excerpt' => $tutorial->excerpt,
+            'excerpt' => $tutorial->excerpt, // Uses getter
             'content' => $tutorial->content,
-            'image_url' => $tutorial->featured_image ? asset('storage/images/' . $tutorial->featured_image) : null,
-            'published_at' => $tutorial->published_at,
+            'video_url' => $tutorial->video_url,
+            'order' => $tutorial->order,
+            'published_at' => $tutorial->published_at, // Uses getter
             'status' => $tutorial->is_published ? 'published' : 'draft',
-            'author' => $tutorial->user,
-            'meta_title' => $tutorial->meta_title,
-            'meta_description' => $tutorial->meta_description,
-            'featured' => false, // Default value
+            'author' => $tutorial->user(), // Uses getter method
+            'is_published' => $tutorial->is_published,
             'created_at' => $tutorial->created_at,
             'updated_at' => $tutorial->updated_at
         ], 201);
@@ -179,8 +147,23 @@ class TutorialController extends BaseAdminController
      */
     public function show($id)
     {
-        $tutorial = Tutorial::with('user')->findOrFail($id);
-        return response()->json($tutorial);
+        $tutorial = Tutorial::findOrFail($id);
+        
+        return response()->json([
+            'id' => $tutorial->id,
+            'title' => $tutorial->title,
+            'slug' => $tutorial->slug,
+            'excerpt' => $tutorial->excerpt, // Uses getter
+            'content' => $tutorial->content,
+            'video_url' => $tutorial->video_url,
+            'order' => $tutorial->order,
+            'published_at' => $tutorial->published_at, // Uses getter
+            'status' => $tutorial->is_published ? 'published' : 'draft',
+            'author' => $tutorial->user(), // Uses getter method
+            'is_published' => $tutorial->is_published,
+            'created_at' => $tutorial->created_at,
+            'updated_at' => $tutorial->updated_at
+        ]);
     }
 
     /**
@@ -197,14 +180,10 @@ class TutorialController extends BaseAdminController
         $validator = Validator::make($request->all(), [
             'title' => 'sometimes|string|max:255',
             'slug' => 'sometimes|string|max:255|unique:tutorials,slug,' . $tutorial->id,
-            'excerpt' => 'nullable|string',
             'content' => 'sometimes|string',
-            'image_url' => 'nullable|url',
-            'published_at' => 'nullable|date',
-            'status' => 'sometimes|string|in:draft,published,scheduled',
-            'meta_title' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string',
-            'featured' => 'boolean'
+            'video_url' => 'nullable|url',
+            'order' => 'nullable|integer',
+            'status' => 'sometimes|string|in:draft,published'
         ]);
 
         if ($validator->fails()) {
@@ -212,55 +191,56 @@ class TutorialController extends BaseAdminController
         }
 
         // Generate slug if title is changed but slug is not provided
+        $slug = $request->slug;
         if ($request->has('title') && (!$request->has('slug') || empty($request->slug))) {
-            $request->merge(['slug' => Str::slug($request->title)]);
+            $slug = Str::slug($request->title);
         }
 
         // Transform the input data to match the database schema
-        $updateData = [
-            'title' => $request->title ?? $tutorial->title,
-            'slug' => $request->slug ?? $tutorial->slug,
-            'excerpt' => $request->excerpt,
-            'content' => $request->content ?? $tutorial->content,
-            'meta_title' => $request->meta_title,
-            'meta_description' => $request->meta_description,
-            // Keep the user_id unchanged
-        ];
+        $updateData = [];
         
-        // Handle status conversion
-        if ($request->has('status')) {
-            $updateData['is_published'] = $request->status === 'published';
-            if ($request->status === 'published' && !$tutorial->published_at) {
-                $updateData['published_at'] = now();
-            } elseif ($request->status === 'scheduled') {
-                $updateData['published_at'] = $request->published_at;
-                $updateData['is_published'] = false;
-            }
+        if ($request->has('title')) {
+            $updateData['title'] = $request->title;
         }
         
-        // Handle image URL
-        if ($request->has('image_url') && $request->image_url) {
-            // This would typically involve image processing/storage
-            // For now, just store the URL or filename
-            $updateData['featured_image'] = basename($request->image_url);
+        if ($slug) {
+            $updateData['slug'] = $slug;
+        }
+        
+        if ($request->has('content')) {
+            $updateData['content'] = $request->content;
+        }
+        
+        if ($request->has('video_url')) {
+            $updateData['video_url'] = $request->video_url;
+        }
+        
+        if ($request->has('order')) {
+            $updateData['order'] = $request->order;
+        }
+        
+        if ($request->has('status')) {
+            $updateData['is_published'] = $request->status === 'published';
         }
 
         $tutorial->update($updateData);
+        
+        // Refresh to get updated data
+        $tutorial->refresh();
         
         // Return the transformed tutorial data
         return response()->json([
             'id' => $tutorial->id,
             'title' => $tutorial->title,
             'slug' => $tutorial->slug,
-            'excerpt' => $tutorial->excerpt,
+            'excerpt' => $tutorial->excerpt, // Uses getter
             'content' => $tutorial->content,
-            'image_url' => $tutorial->featured_image ? asset('storage/images/' . $tutorial->featured_image) : null,
-            'published_at' => $tutorial->published_at,
+            'video_url' => $tutorial->video_url,
+            'order' => $tutorial->order,
+            'published_at' => $tutorial->published_at, // Uses getter
             'status' => $tutorial->is_published ? 'published' : 'draft',
-            'author' => $tutorial->user,
-            'meta_title' => $tutorial->meta_title,
-            'meta_description' => $tutorial->meta_description,
-            'featured' => false, // Default value
+            'author' => $tutorial->user(), // Uses getter method
+            'is_published' => $tutorial->is_published,
             'created_at' => $tutorial->created_at,
             'updated_at' => $tutorial->updated_at
         ]);

@@ -56,13 +56,12 @@ export const newsletterService = {
   /**
    * Subscribe to newsletter
    */
-  async subscribe(email, source = 'website') {
+  async subscribe(email) {
     try {
-      console.log('Newsletter subscribe - starting request with:', { email, source });
+      console.log('Newsletter subscribe - starting request with:', { email });
       
       const response = await api.post('/newsletter/subscribe', {
-        email,
-        source
+        email
       });
       
       console.log('Newsletter subscribe - success response:', response.data);

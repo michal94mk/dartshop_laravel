@@ -10,9 +10,9 @@ export const useCategoryStore = defineStore('category', {
   }),
   
   getters: {
-    activeCategoriesWithProducts: (state) => {
+    categoriesWithProducts: (state) => {
       return state.categories.filter(category => 
-        category.is_active && category.products_count > 0
+        category.products_count > 0
       );
     },
     
@@ -26,9 +26,6 @@ export const useCategoryStore = defineStore('category', {
     
     orderedCategories: (state) => {
       return [...state.categories].sort((a, b) => {
-        if (a.sort_order !== b.sort_order) {
-          return a.sort_order - b.sort_order;
-        }
         return a.name.localeCompare(b.name);
       });
     }

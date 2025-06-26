@@ -28,11 +28,6 @@ class NewsletterController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Apply source filter
-        if ($request->filled('source')) {
-            $query->where('source', $request->source);
-        }
-
         // Apply date range filters
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
@@ -47,7 +42,7 @@ class NewsletterController extends Controller
         $sortDirection = $request->sort_direction ?? 'desc';
         
         // Validate sort field to prevent SQL injection
-        $allowedSortFields = ['created_at', 'email', 'status', 'source', 'verified_at', 'unsubscribed_at'];
+        $allowedSortFields = ['created_at', 'email', 'status', 'verified_at', 'unsubscribed_at'];
         if (!in_array($sortField, $allowedSortFields)) {
             $sortField = 'created_at';
         }
@@ -109,20 +104,15 @@ class NewsletterController extends Controller
             $query->where('email', 'like', '%' . $request->search . '%');
         }
 
-        if ($request->filled('source')) {
-            $query->where('source', $request->source);
-        }
-
         $subscriptions = $query->orderBy('created_at', 'desc')->get();
 
         $csvData = [];
-        $csvData[] = ['Email', 'Status', 'Źródło', 'Data subskrypcji', 'Data weryfikacji', 'Data wypisania'];
+        $csvData[] = ['Email', 'Status', 'Data subskrypcji', 'Data weryfikacji', 'Data wypisania'];
 
         foreach ($subscriptions as $subscription) {
             $csvData[] = [
                 $subscription->email,
                 $subscription->status,
-                $subscription->source ?? '',
                 $subscription->created_at->format('Y-m-d H:i:s'),
                 $subscription->verified_at ? $subscription->verified_at->format('Y-m-d H:i:s') : '',
                 $subscription->unsubscribed_at ? $subscription->unsubscribed_at->format('Y-m-d H:i:s') : '',

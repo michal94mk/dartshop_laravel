@@ -1,34 +1,20 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 p-4 bg-white rounded-lg shadow-sm min-h-full">
     <!-- Page Header -->
-    <page-header
-      title="Zarządzanie produktami"
-      subtitle="Lista wszystkich produktów w sklepie z możliwością dodawania, edycji i usuwania"
-    >
-      <template #actions>
-        <admin-button-group spacing="sm">
+    <div class="px-6 py-4">
+      <page-header
+        title="Zarządzanie produktami"
+      >
+        <template #actions>
           <admin-button
             variant="primary"
             @click="openModal()"
           >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Dodaj produkt
+            Dodaj
           </admin-button>
-          <admin-button
-            variant="secondary"
-            outline
-            @click="exportProducts"
-          >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            Eksportuj
-          </admin-button>
-        </admin-button-group>
-      </template>
-    </page-header>
+        </template>
+      </page-header>
+    </div>
 
     <!-- Filters -->
     <search-filters
@@ -82,80 +68,102 @@
       <!-- Loading indicator -->
       <loading-spinner v-if="loading" />
 
-      <!-- Products table -->
-      <admin-table
-        v-if="products.data && products.data.length > 0"
-        :columns="tableColumns"
-        :items="products.data"
-      >
-        <template #cell-product="{ item }">
-          <div class="flex items-center">
-            <div class="h-10 w-10 flex-shrink-0">
-              <img 
-                v-if="item.image && !item.imageError" 
-                :src="item.fallbackSrc || getImageSrc(item.image)" 
-                class="h-10 w-10 rounded-full object-cover" 
-                @error="tryFallbackImage(item)"
-                alt="Product image" 
-              />
-              <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                <svg class="h-6 w-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-            </div>
-            <div class="ml-4">
-              <div class="font-medium text-gray-900">{{ item.name }}</div>
-              <div class="text-gray-500 truncate max-w-xs">{{ truncate(item.description, 50) }}</div>
-            </div>
-          </div>
-        </template>
-        
-        <template #cell-category="{ item }">
-          <admin-badge v-if="item.category" variant="secondary">
-            {{ item.category.name }}
-          </admin-badge>
-          <span v-else class="text-gray-400">-</span>
-        </template>
-        
-        <template #cell-brand="{ item }">
-          <admin-badge v-if="item.brand" variant="secondary">
-            {{ item.brand.name }}
-          </admin-badge>
-          <span v-else class="text-gray-400">-</span>
-        </template>
-        
-        <template #cell-price="{ item }">
-          <span class="font-medium text-gray-900">{{ item.price }} PLN</span>
-        </template>
-
-        <template #cell-stock_status="{ item }">
-          <admin-badge :variant="getStockStatusVariant(item.stock_quantity)">
-            {{ getStockStatusLabel(item.stock_quantity) }}
-          </admin-badge>
-        </template>
-        
-        <template #cell-actions="{ item }">
-          <action-buttons 
-            :item="item" 
-            :show-details="true"
-            @details="showProductDetails"
-            @edit="openModal" 
-            @delete="deleteProduct"
-          >
-            <template #custom-buttons="{ item }">
-              <admin-button
-                variant="info"
-                size="sm"
-                @click="duplicateProduct(item)"
-                title="Duplikuj produkt"
-              >
-                Duplikuj
-              </admin-button>
-            </template>
-          </action-buttons>
-        </template>
-      </admin-table>
+      <!-- Products Custom Table -->
+      <div v-if="!loading && products.data && products.data.length > 0" class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-56">
+                  Produkt
+                </th>
+                <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                  Kategoria
+                </th>
+                <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                  Marka
+                </th>
+                <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                  Cena
+                </th>
+                <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
+                  Stan magazynu
+                </th>
+                <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
+                  Akcje
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="item in products.data" :key="item.id" class="hover:bg-gray-50">
+                <!-- Product Column -->
+                <td class="px-4 py-4">
+                  <div class="flex items-center">
+                    <div class="h-10 w-10 flex-shrink-0">
+                      <img 
+                        v-if="item.image && !item.imageError" 
+                        :src="item.fallbackSrc || getImageSrc(item.image)" 
+                        class="h-10 w-10 rounded-full object-cover" 
+                        @error="tryFallbackImage(item)"
+                        alt="Product image" 
+                      />
+                      <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                        <svg class="h-6 w-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">{{ item.name }}</div>
+                      <div class="text-xs text-gray-500 truncate max-w-[180px]" :title="item.description">{{ truncate(item.description, 40) }}</div>
+                    </div>
+                  </div>
+                </td>
+                
+                <!-- Category Column -->
+                <td class="px-3 py-4 text-center">
+                  <admin-badge v-if="item.category" variant="secondary" size="xs">
+                    {{ item.category.name }}
+                  </admin-badge>
+                  <span v-else class="text-gray-400 text-xs">-</span>
+                </td>
+                
+                <!-- Brand Column -->
+                <td class="px-3 py-4 text-center">
+                  <admin-badge v-if="item.brand" variant="secondary" size="xs">
+                    {{ item.brand.name }}
+                  </admin-badge>
+                  <span v-else class="text-gray-400 text-xs">-</span>
+                </td>
+                
+                <!-- Price Column -->
+                <td class="px-3 py-4 text-center">
+                  <span class="text-sm font-medium text-gray-900">{{ item.price }} PLN</span>
+                </td>
+                
+                <!-- Stock Status Column -->
+                <td class="px-3 py-4 text-center">
+                  <admin-badge :variant="getStockStatusVariant(item.stock_quantity)" size="xs">
+                    {{ getStockStatusLabel(item.stock_quantity) }}
+                  </admin-badge>
+                </td>
+                
+                <!-- Actions Column -->
+                <td class="px-4 py-4 text-right">
+                  <action-buttons 
+                    :item="item" 
+                    :show-details="true"
+                    @details="showProductDetails"
+                    @edit="openModal" 
+                    @delete="deleteProduct"
+                    justify="end"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
       
       <!-- Pagination -->
       <pagination 
@@ -183,9 +191,16 @@
           <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div class="sm:flex sm:items-start">
               <div class="w-full">
-                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
-                  {{ currentProduct.id ? 'Edytuj produkt' : 'Dodaj nowy produkt' }}
-                </h3>
+                <div class="flex justify-between items-center mb-4">
+                  <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                    {{ currentProduct.id ? 'Edytuj produkt' : 'Dodaj nowy produkt' }}
+                  </h3>
+                  <button @click="showModal = false" class="text-gray-400 hover:text-gray-500">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
                 
                 <div class="grid grid-cols-1 gap-4">
                   <div>
@@ -362,6 +377,134 @@
       </div>
     </div>
   </div>
+
+  <!-- Product Details Modal -->
+  <div v-if="showProductDetailsModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="showProductDetailsModal = false"></div>
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div class="sm:flex sm:items-start">
+            <div class="w-full">
+              <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
+                Szczegóły produktu
+              </h3>
+              
+              <div v-if="selectedProductForDetails" class="space-y-6">
+                <!-- Product Image -->
+                <div v-if="selectedProductForDetails.image" class="flex justify-center">
+                  <img 
+                    :src="selectedProductForDetails.fallbackSrc || getImageSrc(selectedProductForDetails.image)" 
+                    :alt="selectedProductForDetails.name"
+                    class="w-32 h-32 object-cover rounded-lg shadow-md"
+                    @error="tryFallbackImage(selectedProductForDetails)"
+                  />
+                </div>
+                <div v-else class="flex justify-center">
+                  <div class="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <svg class="h-16 w-16 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                </div>
+                
+                <!-- Basic Info -->
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">ID</h4>
+                    <p class="mt-1 text-sm text-gray-900">{{ selectedProductForDetails.id }}</p>
+                  </div>
+                  
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">SKU</h4>
+                    <p class="mt-1 text-sm text-gray-900">{{ selectedProductForDetails.sku || 'Brak' }}</p>
+                  </div>
+                  
+                  <div class="sm:col-span-2">
+                    <h4 class="text-sm font-medium text-gray-500">Nazwa</h4>
+                    <p class="mt-1 text-lg font-semibold text-gray-900">{{ selectedProductForDetails.name }}</p>
+                  </div>
+                  
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">Cena</h4>
+                    <p class="mt-1 text-lg font-semibold text-green-600">{{ selectedProductForDetails.price }} PLN</p>
+                  </div>
+                  
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">Stan magazynowy</h4>
+                    <p class="mt-1 text-sm text-gray-900">
+                      <admin-badge :variant="getStockStatusVariant(selectedProductForDetails.stock_quantity)">
+                        {{ getStockStatusLabel(selectedProductForDetails.stock_quantity) }}
+                      </admin-badge>
+                    </p>
+                  </div>
+                </div>
+                
+                <!-- Category and Brand -->
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">Kategoria</h4>
+                    <p class="mt-1 text-sm text-gray-900">
+                      <admin-badge v-if="selectedProductForDetails.category" variant="secondary">
+                        {{ selectedProductForDetails.category.name }}
+                      </admin-badge>
+                      <span v-else class="text-gray-400">Brak kategorii</span>
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">Marka</h4>
+                    <p class="mt-1 text-sm text-gray-900">
+                      <admin-badge v-if="selectedProductForDetails.brand" variant="secondary">
+                        {{ selectedProductForDetails.brand.name }}
+                      </admin-badge>
+                      <span v-else class="text-gray-400">Brak marki</span>
+                    </p>
+                  </div>
+                </div>
+                
+                <!-- Description -->
+                <div v-if="selectedProductForDetails.description">
+                  <h4 class="text-sm font-medium text-gray-500">Opis</h4>
+                  <div class="mt-1 bg-gray-50 p-3 rounded text-sm text-gray-900">
+                    <p>{{ selectedProductForDetails.description }}</p>
+                  </div>
+                </div>
+                
+                <!-- Additional Info -->
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">Data utworzenia</h4>
+                    <p class="mt-1 text-sm text-gray-900">{{ new Date(selectedProductForDetails.created_at).toLocaleDateString('pl-PL') }}</p>
+                  </div>
+                  
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">Ostatnia aktualizacja</h4>
+                    <p class="mt-1 text-sm text-gray-900">{{ new Date(selectedProductForDetails.updated_at).toLocaleDateString('pl-PL') }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <button 
+            @click="showProductDetailsModal = false" 
+            class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm"
+          >
+            Zamknij
+          </button>
+          <button 
+            @click="() => { showProductDetailsModal = false; openModal(selectedProductForDetails); }" 
+            class="mt-3 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:mr-3 sm:w-auto sm:text-sm"
+          >
+            Edytuj
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -370,7 +513,6 @@ import { useAlertStore } from '../../stores/alertStore'
 import { useAuthStore } from '../../stores/authStore'
 import axios from 'axios'
 import debounce from 'lodash/debounce'
-import AdminTable from '../../components/admin/ui/AdminTable.vue'
 import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
 import SearchFilters from '../../components/admin/SearchFilters.vue'
@@ -384,7 +526,6 @@ import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
 export default {
   name: 'AdminProducts',
   components: {
-    AdminTable,
     AdminButtonGroup,
     AdminButton,
     SearchFilters,
@@ -428,16 +569,6 @@ export default {
       { value: 'price', label: 'Cena' }
     ]
     
-    // Table columns definition
-    const tableColumns = [
-      { key: 'product', label: 'Produkt', width: '350px' },
-      { key: 'category', label: 'Kategoria', width: '150px' },
-      { key: 'brand', label: 'Marka', width: '150px' },
-      { key: 'price', label: 'Cena', width: '100px' },
-      { key: 'stock_status', label: 'Stan magazynu', width: '120px' },
-      { key: 'actions', label: 'Akcje', align: 'right', width: '200px' }
-    ]
-    
     // Default filters
     const defaultFilters = {
       search: '',
@@ -453,6 +584,8 @@ export default {
     // Modals
     const showModal = ref(false)
     const showDeleteModal = ref(false)
+    const showProductDetailsModal = ref(false)
+    const selectedProductForDetails = ref(null)
     const productToDelete = ref(null)
     const currentProduct = ref({
       id: null,
@@ -804,63 +937,37 @@ export default {
       }
     }
     
-    const deleteProduct = (id) => {
-      productToDelete.value = id
-      showDeleteModal.value = true
+    const deleteProduct = (product) => {
+      // Handle both ID and object from ActionButtons
+      let productId;
+      if (typeof product === 'object' && product !== null) {
+        productId = product.id;
+      } else {
+        productId = product;
+      }
+      
+      if (!productId) {
+        alertStore.error('Brak ID produktu do usunięcia');
+        return;
+      }
+      
+      productToDelete.value = productId;
+      showDeleteModal.value = true;
     }
     
-    const confirmDelete = async (productOrId) => {
+    const confirmDelete = async () => {
       try {
         loading.value = true
         
-        // Handle both ID and object from ActionButtons
-        let productId;
-        if (typeof productOrId === 'object' && productOrId !== null) {
-          productId = productOrId.id || productOrId;
-        } else {
-          productId = productOrId || productToDelete.value;
-        }
+        const productId = productToDelete.value;
         
-        if (!productId) {
-          productId = productToDelete.value;
-        }
-        
-        // If still no ID, set modal and return
         if (!productId) {
           alertStore.error('Nie można usunąć produktu: brak ID.')
-          if (productOrId) {
-            productToDelete.value = productOrId;
-            showDeleteModal.value = true;
-          }
           return
         }
         
-        // If called with product object from ActionButtons, show modal first
-        if (typeof productOrId === 'object' && productOrId !== null && !showDeleteModal.value) {
-          productToDelete.value = productId;
-          showDeleteModal.value = true;
-          loading.value = false;
-          return;
-        }
-        
-        // Ensure CSRF token is available
-        const csrfToken = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)')
-        
-        // Send delete request with method spoofing for better compatibility
-        const url = `/api/admin/products/${productId}`
-        
-        const response = await axios({
-          method: 'post',
-          url: url,
-          data: { 
-            _method: 'DELETE'  // Laravel method spoofing
-          },
-          headers: {
-            'Content-Type': 'application/json',
-            'X-HTTP-Method-Override': 'DELETE',
-            'Accept': 'application/json'
-          }
-        })
+        // Send delete request
+        const response = await axios.delete(`/api/admin/products/${productId}`)
         
         // Show success message
         alertStore.success('Produkt został usunięty.')
@@ -1016,48 +1123,10 @@ export default {
       return `Dostępny (${stockQuantity})`
     }
 
-    const exportProducts = async () => {
-      try {
-        alertStore.info('Rozpoczynanie eksportu produktów...')
-        
-        // Tutaj można dodać logikę eksportu
-        // const response = await axios.get('/api/admin/products/export', { responseType: 'blob' })
-        
-        // Na razie tylko symulujemy eksport
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        
-        alertStore.success('Produkty zostały wyeksportowane.')
-      } catch (error) {
-        console.error('Error exporting products:', error)
-        alertStore.error('Wystąpił błąd podczas eksportu produktów.')
-      }
-    }
-
     const showProductDetails = (product) => {
       console.log('Pokazuj szczegóły produktu:', product)
-      // Tutaj można otworzyć modal ze szczegółami lub przejść do dedykowanej strony
-      alertStore.info(`Wyświetlanie szczegółów produktu: ${product.name}`)
-    }
-
-    const duplicateProduct = async (product) => {
-      try {
-        // Otwórz modal z skopiowanymi danymi produktu
-        currentProduct.value = {
-          id: null, // Nowy produkt
-          name: `${product.name} (kopia)`,
-          description: product.description,
-          price: product.price,
-          category_id: product.category_id,
-          brand_id: product.brand_id,
-          image: null // Nie kopiujemy obrazka
-        }
-        
-        showModal.value = true
-        alertStore.info('Produkt został przygotowany do duplikacji.')
-      } catch (error) {
-        console.error('Error duplicating product:', error)
-        alertStore.error('Wystąpił błąd podczas duplikacji produktu.')
-      }
+      selectedProductForDetails.value = product
+      showProductDetailsModal.value = true
     }
 
     return {
@@ -1068,10 +1137,11 @@ export default {
       filters,
       defaultFilters,
       sortOptions,
-      tableColumns,
       paginationPages,
       showModal,
       showDeleteModal,
+      showProductDetailsModal,
+      selectedProductForDetails,
       currentProduct,
       currentProductImageError,
       settings,
@@ -1095,9 +1165,7 @@ export default {
       resetFilters,
       getStockStatusVariant,
       getStockStatusLabel,
-      exportProducts,
-      showProductDetails,
-      duplicateProduct
+      showProductDetails
     }
   }
 }

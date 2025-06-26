@@ -1,25 +1,16 @@
 <template>
-  <div class="px-6 py-4">
-    <div class="sm:flex sm:items-center">
-      <div class="sm:flex-auto">
-        <h1 class="text-2xl font-semibold text-gray-900">Promocje produktowe</h1>
-        <p class="mt-2 text-sm text-gray-700">
-          Zarządzaj promocjami przypisanymi do produktów
-        </p>
-      </div>
-      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-        <button
-          @click="openCreateModal"
-          type="button"
-          class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
-        >
-          Dodaj promocję
-        </button>
-      </div>
+  <div class="space-y-6 p-4 bg-white rounded-lg shadow-sm min-h-full">
+    <!-- Page Header -->
+    <div class="px-6 py-4">
+      <page-header 
+        title="Promocje produktowe"
+        add-button-label="Dodaj"
+        @add="openCreateModal"
+      />
     </div>
 
     <!-- Filtry -->
-    <div class="mt-6 bg-white shadow rounded-lg p-4">
+    <div v-if="!loading" class="mt-6 bg-white shadow rounded-lg p-4">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700">Wyszukaj</label>
@@ -66,12 +57,10 @@
       </div>
     </div>
 
-    <!-- Lista promocji -->
+    <!-- Content -->
     <div class="mt-6 bg-white shadow overflow-hidden sm:rounded-md">
-      <div v-if="loading" class="p-6 text-center">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-        <p class="mt-2 text-sm text-gray-500">Ładowanie promocji...</p>
-      </div>
+      <!-- Loading spinner -->
+      <loading-spinner v-if="loading" />
 
       <ul v-else-if="promotions.length > 0" class="divide-y divide-gray-200">
         <li v-for="promotion in promotions" :key="promotion.id" class="p-6">
@@ -299,6 +288,8 @@ import { PlusIcon, PencilIcon, TrashIcon, ChevronLeftIcon, ChevronRightIcon } fr
 import PromotionModal from '../../components/admin/PromotionModal.vue'
 import { useAlertStore } from '../../stores/alertStore'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
+import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
+import PageHeader from '../../components/admin/PageHeader.vue'
 
 export default {
   name: 'AdminPromotions',
@@ -309,7 +300,9 @@ export default {
     ChevronLeftIcon,
     ChevronRightIcon,
     PromotionModal,
-    AdminButton
+    AdminButton,
+    LoadingSpinner,
+    PageHeader
   },
   setup() {
     const alertStore = useAlertStore()

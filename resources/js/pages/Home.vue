@@ -364,7 +364,6 @@
             </div>
             <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
               <h3 class="text-2xl font-bold mb-2 group-hover:text-yellow-300 transition-colors duration-300">{{ category.name }}</h3>
-              <p class="text-gray-200 mb-4 text-sm leading-relaxed group-hover:text-gray-100 transition-colors duration-300">{{ category.description }}</p>
               <div class="flex items-center text-white/80 group-hover:text-white transition-colors duration-300">
                 <svg class="w-5 h-5 mr-2 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -511,10 +510,8 @@ export default {
   },
   computed: {
     categories() {
-      // Use real categories from the store, sorted by sort_order, and only show categories with products
-      return this.categoryStore.orderedCategories.filter(category => 
-        category.is_active && category.products_count > 0
-      );
+      // Use real categories from the store and only show categories with products
+      return this.categoryStore.categoriesWithProducts;
     }
   },
   created() {
@@ -552,10 +549,6 @@ export default {
       this.reviewStore.fetchLatestReviews();
     },
     getCategoryImage(category) {
-      // Use the image_url from API if available, otherwise use placeholder
-      if (category.image_url) {
-        return category.image_url;
-      }
       // Generate placeholder image based on category name
       const encodedName = encodeURIComponent(category.name);
       return `https://via.placeholder.com/600x400/6366f1/fff?text=${encodedName}`;

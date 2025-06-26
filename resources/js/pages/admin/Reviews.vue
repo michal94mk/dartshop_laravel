@@ -1,11 +1,13 @@
 <template>
-  <div class="px-6 py-4">
+  <div class="space-y-6 p-4 bg-white rounded-lg shadow-sm min-h-full">
     <!-- Page Header -->
-    <page-header 
-      title="Recenzje produktów"
-      add-button-label="Dodaj recenzję"
-      @add="handleAddButtonClick"
-    />
+    <div class="px-6 py-4">
+      <page-header 
+        title="Recenzje produktów"
+        add-button-label="Dodaj"
+        @add="handleAddButtonClick"
+      />
+    </div>
     
     <!-- Loading indicator -->
     <loading-spinner v-if="loading" />
@@ -73,106 +75,104 @@
       </template>
     </search-filters>
     
-    <!-- Reviews Table -->
-    <admin-table
-      v-if="!loading && reviews.data && reviews.data.length > 0"
-      :columns="tableColumns"
-      :items="reviews.data"
-      :force-horizontal-scroll="true"
-      class="mt-6"
-    >
-      <template #cell-product="{ item }">
-        <div class="max-w-[190px]">
-          <router-link :to="`/products/${item.product.id}`" class="text-indigo-600 hover:text-indigo-900 text-sm truncate block" :title="item.product.name">
-            {{ item.product.name }}
-          </router-link>
-        </div>
-      </template>
-      
-      <template #cell-user="{ item }">
-        <div class="max-w-[110px]">
-          <span class="text-sm truncate block" :title="item.user ? item.user.name : 'Anonim'">
-            {{ item.user ? item.user.name : 'Anonim' }}
-          </span>
-        </div>
-      </template>
-      
-      <template #cell-rating="{ item }">
-        <div class="flex items-center justify-center">
-          <span class="text-sm font-medium text-gray-700">{{ item.rating }}/5</span>
-        </div>
-      </template>
-      
-      <template #cell-title="{ item }">
-        <div class="max-w-[140px]">
-          <span class="block truncate text-sm" :title="item.title">{{ item.title }}</span>
-        </div>
-      </template>
-      
-      <template #cell-content="{ item }">
-        <div class="max-w-[140px]">
-          <span class="block truncate text-sm" :title="item.content">{{ item.content }}</span>
-        </div>
-      </template>
-      
-      <template #cell-is_approved="{ item }">
-        <div class="flex justify-center">
-          <admin-badge 
-            :variant="item.is_approved ? 'green' : 'red'"
-            size="xs"
-          >
-            {{ item.is_approved ? '✓' : '✗' }}
-          </admin-badge>
-        </div>
-      </template>
-      
-      <template #cell-is_featured="{ item }">
-        <div class="flex justify-center">
-          <admin-badge 
-            :variant="item.is_featured ? 'blue' : 'gray'"
-            size="xs"
-          >
-            {{ item.is_featured ? '★' : '☆' }}
-          </admin-badge>
-        </div>
-      </template>
-      
-      <template #cell-actions="{ item }">
-        <action-buttons 
-          :item="item" 
-          :show-details="true"
-          @details="showReviewDetails"
-          @edit="editReview" 
-          @delete="confirmDeleteReview"
-        >
-          <template #status-buttons="{ item }">
-            <admin-button 
-              v-if="!item.is_approved" 
-              @click="approveReview(item)" 
-              variant="success"
-              size="sm"
-            >
-              Zatwierdź
-            </admin-button>
-            <admin-button 
-              v-if="item.is_approved" 
-              @click="rejectReview(item)" 
-              variant="danger"
-              size="sm"
-            >
-              Odrzuć
-            </admin-button>
-            <admin-button 
-              @click="toggleFeatured(item)" 
-              :variant="item.is_featured ? 'secondary' : 'info'"
-              size="sm"
-            >
-              {{ item.is_featured ? 'Usuń wyróż.' : 'Wyróżnij' }}
-            </admin-button>
-          </template>
-        </action-buttons>
-      </template>
-    </admin-table>
+    <!-- Reviews Custom Table -->
+    <div v-if="!loading && reviews.data && reviews.data.length > 0" class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-80">
+                Produkt
+              </th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                Użytkownik
+              </th>
+              <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                Ocena
+              </th>
+              <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                Status
+              </th>
+              <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                Akcje
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr v-for="item in reviews.data" :key="item.id" class="hover:bg-gray-50">
+              <!-- Product Column -->
+              <td class="px-4 py-4">
+                <div class="text-sm font-medium text-gray-900">
+                  {{ item.product.name }}
+                </div>
+                <div class="text-xs text-gray-500 mt-1" :title="item.title">
+                  {{ item.title }}
+                </div>
+              </td>
+              
+              <!-- User Column -->
+              <td class="px-4 py-4">
+                <div class="flex items-center">
+                  <div 
+                    class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center text-xs font-semibold cursor-help mr-3"
+                    :title="item.user ? item.user.name : 'Anonim'"
+                  >
+                    {{ getUserInitials(item.user) }}
+                  </div>
+                  <div class="text-sm text-gray-900" :title="item.user ? item.user.name : 'Anonim'">
+                    {{ item.user ? item.user.name : 'Anonim' }}
+                  </div>
+                </div>
+              </td>
+              
+              <!-- Rating Column -->
+              <td class="px-3 py-4 text-center">
+                <div class="flex items-center justify-center">
+                  <span class="text-sm font-medium text-gray-700">{{ item.rating }}</span>
+                  <svg class="w-4 h-4 text-yellow-400 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                  </svg>
+                </div>
+              </td>
+              
+              <!-- Status Column -->
+              <td class="px-3 py-4">
+                <div class="flex items-center justify-center space-x-1 cursor-pointer" @click="toggleApproval(item)">
+                  <admin-badge 
+                    :variant="item.is_approved ? 'green' : 'red'"
+                    size="xs"
+                    :title="item.is_approved ? 'Zatwierdzona - kliknij aby odrzucić' : 'Odrzucona - kliknij aby zatwierdzić'"
+                  >
+                    {{ item.is_approved ? '✓' : '✗' }}
+                  </admin-badge>
+                  <admin-badge 
+                    :variant="item.is_featured ? 'blue' : 'gray'"
+                    size="xs"
+                    :title="item.is_featured ? 'Wyróżniona - kliknij aby usunąć wyróżnienie' : 'Zwykła - kliknij aby wyróżnić'"
+                    @click.stop="toggleFeatured(item)"
+                  >
+                    {{ item.is_featured ? '★' : '☆' }}
+                  </admin-badge>
+                </div>
+              </td>
+              
+              <!-- Actions Column -->
+              <td class="px-4 py-4 text-right">
+                <action-buttons 
+                  :item="item" 
+                  :show-details="true"
+                  :show-edit="true"
+                  @details="showReviewDetails"
+                  @edit="editReview"
+                  @delete="confirmDeleteReview"
+                  justify="end"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
     
     <!-- No data message -->
     <no-data-message v-if="!loading && (!reviews.data || reviews.data.length === 0)" message="Brak recenzji do wyświetlenia" />
@@ -186,393 +186,495 @@
     />
     
     <!-- Review Details Modal -->
-    <modal v-if="showDetailsModal" @close="showDetailsModal = false">
-      <template #title>
-        Szczegóły recenzji
-      </template>
-      <template #content>
-        <div v-if="selectedReview" class="space-y-4">
-          <div>
-            <h4 class="text-sm font-medium text-gray-500">ID</h4>
-            <p class="mt-1 text-sm text-gray-900">{{ selectedReview.id }}</p>
-          </div>
-          
-          <div>
-            <h4 class="text-sm font-medium text-gray-500">Produkt</h4>
-            <p class="mt-1 text-sm text-gray-900">{{ selectedReview.product.name }}</p>
-          </div>
-          
-          <div>
-            <h4 class="text-sm font-medium text-gray-500">Użytkownik</h4>
-            <p class="mt-1 text-sm text-gray-900">{{ selectedReview.user ? selectedReview.user.name : 'Anonim' }}</p>
-          </div>
-          
-          <div>
-            <h4 class="text-sm font-medium text-gray-500">Status</h4>
-            <p class="mt-1">
-              <span class="px-2 py-1 text-xs font-semibold rounded-full"
-                    :class="{
-                      'bg-green-100 text-green-800': selectedReview.is_approved,
-                      'bg-red-100 text-red-800': !selectedReview.is_approved
-                    }">
-                {{ selectedReview.is_approved ? 'Zatwierdzona' : 'Odrzucona' }}
+    <admin-modal 
+      :show="showDetailsModal" 
+      title="Szczegóły recenzji"
+      size="4xl"
+      @close="showDetailsModal = false"
+    >
+      <div v-if="selectedReview" class="space-y-4">
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">ID</h4>
+          <p class="mt-1 text-sm text-gray-900">{{ selectedReview.id }}</p>
+        </div>
+        
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Produkt</h4>
+          <p class="mt-1 text-sm text-gray-900">{{ selectedReview.product.name }}</p>
+        </div>
+        
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Użytkownik</h4>
+          <p class="mt-1 text-sm text-gray-900">{{ selectedReview.user ? selectedReview.user.name : 'Anonim' }}</p>
+        </div>
+        
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Status</h4>
+          <p class="mt-1">
+            <span class="px-2 py-1 text-xs font-semibold rounded-full"
+                  :class="{
+                    'bg-green-100 text-green-800': selectedReview.is_approved,
+                    'bg-red-100 text-red-800': !selectedReview.is_approved
+                  }">
+              {{ selectedReview.is_approved ? 'Zatwierdzona' : 'Odrzucona' }}
+            </span>
+          </p>
+        </div>
+        
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Wyróżnienie</h4>
+          <p class="mt-1">
+            <span class="px-2 py-1 text-xs font-semibold rounded-full"
+                  :class="{
+                    'bg-blue-100 text-blue-800': selectedReview.is_featured,
+                    'bg-gray-100 text-gray-800': !selectedReview.is_featured
+                  }">
+              {{ selectedReview.is_featured ? 'Wyróżniona' : 'Zwykła' }}
+            </span>
+          </p>
+        </div>
+        
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Ocena</h4>
+          <div class="mt-1 flex items-center">
+            <span class="text-yellow-400">
+              <span v-for="n in 5" :key="n" class="inline-block w-5">
+                <svg v-if="n <= selectedReview.rating" class="h-5 w-5 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <svg v-else class="h-5 w-5 fill-current text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
               </span>
-            </p>
-          </div>
-          
-          <div>
-            <h4 class="text-sm font-medium text-gray-500">Wyróżnienie</h4>
-            <p class="mt-1">
-              <span class="px-2 py-1 text-xs font-semibold rounded-full"
-                    :class="{
-                      'bg-blue-100 text-blue-800': selectedReview.is_featured,
-                      'bg-gray-100 text-gray-800': !selectedReview.is_featured
-                    }">
-                {{ selectedReview.is_featured ? 'Wyróżniona' : 'Zwykła' }}
-              </span>
-            </p>
-          </div>
-          
-          <div>
-            <h4 class="text-sm font-medium text-gray-500">Ocena</h4>
-            <div class="mt-1 flex items-center">
-              <span class="text-yellow-400">
-                <span v-for="n in 5" :key="n" class="inline-block w-5">
-                  <svg v-if="n <= selectedReview.rating" class="h-5 w-5 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  <svg v-else class="h-5 w-5 fill-current text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                </span>
-              </span>
-              <span class="ml-2 text-sm text-gray-700">{{ selectedReview.rating }}/5</span>
-            </div>
-          </div>
-          
-          <div>
-            <h4 class="text-sm font-medium text-gray-500">Data</h4>
-            <p class="mt-1 text-sm text-gray-900">{{ formatDate(selectedReview.created_at) }}</p>
-          </div>
-          
-          <div>
-            <h4 class="text-sm font-medium text-gray-500">Tytuł</h4>
-            <p class="mt-1 text-sm text-gray-900">{{ selectedReview.title }}</p>
-          </div>
-          
-          <div>
-            <h4 class="text-sm font-medium text-gray-500">Treść</h4>
-            <div class="mt-1 bg-gray-50 p-3 rounded text-sm text-gray-900">
-              <p>{{ selectedReview.content }}</p>
-            </div>
+            </span>
+            <span class="ml-2 text-sm text-gray-700">{{ selectedReview.rating }}/5</span>
           </div>
         </div>
-      </template>
+        
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Data</h4>
+          <p class="mt-1 text-sm text-gray-900">{{ formatDate(selectedReview.created_at) }}</p>
+        </div>
+        
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Tytuł</h4>
+          <p class="mt-1 text-sm text-gray-900">{{ selectedReview.title }}</p>
+        </div>
+        
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Treść</h4>
+          <div class="mt-1 bg-gray-50 p-3 rounded text-sm text-gray-900">
+            <p>{{ selectedReview.content }}</p>
+          </div>
+        </div>
+      </div>
+      
       <template #footer>
-        <button 
-          @click="showDetailsModal = false" 
-          class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          Zamknij
-        </button>
+        <admin-button-group justify="end">
+          <admin-button 
+            @click="showDetailsModal = false" 
+            variant="secondary"
+            outline
+          >
+            Zamknij
+          </admin-button>
+        </admin-button-group>
       </template>
-    </modal>
+    </admin-modal>
     
     <!-- Add Review Modal -->
-    <modal v-if="showCreateReviewModal" @close="closeAddEditModal">
-      <template #title>
-        Dodaj nową recenzję
-      </template>
-      <template #content>
-        <div v-if="formDataLoading" class="py-10 text-center">
-          <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-700"></div>
-          <p class="mt-4 text-gray-600">Ładowanie danych formularza...</p>
-        </div>
-        
-        <form v-else @submit.prevent="saveReview">
-          <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-            <!-- Product selection -->
-            <div class="sm:col-span-3">
-              <label for="product" class="block text-sm font-medium text-gray-700">Produkt</label>
-              <select 
-                id="product" 
-                v-model="editingReview.product_id" 
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                required
-              >
-                <option v-for="product in formData.products" :key="product.id" :value="product.id">
-                  {{ product.name }}
-                </option>
-              </select>
-            </div>
-            
-            <!-- User selection -->
-            <div class="sm:col-span-3">
-              <label for="user" class="block text-sm font-medium text-gray-700">Użytkownik</label>
-              <select 
-                id="user" 
-                v-model="editingReview.user_id" 
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                required
-              >
-                <option v-for="user in formData.users" :key="user.id" :value="user.id">
-                  {{ user.name }} ({{ user.email }})
-                </option>
-              </select>
-            </div>
-            
-            <!-- Rating -->
-            <div class="sm:col-span-2">
-              <label for="rating" class="block text-sm font-medium text-gray-700">Ocena</label>
-              <select 
-                id="rating" 
-                v-model="editingReview.rating" 
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                required
-              >
-                <option v-for="n in 5" :key="n" :value="n">{{ n }} gwiazdek</option>
-              </select>
-            </div>
-            
-            <!-- Is Approved -->
-            <div class="sm:col-span-2">
-              <label for="is_approved" class="block text-sm font-medium text-gray-700">Status</label>
-              <select 
-                id="is_approved" 
-                v-model="editingReview.is_approved" 
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              >
-                <option :value="true">Zatwierdzona</option>
-                <option :value="false">Odrzucona</option>
-              </select>
-            </div>
-            
-            <!-- Is Featured -->
-            <div class="sm:col-span-2">
-              <label for="is_featured" class="block text-sm font-medium text-gray-700">Wyróżnienie</label>
-              <select 
-                id="is_featured" 
-                v-model="editingReview.is_featured" 
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              >
-                <option :value="true">Wyróżniona</option>
-                <option :value="false">Zwykła</option>
-              </select>
-            </div>
-            
-            <!-- Title -->
-            <div class="sm:col-span-6">
-              <label for="title" class="block text-sm font-medium text-gray-700">Tytuł recenzji</label>
-              <input 
-                type="text" 
-                id="title" 
-                v-model="editingReview.title" 
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                required
-              />
-            </div>
-            
-            <!-- Content -->
-            <div class="sm:col-span-6">
-              <label for="content" class="block text-sm font-medium text-gray-700">Treść recenzji</label>
-              <textarea 
-                id="content" 
-                v-model="editingReview.content" 
-                rows="4" 
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                required
-              ></textarea>
-            </div>
+    <admin-modal 
+      :show="showCreateReviewModal" 
+      title="Dodaj nową recenzję"
+      size="4xl"
+      @close="closeAddEditModal"
+    >
+      <div v-if="formDataLoading" class="py-10 text-center">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-700"></div>
+        <p class="mt-4 text-gray-600">Ładowanie danych formularza...</p>
+      </div>
+      
+      <form v-else @submit.prevent="saveReview">
+        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+          <!-- Product selection -->
+          <div class="sm:col-span-3">
+            <label for="product" class="block text-sm font-medium text-gray-700">Produkt</label>
+            <select 
+              id="product" 
+              v-model="editingReview.product_id" 
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required
+            >
+              <option v-for="product in formData.products" :key="product.id" :value="product.id">
+                {{ product.name }}
+              </option>
+            </select>
           </div>
-        </form>
-      </template>
+          
+          <!-- User selection -->
+          <div class="sm:col-span-3">
+            <label for="user" class="block text-sm font-medium text-gray-700">Użytkownik</label>
+            <select 
+              id="user" 
+              v-model="editingReview.user_id" 
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required
+            >
+              <option v-for="user in formData.users" :key="user.id" :value="user.id">
+                {{ user.name }} ({{ user.email }})
+              </option>
+            </select>
+          </div>
+          
+          <!-- Rating -->
+          <div class="sm:col-span-2">
+            <label for="rating" class="block text-sm font-medium text-gray-700">Ocena</label>
+            <select 
+              id="rating" 
+              v-model="editingReview.rating" 
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required
+            >
+              <option v-for="n in 5" :key="n" :value="n">{{ n }} gwiazdek</option>
+            </select>
+          </div>
+          
+          <!-- Is Approved -->
+          <div class="sm:col-span-2">
+            <label for="is_approved" class="block text-sm font-medium text-gray-700">Status</label>
+            <select 
+              id="is_approved" 
+              v-model="editingReview.is_approved" 
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            >
+              <option :value="true">Zatwierdzona</option>
+              <option :value="false">Odrzucona</option>
+            </select>
+          </div>
+          
+          <!-- Is Featured -->
+          <div class="sm:col-span-2">
+            <label for="is_featured" class="block text-sm font-medium text-gray-700">Wyróżnienie</label>
+            <select 
+              id="is_featured" 
+              v-model="editingReview.is_featured" 
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            >
+              <option :value="true">Wyróżniona</option>
+              <option :value="false">Zwykła</option>
+            </select>
+          </div>
+          
+          <!-- Title -->
+          <div class="sm:col-span-6">
+            <label for="title" class="block text-sm font-medium text-gray-700">Tytuł recenzji</label>
+            <input 
+              type="text" 
+              id="title" 
+              v-model="editingReview.title" 
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required
+            />
+          </div>
+          
+          <!-- Content -->
+          <div class="sm:col-span-6">
+            <label for="content" class="block text-sm font-medium text-gray-700">Treść recenzji</label>
+            <textarea 
+              id="content" 
+              v-model="editingReview.content" 
+              rows="4" 
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required
+            ></textarea>
+          </div>
+        </div>
+      </form>
+      
       <template #footer>
-        <button 
-          type="button"
-          @click="closeAddEditModal" 
-          class="mr-3 px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-500"
-        >
-          Anuluj
-        </button>
-        <button 
-          type="button"
-          @click="saveReview" 
-          class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700"
-          :disabled="formSubmitting"
-        >
-          <span v-if="formSubmitting" class="flex items-center">
-            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Dodawanie...
-          </span>
-          <span v-else>Dodaj recenzję</span>
-        </button>
+        <admin-button-group justify="end" spacing="sm">
+          <admin-button 
+            @click="closeAddEditModal" 
+            variant="secondary"
+            outline
+          >
+            Anuluj
+          </admin-button>
+          <admin-button 
+            @click="saveReview" 
+            variant="primary"
+            :loading="formSubmitting"
+          >
+            Dodaj recenzję
+          </admin-button>
+        </admin-button-group>
       </template>
-    </modal>
+    </admin-modal>
     
     <!-- Edit Review Modal -->
-    <modal v-if="showEditModal" @close="closeAddEditModal">
-      <template #title>
-        Edytuj recenzję
-      </template>
-      <template #content>
-        <div v-if="formDataLoading" class="py-10 text-center">
-          <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-700"></div>
-          <p class="mt-4 text-gray-600">Ładowanie danych formularza...</p>
-        </div>
-        
-        <form v-else @submit.prevent="saveReview">
-          <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-            <!-- Product selection -->
-            <div class="sm:col-span-3">
-              <label for="edit-product" class="block text-sm font-medium text-gray-700">Produkt</label>
-              <select 
-                id="edit-product" 
-                v-model="editingReview.product_id" 
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                required
-              >
-                <option v-for="product in formData.products" :key="product.id" :value="product.id">
-                  {{ product.name }}
-                </option>
-              </select>
-            </div>
-            
-            <!-- User selection -->
-            <div class="sm:col-span-3">
-              <label for="edit-user" class="block text-sm font-medium text-gray-700">Użytkownik</label>
-              <select 
-                id="edit-user" 
-                v-model="editingReview.user_id" 
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                required
-              >
-                <option v-for="user in formData.users" :key="user.id" :value="user.id">
-                  {{ user.name }} ({{ user.email }})
-                </option>
-              </select>
-            </div>
-            
-            <!-- Rating -->
-            <div class="sm:col-span-2">
-              <label for="edit-rating" class="block text-sm font-medium text-gray-700">Ocena</label>
-              <select 
-                id="edit-rating" 
-                v-model="editingReview.rating" 
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                required
-              >
-                <option v-for="n in 5" :key="n" :value="n">{{ n }} gwiazdek</option>
-              </select>
-            </div>
-            
-            <!-- Is Approved -->
-            <div class="sm:col-span-2">
-              <label for="edit-is_approved" class="block text-sm font-medium text-gray-700">Status</label>
-              <select 
-                id="edit-is_approved" 
-                v-model="editingReview.is_approved" 
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              >
-                <option :value="true">Zatwierdzona</option>
-                <option :value="false">Odrzucona</option>
-              </select>
-            </div>
-            
-            <!-- Is Featured -->
-            <div class="sm:col-span-2">
-              <label for="edit-is_featured" class="block text-sm font-medium text-gray-700">Wyróżnienie</label>
-              <select 
-                id="edit-is_featured" 
-                v-model="editingReview.is_featured" 
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              >
-                <option :value="true">Wyróżniona</option>
-                <option :value="false">Zwykła</option>
-              </select>
-            </div>
-            
-            <!-- Title -->
-            <div class="sm:col-span-6">
-              <label for="edit-title" class="block text-sm font-medium text-gray-700">Tytuł recenzji</label>
-              <input 
-                type="text" 
-                id="edit-title" 
-                v-model="editingReview.title" 
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                required
-              />
-            </div>
-            
-            <!-- Content -->
-            <div class="sm:col-span-6">
-              <label for="edit-content" class="block text-sm font-medium text-gray-700">Treść recenzji</label>
-              <textarea 
-                id="edit-content" 
-                v-model="editingReview.content" 
-                rows="4" 
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                required
-              ></textarea>
-            </div>
+    <admin-modal 
+      :show="showEditModal" 
+      title="Edytuj recenzję"
+      size="4xl"
+      @close="closeAddEditModal"
+    >
+      <div v-if="formDataLoading" class="py-10 text-center">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-700"></div>
+        <p class="mt-4 text-gray-600">Ładowanie danych formularza...</p>
+      </div>
+      
+      <form v-else @submit.prevent="saveReview">
+        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+          <!-- Product selection -->
+          <div class="sm:col-span-3">
+            <label for="edit-product" class="block text-sm font-medium text-gray-700">Produkt</label>
+            <select 
+              id="edit-product" 
+              v-model="editingReview.product_id" 
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required
+            >
+              <option v-for="product in formData.products" :key="product.id" :value="product.id">
+                {{ product.name }}
+              </option>
+            </select>
           </div>
-        </form>
-      </template>
+          
+          <!-- User selection -->
+          <div class="sm:col-span-3">
+            <label for="edit-user" class="block text-sm font-medium text-gray-700">Użytkownik</label>
+            <select 
+              id="edit-user" 
+              v-model="editingReview.user_id" 
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required
+            >
+              <option v-for="user in formData.users" :key="user.id" :value="user.id">
+                {{ user.name }} ({{ user.email }})
+              </option>
+            </select>
+          </div>
+          
+          <!-- Rating -->
+          <div class="sm:col-span-2">
+            <label for="edit-rating" class="block text-sm font-medium text-gray-700">Ocena</label>
+            <select 
+              id="edit-rating" 
+              v-model="editingReview.rating" 
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required
+            >
+              <option v-for="n in 5" :key="n" :value="n">{{ n }} gwiazdek</option>
+            </select>
+          </div>
+          
+          <!-- Is Approved -->
+          <div class="sm:col-span-2">
+            <label for="edit-is_approved" class="block text-sm font-medium text-gray-700">Status</label>
+            <select 
+              id="edit-is_approved" 
+              v-model="editingReview.is_approved" 
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            >
+              <option :value="true">Zatwierdzona</option>
+              <option :value="false">Odrzucona</option>
+            </select>
+          </div>
+          
+          <!-- Is Featured -->
+          <div class="sm:col-span-2">
+            <label for="edit-is_featured" class="block text-sm font-medium text-gray-700">Wyróżnienie</label>
+            <select 
+              id="edit-is_featured" 
+              v-model="editingReview.is_featured" 
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            >
+              <option :value="true">Wyróżniona</option>
+              <option :value="false">Zwykła</option>
+            </select>
+          </div>
+          
+          <!-- Title -->
+          <div class="sm:col-span-6">
+            <label for="edit-title" class="block text-sm font-medium text-gray-700">Tytuł recenzji</label>
+            <input 
+              type="text" 
+              id="edit-title" 
+              v-model="editingReview.title" 
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required
+            />
+          </div>
+          
+          <!-- Content -->
+          <div class="sm:col-span-6">
+            <label for="edit-content" class="block text-sm font-medium text-gray-700">Treść recenzji</label>
+            <textarea 
+              id="edit-content" 
+              v-model="editingReview.content" 
+              rows="4" 
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required
+            ></textarea>
+          </div>
+        </div>
+      </form>
+      
       <template #footer>
-        <button 
-          type="button"
-          @click="closeAddEditModal" 
-          class="mr-3 px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-500"
-        >
-          Anuluj
-        </button>
-        <button 
-          type="button"
-          @click="saveReview" 
-          class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700"
-          :disabled="formSubmitting"
-        >
-          <span v-if="formSubmitting" class="flex items-center">
-            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Zapisywanie...
-          </span>
-          <span v-else>Zapisz zmiany</span>
-        </button>
+        <admin-button-group justify="end" spacing="sm">
+          <admin-button 
+            @click="closeAddEditModal" 
+            variant="secondary"
+            outline
+          >
+            Anuluj
+          </admin-button>
+          <admin-button 
+            @click="saveReview" 
+            variant="primary"
+            :loading="formSubmitting"
+          >
+            Zapisz zmiany
+          </admin-button>
+        </admin-button-group>
       </template>
-    </modal>
+    </admin-modal>
     
     <!-- Delete Confirmation Modal -->
-    <modal v-if="showDeleteModal" @close="showDeleteModal = false">
-      <template #title>
-        Potwierdź usunięcie
-      </template>
-      <template #content>
-        <p class="text-sm text-gray-500">
-          Czy na pewno chcesz usunąć tę recenzję? Ta operacja jest nieodwracalna.
-        </p>
-      </template>
+    <admin-modal 
+      :show="showDeleteModal" 
+      title="Potwierdź usunięcie"
+      size="md"
+      @close="showDeleteModal = false"
+    >
+      <p class="text-sm text-gray-500">
+        Czy na pewno chcesz usunąć tę recenzję? Ta operacja jest nieodwracalna.
+      </p>
+      
       <template #footer>
-        <button 
-          type="button"
-          @click="showDeleteModal = false" 
-          class="mr-3 px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-500"
-        >
-          Anuluj
-        </button>
-        <button 
-          type="button"
-          @click="deleteReview()" 
-          class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700"
-        >
-          Usuń
-        </button>
+        <admin-button-group justify="end" spacing="sm">
+          <admin-button 
+            @click="showDeleteModal = false" 
+            variant="secondary"
+            outline
+          >
+            Anuluj
+          </admin-button>
+          <admin-button 
+            @click="deleteReview()" 
+            variant="danger"
+          >
+            Usuń
+          </admin-button>
+        </admin-button-group>
       </template>
-    </modal>
+    </admin-modal>
+
+    <!-- Product Details Modal -->
+    <admin-modal 
+      :show="showProductDetailsModal" 
+      title="Szczegóły produktu"
+      size="4xl"
+      @close="showProductDetailsModal = false"
+    >
+      <div v-if="selectedProduct" class="space-y-6">
+        <!-- Product Image -->
+        <div v-if="selectedProduct.image_url" class="flex justify-center">
+          <img 
+            :src="selectedProduct.image_url" 
+            :alt="selectedProduct.name"
+            class="w-32 h-32 object-cover rounded-lg shadow-md"
+          />
+        </div>
+        
+        <!-- Basic Info -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <h4 class="text-sm font-medium text-gray-500">ID</h4>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedProduct.id }}</p>
+          </div>
+          
+          <div>
+            <h4 class="text-sm font-medium text-gray-500">Nazwa</h4>
+            <p class="mt-1 text-sm text-gray-900 font-medium">{{ selectedProduct.name }}</p>
+          </div>
+          
+          <div>
+            <h4 class="text-sm font-medium text-gray-500">Cena</h4>
+            <p class="mt-1 text-lg font-semibold text-green-600">{{ selectedProduct.price }} zł</p>
+          </div>
+          
+          <div v-if="selectedProduct.discounted_price">
+            <h4 class="text-sm font-medium text-gray-500">Cena po rabacie</h4>
+            <p class="mt-1 text-lg font-semibold text-red-600">{{ selectedProduct.discounted_price }} zł</p>
+          </div>
+          
+          <div>
+            <h4 class="text-sm font-medium text-gray-500">Stan magazynowy</h4>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedProduct.stock_quantity }} szt.</p>
+          </div>
+          
+          <div>
+            <h4 class="text-sm font-medium text-gray-500">SKU</h4>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedProduct.sku || 'Brak' }}</p>
+          </div>
+        </div>
+        
+        <!-- Category and Brand -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <h4 class="text-sm font-medium text-gray-500">Kategoria</h4>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedProduct.category ? selectedProduct.category.name : 'Brak kategorii' }}</p>
+          </div>
+          
+          <div>
+            <h4 class="text-sm font-medium text-gray-500">Marka</h4>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedProduct.brand ? selectedProduct.brand.name : 'Brak marki' }}</p>
+          </div>
+        </div>
+        
+        <!-- Description -->
+        <div v-if="selectedProduct.description">
+          <h4 class="text-sm font-medium text-gray-500">Opis</h4>
+          <div class="mt-1 bg-gray-50 p-3 rounded text-sm text-gray-900">
+            <p>{{ selectedProduct.description }}</p>
+          </div>
+        </div>
+        
+        <!-- Features -->
+        <div v-if="selectedProduct.features">
+          <h4 class="text-sm font-medium text-gray-500">Cechy</h4>
+          <div class="mt-1 bg-gray-50 p-3 rounded text-sm text-gray-900">
+            <p>{{ selectedProduct.features }}</p>
+          </div>
+        </div>
+        
+        <!-- Dates -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <h4 class="text-sm font-medium text-gray-500">Data utworzenia</h4>
+            <p class="mt-1 text-sm text-gray-900">{{ formatDate(selectedProduct.created_at) }}</p>
+          </div>
+          
+          <div>
+            <h4 class="text-sm font-medium text-gray-500">Ostatnia aktualizacja</h4>
+            <p class="mt-1 text-sm text-gray-900">{{ formatDate(selectedProduct.updated_at) }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <template #footer>
+        <admin-button-group justify="end">
+          <admin-button 
+            @click="showProductDetailsModal = false" 
+            variant="secondary"
+            outline
+          >
+            Zamknij
+          </admin-button>
+        </admin-button-group>
+      </template>
+    </admin-modal>
   </div>
 </template>
 
@@ -580,9 +682,8 @@
 import { ref, computed, onMounted, reactive, watch } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
-import Modal from '../../components/Modal.vue'
+import Modal from '../../components/admin/ui/AdminModal.vue'
 import PageHeader from '../../components/admin/PageHeader.vue'
-import AdminTable from '../../components/admin/ui/AdminTable.vue'
 import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
 import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
@@ -591,21 +692,21 @@ import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
 import NoDataMessage from '../../components/admin/NoDataMessage.vue'
 import Pagination from '../../components/admin/Pagination.vue'
 import ActionButtons from '../../components/admin/ActionButtons.vue'
+import AdminModal from '../../components/admin/ui/AdminModal.vue'
 
 export default {
   name: 'AdminReviews',
   components: {
-    Modal,
-    PageHeader,
-    AdminTable,
     AdminButtonGroup,
     AdminButton,
-    AdminBadge,
     SearchFilters,
     LoadingSpinner,
     NoDataMessage,
     Pagination,
-    ActionButtons
+    PageHeader,
+    ActionButtons,
+    AdminModal: Modal,
+    AdminBadge
   },
   setup() {
     const alertStore = useAlertStore()
@@ -632,24 +733,15 @@ export default {
     const formDataLoading = ref(false)
     const formSubmitting = ref(false)
     
+    // Product details modal
+    const showProductDetailsModal = ref(false)
+    const selectedProduct = ref(null)
+    
     // Sort options for filter component
     const sortOptions = [
       { value: 'created_at', label: 'Data dodania' },
       { value: 'rating', label: 'Ocena' },
       { value: 'product', label: 'Produkt' }
-    ]
-    
-    // Table columns definition
-    const tableColumns = [
-      { key: 'product', label: 'Produkt', width: '200px' },
-      { key: 'user', label: 'Użytkownik', width: '120px' },
-      { key: 'rating', label: 'Ocena', align: 'center', width: '60px' },
-      { key: 'title', label: 'Tytuł', width: '150px' },
-      { key: 'content', label: 'Treść', width: '150px' },
-      { key: 'is_approved', label: 'Status', align: 'center', width: '110px' },
-      { key: 'is_featured', label: 'Wyróż.', align: 'center', width: '100px' },
-      { key: 'created_at', label: 'Data', type: 'date', width: '180px' },
-      { key: 'actions', label: 'Akcje', align: 'right', width: '360px' }
     ]
     
     // Default filters
@@ -738,6 +830,12 @@ export default {
       showDetailsModal.value = true
     }
     
+    // Show product details
+    const showProductDetails = (product) => {
+      selectedProduct.value = product
+      showProductDetailsModal.value = true
+    }
+    
     // Format date
     const formatDate = (dateString) => {
       const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
@@ -749,6 +847,18 @@ export default {
       if (status === true || status === 'true') return 'Zatwierdzona';
       if (status === false || status === 'false') return 'Odrzucona';
       return status;
+    }
+    
+    // Get user initials
+    const getUserInitials = (user) => {
+      if (!user || !user.name) return 'A';
+      
+      const nameParts = user.name.trim().split(' ');
+      if (nameParts.length === 1) {
+        return nameParts[0].charAt(0).toUpperCase();
+      }
+      
+      return (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
     }
     
     // Filter reviews
@@ -859,6 +969,20 @@ export default {
       } catch (error) {
         console.error('Error toggling featured status:', error)
         alertStore.error('Wystąpił błąd podczas zmieniania statusu wyróżnienia.')
+      }
+    }
+
+    // Toggle approval status
+    const toggleApproval = async (review) => {
+      try {
+        if (review.is_approved) {
+          await rejectReview(review)
+        } else {
+          await approveReview(review)
+        }
+      } catch (error) {
+        console.error('Error toggling approval status:', error)
+        alertStore.error('Wystąpił błąd podczas zmieniania statusu zatwierdzenia.')
       }
     }
     
@@ -1161,7 +1285,6 @@ export default {
       filters,
       defaultFilters,
       sortOptions,
-      tableColumns,
       fetchReviews,
       goToPage,
       approveReview,
@@ -1171,6 +1294,7 @@ export default {
       getStatusName,
       filterReviews,
       toggleFeatured,
+      toggleApproval,
       showCreateReviewModal,
       showEditModal,
       editingReview,
@@ -1192,7 +1316,11 @@ export default {
       formSubmitting,
       handleAddButtonClick,
       testFormDataAPI,
-      resetFilters
+      resetFilters,
+      getUserInitials,
+      showProductDetailsModal,
+      selectedProduct,
+      showProductDetails
     }
   }
 }

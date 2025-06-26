@@ -15,8 +15,7 @@ class NewsletterSubscription extends Model
         'status',
         'verification_token',
         'verified_at',
-        'unsubscribed_at',
-        'source',
+        'unsubscribed_at'
     ];
 
     protected $casts = [

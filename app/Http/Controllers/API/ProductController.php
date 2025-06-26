@@ -45,9 +45,6 @@ class ProductController extends Controller
                 // Create base query with promotions
                 $query = Product::with(['category', 'brand', 'activePromotions']);
                 
-                // Only show active products by default
-                $query->where('is_active', true);
-                
                 // Apply filters if any
                 if ($request->has('category_id')) {
                     $query->where('category_id', $request->category_id);
@@ -187,11 +184,11 @@ class ProductController extends Controller
             $response['meta'] = array_merge($response['meta'] ?? [], [
                 'cache_used' => Cache::has($cacheKey),
                 'filters_available' => [
-                    'categories' => Category::active()->ordered()->get(['id', 'name', 'slug']),
-                    'brands' => \App\Models\Brand::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+                    'categories' => Category::ordered()->get(['id', 'name', 'slug']),
+                    'brands' => \App\Models\Brand::orderBy('name')->get(['id', 'name']),
                     'price_range' => [
-                        'min' => Product::where('is_active', true)->min('price'),
-                        'max' => Product::where('is_active', true)->max('price'),
+                        'min' => Product::min('price'),
+                        'max' => Product::max('price'),
                     ]
                 ]
             ]);
@@ -320,8 +317,7 @@ class ProductController extends Controller
             // Cache latest products for 30 minutes (shorter cache for fresh content)
             $products = Cache::remember('latest_products', 1800, function () use ($hasReviews) {
                 // Get latest products sorted by creation date
-                $query = Product::with(['category', 'brand', 'activePromotions'])
-                              ->where('is_active', true);
+                $query = Product::with(['category', 'brand', 'activePromotions']);
                 
                 // Add reviews if available
                 if ($hasReviews) {

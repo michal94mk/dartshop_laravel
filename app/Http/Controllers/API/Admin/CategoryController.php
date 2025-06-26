@@ -33,12 +33,6 @@ class CategoryController extends BaseAdminController
             
             $query = Category::withCount('products');
             
-            // Apply active/inactive filter
-            if ($request->has('is_active')) {
-                $isActive = filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN);
-                $query->where('is_active', $isActive);
-            }
-            
             // Apply search filter
             if ($request->has('search') && !empty($request->search)) {
                 $search = $request->search;
@@ -89,11 +83,7 @@ class CategoryController extends BaseAdminController
     {
         try {
             $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255|unique:categories,name',
-                'description' => 'nullable|string|max:1000',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-                'is_active' => 'nullable|boolean',
-                'sort_order' => 'nullable|integer|min:0',
+                'name' => 'required|string|max:255|unique:categories,name'
             ]);
 
             if ($validator->fails()) {
@@ -101,21 +91,8 @@ class CategoryController extends BaseAdminController
             }
 
             $categoryData = [
-                'name' => $request->name,
-                'description' => $request->description,
-                'is_active' => $request->has('is_active') ? $request->is_active : true,
-                'sort_order' => $request->sort_order ?? 0,
+                'name' => $request->name
             ];
-
-            // Handle image upload
-            if ($request->hasFile('image')) {
-                $image = $request->file('image');
-                $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-                
-                // Store in storage/app/public/categories
-                $image->storeAs('public/categories', $filename);
-                $categoryData['image'] = 'categories/' . $filename;
-            }
 
             $category = Category::create($categoryData);
 
@@ -154,11 +131,7 @@ class CategoryController extends BaseAdminController
             $category = Category::findOrFail($id);
 
             $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255|unique:categories,name,' . $id,
-                'description' => 'nullable|string|max:1000',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-                'is_active' => 'nullable|boolean',
-                'sort_order' => 'nullable|integer|min:0',
+                'name' => 'required|string|max:255|unique:categories,name,' . $id
             ]);
 
             if ($validator->fails()) {
@@ -166,29 +139,8 @@ class CategoryController extends BaseAdminController
             }
 
             $updateData = [
-                'name' => $request->name,
-                'description' => $request->description,
-                'is_active' => $request->has('is_active') ? $request->is_active : $category->is_active,
-                'sort_order' => $request->sort_order ?? $category->sort_order,
+                'name' => $request->name
             ];
-
-            // Handle image upload
-            if ($request->hasFile('image')) {
-                // Delete old image if exists
-                if ($category->image) {
-                    $oldImagePath = storage_path('app/public/' . $category->image);
-                    if (file_exists($oldImagePath)) {
-                        unlink($oldImagePath);
-                    }
-                }
-
-                $image = $request->file('image');
-                $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-                
-                // Store in storage/app/public/categories
-                $image->storeAs('public/categories', $filename);
-                $updateData['image'] = 'categories/' . $filename;
-            }
 
             $category->update($updateData);
 
@@ -235,32 +187,17 @@ class CategoryController extends BaseAdminController
             if ($category->products_count > 0) {
                 \Illuminate\Support\Facades\Log::warning('Cannot delete category as it has associated products:', ['id' => $id, 'products_count' => $category->products_count]);
                 
-                // Instead of deleting, deactivate the category
-                $category->update(['is_active' => false]);
-                \Illuminate\Support\Facades\Log::info('Category deactivated instead of deleted:', ['id' => $id]);
-                
-                // Create error message with explicit newlines instead of \n for better JSON encoding
+                // Create error message
                 $productsText = $category->products_count == 1 ? 'produkt' : 
                                ($category->products_count < 5 ? 'produkty' : 'produktów');
                                
-                // Build the error message with actual newlines, not string literals
                 $errorMessage = "Nie można usunąć kategorii \"{$category->name}\" (ID: {$category->id})." . PHP_EOL . PHP_EOL
                               . "Przyczyna: Kategoria zawiera {$category->products_count} {$productsText}." . PHP_EOL . PHP_EOL
-                              . "Aby zachować integralność danych, kategorie zawierające produkty nie mogą zostać usunięte." . PHP_EOL
-                              . "Zamiast tego kategoria została dezaktywowana i nie będzie widoczna dla klientów." . PHP_EOL . PHP_EOL
+                              . "Aby zachować integralność danych, kategorie zawierające produkty nie mogą zostać usunięte." . PHP_EOL . PHP_EOL
                               . "Możliwe rozwiązania:" . PHP_EOL
                               . "1. Przenieś produkty do innej kategorii, a następnie usuń tę kategorię." . PHP_EOL
-                              . "2. Pozostaw kategorię dezaktywowaną, jeśli chcesz zachować historię zamówień.";
+                              . "2. Pozostaw kategorię jeśli chcesz zachować historię zamówień.";
                 
-                // Debug the actual message being sent, including newline handling
-                \Illuminate\Support\Facades\Log::debug('Error message being sent:', [
-                    'raw_message' => $errorMessage,
-                    'json_encoded' => json_encode($errorMessage),
-                    'has_newlines' => str_contains($errorMessage, PHP_EOL) ? 'Yes' : 'No',
-                    'length' => strlen($errorMessage)
-                ]);
-                
-                // Create direct JSON response with proper error format
                 return response()->json([
                     'success' => false,
                     'message' => $errorMessage
@@ -270,15 +207,6 @@ class CategoryController extends BaseAdminController
             }
             
             // If we reach here, the category has no products and can be deleted
-            
-            // Delete image file if exists
-            if ($category->image) {
-                $imagePath = storage_path('app/public/' . $category->image);
-                if (file_exists($imagePath)) {
-                    unlink($imagePath);
-                }
-            }
-            
             $category->delete();
             \Illuminate\Support\Facades\Log::info('Category deleted successfully', ['id' => $id]);
 

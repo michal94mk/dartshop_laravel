@@ -18,67 +18,35 @@ class CategorySeeder extends Seeder
         $categories = [
             [
                 'name' => 'Lotki',
-                'description' => 'Profesjonalne lotki do dart - różne wagi i materiały',
-                'slug' => 'lotki',
-                'sort_order' => 1,
-                'image' => 'lotki.jpg',
-                'is_active' => true
+                'slug' => 'lotki'
             ],
             [
                 'name' => 'Tarcze',
-                'description' => 'Tarcze do dart - elektroniczne i klasyczne z naturalnej sizalu',
-                'slug' => 'tarcze',
-                'sort_order' => 2,
-                'image' => 'tarcze.jpg',
-                'is_active' => true
+                'slug' => 'tarcze'
             ],
             [
                 'name' => 'Akcesoria',
-                'description' => 'Różnorodne akcesoria do gry w dart - od podstawowych po profesjonalne',
-                'slug' => 'akcesoria',
-                'sort_order' => 3,
-                'image' => 'akcesoria.jpg',
-                'is_active' => true
+                'slug' => 'akcesoria'
             ],
             [
                 'name' => 'Odzież',
-                'description' => 'Koszulki, bluzy i inne elementy odzieży dla miłośników dart',
-                'slug' => 'odziez',
-                'sort_order' => 4,
-                'image' => 'odziez.jpg',
-                'is_active' => true
+                'slug' => 'odziez'
             ],
             [
                 'name' => 'Walizki i Etui',
-                'description' => 'Walizki, etui i pokrowce do bezpiecznego transportu sprzętu',
-                'slug' => 'walizki-etui',
-                'sort_order' => 5,
-                'image' => 'walizki.jpg',
-                'is_active' => true
+                'slug' => 'walizki-etui'
             ],
             [
                 'name' => 'Lotki Końcówki',
-                'description' => 'Końcówki i groty do lotek - różne długości i materiały',
-                'slug' => 'lotki-koncowki',
-                'sort_order' => 6,
-                'image' => 'koncowki.jpg',
-                'is_active' => true
+                'slug' => 'lotki-koncowki'
             ],
             [
                 'name' => 'Szafy i Szafki',
-                'description' => 'Szafy i szafki do zawieszenia tarczy oraz przechowywania sprzętu',
-                'slug' => 'szafy-szafki',
-                'sort_order' => 7,
-                'image' => 'szafy.jpg',
-                'is_active' => true
+                'slug' => 'szafy-szafki'
             ],
             [
                 'name' => 'Oświetlenie',
-                'description' => 'Profesjonalne oświetlenie do tarczy - lampy LED i tradycyjne',
-                'slug' => 'oswietlenie',
-                'sort_order' => 8,
-                'image' => 'oswietlenie.jpg',
-                'is_active' => true
+                'slug' => 'oswietlenie'
             ]
         ];
 

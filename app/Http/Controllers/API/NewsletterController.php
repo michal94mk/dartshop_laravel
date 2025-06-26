@@ -27,8 +27,7 @@ class NewsletterController extends Controller
         ]);
 
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|max:255',
-            'source' => 'nullable|string|max:50'
+            'email' => 'required|email|max:255'
         ]);
 
         if ($validator->fails()) {
@@ -40,7 +39,6 @@ class NewsletterController extends Controller
         }
 
         $email = $request->email;
-        $source = $request->source ?? 'website';
 
         // Check if email already exists
         $existingSubscription = NewsletterSubscription::where('email', $email)->first();
@@ -68,7 +66,6 @@ class NewsletterController extends Controller
             if ($existingSubscription->status === 'unsubscribed') {
                 $existingSubscription->status = 'pending';
                 $existingSubscription->unsubscribed_at = null;
-                $existingSubscription->source = $source;
                 $existingSubscription->save();
 
                 $token = $existingSubscription->generateVerificationToken();
@@ -84,8 +81,7 @@ class NewsletterController extends Controller
         // Create new subscription
         $subscription = NewsletterSubscription::create([
             'email' => $email,
-            'status' => 'pending',
-            'source' => $source
+            'status' => 'pending'
         ]);
 
         $token = $subscription->generateVerificationToken();

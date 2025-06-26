@@ -1,78 +1,69 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 p-4 bg-white rounded-lg shadow-sm min-h-full">
     <!-- Page Header -->
-    <div class="bg-white shadow rounded-lg">
-      <div class="px-6 py-4 border-b border-gray-200">
-        <div class="flex justify-between items-center">
-          <div>
-            <h1 class="text-2xl font-bold text-gray-900">Polityki Prywatności</h1>
-            <p class="mt-1 text-sm text-gray-500">Zarządzaj politykami prywatności i monitoruj ich akceptację</p>
+    <div class="px-6 py-4">
+      <page-header 
+        title="Polityki Prywatności"
+        add-button-label="Dodaj"
+        @add="showCreateModal = true"
+      />
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg class="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM9 9a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-gray-500">Wszyscy użytkownicy</p>
+              <p class="text-lg font-semibold text-gray-900">{{ stats.total_users }}</p>
+            </div>
           </div>
-          <admin-button 
-            @click="showCreateModal = true" 
-            variant="primary"
-          >
-            Dodaj politykę
-          </admin-button>
         </div>
-      </div>
 
-      <!-- Stats Cards -->
-      <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div class="bg-white rounded-lg p-4 shadow-sm">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <svg class="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM9 9a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <div class="ml-3">
-                <p class="text-sm font-medium text-gray-500">Wszyscy użytkownicy</p>
-                <p class="text-lg font-semibold text-gray-900">{{ stats.total_users }}</p>
-              </div>
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg class="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-gray-500">Zaakceptowali</p>
+              <p class="text-lg font-semibold text-gray-900">{{ stats.accepted_users }}</p>
             </div>
           </div>
+        </div>
 
-          <div class="bg-white rounded-lg p-4 shadow-sm">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <svg class="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div class="ml-3">
-                <p class="text-sm font-medium text-gray-500">Zaakceptowali</p>
-                <p class="text-lg font-semibold text-gray-900">{{ stats.accepted_users }}</p>
-              </div>
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg class="h-6 w-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L5.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-gray-500">Nie zaakceptowali</p>
+              <p class="text-lg font-semibold text-gray-900">{{ stats.not_accepted_users }}</p>
             </div>
           </div>
+        </div>
 
-          <div class="bg-white rounded-lg p-4 shadow-sm">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <svg class="h-6 w-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L5.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-              </div>
-              <div class="ml-3">
-                <p class="text-sm font-medium text-gray-500">Nie zaakceptowali</p>
-                <p class="text-lg font-semibold text-gray-900">{{ stats.not_accepted_users }}</p>
-              </div>
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg class="h-6 w-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
             </div>
-          </div>
-
-          <div class="bg-white rounded-lg p-4 shadow-sm">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <svg class="h-6 w-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <div class="ml-3">
-                <p class="text-sm font-medium text-gray-500">Procent akceptacji</p>
-                <p class="text-lg font-semibold text-gray-900">{{ stats.acceptance_rate }}%</p>
-              </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-gray-500">Procent akceptacji</p>
+              <p class="text-lg font-semibold text-gray-900">{{ stats.acceptance_rate }}%</p>
             </div>
           </div>
         </div>
@@ -80,15 +71,13 @@
     </div>
 
     <!-- Policies List -->
-    <div class="bg-white shadow rounded-lg">
+    <div class="border-t border-gray-200">
       <div class="px-6 py-4 border-b border-gray-200">
         <h2 class="text-lg font-medium text-gray-900">Lista polityk prywatności</h2>
       </div>
 
       <!-- Loading -->
-      <div v-if="loading" class="flex justify-center items-center py-12">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-      </div>
+      <loading-spinner v-if="loading" />
 
       <!-- No policies message -->
       <div v-else-if="policies.length === 0" class="text-center py-12">
@@ -99,7 +88,7 @@
         <p class="mt-1 text-sm text-gray-500">Zacznij od utworzenia pierwszej polityki prywatności.</p>
         <div class="mt-6">
           <admin-button @click="showCreateModal = true" variant="primary">
-            Dodaj politykę
+            Dodaj
           </admin-button>
         </div>
       </div>
@@ -110,9 +99,7 @@
           <thead class="bg-gray-50">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tytuł</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wersja</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data obowiązywania</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data utworzenia</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Akcje</th>
             </tr>
@@ -122,9 +109,6 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 {{ policy.title }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ policy.version }}
-              </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span v-if="policy.is_active" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                   Aktywna
@@ -132,9 +116,6 @@
                 <span v-else class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
                   Nieaktywna
                 </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ formatDate(policy.effective_date) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {{ formatDate(policy.created_at) }}
@@ -147,6 +128,7 @@
                   @edit="editPolicy"
                   @delete="confirmDelete"
                   :show-delete="!policy.is_active"
+                  justify="end"
                 >
                   <template #status-buttons="{ item }">
                     <admin-button 
@@ -167,150 +149,124 @@
     </div>
 
     <!-- Create/Edit Modal -->
-    <div v-if="showCreateModal || showEditModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-medium text-gray-900">
-            {{ showCreateModal ? 'Nowa Polityka Prywatności' : 'Edytuj Politykę Prywatności' }}
-          </h3>
+    <AdminModal
+      :show="showCreateModal || showEditModal"
+      :title="showCreateModal ? 'Nowa polityka prywatności' : 'Edytuj politykę prywatności'"
+      size="4xl"
+      @close="closeModal"
+    >
+      <form @submit.prevent="submitForm" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Tytuł</label>
+          <input 
+            v-model="form.title" 
+            type="text" 
+            required
+            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+          />
         </div>
 
-        <form @submit.prevent="submitForm" class="overflow-y-auto max-h-[calc(90vh-140px)]">
-          <div class="px-6 py-4 space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Tytuł</label>
-                <input 
-                  v-model="form.title" 
-                  type="text" 
-                  required
-                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Wersja</label>
-                <input 
-                  v-model="form.version" 
-                  type="text" 
-                  required
-                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
-            </div>
+        <div>
+          <label class="flex items-center">
+            <input 
+              v-model="form.is_active" 
+              type="checkbox"
+              class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+            />
+            <span class="ml-2 text-sm text-gray-700">Ustaw jako aktywną politykę</span>
+          </label>
+          <p class="mt-1 text-xs text-gray-500">Tylko jedna polityka może być aktywna w tym samym czasie</p>
+        </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Data obowiązywania</label>
-              <input 
-                v-model="form.effective_date" 
-                type="datetime-local" 
-                required
-                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Treść polityki</label>
+          <textarea 
+            v-model="form.content" 
+            rows="20"
+            required
+            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            placeholder="Wprowadź treść polityki prywatności w formacie HTML..."
+          ></textarea>
+          <p class="mt-1 text-xs text-gray-500">Możesz używać HTML do formatowania treści</p>
+        </div>
+      </form>
 
-            <div>
-              <label class="flex items-center">
-                <input 
-                  v-model="form.is_active" 
-                  type="checkbox"
-                  class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
-                />
-                <span class="ml-2 text-sm text-gray-700">Ustaw jako aktywną politykę</span>
-              </label>
-              <p class="mt-1 text-xs text-gray-500">Tylko jedna polityka może być aktywna w tym samym czasie</p>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Treść polityki</label>
-              <textarea 
-                v-model="form.content" 
-                rows="20"
-                required
-                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Wprowadź treść polityki prywatności w formacie HTML..."
-              ></textarea>
-              <p class="mt-1 text-xs text-gray-500">Możesz używać HTML do formatowania treści</p>
-            </div>
-          </div>
-
-          <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
-            <admin-button 
-              type="button" 
-              @click="closeModal"
-              variant="secondary"
-              outline
-            >
-              Anuluj
-            </admin-button>
-            <admin-button 
-              type="submit"
-              :loading="submitting"
-              variant="primary"
-            >
-              {{ showCreateModal ? 'Utwórz' : 'Zapisz' }}
-            </admin-button>
-          </div>
-        </form>
-      </div>
-    </div>
+      <template #footer>
+        <AdminButtonGroup justify="end">
+          <AdminButton 
+            type="button" 
+            @click="closeModal"
+            variant="secondary"
+            outline
+          >
+            Anuluj
+          </AdminButton>
+          <AdminButton 
+            type="button"
+            @click="submitForm"
+            :loading="submitting"
+            variant="primary"
+          >
+            {{ showCreateModal ? 'Utwórz' : 'Zapisz' }}
+          </AdminButton>
+        </AdminButtonGroup>
+      </template>
+    </AdminModal>
 
     <!-- View Modal -->
-    <div v-if="showViewModal && viewingPolicy" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <div class="flex justify-between items-center">
-            <h3 class="text-lg font-medium text-gray-900">{{ viewingPolicy.title }}</h3>
-            <admin-button @click="showViewModal = false" variant="secondary" size="sm">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </admin-button>
-          </div>
-          <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-            <span>Wersja {{ viewingPolicy.version }}</span>
-            <span>Obowiązuje od {{ formatDate(viewingPolicy.effective_date) }}</span>
-            <span v-if="viewingPolicy.is_active" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-              Aktywna
-            </span>
-          </div>
+    <AdminModal
+      :show="showViewModal && viewingPolicy"
+      :title="viewingPolicy?.title"
+      size="4xl"
+      @close="showViewModal = false"
+    >
+      <div v-if="viewingPolicy" class="space-y-4">
+        <div class="flex items-center space-x-4 text-sm text-gray-500 pb-4 border-b">
+          <span v-if="viewingPolicy.is_active" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+            Aktywna
+          </span>
+          <span v-else class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+            Nieaktywna
+          </span>
         </div>
-
-        <div class="overflow-y-auto max-h-[calc(90vh-140px)] px-6 py-4">
-          <div class="prose max-w-none" v-html="viewingPolicy.content"></div>
-        </div>
+        
+        <div class="prose max-w-none" v-html="viewingPolicy.content"></div>
       </div>
-    </div>
+    </AdminModal>
 
     <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div class="px-6 py-4">
-          <div class="flex items-center">
-            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-              <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L5.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
-            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-              <h3 class="text-lg leading-6 font-medium text-gray-900">Usuń politykę prywatności</h3>
-              <div class="mt-2">
-                <p class="text-sm text-gray-500">
-                  Czy na pewno chcesz usunąć politykę prywatności "{{ policyToDelete?.title }}"? Ta akcja jest nieodwracalna.
-                </p>
-              </div>
-            </div>
+    <AdminModal
+      :show="showDeleteModal"
+      title="Usuń politykę prywatności"
+      size="md"
+      @close="showDeleteModal = false"
+    >
+      <div class="flex items-center">
+        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+          <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L5.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+          <div class="mt-2">
+            <p class="text-sm text-gray-500">
+              Czy na pewno chcesz usunąć politykę prywatności "{{ policyToDelete?.title }}"? Ta akcja jest nieodwracalna.
+            </p>
           </div>
         </div>
-        <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
-          <admin-button @click="showDeleteModal = false" variant="secondary" outline>
-            Anuluj
-          </admin-button>
-          <admin-button @click="deletePolicy" variant="danger">
-            Usuń
-          </admin-button>
-        </div>
       </div>
-    </div>
+
+      <template #footer>
+        <AdminButtonGroup justify="end">
+          <AdminButton @click="showDeleteModal = false" variant="secondary" outline>
+            Anuluj
+          </AdminButton>
+          <AdminButton @click="deletePolicy" variant="danger">
+            Usuń
+          </AdminButton>
+        </AdminButtonGroup>
+      </template>
+    </AdminModal>
   </div>
 </template>
 
@@ -319,13 +275,21 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
+import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
+import AdminModal from '../../components/admin/ui/AdminModal.vue'
 import ActionButtons from '../../components/admin/ActionButtons.vue'
+import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
+import PageHeader from '../../components/admin/PageHeader.vue'
 
 export default {
   name: 'AdminPrivacyPolicies',
   components: {
     AdminButton,
-    ActionButtons
+    AdminButtonGroup,
+    AdminModal,
+    ActionButtons,
+    LoadingSpinner,
+    PageHeader
   },
   
   setup() {
@@ -356,9 +320,7 @@ export default {
     // Form
     const form = ref({
       title: '',
-      version: '',
       content: '',
-      effective_date: '',
       is_active: false
     })
     
@@ -391,9 +353,7 @@ export default {
     const resetForm = () => {
       form.value = {
         title: '',
-        version: '',
         content: '',
-        effective_date: '',
         is_active: false
       }
     }
@@ -409,9 +369,7 @@ export default {
       editingPolicy.value = policy
       form.value = {
         title: policy.title,
-        version: policy.version,
         content: policy.content,
-        effective_date: policy.effective_date.substring(0, 16), // Format for datetime-local
         is_active: policy.is_active
       }
       showEditModal.value = true

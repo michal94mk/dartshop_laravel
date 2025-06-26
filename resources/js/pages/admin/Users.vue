@@ -1,34 +1,20 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 p-4 bg-white rounded-lg shadow-sm min-h-full">
     <!-- Page Header -->
-    <page-header
-      title="Zarządzanie użytkownikami"
-      subtitle="Lista wszystkich użytkowników z możliwością edycji, zmiany roli i usuwania kont"
-    >
-      <template #actions>
-        <admin-button-group spacing="sm">
+    <div class="px-6 py-4">
+      <page-header
+        title="Zarządzanie użytkownikami"
+      >
+        <template #actions>
           <admin-button
             variant="primary"
             @click="openModal({id: null, name: '', email: '', role: 'user', verified: false, password: ''})"
           >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Dodaj użytkownika
+            Dodaj
           </admin-button>
-          <admin-button
-            variant="secondary"
-            outline
-            @click="exportUsers"
-          >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            Eksportuj
-          </admin-button>
-        </admin-button-group>
-      </template>
-    </page-header>
+        </template>
+      </page-header>
+    </div>
 
     <!-- Filters -->
     <search-filters
@@ -80,72 +66,108 @@
       <!-- Loading indicator -->
       <loading-spinner v-if="loading" />
 
-      <!-- Users table -->
-      <admin-table
-        v-if="users.data && users.data.length > 0"
-        :columns="tableColumns"
-        :items="users.data"
-      >
-        <template #cell-user="{ item }">
-          <div class="flex items-center">
-            <div class="h-10 w-10 flex-shrink-0">
-              <div class="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-medium">
-                {{ getUserInitials(item) }}
-              </div>
-            </div>
-            <div class="ml-4">
-              <div class="font-medium text-gray-900">{{ getDisplayName(item) }}</div>
-              <div class="text-sm text-gray-500">{{ item.email }}</div>
-            </div>
-          </div>
-        </template>
-        
-        <template #cell-role="{ item }">
-          <admin-badge 
-            :variant="isUserAdmin(item) ? 'indigo' : 'gray'"
-            size="xs"
-          >
-            {{ isUserAdmin(item) ? 'Administrator' : 'Użytkownik' }}
-          </admin-badge>
-        </template>
-        
-        <template #cell-status="{ item }">
-          <admin-badge 
-            :variant="item.email_verified_at ? 'green' : 'yellow'"
-            size="xs"
-          >
-            {{ item.email_verified_at ? 'Zweryfikowany' : 'Niezweryfikowany' }}
-          </admin-badge>
-        </template>
-
-        <template #cell-last_login="{ item }">
-          <span v-if="item.last_login_at" class="text-sm text-gray-900">
-            {{ formatDate(item.last_login_at) }}
-          </span>
-          <span v-else class="text-sm text-gray-400">Nigdy</span>
-        </template>
-        
-        <template #cell-actions="{ item }">
-          <action-buttons 
-            :item="item" 
-            @edit="openModal" 
-            @delete="deleteUser"
-            :disable-delete="item.id === currentUserId"
-          >
-            <template #custom-buttons="{ item }">
-              <admin-button
-                v-if="!item.email_verified_at"
-                variant="info"
-                size="sm"
-                @click="verifyUser(item)"
-                title="Zweryfikuj użytkownika"
-              >
-                Weryfikuj
-              </admin-button>
-            </template>
-          </action-buttons>
-        </template>
-      </admin-table>
+      <!-- Users Custom Table -->
+      <div v-if="!loading && users.data && users.data.length > 0" class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-64">
+                  Użytkownik
+                </th>
+                <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                  Rola
+                </th>
+                <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
+                  Status
+                </th>
+                <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                  Ostatnie logowanie
+                </th>
+                <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                  Data utworzenia
+                </th>
+                <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                  Akcje
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="item in users.data" :key="item.id" class="hover:bg-gray-50">
+                <!-- User Column -->
+                <td class="px-4 py-4">
+                  <div class="flex items-center">
+                    <div class="h-8 w-8 flex-shrink-0">
+                      <div class="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-medium">
+                        {{ getUserInitials(item) }}
+                      </div>
+                    </div>
+                    <div class="ml-3">
+                      <div class="text-sm font-medium text-gray-900">{{ getDisplayName(item) }}</div>
+                      <div class="text-xs text-gray-500 truncate max-w-[180px]" :title="item.email">{{ item.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                
+                <!-- Role Column -->
+                <td class="px-3 py-4 text-center">
+                  <admin-badge 
+                    :variant="isUserAdmin(item) ? 'indigo' : 'gray'"
+                    size="xs"
+                  >
+                    {{ isUserAdmin(item) ? 'Admin' : 'User' }}
+                  </admin-badge>
+                </td>
+                
+                <!-- Status Column -->
+                <td class="px-3 py-4 text-center">
+                  <admin-badge 
+                    :variant="item.email_verified_at ? 'green' : 'yellow'"
+                    size="xs"
+                  >
+                    {{ item.email_verified_at ? '✓' : '?' }}
+                  </admin-badge>
+                </td>
+                
+                <!-- Last Login Column -->
+                <td class="px-3 py-4 text-center">
+                  <span v-if="item.last_login_at" class="text-xs text-gray-900">
+                    {{ formatDate(item.last_login_at) }}
+                  </span>
+                  <span v-else class="text-xs text-gray-400">Nigdy</span>
+                </td>
+                
+                <!-- Created At Column -->
+                <td class="px-3 py-4 text-center">
+                  <span class="text-xs text-gray-500">{{ formatDate(item.created_at) }}</span>
+                </td>
+                
+                <!-- Actions Column -->
+                <td class="px-4 py-4 text-right">
+                  <div class="flex items-center justify-end space-x-2">
+                    <admin-button
+                      v-if="!item.email_verified_at"
+                      variant="info"
+                      size="xs"
+                      @click="verifyUser(item)"
+                      title="Zweryfikuj użytkownika"
+                    >
+                      Weryfikuj
+                    </admin-button>
+                    <action-buttons 
+                      :item="item" 
+                      @edit="openModal" 
+                      @delete="deleteUser"
+                      :disable-delete="item.id === currentUserId"
+                      justify="end"
+                    />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
       
       <!-- No data message -->
       <no-data-message v-else-if="!loading" message="Brak użytkowników do wyświetlenia" />
@@ -447,12 +469,12 @@ export default {
     
     // Table columns definition
     const tableColumns = [
-      { key: 'user', label: 'Użytkownik', width: '300px' },
+      { key: 'user', label: 'Użytkownik', width: '285px' },
       { key: 'role', label: 'Rola', width: '120px' },
       { key: 'status', label: 'Status', width: '120px' },
-      { key: 'last_login', label: 'Ostatnie logowanie', width: '150px' },
-      { key: 'created_at', label: 'Data utworzenia', type: 'date', width: '150px' },
-      { key: 'actions', label: 'Akcje', align: 'right', width: '180px' }
+      { key: 'last_login', label: 'Ostatnie logowanie', width: '145px' },
+      { key: 'created_at', label: 'Data utworzenia', type: 'date', width: '145px' },
+      { key: 'actions', label: 'Akcje', align: 'right', width: '190px' }
     ]
     
     // Default filters
@@ -667,23 +689,6 @@ export default {
       return user.role === 'admin'
     }
 
-    const exportUsers = async () => {
-      try {
-        alertStore.info('Rozpoczynanie eksportu użytkowników...')
-        
-        // Tutaj można dodać logikę eksportu
-        // const response = await axios.get('/api/admin/users/export', { responseType: 'blob' })
-        
-        // Na razie tylko symulujemy eksport
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        
-        alertStore.success('Użytkownicy zostali wyeksportowani.')
-      } catch (error) {
-        console.error('Error exporting users:', error)
-        alertStore.error('Wystąpił błąd podczas eksportu użytkowników.')
-      }
-    }
-    
     // Lifecycle
     onMounted(() => {
       fetchUsers()
@@ -716,8 +721,7 @@ export default {
       resetFilters,
       getUserInitials,
       getDisplayName,
-      isUserAdmin,
-      exportUsers
+      isUserAdmin
     }
   }
 }

@@ -29,21 +29,16 @@ class CategoryController extends Controller
             $cacheKey = 'categories_list_' . md5(json_encode($request->all()));
             
             $categories = Cache::remember($cacheKey, 3600, function () use ($request) {
-                $query = Category::with(['activeProducts' => function($query) {
+                $query = Category::with(['products' => function($query) {
                     $query->limit(3); // Load only first 3 products for preview
                 }]);
-
-                // Filter by active categories by default
-                if (!$request->has('include_inactive') || !$request->boolean('include_inactive')) {
-                    $query->active();
-                }
 
                 // Option to include only categories with products
                 if ($request->boolean('with_products_only')) {
                     $query->withProducts();
                 }
 
-                // Apply sorting
+                // Apply sorting by name
                 $query->ordered();
 
                 return $query->get();
@@ -54,13 +49,9 @@ class CategoryController extends Controller
                 return [
                     'id' => $category->id,
                     'name' => $category->name,
-                    'description' => $category->description,
                     'slug' => $category->slug,
-                    'image_url' => $category->image_url,
                     'products_count' => $category->products_count,
-                    'sort_order' => $category->sort_order,
-                    'is_active' => $category->is_active,
-                    'preview_products' => $category->activeProducts->map(function ($product) {
+                    'preview_products' => $category->products->map(function ($product) {
                         return [
                             'id' => $product->id,
                             'name' => $product->name,
@@ -116,11 +107,11 @@ class CategoryController extends Controller
             $category = null;
             
             if (is_numeric($identifier)) {
-                $category = Category::with(['activeProducts'])->find($identifier);
+                $category = Category::with(['products'])->find($identifier);
             }
             
             if (!$category) {
-                $category = Category::with(['activeProducts'])->where('slug', $identifier)->first();
+                $category = Category::with(['products'])->where('slug', $identifier)->first();
             }
 
             if (!$category) {
@@ -136,12 +127,8 @@ class CategoryController extends Controller
                 return [
                     'id' => $category->id,
                     'name' => $category->name,
-                    'description' => $category->description,
                     'slug' => $category->slug,
-                    'image_url' => $category->image_url,
                     'products_count' => $category->products_count,
-                    'sort_order' => $category->sort_order,
-                    'is_active' => $category->is_active,
                     'created_at' => $category->created_at,
                     'updated_at' => $category->updated_at,
                 ];
@@ -202,8 +189,7 @@ class CategoryController extends Controller
 
             // Build products query for this category
             $query = Product::with(['category', 'brand', 'activePromotions'])
-                           ->where('category_id', $category->id)
-                           ->where('is_active', true);
+                           ->where('category_id', $category->id);
 
             // Apply additional filters
             if ($request->has('brand_id')) {
@@ -315,9 +301,7 @@ class CategoryController extends Controller
             $response['category'] = [
                 'id' => $category->id,
                 'name' => $category->name,
-                'description' => $category->description,
                 'slug' => $category->slug,
-                'image_url' => $category->image_url,
             ];
 
             return response()->json($response);
@@ -347,18 +331,16 @@ class CategoryController extends Controller
             $stats = Cache::remember('categories_statistics', 1800, function () {
                 return [
                     'total_categories' => Category::count(),
-                    'active_categories' => Category::active()->count(),
                     'categories_with_products' => Category::withProducts()->count(),
-                    'top_categories' => Category::withCount('activeProducts')
-                        ->active()
-                        ->orderByDesc('active_products_count')
+                    'top_categories' => Category::withCount('products')
+                        ->orderByDesc('products_count')
                         ->take(5)
                         ->get()
                         ->map(function ($category) {
                             return [
                                 'id' => $category->id,
                                 'name' => $category->name,
-                                'products_count' => $category->active_products_count,
+                                'products_count' => $category->products_count,
                             ];
                         }),
                 ];

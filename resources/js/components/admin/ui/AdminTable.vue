@@ -1,61 +1,57 @@
 <template>
-  <div class="admin-table-container">
+  <div class="admin-table-container w-full">
     <!-- Table wrapper with horizontal scroll -->
-    <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8" style="scrollbar-width: thin; scrollbar-color: #d1d5db #f3f4f6;">
-      <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-          <table 
-            class="min-w-full divide-y divide-gray-300" 
-            :style="forceHorizontalScroll ? 'min-width: 1400px;' : 'min-width: 1200px;'"
-          >
-            <!-- Header -->
-            <thead class="bg-gray-50">
-              <tr class="h-12">
-                <th
-                  v-for="(column, index) in columns"
-                  :key="index"
-                  scope="col"
-                  :class="getHeaderClasses(column, index)"
-                  :style="column.width ? { width: column.width, minWidth: column.width, maxWidth: column.width } : {}"
-                >
-                  <div class="flex items-center h-full">
-                    <span class="text-sm font-semibold text-gray-900">{{ column.label }}</span>
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            
-            <!-- Body -->
-            <tbody class="bg-white divide-y divide-gray-200">
-              <slot name="body" :items="items">
-                <tr 
-                  v-for="(item, index) in items" 
-                  :key="getItemKey(item, index)"
-                  class="h-16 hover:bg-gray-50 transition-colors duration-150"
-                >
-                  <td
-                    v-for="(column, colIndex) in columns"
-                    :key="colIndex"
-                    :class="getCellClasses(column, colIndex)"
-                    :style="column.width ? { width: column.width, minWidth: column.width, maxWidth: column.width } : {}"
+    <div class="overflow-x-auto w-full">
+      <table 
+        class="w-full divide-y divide-gray-300" 
+        style="min-width: 780px;"
+      >
+        <!-- Header -->
+        <thead class="bg-gray-50">
+          <tr class="h-12">
+            <th
+              v-for="(column, index) in columns"
+              :key="index"
+              scope="col"
+              :class="getHeaderClasses(column, index)"
+              :style="column.width ? { width: column.width, minWidth: column.width, maxWidth: column.width } : {}"
+            >
+              <div class="flex items-center h-full">
+                <span class="text-sm font-semibold text-gray-900">{{ column.label }}</span>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        
+        <!-- Body -->
+        <tbody class="bg-white divide-y divide-gray-200">
+          <slot name="body" :items="items">
+            <tr 
+              v-for="(item, index) in items" 
+              :key="getItemKey(item, index)"
+              class="h-16 hover:bg-gray-50 transition-colors duration-150"
+            >
+              <td
+                v-for="(column, colIndex) in columns"
+                :key="colIndex"
+                :class="getCellClasses(column, colIndex)"
+                :style="column.width ? { width: column.width, minWidth: column.width, maxWidth: column.width } : {}"
+              >
+                <div class="flex items-center h-full min-h-[3rem]">
+                  <slot
+                    :name="`cell-${column.key}`"
+                    :item="item"
+                    :value="getNestedValue(item, column.key)"
+                    :index="index"
                   >
-                    <div class="flex items-center h-full min-h-[3rem]">
-                      <slot
-                        :name="`cell-${column.key}`"
-                        :item="item"
-                        :value="getNestedValue(item, column.key)"
-                        :index="index"
-                      >
-                        <span class="text-sm text-gray-900">{{ formatCellValue(item, column) }}</span>
-                      </slot>
-                    </div>
-                  </td>
-                </tr>
-              </slot>
-            </tbody>
-          </table>
-        </div>
-      </div>
+                    <span class="text-sm text-gray-900">{{ formatCellValue(item, column) }}</span>
+                  </slot>
+                </div>
+              </td>
+            </tr>
+          </slot>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
@@ -78,6 +74,56 @@
 
 .admin-table-container div::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
+}
+
+.admin-table-container {
+  @apply bg-white w-full;
+  max-width: none !important;
+  width: 100% !important;
+}
+
+/* Ensure table takes full width */
+.admin-table-container table {
+  width: 100% !important;
+  table-layout: fixed;
+}
+
+/* Ensure consistent row heights */
+.admin-table-container tbody tr {
+  min-height: 4rem;
+}
+
+/* Consistent cell content alignment */
+.admin-table-container td > div {
+  min-height: 3rem;
+}
+
+/* Smooth transitions for interactive elements */
+.admin-table-container tbody tr:hover {
+  background-color: rgb(249 250 251);
+}
+
+/* Ensure buttons and badges are properly aligned */
+.admin-table-container :deep(.admin-button-group) {
+  @apply flex items-center justify-end gap-2;
+}
+
+.admin-table-container :deep(.admin-badge) {
+  @apply inline-flex items-center;
+}
+
+/* Consistent text sizing */
+.admin-table-container td {
+  @apply text-sm;
+}
+
+.admin-table-container th {
+  @apply text-sm;
+}
+
+/* Ensure overflow wrapper takes full width */
+.admin-table-container > div {
+  width: 100% !important;
 }
 </style>
 
@@ -173,8 +219,6 @@ export default {
       return baseClasses;
     },
 
-
-
     getItemKey(item, index) {
       return item[this.keyField] || index;
     },
@@ -218,43 +262,4 @@ export default {
     }
   }
 }
-</script>
-
-<style scoped>
-.admin-table-container {
-  @apply bg-white;
-}
-
-/* Ensure consistent row heights */
-.admin-table-container tbody tr {
-  min-height: 4rem;
-}
-
-/* Consistent cell content alignment */
-.admin-table-container td > div {
-  min-height: 3rem;
-}
-
-/* Smooth transitions for interactive elements */
-.admin-table-container tbody tr:hover {
-  background-color: rgb(249 250 251);
-}
-
-/* Ensure buttons and badges are properly aligned */
-.admin-table-container :deep(.admin-button-group) {
-  @apply flex items-center justify-end gap-2;
-}
-
-.admin-table-container :deep(.admin-badge) {
-  @apply inline-flex items-center;
-}
-
-/* Consistent text sizing */
-.admin-table-container td {
-  @apply text-sm;
-}
-
-.admin-table-container th {
-  @apply text-sm;
-}
-</style> 
+</script> 

@@ -82,8 +82,7 @@ export default {
   data() {
     return {
       email: '',
-      loading: false,
-      source: 'footer' // Track where the subscription came from
+      loading: false
     };
   },
   computed: {
@@ -120,7 +119,7 @@ export default {
       
       try {
         console.log('Attempting to subscribe with email:', this.email);
-        const response = await newsletterService.subscribe(this.email, this.source);
+        const response = await newsletterService.subscribe(this.email);
         console.log('Newsletter subscription response:', response);
         
         if (response.success) {
