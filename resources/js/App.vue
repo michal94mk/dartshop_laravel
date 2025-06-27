@@ -34,39 +34,39 @@ export default {
     const favoriteStore = useFavoriteStore();
     const isReadyToShow = ref(false);
     
-    // Sprawdź, czy bieżąca trasa należy do panelu administracyjnego (na podstawie meta)
+    // Check if current route belongs to admin panel (based on meta)
     const isAdminRoute = computed(() => {
       return route.meta && route.meta.layout === 'admin';
     });
     
-    // Sprawdź, czy używamy admin view na podstawie window.Laravel
+    // Check if we're using admin view based on window.Laravel
     const isAdminView = computed(() => {
       return window.Laravel && window.Laravel.isAdmin === true;
     });
     
-    // Wybierz właściwy layout na podstawie trasy
+    // Select appropriate layout based on route
     const currentLayout = computed(() => {
       // Don't show layout until we're ready
       if (!isReadyToShow.value) return null;
       
-      // Sprawdź, czy użytkownik jest zalogowany i czy jest administratorem
+      // Check if user is logged in and is administrator
       const isUserAdmin = authStore.isAdmin;
       
-      // Jeśli ścieżka zaczyna się od /admin, używamy layoutu admin
+      // If path starts with /admin, use admin layout
       if (route.path.startsWith('/admin')) {
-        // Sprawdź czy user jest adminem, ale nie rób przekierowań tutaj
-        // (router guard powinien się tym zająć)
+                  // Check if user is admin, but don't do redirects here
+          // (router guard should handle this)
         if (!isUserAdmin && authStore.authInitialized) {
           console.warn('User is not admin but tries to access admin layout');
           return 'DefaultLayout';
         }
         
-        // Użytkownik jest adminem i ma dostęp do panelu admina
+                  // User is admin and has access to admin panel
         return 'AdminLayout';
       }
       
-      // Dla wszystkich innych ścieżek, nawet jeśli użytkownik jest adminem, 
-      // używamy domyślnego layoutu aplikacji
+              // For all other paths, even if user is admin,
+        // use default application layout
       return 'DefaultLayout';
     });
 
@@ -105,7 +105,7 @@ export default {
       }, 900000); // 15 minutes
     };
     
-    // Po zamontowaniu sprawdź, czy authStore zostało zainicjalizowane
+            // After mounting check if authStore was initialized
     onMounted(() => {
       console.log('App mounted');
       getCsrfCookie();

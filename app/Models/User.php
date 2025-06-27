@@ -10,15 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\CartItem[] $cartItems
- * @method \Illuminate\Database\Eloquent\Relations\HasMany cartItems()
- * @method \Illuminate\Database\Eloquent\Relations\HasMany reviews()
- * @method \Illuminate\Database\Eloquent\Relations\HasMany orders()
- * @method \Illuminate\Database\Eloquent\Relations\HasMany payments()
- * @method \Illuminate\Database\Eloquent\Relations\HasMany shippingAddresses()
- * @method \Illuminate\Database\Eloquent\Relations\BelongsToMany favoriteProducts()
- */
+
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
@@ -35,6 +27,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'is_admin',
+        'google_id',
+        'avatar',
         'privacy_policy_accepted',
         'privacy_policy_accepted_at',
         'terms_of_service_accepted',
@@ -74,6 +68,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'full_name',
         'display_name',
+        'is_google_user',
     ];
     
     /**
@@ -151,5 +146,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getRoleAttribute()
     {
         return $this->is_admin ? 'admin' : 'user';
+    }
+    
+    /**
+     * Check if the user is logged in via Google OAuth.
+     */
+    public function getIsGoogleUserAttribute()
+    {
+        return !empty($this->google_id);
     }
 }

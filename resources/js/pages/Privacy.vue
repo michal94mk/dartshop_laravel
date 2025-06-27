@@ -146,7 +146,7 @@ export default {
         
         const response = await axios.post('/api/privacy-policy/accept')
         
-        // Zaktualizuj dane użytkownika w store
+        // Update user data in store
         authStore.user.privacy_policy_accepted = true
         authStore.user.privacy_policy_accepted_at = new Date().toISOString()
         authStore.saveUserToLocalStorage()

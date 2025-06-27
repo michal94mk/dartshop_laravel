@@ -2,33 +2,18 @@ import { defineStore } from 'pinia';
 import axios from 'axios';
 import { useCartStore } from './cartStore';
 
-// Set up axios interceptor to handle 401 Unauthorized responses globally
-axios.interceptors.response.use(
-  response => response,
-  async error => {
-    if (error.response && error.response.status === 401) {
-      console.log('Unauthorized response detected, forcing logout');
-      const authStore = useAuthStore();
-      
-      // If we're already logged in but get a 401, session expired
-      if (authStore.isLoggedIn) {
-        console.warn('Session expired, logging out');
-        await authStore.forceLogout();
-        window.location.href = '/login?expired=1';
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+// Note: Global axios interceptor is handled in app.js to avoid duplication
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
     isLoading: false,
+    isRegularLoading: false, // Loading for regular login
+    isGoogleLoading: false,  // Loading for Google login
     hasError: false,
     errorMessage: '',
-    permissions: [], // Lista uprawnień użytkownika
-    authInitialized: false // Flaga wskazująca, czy stan autoryzacji został zainicjalizowany
+    permissions: [], // List of user permissions
+    authInitialized: false // Flag indicating whether auth state has been initialized
   }),
   
   getters: {
@@ -50,19 +35,24 @@ export const useAuthStore = defineStore('auth', {
       return !!state.user?.email_verified_at;
     },
     
-    // Sprawdzanie czy użytkownik ma dane uprawnienie
+    // Check if user has specific permission
     hasPermission: (state) => (permission) => {
       return state.permissions.includes(permission);
     },
     
-    // Sprawdzanie czy użytkownik ma daną rolę
+    // Check if user has specific role
     hasRole: (state) => (role) => {
       return state.user?.roles?.includes(role) || false;
+    },
+    
+    // Check if user is logged in via Google OAuth
+    isGoogleUser: (state) => {
+      return state.user?.is_google_user || false;
     }
   },
   
   actions: {
-    // Zapisz dane użytkownika do localStorage
+    // Save user data to localStorage
     saveUserToLocalStorage() {
       if (this.user) {
         localStorage.setItem('user', JSON.stringify(this.user));
@@ -75,16 +65,16 @@ export const useAuthStore = defineStore('auth', {
       }
     },
     
-    // Załaduj dane użytkownika z localStorage
+    // Load user data from localStorage
     loadUserFromLocalStorage() {
       try {
         const user = JSON.parse(localStorage.getItem('user'));
         const permissions = JSON.parse(localStorage.getItem('permissions')) || [];
         const authTime = parseInt(localStorage.getItem('auth_time') || '0');
         
-        // Sprawdź, czy dane nie są zbyt stare (max 1 godzina)
+        // Check if data is not too old (max 24 hours)
         const now = Date.now();
-        const isExpired = (now - authTime) > 3600000; // 1 godzina w milisekundach
+        const isExpired = (now - authTime) > 86400000; // 24 hours in milliseconds
         
         if (user && !isExpired) {
           this.user = user;
@@ -99,34 +89,37 @@ export const useAuthStore = defineStore('auth', {
       }
     },
     
-    // Inicjalizacja stanu autoryzacji na podstawie danych z serwera
+    // Initialize auth state based on server data
     async initAuth() {
-      if (this.authInitialized && this.user) return this.user;
+      if (this.authInitialized) {
+        console.log('initAuth: Already initialized, returning existing user:', this.user?.email || 'no user');
+        return this.user;
+      }
       
-      // Najpierw spróbuj załadować z localStorage
+      // First try to load from localStorage
       const loadedFromStorage = this.loadUserFromLocalStorage();
       
       this.isLoading = true;
       
       try {
-        // Zawsze odśwież CSRF token przed próbą autoryzacji
+        // Always refresh CSRF token before auth attempt
         await axios.get('/sanctum/csrf-cookie');
         console.log('CSRF token refreshed before auth check');
         
-        // Sprawdź status użytkownika na serwerze niezależnie od danych w localStorage
+        // Check user status on server regardless of localStorage data
         const response = await axios.get('/api/user');
         console.log('User API response:', response);
         
-        if (response.data) {
-          this.user = response.data;
-          
-          // Pobierz uprawnienia użytkownika, jeśli istnieją
-          if (response.data.permissions) {
-            this.permissions = response.data.permissions;
-          }
-          
-          // Zapisz dane do localStorage
-          this.saveUserToLocalStorage();
+                  if (response.data) {
+            this.user = response.data;
+            
+            // Get user permissions if they exist
+            if (response.data.permissions) {
+              this.permissions = response.data.permissions;
+            }
+            
+            // Save data to localStorage
+            this.saveUserToLocalStorage();
           
           console.log('User authenticated:', this.user);
         }
@@ -144,16 +137,16 @@ export const useAuthStore = defineStore('auth', {
           console.error('Error data:', error.response.data);
         }
         
-        // Ustaw błąd tylko jeśli nie jest to 401 Unauthorized (użytkownik nie zalogowany)
+        // Set error only if it's not 401 Unauthorized (user not logged in)
         if (error.response && error.response.status !== 401) {
           this.hasError = true;
-          this.errorMessage = 'Nie udało się pobrać danych użytkownika';
+          this.errorMessage = 'Failed to fetch user data';
         } else {
-          // Jeśli użytkownik nie jest zalogowany (401), to nie ustawiaj błędu
+          // If user is not logged in (401), don't set error
           this.hasError = false;
           this.errorMessage = '';
           
-          // Jeśli otrzymamy 401, wyczyść wszystkie dane lokalnie
+          // If we get 401, clear all data locally
           this.user = null;
           this.permissions = [];
           localStorage.removeItem('user');
@@ -161,7 +154,7 @@ export const useAuthStore = defineStore('auth', {
           localStorage.removeItem('auth_time');
         }
         
-        // Nawet w przypadku błędu oznacz, że próbowano zainicjalizować stan
+        // Even in case of error, mark that initialization was attempted
         this.authInitialized = true;
         return null;
       } finally {
@@ -169,19 +162,19 @@ export const useAuthStore = defineStore('auth', {
       }
     },
     
-    // Logowanie użytkownika
+    // User login
     async login(email, password) {
-      this.isLoading = true;
+      this.isRegularLoading = true;
       // Reset error state before attempting login
       this.hasError = false;
       this.errorMessage = '';
       
       try {
-        // Uzyskaj CSRF token
+        // Get CSRF token
         await axios.get('/sanctum/csrf-cookie');
         console.log('CSRF cookie refreshed before login');
         
-        // Upewnij się, że nagłówki są poprawnie ustawione
+        // Make sure headers are correctly set
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         const xsrfToken = document.cookie
             .split('; ')
@@ -202,7 +195,7 @@ export const useAuthStore = defineStore('auth', {
             headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrfToken);
         }
         
-        // Wykonaj logowanie
+        // Perform login
         const response = await axios.post('/api/login', {
             email,
             password
@@ -211,19 +204,19 @@ export const useAuthStore = defineStore('auth', {
         if (response.data.user) {
             this.user = response.data.user;
             
-            // Zapisz uprawnienia, jeśli istnieją
+            // Save permissions if they exist
             if (response.data.user.permissions) {
                 this.permissions = response.data.user.permissions;
             }
             
-            // Zapisz dane do localStorage
+            // Save data to localStorage
             this.saveUserToLocalStorage();
             
-            // Synchronizacja koszyka po zalogowaniu
+            // Sync cart after login
             const cartStore = useCartStore();
             await cartStore.syncCartAfterLogin();
             
-            // Ustaw auth init na true i wyczyść status błędu
+            // Set auth init to true and clear error status
             this.authInitialized = true;
             this.hasError = false;
             this.errorMessage = '';
@@ -235,25 +228,25 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         console.error('Login failed:', error);
         this.hasError = true;
-        this.errorMessage = error.response?.data?.message || 'Logowanie nie powiodło się';
+        this.errorMessage = error.response?.data?.message || 'Login failed';
         return false;
       } finally {
-        this.isLoading = false;
+        this.isRegularLoading = false;
       }
     },
     
-    // Rejestracja użytkownika
+    // User registration
     async register(name, firstName, lastName, email, password, passwordConfirmation, privacyPolicyAccepted = false, newsletterConsent = false) {
-      this.isLoading = true;
+      this.isRegularLoading = true;
       // Reset error state before attempting registration
       this.hasError = false;
       this.errorMessage = '';
       
       try {
-        // Uzyskaj CSRF token
+        // Get CSRF token
         await axios.get('/sanctum/csrf-cookie');
         
-        // Wykonaj rejestrację
+        // Perform registration
         const response = await axios.post('/api/register', {
           name,
           first_name: firstName,
@@ -267,7 +260,7 @@ export const useAuthStore = defineStore('auth', {
         
         this.user = response.data.user;
         
-        // Zapisz uprawnienia, jeśli istnieją
+                  // Save permissions if they exist
         if (response.data.user.permissions) {
           this.permissions = response.data.user.permissions;
         }
@@ -275,11 +268,11 @@ export const useAuthStore = defineStore('auth', {
         // Zapisz dane do localStorage
         this.saveUserToLocalStorage();
         
-        // Synchronizacja koszyka po rejestracji i automatycznym zalogowaniu
+        // Sync cart after registration and automatic login
         const cartStore = useCartStore();
         await cartStore.syncCartAfterLogin();
         
-        // Ustaw auth init na true i wyczyść status błędu
+                  // Set auth init to true and clear error status
         this.authInitialized = true;
         this.hasError = false;
         this.errorMessage = '';
@@ -288,24 +281,24 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         console.error('Registration failed:', error);
         this.hasError = true;
-        this.errorMessage = error.response?.data?.message || 'Rejestracja nie powiodła się';
+        this.errorMessage = error.response?.data?.message || 'Registration failed';
         return false;
       } finally {
-        this.isLoading = false;
+        this.isRegularLoading = false;
       }
     },
     
-    // Wylogowanie użytkownika
+    // User logout
     async logout() {
       this.isLoading = true;
       
       try {
         console.log('Starting logout process...');
         
-        // Pobierz CSRF token
+        // Get CSRF token
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         
-        // Wywołaj API wylogowania i poczekaj na odpowiedź
+                  // Call logout API and wait for response
         try {
           const response = await fetch('/api/logout', {
             method: 'POST',
@@ -325,53 +318,53 @@ export const useAuthStore = defineStore('auth', {
           console.log('Logout API success:', await response.json());
         } catch (apiError) {
           console.error('Logout API error:', apiError);
-          // Nie przerywamy procesu wylogowania jeśli API się nie powiedzie
+          // Don't stop logout process if API fails
         }
         
-        // Zawsze wyczyść dane lokalnie po próbie wylogowania na serwerze
+        // Always clear local data after server logout attempt
         await this.forceLogout();
         
         return true;
       } catch (error) {
         console.error('Logout failed:', error);
         
-        // Mimo błędu, wyczyść dane lokalnie
+        // Despite error, clear local data
         await this.forceLogout();
         
         this.hasError = true;
-        this.errorMessage = 'Wylogowanie nie powiodło się w API, ale dane zostały wyczyszczone lokalnie';
-        return true; // Zwróć true, aby przekierować użytkownika mimo błędu API
+        this.errorMessage = 'Logout failed in API, but data was cleared locally';
+        return true; // Return true to redirect user despite API error
       } finally {
         this.isLoading = false;
       }
     },
     
-    // Wymuszone wylogowanie (tylko po stronie klienta)
+    // Forced logout (client-side only)
     async forceLogout() {
-      // Wyczyść dane użytkownika w store
+      // Clear user data in store
       this.user = null;
       this.permissions = [];
       this.authInitialized = true;
       
-      // Usuń dane z localStorage
+      // Remove data from localStorage
       localStorage.removeItem('user');
       localStorage.removeItem('permissions');
       localStorage.removeItem('auth_time');
       console.log('Local storage cleared');
       
-      // Zresetuj stan koszyka po wylogowaniu
+      // Reset cart state after logout
       const cartStore = useCartStore();
       cartStore.$reset();
       console.log('Cart store reset');
       
-      // Wyczyść wszystkie ciasteczka związane z sesją
+      // Clear all session-related cookies
       document.cookie.split(';').forEach(cookie => {
         const [name] = cookie.trim().split('=');
         document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
       });
       console.log('Cookies cleared');
       
-      // Odśwież token CSRF
+      // Refresh CSRF token
       try {
         await axios.get('/sanctum/csrf-cookie');
         console.log('CSRF token refreshed after logout');
@@ -380,25 +373,25 @@ export const useAuthStore = defineStore('auth', {
       }
     },
     
-    // Metoda do odświeżania stanu sesji użytkownika
+    // Method to refresh user session state
     async refreshSession() {
-      // Nie odświeżaj, jeśli nie jesteśmy zalogowani
+      // Don't refresh if we're not logged in
       if (!this.user) return null;
       
       console.log('Refreshing user session...');
       this.isLoading = true;
       
       try {
-        // Najpierw odśwież CSRF token
+        // First refresh CSRF token
         await axios.get('/sanctum/csrf-cookie');
         
-        // Następnie pobierz aktualne dane użytkownika
+        // Then get current user data
         const response = await axios.get('/api/user');
         
         if (response.data) {
           this.user = response.data;
           
-          // Pobierz uprawnienia użytkownika, jeśli istnieją
+          // Get user permissions if they exist
           if (response.data.permissions) {
             this.permissions = response.data.permissions;
           }
@@ -411,7 +404,7 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         console.error('Failed to refresh user session:', error);
         
-        // Jeśli otrzymamy błąd 401 lub 419, użytkownik nie jest już zalogowany
+        // If we get 401 or 419 error, user is no longer logged in
         if (error.response && (error.response.status === 401 || error.response.status === 419)) {
           this.user = null;
           this.permissions = [];
@@ -423,7 +416,7 @@ export const useAuthStore = defineStore('auth', {
       }
     },
     
-    // Metoda do inicjalizacji stanu autoryzacji z ponawianiem próby
+    // Method to initialize auth state with retry
     async initAuthWithRetry(maxRetries = 3, retryDelay = 1000) {
       let retries = 0;
       
@@ -432,19 +425,19 @@ export const useAuthStore = defineStore('auth', {
           const result = await this.initAuth();
           if (result) return result;
           
-          // Jeśli nie uzyskaliśmy danych użytkownika, ale nie było błędu, po prostu zwróć null
+          // If we didn't get user data but there was no error, just return null
           if (!this.hasError) return null;
         } catch (error) {
           console.error(`Auth initialization failed (attempt ${retries + 1}/${maxRetries}):`, error);
         }
         
-        // Jeśli jesteśmy tu, znaczy to, że wystąpił błąd - spróbuj ponownie po opóźnieniu
+        // If we're here, it means there was an error - try again after delay
         retries++;
         
         if (retries < maxRetries) {
           console.log(`Retrying auth initialization in ${retryDelay}ms...`);
           await new Promise(resolve => setTimeout(resolve, retryDelay));
-          // Zwiększ opóźnienie dla każdej kolejnej próby
+          // Increase delay for each subsequent attempt
           retryDelay *= 1.5;
         }
       }
@@ -453,68 +446,113 @@ export const useAuthStore = defineStore('auth', {
       return null;
     },
     
-    // Wysłanie ponownie linku do weryfikacji e-mail
+    // Google login (redirect flow)
+    async loginWithGoogle() {
+      this.isGoogleLoading = true;
+      this.hasError = false;
+      this.errorMessage = '';
+      
+      try {
+        // Save current path to return after login
+        const currentPath = window.location.pathname + window.location.search;
+        
+        // If login starts from login page, redirect to profile
+        if (currentPath.includes('/login')) {
+          localStorage.setItem('google_auth_redirect', '/profile');
+        } else {
+          localStorage.setItem('google_auth_redirect', currentPath);
+        }
+        
+        // First get CSRF token
+        await axios.get('/sanctum/csrf-cookie');
+        
+        // Get Google redirect URL
+        const redirectResponse = await axios.get('/api/auth/google/redirect');
+        
+        if (!redirectResponse.data.success || !redirectResponse.data.url) {
+          throw new Error('Failed to get Google redirect URL');
+        }
+        
+        console.log('Redirecting to Google auth:', redirectResponse.data.url);
+        
+        // Redirect to Google OAuth (without popup)
+        window.location.href = redirectResponse.data.url;
+        
+        // This function won't return a value because the page will be redirected
+        return true;
+        
+      } catch (error) {
+        console.error('Google login error:', error);
+        this.hasError = true;
+        this.errorMessage = error.response?.data?.message || 'Error during Google login';
+        return false;
+      } finally {
+        this.isGoogleLoading = false;
+      }
+    },
+    
+    // Resend email verification link
     async resendVerificationEmail() {
       this.isLoading = true;
       this.hasError = false;
       this.errorMessage = '';
       
       try {
-        // Uzyskaj CSRF token
+        // Get CSRF token
         await axios.get('/sanctum/csrf-cookie');
         
-        // Wyślij żądanie ponownego wysłania weryfikacji
+        // Send resend verification request
         const response = await axios.post('/api/email/verification-notification');
         
-        return response.data.message || 'Link weryfikacyjny został wysłany ponownie.';
+        return response.data.message || 'Verification link has been sent again.';
       } catch (error) {
         console.error('Resend verification failed:', error);
         this.hasError = true;
-        this.errorMessage = error.response?.data?.message || 'Nie udało się wysłać linku weryfikacyjnego.';
+        this.errorMessage = error.response?.data?.message || 'Failed to send verification link.';
         return false;
       } finally {
         this.isLoading = false;
       }
     },
     
-    // Aktualizacja profilu użytkownika
+    // Update user profile
     async updateProfile(userData) {
       this.isLoading = true;
       this.hasError = false;
       this.errorMessage = '';
       
       try {
-        // Uzyskaj CSRF token
+        // Get CSRF token
         await axios.get('/sanctum/csrf-cookie');
         
-        // Wyślij żądanie aktualizacji profilu
+        // Send update profile request
         const response = await axios.put('/api/user/profile', userData);
         
-        // Aktualizuj dane użytkownika w store
+        // Update user data in store
         this.user = response.data.user;
         
         return true;
       } catch (error) {
         console.error('Profile update failed:', error);
         this.hasError = true;
-        this.errorMessage = error.response?.data?.message || 'Aktualizacja profilu nie powiodła się.';
+        this.errorMessage = error.response?.data?.message || 'Profile update failed.';
         return false;
       } finally {
         this.isLoading = false;
       }
     },
     
-    // Zmiana hasła
+    // Change password
     async updatePassword(currentPassword, newPassword, newPasswordConfirmation) {
       this.isLoading = true;
       this.hasError = false;
       this.errorMessage = '';
       
       try {
-        // Uzyskaj CSRF token
+        // Get CSRF token
         await axios.get('/sanctum/csrf-cookie');
         
-        // Wyślij żądanie zmiany hasła
+        // Send password change request
         const response = await axios.put('/api/user/password', {
           current_password: currentPassword,
           password: newPassword,
@@ -523,9 +561,9 @@ export const useAuthStore = defineStore('auth', {
         
         return true;
       } catch (error) {
-        console.error('Password update failed:', error);
+        console.error('Password change failed:', error);
         this.hasError = true;
-        this.errorMessage = error.response?.data?.message || 'Zmiana hasła nie powiodła się.';
+        this.errorMessage = error.response?.data?.message || 'Password change failed.';
         return false;
       } finally {
         this.isLoading = false;

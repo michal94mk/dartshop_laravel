@@ -87,19 +87,19 @@ export const useCartStore = defineStore('cart', {
       return this.loadingProductIds.includes(productId);
     },
     
-    // Wczytaj lokalne dane koszyka z localStorage przy inicjalizacji
+    // Load local cart data from localStorage on initialization
     initCart() {
       this.isLoading = true;
       
       try {
-        // Sprawdź, czy użytkownik jest zalogowany
+        // Check if user is logged in
         const authStore = useAuthStore();
         
         if (authStore.isLoggedIn) {
-          // Jeśli zalogowany, pobierz koszyk z API
+          // If logged in, fetch cart from API
           this.fetchCart();
         } else {
-          // Dla gościa pobierz z localStorage
+                      // For guest get from localStorage
           const savedCart = localStorage.getItem('cart');
           if (savedCart) {
             try {
@@ -118,7 +118,7 @@ export const useCartStore = defineStore('cart', {
       } catch (error) {
         console.error('Failed to initialize cart:', error);
         this.hasError = true;
-        this.errorMessage = 'Nie udało się zainicjalizować koszyka';
+                  this.errorMessage = 'Failed to initialize cart';
         this.isLoading = false;
         
         // Fallback to empty cart
@@ -126,7 +126,7 @@ export const useCartStore = defineStore('cart', {
       }
     },
     
-    // Zapisz koszyk w localStorage (tylko dla gości)
+    // Save cart to localStorage (for guests only)
     saveToLocalStorage() {
       const authStore = useAuthStore();
       
@@ -135,7 +135,7 @@ export const useCartStore = defineStore('cart', {
       }
     },
     
-    // Pobierz koszyk z API dla zalogowanego użytkownika
+    // Fetch cart from API for logged in user
     async fetchCart() {
       const authStore = useAuthStore();
       
@@ -175,14 +175,14 @@ export const useCartStore = defineStore('cart', {
           }
         } else {
           this.hasError = true;
-          this.errorMessage = 'Nie udało się pobrać zawartości koszyka';
+          this.errorMessage = 'Failed to fetch cart contents';
         }
       } finally {
         this.isLoading = false;
       }
     },
     
-    // Dodaj produkt do koszyka
+    // Add product to cart
     async addToCart(productId, quantity = 1) {
       const authStore = useAuthStore();
       
@@ -199,12 +199,12 @@ export const useCartStore = defineStore('cart', {
             quantity: quantity
           });
           
-          await this.fetchCart(); // Odśwież koszyk po dodaniu
+          await this.fetchCart(); // Refresh cart after adding
           return response.data;
         } catch (error) {
           console.error('Failed to add item to cart:', error);
           this.hasError = true;
-          this.errorMessage = 'Nie udało się dodać produktu do koszyka';
+          this.errorMessage = 'Failed to add product to cart';
           throw error;
         } finally {
           this.isLoading = false;
@@ -216,7 +216,7 @@ export const useCartStore = defineStore('cart', {
         const existingItemIndex = this.items.findIndex(item => item.product.id === productId);
         
         if (existingItemIndex !== -1) {
-          // Produkt już istnieje w koszyku, zwiększ ilość
+                      // Product already exists in cart, increase quantity
           this.items[existingItemIndex].quantity += quantity;
         } else {
           // Najpierw pobierz dane produktu z API

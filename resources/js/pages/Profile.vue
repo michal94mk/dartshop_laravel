@@ -26,7 +26,7 @@
           </div>
           
           <!-- Not logged in state -->
-          <div v-else-if="!authStore.isLoggedIn" class="text-center py-16">
+          <div v-else-if="!authStore.isLoggedIn && authStore.authInitialized" class="text-center py-16">
             <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -141,13 +141,13 @@
                      <p class="text-gray-900 font-medium">{{ authStore.userEmail }}</p>
                      
                      <!-- Email verification status -->
-                     <div v-if="authStore.isEmailVerified" class="mt-3 flex items-center text-sm text-green-600">
+                     <div v-if="authStore.isEmailVerified || authStore.isGoogleUser" class="mt-3 flex items-center text-sm text-green-600">
                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                        </svg>
-                       Zweryfikowany
+                       {{ authStore.isGoogleUser ? 'Zweryfikowany przez Google' : 'Zweryfikowany' }}
                      </div>
-                     <div v-else class="mt-3">
+                     <div v-else-if="!authStore.isGoogleUser" class="mt-3">
                        <div class="flex items-center text-sm text-red-600 mb-2">
                          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -178,33 +178,54 @@
                    </div>
                    
                    <div class="flex flex-col sm:flex-row gap-4">
+                     <!-- Password change button - hidden for Google OAuth users -->
                      <button 
+                       v-if="!authStore.isGoogleUser"
                        @click="showChangePassword = true" 
                        class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-lg hover:shadow-xl"
                      >
                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z"/>
                        </svg>
                        Zmień hasło
                      </button>
                      
-                     <button 
-                       @click="handleLogout" 
-                       class="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
-                       :disabled="isLoggingOut"
-                     >
-                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                       </svg>
-                       <span v-if="isLoggingOut">Wylogowywanie...</span>
-                       <span v-else>Wyloguj się</span>
-                     </button>
+                     <!-- Info for Google OAuth users with logout button -->
+                     <div v-else class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                       <div class="flex items-start justify-between">
+                         <div class="flex items-start flex-grow">
+                           <svg class="w-5 h-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                           </svg>
+                           <div class="flex-grow">
+                             <p class="text-sm font-medium text-blue-800 mb-1">Konto Google OAuth</p>
+                             <p class="text-sm text-blue-700">
+                               Jesteś zalogowany przez Google. Aby zmienić hasło, przejdź do 
+                               <a href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer" class="font-medium underline hover:no-underline">
+                                 ustawień bezpieczeństwa Google
+                               </a>.
+                             </p>
+                           </div>
+                         </div>
+                         <button 
+                           @click="handleLogout" 
+                           class="inline-flex items-center px-3 py-2 ml-4 border border-gray-300 shadow-sm text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 flex-shrink-0"
+                           :disabled="isLoggingOut"
+                         >
+                           <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                           </svg>
+                           <span v-if="isLoggingOut">Wylogowywanie...</span>
+                           <span v-else>Wyloguj</span>
+                         </button>
+                       </div>
+                     </div>
                    </div>
                  </div>
                </div>
                
-               <!-- Password change form -->
-               <div v-else class="max-w-2xl mx-auto">
+               <!-- Password change form - only for non-Google users -->
+               <div v-else-if="!authStore.isGoogleUser" class="max-w-2xl mx-auto">
                  <div class="mb-8">
                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Zmiana hasła</h3>
                    <p class="text-gray-600">Wprowadź swoje aktualne hasło oraz nowe hasło</p>
@@ -662,10 +683,18 @@ export default {
       }
     });
     
-    onMounted(() => {
-      // Inicjalizacja stanu autoryzacji, jeśli jeszcze nie został zainicjalizowany
-      if (!authStore.user) {
-        authStore.initAuth();
+    onMounted(async () => {
+      // Initialize auth state ONLY if it hasn't been initialized yet
+      if (!authStore.authInitialized) {
+        console.log('Profile: Auth not initialized, initializing...');
+        await authStore.initAuth();
+      } else {
+        console.log('Profile: Auth already initialized, skipping initAuth');
+        console.log('Profile: Current auth state:', {
+          isLoggedIn: authStore.isLoggedIn,
+          user: authStore.user?.email,
+          authInitialized: authStore.authInitialized
+        });
       }
       
       // Initialize the favorite store
@@ -688,6 +717,13 @@ export default {
     };
     
     const resendVerification = async () => {
+      // Prevent email verification for Google OAuth users
+      if (authStore.isGoogleUser) {
+        authStore.hasError = true;
+        authStore.errorMessage = 'Użytkownicy Google OAuth mają już zweryfikowany email.';
+        return;
+      }
+      
       isVerificationLoading.value = true;
       
       try {
@@ -704,6 +740,13 @@ export default {
     };
     
     const handlePasswordChange = async () => {
+      // Prevent password change for Google OAuth users
+      if (authStore.isGoogleUser) {
+        authStore.hasError = true;
+        authStore.errorMessage = 'Użytkownicy Google OAuth nie mogą zmieniać hasła w tej aplikacji.';
+        return;
+      }
+      
       passwordChangeStatus.value = '';
       
       if (newPassword.value !== newPasswordConfirmation.value) {

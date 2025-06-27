@@ -10,7 +10,7 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 class EmailVerificationController extends Controller
 {
     /**
-     * Oznacz email użytkownika jako zweryfikowany
+     * Mark user's email as verified
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
@@ -42,7 +42,7 @@ class EmailVerificationController extends Controller
     }
 
     /**
-     * Wyślij ponownie email weryfikacyjny
+     * Resend verification email
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
@@ -50,6 +50,13 @@ class EmailVerificationController extends Controller
     public function sendVerificationEmail(Request $request)
     {
         $user = $request->user();
+
+        // Prevent email verification for Google OAuth users
+        if (!empty($user->google_id)) {
+            return response()->json([
+                'message' => 'Użytkownicy zalogowani przez Google OAuth mają już zweryfikowany email.'
+            ], 400);
+        }
 
         if ($user->hasVerifiedEmail()) {
             return response()->json([

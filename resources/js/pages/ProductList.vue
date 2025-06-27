@@ -661,14 +661,14 @@ export default {
     });
 
     const applyFilters = () => {
-      // Zanim zastosujemy filtry, konwertujemy wartości priceRange na liczby
+              // Before applying filters, convert priceRange values to numbers
       const minPrice = priceRange.value[0] !== '' && priceRange.value[0] !== undefined ? parseFloat(priceRange.value[0]) : null;
       const maxPrice = priceRange.value[1] !== '' && priceRange.value[1] !== undefined ? parseFloat(priceRange.value[1]) : null;
       
-      // Przekazujemy zakres cen do filtrów
+              // Pass price range to filters
       productStore.filters.priceRange = [minPrice, maxPrice];
       
-      // Pobieramy produkty z zastosowanymi filtrami
+              // Get products with applied filters
       productStore.fetchProducts();
     };
 

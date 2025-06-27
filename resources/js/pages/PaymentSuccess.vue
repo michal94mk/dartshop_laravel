@@ -208,7 +208,7 @@ export default {
         const orderId = route.query.order_id
         
         if (sessionId) {
-          // Płatność Stripe
+          // Stripe payment
           const response = await axios.post('/api/stripe/success', {
             session_id: sessionId
           })
@@ -217,7 +217,7 @@ export default {
           success.value = true
           
         } else if (orderId) {
-          // Płatność za pobraniem - pobierz dane zamówienia
+          // Cash on delivery - get order data
           const response = await axios.get(`/api/orders/${orderId}`)
           
           order.value = response.data.order
@@ -227,14 +227,14 @@ export default {
           throw new Error('Brak danych zamówienia')
         }
         
-        // Wyczyść koszyk lokalnie (jeśli to gość)
+                  // Clear cart locally (if guest)
         const savedCart = localStorage.getItem('cart')
         if (savedCart) {
           localStorage.removeItem('cart')
           cartStore.items = []
         }
         
-        // Wyczyść dane checkout
+                  // Clear checkout data
         localStorage.removeItem('checkout_shipping')
         
       } catch (err) {

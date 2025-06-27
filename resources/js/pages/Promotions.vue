@@ -318,7 +318,7 @@ export default {
     }
 
     const viewPromotionProducts = (promotion) => {
-      // Przekieruj do strony produktów z filtrem promocji
+      // Redirect to products page with promotion filter
       router.push({
         name: 'products',
         query: { promotion: promotion.id }
@@ -331,7 +331,7 @@ export default {
       return new Date(dateString).toLocaleDateString('pl-PL')
     }
 
-    // Funkcje pomocnicze do kolorów
+          // Color helper functions
     const hexToRgb = (hex) => {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
       return result ? {

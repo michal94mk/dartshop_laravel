@@ -35,6 +35,7 @@ use App\Http\Controllers\API\StripeController;
 use App\Http\Controllers\Api\NewsletterController;
 use App\Http\Controllers\API\PrivacyPolicyController;
 use App\Http\Controllers\API\TermsOfServiceController;
+use App\Http\Controllers\API\SocialAuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -79,6 +80,11 @@ Route::middleware('auth:sanctum')->group(function () {
 // Auth API
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+
+// Social Auth API
+Route::get('/auth/google/redirect', [SocialAuthController::class, 'redirectToGoogle']);
+Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
+Route::post('/auth/google/login', [SocialAuthController::class, 'loginWithGoogle']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);

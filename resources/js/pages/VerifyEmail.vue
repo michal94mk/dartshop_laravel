@@ -162,12 +162,12 @@ export default {
     const authStore = useAuthStore();
     
     onMounted(async () => {
-      // Inicjalizacja stanu autoryzacji, jeśli jeszcze nie został zainicjalizowany
+      // Initialize auth state if not yet initialized
       if (!authStore.user) {
         await authStore.initAuth();
       }
       
-      // Sprawdź, czy jest to powrót z linka weryfikacyjnego
+      // Check if this is a return from verification link
       const id = route.params.id;
       const hash = route.query.hash;
       const expires = route.query.expires;
@@ -193,10 +193,10 @@ export default {
         
         verified.value = true;
         
-        // Odśwież dane użytkownika
+        // Refresh user data
         await authStore.initAuth();
         
-        // Przekieruj do strony głównej po 2 sekundach
+                  // Redirect to home page after 2 seconds
         setTimeout(() => {
           router.push('/');
         }, 2000);
@@ -214,10 +214,10 @@ export default {
       status.value = '';
       
       try {
-        // Uzyskaj CSRF token
+        // Get CSRF token
         await axios.get('/sanctum/csrf-cookie');
         
-        // Wyślij żądanie ponownego wysłania weryfikacji
+        // Send resend verification request
         const response = await axios.post('/api/email/verification-notification');
         
         status.value = response.data.message || 'Link weryfikacyjny został wysłany ponownie.';

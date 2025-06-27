@@ -11,7 +11,7 @@ use Illuminate\Validation\Rule;
 class ProfileController extends Controller
 {
     /**
-     * Aktualizacja profilu użytkownika
+     * Update user profile
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
@@ -31,14 +31,14 @@ class ProfileController extends Controller
             ],
         ]);
 
-        // Jeśli email się zmienił, wymuszamy ponowną weryfikację
+        // If email changed, force re-verification
         if ($user->email !== $validated['email']) {
             $validated['email_verified_at'] = null;
             
-            // Aktualizuj dane użytkownika
+            // Update user data
             $user->update($validated);
             
-            // Wyślij ponownie link weryfikacyjny
+            // Send verification link again
             $user->sendEmailVerificationNotification();
             
             return response()->json([
@@ -56,21 +56,28 @@ class ProfileController extends Controller
     }
 
     /**
-     * Aktualizacja hasła użytkownika
+     * Update user password
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function updatePassword(Request $request)
     {
+        $user = $request->user();
+        
+        // Prevent password change for Google OAuth users
+        if (!empty($user->google_id)) {
+            return response()->json([
+                'message' => 'Użytkownicy zalogowani przez Google OAuth nie mogą zmieniać hasła w tej aplikacji. Aby zmienić hasło, przejdź do ustawień Google.'
+            ], 422);
+        }
+
         $validated = $request->validate([
             'current_password' => 'required',
             'password' => 'required|min:8|confirmed',
         ]);
 
-        $user = $request->user();
-
-        // Sprawdź czy obecne hasło jest prawidłowe
+        // Check if current password is correct
         if (!Hash::check($validated['current_password'], $user->password)) {
             throw ValidationException::withMessages([
                 'current_password' => ['Podane aktualne hasło jest nieprawidłowe.'],

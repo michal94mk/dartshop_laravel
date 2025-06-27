@@ -25,7 +25,7 @@ export const useAlertStore = defineStore('alert', {
     success(message, timeout = 5000) {
       this.successMessage = message;
       
-      // Automatycznie czyść success message po timeout
+              // Automatically clear success message after timeout
       if (timeout > 0) {
         setTimeout(() => {
           this.successMessage = '';
@@ -38,7 +38,7 @@ export const useAlertStore = defineStore('alert', {
     error(message, timeout = 5000) {
       this.errorMessage = message;
       
-      // Automatycznie czyść error message po timeout
+              // Automatically clear error message after timeout
       if (timeout > 0) {
         setTimeout(() => {
           this.errorMessage = '';

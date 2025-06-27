@@ -10,12 +10,12 @@ import Toast from "vue-toastification";
 import "vue-toastification/dist/index.css";
 
 // Set Axios defaults
-axios.defaults.baseURL = window.location.protocol + '//' + window.location.host;  // Używaj pełnego URL
+axios.defaults.baseURL = window.location.protocol + '//' + window.location.host;  // Use full URL
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.headers.common['Accept'] = 'application/json';
-axios.defaults.withCredentials = true; // Bardzo ważne dla cookies
+axios.defaults.withCredentials = true; // Very important for cookies
 
-// Upewnij się, że axios używa pełnych adresów URL, aby uniknąć problemów z cookies
+// Make sure axios uses full URLs to avoid cookie issues
 const baseApiUrl = window.location.protocol + '//' + window.location.host;
 console.log('Base API URL:', baseApiUrl);
 
@@ -26,9 +26,25 @@ console.log('Axios defaults set:', {
   withCredentials: axios.defaults.withCredentials
 });
 
-// Globalny interceptor dla Axios
+// Global interceptor for Axios
 axios.interceptors.request.use(config => {
   console.log('Axios Request:', config);
+  
+  // Check admin API requests
+  if (config.url && config.url.includes('/api/admin/')) {
+    // Use global authStore if available
+    if (globalAuthStore) {
+      // Block admin requests if user is not logged in or not admin
+      if (!globalAuthStore.isLoggedIn || !globalAuthStore.isAdmin) {
+        console.log('Blocking admin API request - user not authorized:', {
+          url: config.url,
+          isLoggedIn: globalAuthStore.isLoggedIn,
+          isAdmin: globalAuthStore.isAdmin
+        });
+        return Promise.reject(new Error('Unauthorized admin request blocked'));
+      }
+    }
+  }
   
   // Add a timestamp to prevent caching
   if (config.method === 'get') {
@@ -36,7 +52,7 @@ axios.interceptors.request.use(config => {
     config.params._nocache = new Date().getTime();
   }
   
-  // Dodaj nagłówek X-XSRF-TOKEN dla wszystkich żądań
+  // Add X-XSRF-TOKEN header for all requests
   const token = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)');
   if (token) {
     config.headers['X-XSRF-TOKEN'] = decodeURIComponent(token[2]);
@@ -48,7 +64,7 @@ axios.interceptors.request.use(config => {
   return config;
 });
 
-// Dodaj interceptor do odświeżania CSRF tokenu przy błędach 401/419
+// Add interceptor to refresh CSRF token on 401/419 errors
 let isRefreshing = false;
 
 axios.interceptors.response.use(
@@ -63,35 +79,37 @@ axios.interceptors.response.use(
     return response;
   },
   async error => {
-    // Obsługa wygaśnięcia sesji/CSRF tokenu (419) lub błędów autoryzacji (401)
+    // Handle session/CSRF token expiration (419) or authorization errors (401)
     if (error.response && (error.response.status === 419 || error.response.status === 401) && !error.config._retry) {
       if (!isRefreshing) {
         console.log('Session expired or CSRF token mismatch. Refreshing...');
         isRefreshing = true;
         
         try {
-          // Odśwież CSRF token
-          await axios.get('/sanctum/csrf-cookie', { _retry: true });
+          // Refresh CSRF token
+          await axios.get('/sanctum/csrf-cookie');
           console.log('CSRF cookie refreshed');
           
-          // Ponów oryginalne żądanie
+          // Retry original request
           error.config._retry = true;
           isRefreshing = false;
           return axios(error.config);
         } catch (refreshError) {
-          console.error('Failed to refresh CSRF token:', refreshError);
-          // Jeśli nadal nie możemy odświeżyć tokenu, wyloguj użytkownika
-          const authStore = useAuthStore();
-          authStore.user = null;
-          authStore.authInitialized = true;
-          window.location.href = '/login';
+          console.error('Failed to refresh CSRF token, forcing logout');
+          // If we still can't refresh token, log out user
+          if (typeof useAuthStore !== 'undefined') {
+            const authStore = useAuthStore();
+            authStore.user = null;
+            authStore.authInitialized = true;
+          }
+          window.location.href = '/login?expired=1';
           isRefreshing = false;
         }
       }
     }
     
-    // Standardowe logowanie błędów
-    console.error('Axios Error:', error);
+    // Standard error logging
+    console.error('Global axios error:', error);
     
     // More detailed error logging
     if (error.response) {
@@ -137,6 +155,9 @@ import { useCartStore } from './stores/cartStore';
 import { useWishlistStore } from './stores/wishlistStore';
 import { useAuthStore } from './stores/authStore';
 import { useCategoryStore } from './stores/categoryStore';
+
+// Store authStore globally for axios interceptor
+let globalAuthStore = null;
 
 // Create Pinia (State Management)
 const pinia = createPinia();
@@ -199,6 +220,9 @@ const cartStore = useCartStore();
 const wishlistStore = useWishlistStore();
 const authStore = useAuthStore();
 const categoryStore = useCategoryStore();
+
+// Set global authStore for axios interceptor
+globalAuthStore = authStore;
 
 // Mount the app when the DOM is ready
 document.addEventListener('DOMContentLoaded', () => {

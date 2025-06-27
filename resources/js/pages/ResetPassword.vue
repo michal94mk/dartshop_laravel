@@ -90,7 +90,7 @@ export default {
     const route = useRoute();
     
     onMounted(() => {
-      // Pobierz token z parametrów URL
+      // Get token from URL parameters
       token.value = route.params.token || '';
       email.value = route.query.email || '';
     });
@@ -101,10 +101,10 @@ export default {
       status.value = '';
       
       try {
-        // Uzyskaj CSRF token
+        // Get CSRF token
         await axios.get('/sanctum/csrf-cookie');
         
-        // Wyślij żądanie resetowania hasła
+        // Send password reset request
         const response = await axios.post('/api/reset-password', {
           token: token.value,
           email: email.value,
@@ -114,7 +114,7 @@ export default {
         
         status.value = response.data.message || 'Hasło zostało pomyślnie zresetowane.';
         
-        // Przekieruj do strony logowania po 2 sekundach
+                  // Redirect to login page after 2 seconds
         setTimeout(() => {
           router.push('/login');
         }, 2000);

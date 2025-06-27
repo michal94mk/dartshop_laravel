@@ -24,6 +24,7 @@ import ForgotPassword from '../pages/ForgotPassword.vue';
 import ResetPassword from '../pages/ResetPassword.vue';
 import VerifyEmail from '../pages/VerifyEmail.vue';
 import NewsletterVerification from '../pages/NewsletterVerification.vue';
+import GoogleCallback from '../pages/GoogleCallback.vue';
 // Import admin components
 import AdminLayout from '../components/layouts/AdminLayout.vue';
 import AdminDashboard from '../pages/admin/Dashboard.vue';
@@ -221,6 +222,14 @@ const routes = [
       layout: 'default'
     }
   },
+  {
+    path: '/auth/google/callback',
+    name: 'google-callback',
+    component: GoogleCallback,
+    meta: {
+      layout: 'default'
+    }
+  },
   // Admin routes
   {
     path: '/admin',
@@ -309,7 +318,7 @@ const routes = [
       }
     ]
   },
-  // 404 strona - zawsze jako ostatnia
+  // 404 page - always as last
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
@@ -335,7 +344,14 @@ router.beforeEach(async (to, from, next) => {
   
   const authStore = useAuthStore();
   
-  // Zawsze czekaj na inicjalizację auth state przed podjęciem decyzji o przekierowaniu
+  // Special check: if logging out from admin panel, skip checks
+  if (from.path && from.path.startsWith('/admin') && to.path === '/' && authStore.isLoading) {
+    console.log('Logout from admin panel detected, allowing redirect to home');
+    next();
+    return;
+  }
+  
+  // Always wait for auth state initialization before making redirect decisions
   let authInitialized = false;
   if (!authStore.authInitialized) {
     console.log('Auth not initialized, initializing now...');
@@ -351,12 +367,37 @@ router.beforeEach(async (to, from, next) => {
     console.log('Auth already initialized');
   }
   
-  // Sprawdź, czy trasa wymaga autoryzacji
+  // Check if route requires authorization
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    // Sprawdź, czy użytkownik jest zalogowany
+    // Check if user is logged in
     if (!authStore.isLoggedIn) {
+      // Special check: if coming from Google Callback, wait for auth
+      if (from.name === 'google-callback') {
+        console.log('Coming from Google Callback, waiting for auth state...');
+        // Give more time for auth state update
+        setTimeout(() => {
+          console.log('Router Guard: Checking auth state after delay:', {
+            isLoggedIn: authStore.isLoggedIn,
+            authInitialized: authStore.authInitialized,
+            user: authStore.user?.email
+          });
+          
+          if (authStore.isLoggedIn) {
+            console.log('Auth state updated, proceeding to protected route');
+            next();
+          } else {
+            console.log('Auth state still not updated, redirecting to login');
+            next({
+              path: '/login',
+              query: { redirect: to.fullPath }
+            });
+          }
+        }, 800);
+        return;
+      }
+      
       console.log('Route requires auth but user is not logged in, redirecting to login');
-      // Przekieruj na stronę logowania
+      // Redirect to login page
       next({
         path: '/login',
         query: { redirect: to.fullPath }
@@ -364,11 +405,11 @@ router.beforeEach(async (to, from, next) => {
       return;
     }
     
-    // Sprawdź, czy trasa wymaga uprawnień administratora
+    // Check if route requires admin permissions
     if (to.matched.some(record => record.meta.requiresAdmin)) {
       if (!authStore.isAdmin) {
         console.log('Route requires admin but user is not admin, redirecting to home');
-        // Przekieruj na stronę główną, jeśli użytkownik nie jest adminem
+                  // Redirect to home page if user is not admin
         next({ path: '/' });
         return;
       } else {
@@ -378,7 +419,7 @@ router.beforeEach(async (to, from, next) => {
       }
     }
     
-    // Sprawdź, czy użytkownik zweryfikował email (jeśli wymagane)
+    // Check if user has verified email (if required)
     if (to.matched.some(record => record.meta.requiresVerified) && 
         authStore.user && !authStore.user.email_verified_at) {
       console.log('Route requires verified email but user email is not verified');
@@ -390,9 +431,9 @@ router.beforeEach(async (to, from, next) => {
     next();
     return;
   } 
-  // Sprawdź, czy trasa wymaga, aby użytkownik nie był zalogowany (np. login, register)
+      // Check if route requires user not to be logged in (e.g. login, register)
   else if (to.matched.some(record => record.meta.guest)) {
-    // Jeśli użytkownik jest już zalogowany, przekieruj go na stronę główną
+    // If user is already logged in, redirect to home page
     if (authStore.isLoggedIn) {
       console.log('Guest route but user is logged in, redirecting to home');
       next({ path: '/' });
@@ -401,7 +442,7 @@ router.beforeEach(async (to, from, next) => {
       next();
     }
   } 
-  // Obsługa ładowania tych samych tras
+  // Handle loading of same routes
   else if (from.name === to.name && from.name === 'products') {
     console.log('Reloading products page with same route');
     

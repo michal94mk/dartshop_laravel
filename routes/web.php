@@ -28,7 +28,7 @@ Route::get('/', [SPAController::class, 'index'])->name('home');
 
 // Admin panel route
 Route::get('/admin/{any?}', [SPAController::class, 'index'])
-    ->where('any', '.*') // Dowolna ścieżka po /admin/
+    ->where('any', '.*') // Any path after /admin/
     ->name('admin');
 
 // SPA catch-all route - all other routes should be handled by Vue Router

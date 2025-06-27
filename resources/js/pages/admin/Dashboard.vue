@@ -354,6 +354,14 @@ export default {
       try {
         loading.value = true
         
+        // Sprawdź czy użytkownik jest zalogowany i czy jest adminem
+        if (!authStore.isLoggedIn || !authStore.isAdmin) {
+          console.log('Dashboard: User not logged in or not admin, skipping data fetch')
+          console.log('Is logged in:', authStore.isLoggedIn, 'Is admin:', authStore.isAdmin)
+          loading.value = false
+          return
+        }
+        
         // Prepare date range parameters
         let params = { period: dateRange.value }
         
@@ -434,8 +442,38 @@ export default {
       updateChartData()
     })
     
-    onMounted(() => {
-      fetchDashboardData()
+    // Watch for auth state changes (logout)
+    watch(() => authStore.isLoggedIn, (newValue) => {
+      console.log('Dashboard: Auth state changed, isLoggedIn:', newValue)
+      if (!newValue) {
+        console.log('Dashboard: User logged out, clearing data')
+        loading.value = false
+        // Wyczyść dane gdy użytkownik się wyloguje
+        stats.value = {
+          counts: { products: 0, users: 0, orders: 0, reviews: 0 },
+          trends: { orders: 0, reviews: 0, revenue: 0 },
+          recent_orders: [],
+          sales_data: [],
+          top_products: [],
+          categories_data: []
+        }
+      }
+    })
+    
+    onMounted(async () => {
+      // Sprawdź czy auth store jest zainicjalizowany
+      if (!authStore.authInitialized) {
+        console.log('Dashboard: Auth not initialized, waiting...')
+        await authStore.initAuth()
+      }
+      
+      // Sprawdź czy użytkownik może dostać się do dashboardu
+      if (authStore.isLoggedIn && authStore.isAdmin) {
+        console.log('Dashboard: User is logged in and admin, fetching data')
+        fetchDashboardData()
+      } else {
+        console.log('Dashboard: User not authorized for dashboard')
+      }
     })
     
     return {

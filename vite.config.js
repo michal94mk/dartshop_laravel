@@ -45,15 +45,15 @@ export default defineConfig({
         headers: {
             'Cache-Control': 'no-store',
         },
-        // Dodaj konfigurację proxy dla API
+        // Add proxy configuration for API
         proxy: {
             '/api': {
                 target: 'http://localhost:8000',
                 changeOrigin: true,
                 secure: false,
-                ws: true, // Wsparcie dla WebSockets
+                ws: true, // WebSocket support
                 cookieDomainRewrite: 'localhost',
-                xfwd: true, // Przekazuj nagłówki X-Forwarded-*
+                xfwd: true, // Forward X-Forwarded-* headers
             },
             '/sanctum': {
                 target: 'http://localhost:8000',

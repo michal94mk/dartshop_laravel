@@ -370,11 +370,25 @@ export default {
     // Logout function
     const logout = async () => {
       try {
-        await authStore.logout()
-        router.push('/')
+        console.log('AdminLayout: Starting logout...')
+        
+        // Czekaj na zakończenie procesu wylogowywania
+        const success = await authStore.logout()
+        
+        if (success) {
+          console.log('AdminLayout: Logout successful, redirecting...')
+          // Poczekaj dłużej na zaktualizowanie stanu przed przekierowaniem
+          setTimeout(() => {
+            router.push('/')
+          }, 200)
+        }
       } catch (error) {
         console.error('Logout error:', error)
         alertStore.error('Wystąpił błąd podczas wylogowywania.')
+        // Mimo błędu, spróbuj przekierować (logout może się powieść lokalnie)
+        setTimeout(() => {
+          router.push('/')
+        }, 200)
       }
     }
     

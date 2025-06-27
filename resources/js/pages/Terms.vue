@@ -146,7 +146,7 @@ export default {
         
         const response = await axios.post('/api/terms-of-service/accept')
         
-        // Zaktualizuj dane użytkownika w store
+        // Update user data in store
         authStore.user.terms_of_service_accepted = true
         authStore.user.terms_of_service_accepted_at = new Date().toISOString()
         authStore.saveUserToLocalStorage()
