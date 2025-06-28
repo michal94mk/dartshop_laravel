@@ -53,9 +53,15 @@ class UserController extends BaseAdminController
             
             if ($request->has('verified') && $request->verified !== null) {
                 if ($request->verified == 1) {
-                    $query->whereNotNull('email_verified_at');
+                    // Verified: users with email_verified_at OR Google OAuth users
+                    $query->where(function($q) {
+                        $q->whereNotNull('email_verified_at')
+                          ->orWhereNotNull('google_id');
+                    });
                 } else if ($request->verified == 0) {
-                    $query->whereNull('email_verified_at');
+                    // Unverified: users without email_verified_at AND without Google OAuth
+                    $query->whereNull('email_verified_at')
+                          ->whereNull('google_id');
                 }
                 \Illuminate\Support\Facades\Log::info('After verified filter count: ' . $query->count());
             }
