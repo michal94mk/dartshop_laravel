@@ -58,6 +58,21 @@
             <option value="0">Niezweryfikowani</option>
           </select>
         </div>
+        
+        <div class="w-full sm:w-auto">
+          <label for="account_type" class="block text-sm font-medium text-gray-700">Typ konta</label>
+          <select
+            id="account_type"
+            name="account_type"
+            v-model="filters.account_type"
+            @change="fetchUsers"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="">Wszystkie typy</option>
+            <option value="local">Lokalne</option>
+            <option value="google">Google OAuth</option>
+          </select>
+        </div>
       </template>
     </search-filters>
 
@@ -81,8 +96,8 @@
                 <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
                   Status
                 </th>
-                <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                  Ostatnie logowanie
+                <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                  Typ konta
                 </th>
                 <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
                   Data utworzenia
@@ -103,7 +118,15 @@
                       </div>
                     </div>
                     <div class="ml-3">
-                      <div class="text-sm font-medium text-gray-900">{{ getDisplayName(item) }}</div>
+                      <div class="flex items-center space-x-2">
+                        <div class="text-sm font-medium text-gray-900">{{ getDisplayName(item) }}</div>
+                        <svg v-if="item.is_google_user" class="h-4 w-4 text-red-500 cursor-help" viewBox="0 0 24 24" :title="`Użytkownik zalogowany przez Google OAuth (ID: ${item.google_id})`">
+                          <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                          <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                          <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                          <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                      </div>
                       <div class="text-xs text-gray-500 truncate max-w-[180px]" :title="item.email">{{ item.email }}</div>
                     </div>
                   </div>
@@ -122,19 +145,21 @@
                 <!-- Status Column -->
                 <td class="px-3 py-4 text-center">
                   <admin-badge 
-                    :variant="item.email_verified_at ? 'green' : 'yellow'"
+                    :variant="(item.email_verified_at || item.is_google_user) ? 'green' : 'yellow'"
                     size="xs"
                   >
-                    {{ item.email_verified_at ? '✓' : '?' }}
+                    {{ (item.email_verified_at || item.is_google_user) ? '✓' : '?' }}
                   </admin-badge>
                 </td>
                 
-                <!-- Last Login Column -->
+                <!-- Account Type Column -->
                 <td class="px-3 py-4 text-center">
-                  <span v-if="item.last_login_at" class="text-xs text-gray-900">
-                    {{ formatDate(item.last_login_at) }}
-                  </span>
-                  <span v-else class="text-xs text-gray-400">Nigdy</span>
+                  <admin-badge 
+                    :variant="item.is_google_user ? 'red' : 'blue'"
+                    size="xs"
+                  >
+                    {{ item.is_google_user ? 'Google' : 'Lokalny' }}
+                  </admin-badge>
                 </td>
                 
                 <!-- Created At Column -->
@@ -146,9 +171,9 @@
                 <td class="px-4 py-4 text-right">
                   <div class="flex items-center justify-end space-x-2">
                     <admin-button
-                      v-if="!item.email_verified_at"
+                      v-if="!item.email_verified_at && !item.is_google_user"
                       variant="info"
-                      size="xs"
+                      size="sm"
                       @click="verifyUser(item)"
                       title="Zweryfikuj użytkownika"
                     >
@@ -185,7 +210,7 @@
   <!-- User Modal -->
   <admin-modal
     :show="showModal"
-    :title="currentUser.id ? 'Edytuj użytkownika' : 'Dodaj nowego użytkownika'"
+    :title="currentUser.id ? (currentUser.is_google_user ? 'Edytuj użytkownika Google OAuth' : 'Edytuj użytkownika') : 'Dodaj nowego użytkownika'"
     size="lg"
     @close="showModal = false"
   >
@@ -256,13 +281,20 @@
         </div>
         
         <div>
-          <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+          <label for="email" class="block text-sm font-medium text-gray-700">
+            Email
+            <span v-if="currentUser.is_google_user" class="text-xs text-blue-600">(zarządzany przez Google)</span>
+          </label>
           <input
             type="email"
             id="email"
             v-model="currentUser.email"
             required
-            class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+            :readonly="currentUser.is_google_user"
+            :class="[
+              'mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md',
+              currentUser.is_google_user ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''
+            ]"
           />
         </div>
         
@@ -278,7 +310,7 @@
           />
         </div>
         
-        <div v-if="currentUser.id">
+        <div v-if="currentUser.id && !currentUser.is_google_user">
           <label for="new_password" class="block text-sm font-medium text-gray-700">Nowe hasło (pozostaw puste, aby nie zmieniać)</label>
           <input
             type="password"
@@ -289,6 +321,24 @@
           />
         </div>
         
+        <!-- Google OAuth User Notice -->
+        <div v-if="currentUser.id && currentUser.is_google_user" class="p-4 bg-blue-50 border border-blue-200 rounded-md">
+          <div class="flex">
+            <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
+            <div class="ml-3">
+              <div class="text-sm text-blue-700">
+                <p class="font-medium mb-2">Użytkownik Google OAuth</p>
+                <div class="space-y-1">
+                  <p><span class="font-medium">Można edytować:</span> Imię, nazwisko, nazwa użytkownika, rola</p>
+                  <p><span class="font-medium">Zarządzane przez Google:</span> Email, hasło, status weryfikacji</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <div>
           <label class="block text-sm font-medium text-gray-700">Status</label>
           <div class="mt-2">
@@ -296,9 +346,16 @@
               <input 
                 type="checkbox" 
                 v-model="currentUser.verified" 
-                class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                :disabled="currentUser.is_google_user"
+                :class="[
+                  'focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded',
+                  currentUser.is_google_user ? 'opacity-50 cursor-not-allowed' : ''
+                ]"
               />
-              <span class="ml-2 text-sm text-gray-700">Email zweryfikowany</span>
+              <span class="ml-2 text-sm text-gray-700">
+                Email zweryfikowany
+                <span v-if="currentUser.is_google_user" class="text-xs text-blue-600">(automatycznie przez Google)</span>
+              </span>
             </label>
           </div>
         </div>
@@ -389,6 +446,62 @@
       </admin-button-group>
     </template>
   </admin-modal>
+
+  <!-- Force Delete confirmation modal -->
+  <admin-modal
+    :show="showForceDeleteModal"
+    title="Wymuś usunięcie użytkownika"
+    @close="showForceDeleteModal = false"
+  >
+    <div class="sm:flex sm:items-start">
+      <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+        <div class="mt-2">
+          <div v-if="userRelations" class="space-y-3">
+            <p class="text-sm text-gray-500">
+              Nie można usunąć użytkownika <strong>{{ userRelations.user_info?.name }}</strong> ponieważ ma powiązane dane:
+            </p>
+            
+            <div class="bg-gray-50 rounded-lg p-3">
+              <p class="text-sm font-medium text-gray-700 mb-2">Powiązane dane:</p>
+              <p class="text-sm text-gray-600">{{ userRelations.relations_text }}</p>
+            </div>
+            
+            <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p class="text-sm text-red-700">
+                <strong>Uwaga:</strong> Wymuszone usunięcie spowoduje:
+              </p>
+              <ul class="text-sm text-red-600 mt-1 list-disc list-inside space-y-1">
+                <li>Usunięcie wszystkich recenzji użytkownika</li>
+                <li>Usunięcie koszyka i ulubionych produktów</li>
+                <li>Usunięcie adresów dostawy</li>
+                <li>Usunięcie informacji o płatnościach</li>
+                <li>Zachowanie zamówień (ale bez powiązania z użytkownikiem)</li>
+              </ul>
+              <p class="text-sm text-red-700 mt-2 font-medium">
+                Ta operacja jest nieodwracalna!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <template #footer>
+      <admin-button-group justify="end" spacing="sm">
+        <admin-button @click="showForceDeleteModal = false" variant="secondary" outline>
+          Anuluj
+        </admin-button>
+        <admin-button @click="confirmDelete(true)" variant="danger">
+          Wymuś usunięcie
+        </admin-button>
+      </admin-button-group>
+    </template>
+  </admin-modal>
 </template>
 
 <script>
@@ -463,8 +576,7 @@ export default {
     const sortOptions = [
       { value: 'created_at', label: 'Data utworzenia' },
       { value: 'name', label: 'Nazwa użytkownika' },
-      { value: 'email', label: 'Email' },
-      { value: 'last_login_at', label: 'Ostatnie logowanie' }
+      { value: 'email', label: 'Email' }
     ]
     
     // Table columns definition
@@ -482,6 +594,7 @@ export default {
       search: '',
       role: '',
       verified: '',
+      account_type: '',
       sort_field: 'created_at',
       sort_direction: 'desc',
       page: 1
@@ -492,7 +605,9 @@ export default {
     // Modals
     const showModal = ref(false)
     const showDeleteModal = ref(false)
+    const showForceDeleteModal = ref(false)
     const userToDelete = ref(null)
+    const userRelations = ref(null)
     const activeTab = ref('details')
     const currentUser = ref({
       id: null,
@@ -515,6 +630,7 @@ export default {
           search: filters.search,
           role: filters.role,
           verified: filters.verified,
+          account_type: filters.account_type,
           sort_field: filters.sort_field,
           sort_direction: filters.sort_direction
         }
@@ -548,6 +664,7 @@ export default {
     
     const openModal = (user = null) => {
       if (user) {
+        const isGoogleUser = !!user.is_google_user
         currentUser.value = {
           id: user.id,
           name: user.name,
@@ -555,7 +672,8 @@ export default {
           last_name: user.last_name || '',
           email: user.email,
           role: user.role || 'user',
-          verified: !!user.email_verified_at,
+          verified: isGoogleUser ? true : !!user.email_verified_at, // Google users are always verified
+          is_google_user: isGoogleUser,
           password: ''
         }
       } else {
@@ -567,6 +685,7 @@ export default {
           email: '',
           role: 'user',
           verified: false,
+          is_google_user: false,
           password: ''
         }
       }
@@ -583,9 +702,13 @@ export default {
           name: currentUser.value.name,
           first_name: currentUser.value.first_name,
           last_name: currentUser.value.last_name,
-          email: currentUser.value.email,
-          role: currentUser.value.role,
-          verified: currentUser.value.verified
+          role: currentUser.value.role
+        }
+        
+        // Only include email for non-Google OAuth users (Google manages email)
+        if (!currentUser.value.is_google_user) {
+          userData.email = currentUser.value.email
+          userData.verified = currentUser.value.verified
         }
         
         if (currentUser.value.password) {
@@ -621,7 +744,7 @@ export default {
       showDeleteModal.value = true
     }
     
-    const confirmDelete = async () => {
+    const confirmDelete = async (forceDelete = false) => {
       try {
         loading.value = true
         
@@ -629,22 +752,47 @@ export default {
                       ? userToDelete.value.id 
                       : userToDelete.value
         
-        await axios.delete(`/api/admin/users/${userId}`)
-        alertStore.success('Użytkownik został usunięty.')
+        console.log('Deleting user:', userId, userToDelete.value, 'Force:', forceDelete)
+        
+        const url = forceDelete 
+          ? `/api/admin/users/${userId}/force`
+          : `/api/admin/users/${userId}`
+        
+        const response = await axios.delete(url)
+        console.log('Delete user response:', response.data)
+        
+        alertStore.success(forceDelete ? 'Użytkownik i wszystkie powiązane dane zostały usunięte.' : 'Użytkownik został usunięty.')
         showDeleteModal.value = false
-        fetchUsers()
+        showForceDeleteModal.value = false
+        await fetchUsers()
       } catch (error) {
         console.error('Error deleting user:', error)
-        if (error.response?.status === 422) {
-          if (error.response.data.message) {
-            alertStore.error(error.response.data.message)
-          } else {
-            alertStore.error('Nie można usunąć tego użytkownika.')
-          }
-        } else {
-          alertStore.error('Wystąpił błąd podczas usuwania użytkownika.')
+        console.error('Error response:', error.response?.data)
+        console.error('Error status:', error.response?.status)
+        
+        if (error.response?.status === 422 && error.response?.data?.relations && !forceDelete) {
+          // Show force delete modal with detailed information
+          userRelations.value = error.response.data
+          showDeleteModal.value = false
+          showForceDeleteModal.value = true
+          return
         }
+        
+        let errorMessage = 'Wystąpił błąd podczas usuwania użytkownika.'
+        
+        if (error.response?.status === 403) {
+          errorMessage = error.response.data.message || 'Brak uprawnień do usunięcia tego użytkownika.'
+        } else if (error.response?.status === 422) {
+          errorMessage = error.response.data.message || 'Nie można usunąć tego użytkownika.'
+        } else if (error.response?.status === 404) {
+          errorMessage = 'Użytkownik nie został znaleziony.'
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message
+        }
+        
+        alertStore.error(errorMessage)
         showDeleteModal.value = false
+        showForceDeleteModal.value = false
       } finally {
         loading.value = false
       }
@@ -652,12 +800,21 @@ export default {
     
     const verifyUser = async (user) => {
       try {
-        await axios.post(`/api/admin/users/${user.id}/verify`)
+        console.log('Verifying user:', user.id, user.email)
+        const response = await axios.post(`/api/admin/users/${user.id}/verify`)
+        console.log('Verify user response:', response.data)
         alertStore.success('Użytkownik został zweryfikowany.')
-        fetchUsers()
+        await fetchUsers()
+        console.log('Users refreshed after verification')
       } catch (error) {
         console.error('Error verifying user:', error)
-        alertStore.error('Wystąpił błąd podczas weryfikacji użytkownika.')
+        console.error('Error response:', error.response?.data)
+        if (error.response?.status === 400 && error.response?.data?.message?.includes('already verified')) {
+          alertStore.warning('Użytkownik jest już zweryfikowany.')
+          await fetchUsers() // Refresh anyway to update UI
+        } else {
+          alertStore.error('Wystąpił błąd podczas weryfikacji użytkownika: ' + (error.response?.data?.message || error.message))
+        }
       }
     }
     
@@ -693,7 +850,7 @@ export default {
     onMounted(() => {
       fetchUsers()
       // Get current user ID from authenticated user
-      // currentUserId.value = ... (implement based on your auth system)
+      currentUserId.value = authStore.user?.id || null
     })
     
     return {
@@ -705,6 +862,8 @@ export default {
       tableColumns,
       showModal,
       showDeleteModal,
+      showForceDeleteModal,
+      userRelations,
       currentUser,
       activeTab,
       submitting,

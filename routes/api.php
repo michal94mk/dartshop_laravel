@@ -243,6 +243,8 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     
     // Users management
     Route::apiResource('/users', UserController::class);
+    Route::post('/users/{id}/verify', [UserController::class, 'verify']);
+    Route::delete('/users/{id}/force', [UserController::class, 'forceDestroy']);
     
     // Promotions management
     Route::apiResource('/promotions', PromotionController::class);
