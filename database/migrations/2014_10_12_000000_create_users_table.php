@@ -21,31 +21,24 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->boolean('is_admin')->default(false);
+            $table->string('google_id')->nullable()->unique();
+            $table->string('avatar')->nullable();
             $table->boolean('privacy_policy_accepted')->default(false);
+            $table->timestamp('privacy_policy_accepted_at')->nullable();
             $table->boolean('terms_of_service_accepted')->default(false);
+            $table->timestamp('terms_of_service_accepted_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
 
-        // Password resets table
-        Schema::create('password_resets', function (Blueprint $table) {
+        // Password reset tokens table
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
 
-        // Failed jobs table
-        Schema::create('failed_jobs', function (Blueprint $table) {
-            $table->id();
-            $table->string('uuid')->unique();
-            $table->text('connection');
-            $table->text('queue');
-            $table->longText('payload');
-            $table->longText('exception');
-            $table->timestamp('failed_at')->useCurrent();
-        });
-
-        // Personal access tokens table
+        // Personal access tokens table for Sanctum
         Schema::create('personal_access_tokens', function (Blueprint $table) {
             $table->id();
             $table->morphs('tokenable');
@@ -64,8 +57,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('personal_access_tokens');
-        Schema::dropIfExists('failed_jobs');
-        Schema::dropIfExists('password_resets');
+        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('users');
     }
-};
+}; 

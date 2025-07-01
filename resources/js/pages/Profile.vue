@@ -636,6 +636,7 @@ import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 import { useFavoriteStore } from '../stores/favoriteStore';
+import { useAlertStore } from '../stores/alertStore';
 import axios from 'axios';
 
 export default {
@@ -671,6 +672,7 @@ export default {
     const router = useRouter();
     const authStore = useAuthStore();
     const favoriteStore = useFavoriteStore();
+    const alertStore = useAlertStore();
     
     // Fetch data when tab changes
     watch(activeTab, (newTab) => {
@@ -682,6 +684,30 @@ export default {
         fetchReviews();
       }
     });
+    
+    const handleVerificationStatus = () => {
+      const verified = router.currentRoute.value.query.verified;
+      
+      // If user is not logged in but has verification status, redirect to login with parameters
+      if (verified && !authStore.isLoggedIn) {
+        console.log('User not logged in, redirecting to login with verification status');
+        router.push(`/login?redirect=/profile&verified=${verified}`);
+        return;
+      }
+      
+      if (verified === 'success') {
+        alertStore.success('🎉 Email został pomyślnie zweryfikowany!', 4000);
+        authStore.refreshUser();
+        // Remove the query parameter from URL
+        router.replace({ query: {} });
+      } else if (verified === 'already') {
+        alertStore.info('ℹ️ Twój email jest już zweryfikowany.', 3000);
+        router.replace({ query: {} });
+      } else if (verified === 'invalid') {
+        alertStore.error('❌ Link weryfikacyjny jest nieprawidłowy lub wygasł. Spróbuj ponownie.', 5000);
+        router.replace({ query: {} });
+      }
+    };
     
     onMounted(async () => {
       // Initialize auth state ONLY if it hasn't been initialized yet
@@ -699,6 +725,9 @@ export default {
       
       // Initialize the favorite store
       favoriteStore.initializeFavorites();
+      
+      // Handle email verification status
+      handleVerificationStatus();
     });
     
     // Profile tab methods
@@ -706,11 +735,21 @@ export default {
       isLoggingOut.value = true;
       
       try {
+        // Show logout message immediately
+        alertStore.success('👋 Do zobaczenia! Zostałeś pomyślnie wylogowany.', 5000);
+        
+        // Small delay to show message
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         const success = await authStore.logout();
         
         if (success) {
+          // Navigate to home
           router.push('/');
         }
+      } catch (error) {
+        console.error('Logout error:', error);
+        alertStore.error('Wystąpił błąd podczas wylogowywania.');
       } finally {
         isLoggingOut.value = false;
       }

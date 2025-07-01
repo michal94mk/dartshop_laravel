@@ -8,13 +8,13 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use App\Models\NewsletterSubscription;
+use App\Models\ContactMessage;
 
-class NewsletterWelcomeMail extends Mailable implements ShouldQueue
+class ContactMessageNotification extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public $subscription;
+    public $contactMessage;
     
     /**
      * The number of times the job may be attempted.
@@ -29,9 +29,9 @@ class NewsletterWelcomeMail extends Mailable implements ShouldQueue
     /**
      * Create a new message instance.
      */
-    public function __construct(NewsletterSubscription $subscription)
+    public function __construct(ContactMessage $contactMessage)
     {
-        $this->subscription = $subscription;
+        $this->contactMessage = $contactMessage;
         
         // Set queue name for email jobs
         $this->onQueue('emails');
@@ -44,7 +44,7 @@ class NewsletterWelcomeMail extends Mailable implements ShouldQueue
     {
         return new Envelope(
             from: config('mail.from.address', 'hello@dartshop.pl'),
-            subject: '🎯 Witaj w społeczności DartShop!',
+            subject: '[DartShop] New Contact Message: ' . $this->contactMessage->subject,
         );
     }
 
@@ -54,9 +54,9 @@ class NewsletterWelcomeMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.newsletter-welcome',
+            markdown: 'emails.contact-message',
             with: [
-                'subscription' => $this->subscription,
+                'contactMessage' => $this->contactMessage,
                 'appName' => config('app.name', 'DartShop')
             ]
         );

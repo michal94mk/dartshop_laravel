@@ -441,6 +441,14 @@
                     @favorite-removed="handleFavoriteRemoved"
                   />
                 </div>
+                
+                <!-- Local success message for cart -->
+                <transition name="success-fade">
+                  <div v-if="hasCartSuccessMessage(product.id)" class="mb-3 bg-green-50 border border-green-200 rounded-lg p-2 text-center">
+                    <p class="text-green-700 text-xs font-medium">🛒 Dodano do koszyka!</p>
+                  </div>
+                </transition>
+                
                 <div class="space-y-2">
                   <button 
                     @click="addToCart(product)"
@@ -551,6 +559,7 @@ import { useCategoryStore } from '../stores/categoryStore';
 import FavoriteButton from '../components/ui/FavoriteButton.vue';
 import StarRating from '../components/ui/StarRating.vue';
 import { useToast } from 'vue-toastification';
+import { useAlertStore } from '../stores/alertStore';
 import axios from 'axios';
 
 export default {
@@ -567,9 +576,11 @@ export default {
     const favoriteStore = useFavoriteStore();
     const categoryStore = useCategoryStore();
     const toast = useToast();
+    const alertStore = useAlertStore();
     const priceRange = ref([null, null]);
     const cartLoading = ref(false);
     const selectedCategory = ref(null);
+    const cartSuccessMessages = ref({}); // Object to track success messages per product
     
     // Define loadProducts function first
     const loadProducts = async () => {
@@ -710,38 +721,16 @@ export default {
       try {
         const success = await cartStore.addToCart(product.id, 1);
         if (success) {
-          toast.success(`🛒 Dodano do koszyka: "${product.name}"`, {
-            position: "top-center",
-            timeout: 4000,
-            closeOnClick: true,
-            pauseOnFocusLoss: true,
-            pauseOnHover: true,
-            draggable: true,
-            showCloseButtonOnHover: false,
-            hideProgressBar: false,
-            toastClassName: "cart-success-toast",
-            bodyClassName: "cart-success-body",
-            progressClassName: "cart-success-progress"
-          });
+          // Show local success message for this specific product
+          cartSuccessMessages.value[product.id] = true;
+          setTimeout(() => {
+            delete cartSuccessMessages.value[product.id];
+          }, 2000);
         } else {
-          toast.error('❌ Nie udało się dodać produktu do koszyka', {
-            position: "top-center",
-            timeout: 5000,
-            closeOnClick: true,
-            pauseOnHover: true,
-            toastClassName: "cart-error-toast",
-            bodyClassName: "cart-error-body"
-          });
+          alertStore.error('😞 Ups! Nie udało się dodać produktu do koszyka. Spróbuj ponownie!', 5000)
         }
       } catch (error) {
-        toast.error('⚠️ Wystąpił błąd podczas dodawania produktu do koszyka', {
-          position: "top-center",
-          timeout: 5000,
-          closeOnClick: true,
-          pauseOnHover: true,
-          toastClassName: "cart-error-toast",
-          bodyClassName: "cart-error-body"
-        });
+        alertStore.error('😞 Wystąpił błąd podczas dodawania produktu. Spróbuj ponownie!', 5000)
         console.error('Error adding product to cart:', error);
       } finally {
         cartLoading.value = false;
@@ -763,27 +752,11 @@ export default {
     };
 
     const handleFavoriteAdded = (product) => {
-      toast.success(`💖 Dodano do ulubionych: "${product.name}"`, {
-        position: "top-center",
-        timeout: 3500,
-        closeOnClick: true,
-        pauseOnHover: true,
-        toastClassName: "favorite-success-toast",
-        bodyClassName: "favorite-success-body",
-        progressClassName: "favorite-success-progress"
-      });
+      alertStore.success(`😍 Udało się! "${product.name}" jest teraz w Twoich ulubionych!`, 3500)
     };
     
     const handleFavoriteRemoved = (product) => {
-      toast.info(`💔 Usunięto z ulubionych: "${product.name}"`, {
-        position: "top-center",
-        timeout: 3000,
-        closeOnClick: true,
-        pauseOnHover: true,
-        toastClassName: "favorite-info-toast",
-        bodyClassName: "favorite-info-body",
-        progressClassName: "favorite-info-progress"
-      });
+      alertStore.info(`💭 Produkt "${product.name}" został usunięty z ulubionych.`, 3000)
     };
 
     const clearSearch = () => {
@@ -852,6 +825,10 @@ export default {
       applyPriceFilter();
     };
 
+    const hasCartSuccessMessage = (productId) => {
+      return cartSuccessMessages.value[productId] || false;
+    };
+
     return {
       productStore,
       priceRange,
@@ -877,7 +854,9 @@ export default {
       getCategoryName,
       selectedCategory,
       categoryStore,
-      setQuickPriceFilter
+      setQuickPriceFilter,
+      cartSuccessMessages,
+      hasCartSuccessMessage
     };
   }
 }
@@ -886,5 +865,21 @@ export default {
 <style scoped>
 .pb-7\/12 {
   padding-bottom: 58.333333%;
+}
+
+/* Success message animation */
+.success-fade-enter-active,
+.success-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.success-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+.success-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-5px) scale(0.95);
 }
 </style> 

@@ -12,7 +12,6 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use Faker\Factory as Faker;
 use Carbon\Carbon;
 
 class OrderSeeder extends Seeder
@@ -22,7 +21,14 @@ class OrderSeeder extends Seeder
      */
     public function run(): void
     {
-        $faker = Faker::create('pl_PL');
+        // Sample data instead of faker
+        $firstNames = ['Jan', 'Anna', 'Piotr', 'Maria', 'Tomasz', 'Katarzyna', 'Michał', 'Joanna'];
+        $lastNames = ['Kowalski', 'Nowak', 'Wiśniewski', 'Wójcik', 'Kowalczyk', 'Kamińska', 'Lewandowski', 'Zielińska'];
+        $emails = ['jan@email.com', 'anna@email.com', 'piotr@email.com', 'maria@email.com', 'tomasz@email.com', 'katarzyna@email.com', 'michal@email.com', 'joanna@email.com'];
+        $phones = ['123-456-789', '987-654-321', '555-123-456', '111-222-333', '444-555-666', '777-888-999', '123-987-456', '654-321-987'];
+        $addresses = ['ul. Główna 1', 'ul. Polna 5', 'ul. Słoneczna 10', 'ul. Krótka 3', 'ul. Długa 7', 'ul. Nowa 2', 'ul. Stara 8', 'ul. Miła 4'];
+        $cities = ['Warszawa', 'Kraków', 'Gdańsk', 'Wrocław', 'Poznań', 'Łódź', 'Katowice', 'Lublin'];
+        $postalCodes = ['00-001', '30-001', '80-001', '50-001', '60-001', '90-001', '40-001', '20-001'];
         
         // Get users and products
         $users = User::where('is_admin', false)->get();
@@ -34,7 +40,12 @@ class OrderSeeder extends Seeder
         }
         
         // Order statuses
-        $statuses = ['pending', 'processing', 'completed', 'cancelled'];
+        $statuses = [
+            OrderStatus::PENDING->value,
+            OrderStatus::PROCESSING->value, 
+            OrderStatus::COMPLETED->value,
+            OrderStatus::CANCELLED->value
+        ];
         $paymentMethods = ['credit_card', 'paypal', 'bank_transfer', 'blik'];
         
         // Create 20-30 orders
@@ -45,7 +56,7 @@ class OrderSeeder extends Seeder
             $status = $statuses[array_rand($statuses)];
             
             // Create date in the past 6 months
-            $orderDate = $faker->dateTimeBetween('-6 months', 'now');
+            $orderDate = now()->subDays(rand(1, 180));
             
             // Calculate totals
             $subtotal = 0;
@@ -55,17 +66,17 @@ class OrderSeeder extends Seeder
             // Create order
             $order = Order::create([
                 'user_id' => $user->id,
-                'order_number' => 'ORD-' . Carbon::parse($orderDate)->format('Ymd') . '-' . strtoupper(Str::random(5)),
+                'order_number' => 'ORD-' . $orderDate->format('Ymd') . '-' . strtoupper(Str::random(5)),
                 'status' => $status,
-                'first_name' => $faker->firstName,
-                'last_name' => $faker->lastName,
-                'email' => $faker->email,
-                'phone' => $faker->phoneNumber,
-                'address' => $faker->streetAddress,
-                'city' => $faker->city,
-                'postal_code' => $faker->postcode,
+                'first_name' => $firstNames[array_rand($firstNames)],
+                'last_name' => $lastNames[array_rand($lastNames)],
+                'email' => $emails[array_rand($emails)],
+                'phone' => $phones[array_rand($phones)],
+                'address' => $addresses[array_rand($addresses)],
+                'city' => $cities[array_rand($cities)],
+                'postal_code' => $postalCodes[array_rand($postalCodes)],
                 'country' => 'Polska',
-                'notes' => rand(0, 1) ? $faker->sentence : null,
+                'notes' => rand(0, 1) ? 'Dodatkowe uwagi do zamówienia' : null,
                 'subtotal' => 0, // Will update after adding items
                 'shipping_cost' => $shippingCost,
                 'discount' => $discount,
@@ -91,8 +102,8 @@ class OrderSeeder extends Seeder
                     'product_id' => $product->id,
                     'product_name' => $product->name,
                     'quantity' => $quantity,
-                    'price' => $price,
-                    'total' => $total,
+                    'product_price' => $price,
+                    'total_price' => $total,
                     'created_at' => $orderDate,
                     'updated_at' => $orderDate
                 ]);
@@ -108,18 +119,17 @@ class OrderSeeder extends Seeder
             ]);
             
             // Create payment for the order
-            if ($status !== 'pending') {
-                $paymentStatus = ($status == 'completed') ? PaymentStatus::COMPLETED->value : 
-                                 ($status == 'cancelled' ? PaymentStatus::FAILED->value : PaymentStatus::PENDING->value);
+            if ($status !== OrderStatus::PENDING->value) {
+                $paymentStatus = ($status == OrderStatus::COMPLETED->value) ? PaymentStatus::COMPLETED->value : 
+                                 ($status == OrderStatus::CANCELLED->value ? PaymentStatus::FAILED->value : PaymentStatus::PENDING->value);
                 
                 Payment::create([
                     'order_id' => $order->id,
-                    'user_id' => $user->id,
                     'payment_method' => $order->payment_method,
+                    'payment_status' => $paymentStatus,
                     'transaction_id' => strtoupper(Str::random(10)),
                     'amount' => $total,
-                    'status' => $paymentStatus,
-                    'notes' => rand(0, 1) ? $faker->sentence : null,
+                    'currency' => 'PLN',
                     'created_at' => $orderDate,
                     'updated_at' => $orderDate
                 ]);

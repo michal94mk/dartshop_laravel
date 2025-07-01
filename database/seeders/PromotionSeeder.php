@@ -14,20 +14,20 @@ class PromotionSeeder extends Seeder
      */
     public function run(): void
     {
-        // Pobierz wszystkie produkty
+        // Get all products
         $products = Product::all();
         
         if ($products->count() < 5) {
-            $this->command->info('Potrzeba co najmniej 5 produktów w bazie danych');
+            $this->command->info('Need at least 5 products in database');
             return;
         }
 
-        // Promocja 1: Wielka Wyprzedaż Dart
+        // Promotion 1: Big Dart Sale
         $promotion1 = Promotion::create([
-            'title' => 'Wielka Wyprzedaż Dart',
-            'name' => 'wielka_wyprzedaz_dart',
+            'title' => 'Big Dart Sale',
+            'name' => 'big_dart_sale',
             'code' => 'DART25',
-            'description' => 'Najlepsze produkty do dart w promocyjnych cenach! Nie przegap okazji na profesjonalny sprzęt.',
+            'description' => 'Best dart products at promotional prices! Don\'t miss out on professional equipment.',
             'discount_type' => 'percentage',
             'discount_value' => 25,
             'starts_at' => now(),
@@ -35,12 +35,12 @@ class PromotionSeeder extends Seeder
             'is_active' => true
         ]);
 
-        // Promocja 2: Wyprzedaż Końca Miesiąca
+        // Promotion 2: End of Month Sale
         $promotion2 = Promotion::create([
-            'title' => 'Wyprzedaż Końca Miesiąca',
-            'name' => 'wyprzedaz_konca_miesiaca',
+            'title' => 'End of Month Sale',
+            'name' => 'end_of_month_sale',
             'code' => 'MONTH50',
-            'description' => 'Ostatnia szansa na zakup w niskich cenach! Wybrane produkty z rabatem.',
+            'description' => 'Last chance to buy at low prices! Selected products with discount.',
             'discount_type' => 'fixed',
             'discount_value' => 50,
             'starts_at' => now(),
@@ -48,12 +48,12 @@ class PromotionSeeder extends Seeder
             'is_active' => true
         ]);
 
-        // Promocja 3: Nowości w Promocji
+        // Promotion 3: New Products Sale
         $promotion3 = Promotion::create([
-            'title' => 'Nowości w Promocji',
-            'name' => 'nowosci_w_promocji',
+            'title' => 'New Products Sale',
+            'name' => 'new_products_sale',
             'code' => 'NEW15',
-            'description' => 'Najnowsze produkty w naszej ofercie już dostępne w promocyjnych cenach!',
+            'description' => 'Newest products in our offer now available at promotional prices!',
             'discount_type' => 'percentage',
             'discount_value' => 15,
             'starts_at' => now(),
@@ -61,6 +61,6 @@ class PromotionSeeder extends Seeder
             'is_active' => true
         ]);
 
-        $this->command->info('Utworzono 3 przykładowe promocje');
+        $this->command->info('Created 3 sample promotions');
     }
 }

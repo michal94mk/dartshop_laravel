@@ -9,11 +9,14 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Auth\Events\Registered;
 
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
+
+
 
     /**
      * The attributes that are mass assignable.
@@ -155,5 +158,21 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getIsGoogleUserAttribute()
     {
         return !empty($this->google_id);
+    }
+
+    /**
+     * Send the email verification notification (queued).
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new \App\Notifications\QueuedEmailVerificationNotification);
+    }
+
+    /**
+     * Send the password reset notification (queued).
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\QueuedResetPasswordNotification($token));
     }
 }

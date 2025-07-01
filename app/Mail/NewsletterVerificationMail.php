@@ -10,12 +10,22 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use App\Models\NewsletterSubscription;
 
-class NewsletterVerificationMail extends Mailable
+class NewsletterVerificationMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     public $subscription;
     public $verificationUrl;
+    
+    /**
+     * The number of times the job may be attempted.
+     */
+    public $tries = 3;
+
+    /**
+     * The number of seconds the job can run before timing out.
+     */
+    public $timeout = 120;
 
     /**
      * Create a new message instance.
@@ -24,6 +34,9 @@ class NewsletterVerificationMail extends Mailable
     {
         $this->subscription = $subscription;
         $this->verificationUrl = $verificationUrl;
+        
+        // Set queue name for email jobs
+        $this->onQueue('emails');
     }
 
     /**

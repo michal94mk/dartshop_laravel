@@ -124,9 +124,12 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
 
-// Email Verification API
+// Email Verification API - use web middleware for session sharing
+Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+    ->middleware(['web', 'signed', 'throttle:6,1'])
+    ->name('api.verification.verify');
+
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/email/verify/{id}', [EmailVerificationController::class, 'verify'])->name('api.verification.verify');
     Route::post('/email/verification-notification', [EmailVerificationController::class, 'sendVerificationEmail']);
 });
 

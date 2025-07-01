@@ -194,7 +194,7 @@
               </div>
             </template>
             
-            <!-- Fallback products if API fails -->
+                            <!-- Fallback products if API fails -->
             <template v-else>
               <div v-for="product in fallbackProducts" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
                 <div class="relative h-4/5 overflow-hidden">
@@ -261,6 +261,14 @@
                         @favorite-removed="handleFavoriteRemoved"
                       />
                     </div>
+                    
+                    <!-- Local success message for cart -->
+                    <transition name="success-fade">
+                      <div v-if="hasCartSuccessMessage(product.id)" class="mb-3 bg-green-50 border border-green-200 rounded-lg p-2 text-center">
+                        <p class="text-green-700 text-xs font-medium">🛒 Dodano do koszyka!</p>
+                      </div>
+                    </transition>
+                    
                     <div class="space-y-2">
                       <button 
                         @click="addToCart(product)"
@@ -457,6 +465,7 @@ import { useProductStore } from '../stores/productStore';
 import { useCartStore } from '../stores/cartStore';
 import { useFavoriteStore } from '../stores/favoriteStore';
 import { useCategoryStore } from '../stores/categoryStore';
+import { useAlertStore } from '../stores/alertStore';
 import FavoriteButton from '../components/ui/FavoriteButton.vue';
 import StarRating from '../components/ui/StarRating.vue';
 import { useToast } from 'vue-toastification';
@@ -501,7 +510,8 @@ export default {
         }
       ],
       cartLoading: false,
-      showScrollButton: false
+      showScrollButton: false,
+      cartSuccessMessages: {} // Track success messages per product
     }
   },
   computed: {
@@ -516,9 +526,12 @@ export default {
     this.favoriteStore = useFavoriteStore();
     this.categoryStore = useCategoryStore();
     this.toast = useToast();
+    this.alertStore = useAlertStore();
     this.reviewStore = useReviewStore();
   },
   async mounted() {
+    console.log('Home.vue mounted');
+
     // Load categories first
     try {
       await this.categoryStore.fetchCategories();
@@ -537,6 +550,7 @@ export default {
     };
     window.addEventListener('scroll', this.handleScroll);
   },
+  
   methods: {
     loadLatestProducts() {
       this.productStore.fetchLatestProducts();
@@ -560,38 +574,16 @@ export default {
       try {
         const success = await this.cartStore.addToCart(product.id);
         if (success) {
-          this.toast.success(`🛒 Dodano do koszyka: "${product.name}"`, {
-            position: "top-center",
-            timeout: 4000,
-            closeOnClick: true,
-            pauseOnFocusLoss: true,
-            pauseOnHover: true,
-            draggable: true,
-            showCloseButtonOnHover: false,
-            hideProgressBar: false,
-            toastClassName: "cart-success-toast",
-            bodyClassName: "cart-success-body",
-            progressClassName: "cart-success-progress"
-          });
+          // Show local success message for this specific product
+          this.$set(this.cartSuccessMessages, product.id, true);
+          setTimeout(() => {
+            this.$delete(this.cartSuccessMessages, product.id);
+          }, 2000);
         } else {
-          this.toast.error('❌ Nie udało się dodać produktu do koszyka', {
-            position: "top-center",
-            timeout: 5000,
-            closeOnClick: true,
-            pauseOnHover: true,
-            toastClassName: "cart-error-toast",
-            bodyClassName: "cart-error-body"
-          });
+          this.alertStore.error('😞 Ups! Nie udało się dodać produktu do koszyka. Spróbuj ponownie!', 5000)
         }
       } catch (error) {
-        this.toast.error('⚠️ Wystąpił błąd podczas dodawania produktu do koszyka', {
-          position: "top-center",
-          timeout: 5000,
-          closeOnClick: true,
-          pauseOnHover: true,
-          toastClassName: "cart-error-toast",
-          bodyClassName: "cart-error-body"
-        });
+        this.alertStore.error('😞 Wystąpił błąd podczas dodawania produktu. Spróbuj ponownie!', 5000)
         console.error('Error adding product to cart:', error);
       } finally {
         this.cartLoading = false;
@@ -604,26 +596,10 @@ export default {
       return this.favoriteStore.isInFavorites(productId);
     },
     handleFavoriteAdded(product) {
-      this.toast.success(`💖 Dodano do ulubionych: "${product.name}"`, {
-        position: "top-center",
-        timeout: 3500,
-        closeOnClick: true,
-        pauseOnHover: true,
-        toastClassName: "favorite-success-toast",
-        bodyClassName: "favorite-success-body",
-        progressClassName: "favorite-success-progress"
-      });
+      this.alertStore.success(`😍 Udało się! "${product.name}" jest teraz w Twoich ulubionych!`, 3500)
     },
     handleFavoriteRemoved(product) {
-      this.toast.info(`💔 Usunięto z ulubionych: "${product.name}"`, {
-        position: "top-center",
-        timeout: 3000,
-        closeOnClick: true,
-        pauseOnHover: true,
-        toastClassName: "favorite-info-toast",
-        bodyClassName: "favorite-info-body",
-        progressClassName: "favorite-info-progress"
-      });
+      this.alertStore.info(`💭 Produkt "${product.name}" został usunięty z ulubionych.`, 3000)
     },
     // Promotion helper functions
     hasPromotion(product) {
@@ -665,6 +641,9 @@ export default {
     },
     scrollToTop() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    hasCartSuccessMessage(productId) {
+      return this.cartSuccessMessages[productId] || false;
     }
   },
   beforeUnmount() {
@@ -705,5 +684,21 @@ export default {
 .scroll-to-top:hover {
   backdrop-filter: blur(15px);
   box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.5);
+}
+
+/* Success message animation */
+.success-fade-enter-active,
+.success-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.success-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+.success-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-5px) scale(0.95);
 }
 </style>

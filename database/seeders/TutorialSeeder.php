@@ -12,7 +12,7 @@ class TutorialSeeder extends Seeder
      */
     public function run(): void
     {
-        // Usuwamy wszystkie istniejące poradniki przed dodaniem nowych
+        // Clear existing tutorials
         Tutorial::truncate();
 
         $tutorials = [

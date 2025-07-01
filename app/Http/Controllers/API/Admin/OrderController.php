@@ -6,6 +6,7 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class OrderController extends BaseAdminController
@@ -210,8 +211,8 @@ class OrderController extends BaseAdminController
                     'product_id' => $item['product_id'],
                     'product_name' => isset($item['product_name']) ? $item['product_name'] : null,
                     'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'total' => $item['price'] * $item['quantity'],
+                    'product_price' => $item['price'],
+                    'total_price' => $item['price'] * $item['quantity'],
                 ]);
             }
 
@@ -320,14 +321,14 @@ class OrderController extends BaseAdminController
                         'product_id' => $item['product_id'],
                         'product_name' => isset($item['product_name']) ? $item['product_name'] : null,
                         'quantity' => $item['quantity'],
-                        'price' => $item['price'],
-                        'total' => $item['price'] * $item['quantity'],
+                        'product_price' => $item['price'],
+                        'total_price' => $item['price'] * $item['quantity'],
                     ]);
                 }
                 
                 // Recalculate order total
                 if ($request->has('shipping_cost')) {
-                    $subtotal = $order->items()->sum('total');
+                    $subtotal = $order->items()->sum('total_price');
                     $shipping_cost = $request->input('shipping_cost');
                     
                     $order->update([
@@ -375,12 +376,18 @@ class OrderController extends BaseAdminController
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
+            $oldStatus = $order->status;
             $order->status = $request->status;
             $order->save();
 
             // Send email notification if requested
             if ($request->notify_customer) {
-                // Send email (to be implemented)
+                Mail::to($order->email)->queue(new \App\Mail\OrderStatusChangedMail(
+                    $order, 
+                    $oldStatus, 
+                    $request->status, 
+                    $request->note
+                ));
             }
 
             return $this->successResponse('Order status updated successfully', $order);

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\NewsletterVerificationMail;
+use App\Mail\NewsletterWelcomeMail;
 
 class NewsletterController extends Controller
 {
@@ -130,6 +131,9 @@ class NewsletterController extends Controller
 
         $subscription->markAsVerified();
 
+        // Send welcome email
+        Mail::to($subscription->email)->queue(new NewsletterWelcomeMail($subscription));
+
         return response()->json([
             'success' => true,
             'message' => 'Twój adres email został pomyślnie zweryfikowany! Dziękujemy za zapisanie się do newslettera.'
@@ -206,7 +210,10 @@ class NewsletterController extends Controller
     }
 
     /**
-     * Send verification email
+     * Send verification email via queued job
+     * 
+     * NOTE: W środowisku produkcyjnym zalecane jest uwierzytelnienie własnej domeny
+     * w Brevo dla lepszej dostarczalności maili (SPF/DKIM/DMARC compliance)
      */
     private function sendVerificationEmail(NewsletterSubscription $subscription, string $token): void
     {
@@ -217,8 +224,8 @@ class NewsletterController extends Controller
             Log::info("Sending newsletter verification email to: {$subscription->email}");
             Log::info("Verification URL: {$verificationUrl}");
 
-            // Send actual email using Laravel Mail
-            Mail::to($subscription->email)->send(new NewsletterVerificationMail($subscription, $verificationUrl));
+            // Send actual email using Laravel Mail with queue
+            Mail::to($subscription->email)->queue(new NewsletterVerificationMail($subscription, $verificationUrl));
             
             Log::info("Newsletter verification email sent successfully to: {$subscription->email}");
             

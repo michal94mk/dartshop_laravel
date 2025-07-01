@@ -31,7 +31,9 @@ class Tutorial extends Model
      */
     protected $casts = [
         'is_published' => 'boolean',
-        'order' => 'integer'
+        'order' => 'integer',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
     ];
 
     /**

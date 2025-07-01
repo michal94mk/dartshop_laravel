@@ -25,6 +25,7 @@ import ResetPassword from '../pages/ResetPassword.vue';
 import VerifyEmail from '../pages/VerifyEmail.vue';
 import NewsletterVerification from '../pages/NewsletterVerification.vue';
 import GoogleCallback from '../pages/GoogleCallback.vue';
+import AutoLogin from '../pages/AutoLogin.vue';
 // Import admin components
 import AdminLayout from '../components/layouts/AdminLayout.vue';
 import AdminDashboard from '../pages/admin/Dashboard.vue';
@@ -215,6 +216,15 @@ const routes = [
     }
   },
   {
+    path: '/email/verify/:id/:hash',
+    name: 'verify-email-with-hash',
+    component: VerifyEmail,
+    props: true,
+    meta: {
+      layout: 'default'
+    }
+  },
+  {
     path: '/newsletter/verify',
     name: 'newsletter-verify',
     component: NewsletterVerification,
@@ -226,6 +236,14 @@ const routes = [
     path: '/auth/google/callback',
     name: 'google-callback',
     component: GoogleCallback,
+    meta: {
+      layout: 'default'
+    }
+  },
+  {
+    path: '/auth/auto-login',
+    name: 'auto-login',
+    component: AutoLogin,
     meta: {
       layout: 'default'
     }
@@ -340,7 +358,8 @@ const router = createRouter({
 
 // Debug router navigation and prevent duplicate navigation
 router.beforeEach(async (to, from, next) => {
-  console.log(`Router navigating from ${from.path} to ${to.path}`);
+  console.log(`=== Router Guard: ${from.path} -> ${to.path} ===`);
+  console.log('Query params:', to.query);
   
   const authStore = useAuthStore();
   
@@ -351,6 +370,14 @@ router.beforeEach(async (to, from, next) => {
     return;
   }
   
+  // Log current auth state
+  console.log('Current auth state:', {
+    isLoggedIn: authStore.isLoggedIn,
+    authInitialized: authStore.authInitialized,
+    user: authStore.user?.email || 'no user',
+    hasLocalStorage: !!localStorage.getItem('user')
+  });
+  
   // Always wait for auth state initialization before making redirect decisions
   let authInitialized = false;
   if (!authStore.authInitialized) {
@@ -358,7 +385,10 @@ router.beforeEach(async (to, from, next) => {
     try {
       await authStore.initAuth();
       authInitialized = true;
-      console.log('Auth initialized successfully:', authStore.isLoggedIn ? 'User is logged in' : 'User is not logged in');
+      console.log('Auth initialized successfully:', {
+        isLoggedIn: authStore.isLoggedIn,
+        user: authStore.user?.email || 'no user'
+      });
     } catch (error) {
       console.error('Failed to initialize auth:', error);
     }
@@ -369,8 +399,34 @@ router.beforeEach(async (to, from, next) => {
   
   // Check if route requires authorization
   if (to.matched.some(record => record.meta.requiresAuth)) {
+    console.log('Route requires auth, checking login status...');
+    
     // Check if user is logged in
     if (!authStore.isLoggedIn) {
+      console.log('User is NOT logged in, checking special cases...');
+      
+      // Special handling for email verification success
+      if (to.path === '/profile' && to.query.verified === 'success') {
+        console.log('Email verification success detected, trying to refresh auth...');
+        
+        // Try to refresh auth one more time
+        try {
+          await authStore.refreshUser();
+          console.log('Auth refreshed after email verification:', {
+            isLoggedIn: authStore.isLoggedIn,
+            user: authStore.user?.email || 'no user'
+          });
+          
+          if (authStore.isLoggedIn) {
+            console.log('User is now logged in after refresh, proceeding to profile');
+            next();
+            return;
+          }
+        } catch (error) {
+          console.error('Failed to refresh auth after email verification:', error);
+        }
+      }
+      
       // Special check: if coming from Google Callback, wait for auth
       if (from.name === 'google-callback') {
         console.log('Coming from Google Callback, waiting for auth state...');
@@ -396,7 +452,9 @@ router.beforeEach(async (to, from, next) => {
         return;
       }
       
-      console.log('Route requires auth but user is not logged in, redirecting to login');
+      console.log('No special cases, redirecting to login');
+      console.log('Redirect URL will be:', to.fullPath);
+      
       // Redirect to login page
       next({
         path: '/login',
@@ -405,11 +463,13 @@ router.beforeEach(async (to, from, next) => {
       return;
     }
     
+    console.log('User IS logged in, checking admin permissions...');
+    
     // Check if route requires admin permissions
     if (to.matched.some(record => record.meta.requiresAdmin)) {
       if (!authStore.isAdmin) {
         console.log('Route requires admin but user is not admin, redirecting to home');
-                  // Redirect to home page if user is not admin
+        // Redirect to home page if user is not admin
         next({ path: '/' });
         return;
       } else {
@@ -431,7 +491,7 @@ router.beforeEach(async (to, from, next) => {
     next();
     return;
   } 
-      // Check if route requires user not to be logged in (e.g. login, register)
+  // Check if route requires user not to be logged in (e.g. login, register)
   else if (to.matched.some(record => record.meta.guest)) {
     // If user is already logged in, redirect to home page
     if (authStore.isLoggedIn) {

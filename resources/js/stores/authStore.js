@@ -228,7 +228,26 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         console.error('Login failed:', error);
         this.hasError = true;
-        this.errorMessage = error.response?.data?.message || 'Login failed';
+        
+        // Handle validation errors properly
+        if (error.response?.status === 422 && error.response?.data?.errors) {
+          // Extract specific validation errors
+          const errors = error.response.data.errors;
+          
+          if (errors.email) {
+            this.errorMessage = 'Nieprawidłowy email lub hasło.';
+          } else if (errors.password) {
+            this.errorMessage = 'Nieprawidłowy email lub hasło.';
+          } else {
+            // Fallback for other validation errors
+            const firstError = Object.values(errors)[0];
+            this.errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+          }
+        } else {
+          // Handle other types of errors
+          this.errorMessage = error.response?.data?.message || 'Wystąpił błąd podczas logowania. Spróbuj ponownie.';
+        }
+        
         return false;
       } finally {
         this.isRegularLoading = false;
@@ -281,7 +300,30 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         console.error('Registration failed:', error);
         this.hasError = true;
-        this.errorMessage = error.response?.data?.message || 'Registration failed';
+        
+        // Handle validation errors properly
+        if (error.response?.status === 422 && error.response?.data?.errors) {
+          // Extract specific validation errors
+          const errors = error.response.data.errors;
+          
+          if (errors.email) {
+            this.errorMessage = 'Ten adres email jest już zarejestrowany w systemie.';
+          } else if (errors.password) {
+            this.errorMessage = 'Hasło nie spełnia wymagań. Upewnij się, że ma co najmniej 8 znaków i jest poprawnie potwierdzone.';
+          } else if (errors.privacy_policy_accepted) {
+            this.errorMessage = 'Akceptacja polityki prywatności jest wymagana.';
+          } else if (errors.name || errors.first_name || errors.last_name) {
+            this.errorMessage = 'Sprawdź poprawność wprowadzonych danych osobowych.';
+          } else {
+            // Fallback for other validation errors
+            const firstError = Object.values(errors)[0];
+            this.errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+          }
+        } else {
+          // Handle other types of errors
+          this.errorMessage = error.response?.data?.message || 'Wystąpił błąd podczas rejestracji. Spróbuj ponownie.';
+        }
+        
         return false;
       } finally {
         this.isRegularLoading = false;
@@ -512,6 +554,55 @@ export const useAuthStore = defineStore('auth', {
         return false;
       } finally {
         this.isLoading = false;
+      }
+    },
+
+    // Refresh user data (to update email_verified_at after verification)
+    async refreshUser() {
+      try {
+        // First refresh CSRF token
+        await axios.get('/sanctum/csrf-cookie');
+        console.log('CSRF token refreshed before user check');
+        
+        const response = await axios.get('/api/user');
+        
+        if (response.data) {
+          this.user = response.data;
+          
+          // Get user permissions if they exist
+          if (response.data.permissions) {
+            this.permissions = response.data.permissions;
+          }
+          
+          // Save updated data to localStorage
+          this.saveUserToLocalStorage();
+          
+          // Mark as initialized
+          this.authInitialized = true;
+          
+          console.log('User refreshed successfully:', {
+            email: this.user.email,
+            isLoggedIn: this.isLoggedIn,
+            emailVerified: !!this.user.email_verified_at
+          });
+          
+          return this.user;
+        }
+        
+        return null;
+      } catch (error) {
+        console.error('Failed to refresh user data:', error);
+        
+        // If we get 401, clear user data
+        if (error.response && error.response.status === 401) {
+          this.user = null;
+          this.permissions = [];
+          localStorage.removeItem('user');
+          localStorage.removeItem('permissions');
+          localStorage.removeItem('auth_time');
+        }
+        
+        return null;
       }
     },
     

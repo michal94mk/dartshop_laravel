@@ -6,18 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('newsletter_subscriptions', function (Blueprint $table) {
             $table->id();
             $table->string('email')->unique();
-            $table->string('token')->nullable();
-            $table->boolean('is_active')->default(false);
+            $table->string('status')->default('pending'); // pending, active, unsubscribed
+            $table->string('verification_token')->nullable();
             $table->timestamp('verified_at')->nullable();
+            $table->timestamp('unsubscribed_at')->nullable();
             $table->timestamps();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('newsletter_subscriptions');

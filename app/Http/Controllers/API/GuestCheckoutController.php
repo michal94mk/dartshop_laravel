@@ -186,8 +186,8 @@ class GuestCheckoutController extends Controller
                     'product_id' => $cartItem['product']->id,
                     'product_name' => $cartItem['product']->name,
                     'quantity' => $cartItem['quantity'],
-                    'price' => $cartItem['price'],
-                    'total' => $cartItem['total'],
+                    'product_price' => $cartItem['price'],
+                    'total_price' => $cartItem['total'],
                 ]);
             }
 

@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\ContactMessage;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Faker\Factory as Faker;
 use Carbon\Carbon;
 
 class ContactMessageSeeder extends Seeder
@@ -15,23 +14,32 @@ class ContactMessageSeeder extends Seeder
      */
     public function run(): void
     {
-        // Clear existing contact messages
+        // Clear existing messages
         ContactMessage::truncate();
         
-        $faker = Faker::create('pl_PL');
+        // Sample data without faker
+        $names = ['Jan Kowalski', 'Anna Nowak', 'Piotr Wiśniewski', 'Maria Wójcik', 'Tomasz Kowalczyk'];
+        $emails = ['jan@email.com', 'anna@email.com', 'piotr@email.com', 'maria@email.com', 'tomasz@email.com'];
+        $messages = [
+            'Szukam informacji o dostępności produktu. Czy można zamówić?',
+            'Mam problem z zamówieniem. Kiedy zostanie wysłane?',
+            'Chciałbym zwrócić produkt. Jaka jest procedura?',
+            'Potrzebuję więcej informacji o produkcie.',
+            'Świetna obsługa! Dziękuję za szybką realizację.'
+        ];
         
-        // Common subjects for contact messages
+        // Common subjects
         $subjects = [
-            'Pytanie o produkt',
-            'Problem z zamówieniem',
-            'Zwrot produktu',
-            'Dostępność produktu',
-            'Prośba o informację',
-            'Reklamacja',
-            'Pytanie o wysyłkę',
-            'Płatność',
-            'Współpraca',
-            'Opinia'
+            'Product inquiry',
+            'Order issue',
+            'Product return',
+            'Product availability',
+            'Information request',
+            'Complaint',
+            'Shipping question',
+            'Payment',
+            'Cooperation',
+            'Feedback'
         ];
         
         // Create different types of messages
@@ -39,27 +47,27 @@ class ContactMessageSeeder extends Seeder
         // Type 1: Unread messages (newest)
         for ($i = 0; $i < 5; $i++) {
             ContactMessage::create([
-                'name' => $faker->name,
-                'email' => $faker->email,
-                'subject' => $subjects[array_rand($subjects)] . ' - ' . $faker->word,
-                'message' => $faker->paragraph(4, true) . "\n\n" . $faker->paragraph(3, true),
+                'name' => $names[$i],
+                'email' => $emails[$i],
+                'subject' => $subjects[array_rand($subjects)] . ' - ' . ($i + 1),
+                'message' => $messages[$i],
                 'is_read' => false,
                 'read_at' => null,
-                'created_at' => $faker->dateTimeBetween('-1 week', 'now'),
-                'updated_at' => $faker->dateTimeBetween('-1 week', 'now'),
+                'created_at' => now()->subDays($i + 1),
+                'updated_at' => now()->subDays($i + 1),
             ]);
         }
         
         // Type 2: Read messages
-        for ($i = 0; $i < 10; $i++) {
-            $createdAt = $faker->dateTimeBetween('-2 months', '-2 weeks');
-            $readAt = Carbon::instance($createdAt)->addDays(rand(1, 5));
+        for ($i = 0; $i < 5; $i++) {
+            $createdAt = now()->subDays(rand(10, 30));
+            $readAt = $createdAt->copy()->addDays(rand(1, 5));
             
             ContactMessage::create([
-                'name' => $faker->name,
-                'email' => $faker->email,
-                'subject' => $subjects[array_rand($subjects)] . ' - ' . $faker->word,
-                'message' => $faker->paragraph(3, true) . "\n\n" . $faker->paragraph(2, true) . "\n\nPozdrawiam,\n" . $faker->firstName,
+                'name' => $names[$i],
+                'email' => $emails[$i],
+                'subject' => $subjects[array_rand($subjects)] . ' - Read ' . ($i + 1),
+                'message' => $messages[$i] . "\n\nPozdrawiam,\n" . explode(' ', $names[$i])[0],
                 'is_read' => true,
                 'read_at' => $readAt,
                 'created_at' => $createdAt,
@@ -69,15 +77,15 @@ class ContactMessageSeeder extends Seeder
         
         // Type 3: Some older messages (mix of read/unread)
         for ($i = 0; $i < 5; $i++) {
-            $createdAt = $faker->dateTimeBetween('-3 months', '-1 month');
-            $isRead = $faker->boolean(70); // 70% chance of being read
-            $readAt = $isRead ? Carbon::instance($createdAt)->addDays(rand(1, 30)) : null;
+            $createdAt = now()->subDays(rand(30, 90));
+            $isRead = $i % 2 == 0; // Every other message is read
+            $readAt = $isRead ? $createdAt->copy()->addDays(rand(1, 10)) : null;
             
             ContactMessage::create([
-                'name' => $faker->name,
-                'email' => $faker->email,
-                'subject' => $subjects[array_rand($subjects)] . ' - ' . $faker->word,
-                'message' => $faker->paragraph(2, true) . "\n\n" . $faker->paragraph(1, true),
+                'name' => $names[$i],
+                'email' => $emails[$i],
+                'subject' => $subjects[array_rand($subjects)] . ' - Old ' . ($i + 1),
+                'message' => $messages[$i],
                 'is_read' => $isRead,
                 'read_at' => $readAt,
                 'created_at' => $createdAt,

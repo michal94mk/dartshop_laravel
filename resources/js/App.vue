@@ -1,5 +1,9 @@
 <template>
   <div id="app-container">
+    
+    <!-- Global Alert Container -->
+    <alerts-container />
+    
     <!-- Smooth transition when app is ready -->
     <transition name="app-fade" mode="out-in">
       <!-- Renderuj layout gdy gotowe -->
@@ -15,23 +19,27 @@
 <script>
 import DefaultLayout from './components/layouts/DefaultLayout.vue';
 import AdminLayout from './components/layouts/AdminLayout.vue';
+import AlertsContainer from './components/ui/AlertsContainer.vue';
 import axios from 'axios';
 import { computed, ref, onMounted, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from './stores/authStore';
 import { useFavoriteStore } from './stores/favoriteStore';
+import { useAlertStore } from './stores/alertStore';
 
 export default {
   name: 'App',
   components: {
     DefaultLayout,
-    AdminLayout
+    AdminLayout,
+    AlertsContainer
   },
   setup() {
     const route = useRoute();
     const router = useRouter();
     const authStore = useAuthStore();
     const favoriteStore = useFavoriteStore();
+    const alertStore = useAlertStore();
     const isReadyToShow = ref(false);
     
     // Check if current route belongs to admin panel (based on meta)
@@ -123,7 +131,8 @@ export default {
       isAdminRoute,
       isAdminView,
       isReadyToShow,
-      currentLayout
+      currentLayout,
+      alertStore
     };
   }
 };

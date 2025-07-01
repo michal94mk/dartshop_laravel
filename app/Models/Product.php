@@ -19,13 +19,15 @@ class Product extends Model
         'category_id',
         'brand_id',
         'image',
-        'stock',
-        'featured'
+        'stock_quantity',
+        'featured',
+        'is_active'
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'featured' => 'boolean',
+        'is_active' => 'boolean',
     ];
     
     protected $appends = ['image_url', 'average_rating', 'reviews_count'];

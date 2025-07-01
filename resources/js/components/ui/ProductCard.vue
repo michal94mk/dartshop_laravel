@@ -74,6 +74,14 @@
             @favorite-removed="handleFavoriteRemoved"
           />
         </div>
+        
+        <!-- Local success message for cart -->
+        <transition name="success-fade">
+          <div v-if="showCartSuccess" class="mb-3 bg-green-50 border border-green-200 rounded-lg p-2 text-center">
+            <p class="text-green-700 text-xs font-medium">🛒 Dodano do koszyka!</p>
+          </div>
+        </transition>
+        
         <div class="space-y-2">
           <button 
             @click="addToCart"
@@ -112,7 +120,7 @@ import { useRouter } from 'vue-router'
 import FavoriteButton from './FavoriteButton.vue'
 import StarRating from './StarRating.vue'
 import { useCartStore } from '../../stores/cartStore'
-import { useToast } from 'vue-toastification'
+import { useAlertStore } from '../../stores/alertStore'
 
 export default {
   name: 'ProductCard',
@@ -129,10 +137,11 @@ export default {
   setup(props) {
     const router = useRouter()
     const cartStore = useCartStore()
-    const toast = useToast()
+    const alertStore = useAlertStore()
     
     // State
     const cartLoading = ref(false)
+    const showCartSuccess = ref(false)
 
     // Computed properties for promotion logic
     const hasPromotion = computed(() => {
@@ -175,38 +184,16 @@ export default {
       try {
         const success = await cartStore.addToCart(props.product.id, 1)
         if (success) {
-          toast.success(`🛒 Dodano do koszyka: "${props.product.name}"`, {
-            position: "top-center",
-            timeout: 4000,
-            closeOnClick: true,
-            pauseOnFocusLoss: true,
-            pauseOnHover: true,
-            draggable: true,
-            showCloseButtonOnHover: false,
-            hideProgressBar: false,
-            toastClassName: "cart-success-toast",
-            bodyClassName: "cart-success-body",
-            progressClassName: "cart-success-progress"
-          })
+          // Show local success message
+          showCartSuccess.value = true
+          setTimeout(() => {
+            showCartSuccess.value = false
+          }, 2000)
         } else {
-          toast.error('❌ Nie udało się dodać produktu do koszyka', {
-            position: "top-center",
-            timeout: 5000,
-            closeOnClick: true,
-            pauseOnHover: true,
-            toastClassName: "cart-error-toast",
-            bodyClassName: "cart-error-body"
-          })
+          alertStore.error('😞 Ups! Nie udało się dodać produktu do koszyka. Spróbuj ponownie!', 5000)
         }
       } catch (error) {
-        toast.error('⚠️ Wystąpił błąd podczas dodawania produktu do koszyka', {
-          position: "top-center",
-          timeout: 5000,
-          closeOnClick: true,
-          pauseOnHover: true,
-          toastClassName: "cart-error-toast",
-          bodyClassName: "cart-error-body"
-        })
+        alertStore.error('😞 Wystąpił błąd podczas dodawania produktu. Spróbuj ponownie!', 5000)
         console.error('Error adding product to cart:', error)
       } finally {
         cartLoading.value = false
@@ -214,27 +201,11 @@ export default {
     }
 
     const handleFavoriteAdded = (product) => {
-      toast.success(`💖 Dodano do ulubionych: "${product.name}"`, {
-        position: "top-center",
-        timeout: 3500,
-        closeOnClick: true,
-        pauseOnHover: true,
-        toastClassName: "favorite-success-toast",
-        bodyClassName: "favorite-success-body",
-        progressClassName: "favorite-success-progress"
-      })
+      alertStore.success(`😍 Udało się! "${product.name}" jest teraz w Twoich ulubionych!`, 3500)
     }
 
     const handleFavoriteRemoved = (product) => {
-      toast.info(`💔 Usunięto z ulubionych: "${product.name}"`, {
-        position: "top-center",
-        timeout: 3000,
-        closeOnClick: true,
-        pauseOnHover: true,
-        toastClassName: "favorite-info-toast",
-        bodyClassName: "favorite-info-body",
-        progressClassName: "favorite-info-progress"
-      })
+      alertStore.info(`💭 Produkt "${product.name}" został usunięty z ulubionych.`, 3000)
     }
 
     return {
@@ -246,6 +217,7 @@ export default {
       promotionBadgeText,
       promotionBadgeColor,
       cartLoading,
+      showCartSuccess,
       formatPrice,
       addToCart,
       handleFavoriteAdded,
@@ -261,5 +233,21 @@ export default {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Success message animation */
+.success-fade-enter-active,
+.success-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.success-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+.success-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-5px) scale(0.95);
 }
 </style> 

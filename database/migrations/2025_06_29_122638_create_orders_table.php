@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->string('order_number')->unique();
-            $table->string('status')->default('pending');
+            $table->string('status')->default('pending'); // pending, processing, completed, shipped, delivered, cancelled, refunded
             $table->string('first_name');
             $table->string('last_name');
             $table->string('email');

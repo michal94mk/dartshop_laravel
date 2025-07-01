@@ -8,13 +8,16 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use App\Models\NewsletterSubscription;
+use App\Models\Order;
 
-class NewsletterWelcomeMail extends Mailable implements ShouldQueue
+class OrderStatusChangedMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public $subscription;
+    public $order;
+    public $oldStatus;
+    public $newStatus;
+    public $note;
     
     /**
      * The number of times the job may be attempted.
@@ -29,9 +32,12 @@ class NewsletterWelcomeMail extends Mailable implements ShouldQueue
     /**
      * Create a new message instance.
      */
-    public function __construct(NewsletterSubscription $subscription)
+    public function __construct(Order $order, string $oldStatus, string $newStatus, string $note = null)
     {
-        $this->subscription = $subscription;
+        $this->order = $order;
+        $this->oldStatus = $oldStatus;
+        $this->newStatus = $newStatus;
+        $this->note = $note;
         
         // Set queue name for email jobs
         $this->onQueue('emails');
@@ -44,7 +50,7 @@ class NewsletterWelcomeMail extends Mailable implements ShouldQueue
     {
         return new Envelope(
             from: config('mail.from.address', 'hello@dartshop.pl'),
-            subject: '🎯 Witaj w społeczności DartShop!',
+            subject: '[DartShop] Order ' . $this->order->order_number . ' Status Update',
         );
     }
 
@@ -54,9 +60,12 @@ class NewsletterWelcomeMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.newsletter-welcome',
+            markdown: 'emails.order-status-changed',
             with: [
-                'subscription' => $this->subscription,
+                'order' => $this->order,
+                'oldStatus' => $this->oldStatus,
+                'newStatus' => $this->newStatus,
+                'note' => $this->note,
                 'appName' => config('app.name', 'DartShop')
             ]
         );

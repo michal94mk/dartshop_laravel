@@ -14,15 +14,15 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained();
-            $table->string('payment_id')->nullable();
-            $table->string('payment_method');
+            $table->string('payment_method'); // stripe, paypal, bank_transfer, etc.
+            $table->string('payment_status'); // pending, completed, failed, refunded
             $table->decimal('amount', 10, 2);
-            $table->string('currency', 3)->default('USD');
-            $table->string('status')->default('pending');
-            $table->json('transaction_data')->nullable();
+            $table->string('currency', 3)->default('PLN');
             $table->string('transaction_id')->nullable();
-            $table->text('notes')->nullable();
+            $table->string('payment_intent_id')->nullable();
+            $table->json('payment_data')->nullable(); // Store additional payment gateway data
+            $table->timestamp('paid_at')->nullable();
+            $table->text('failure_reason')->nullable();
             $table->timestamps();
         });
     }

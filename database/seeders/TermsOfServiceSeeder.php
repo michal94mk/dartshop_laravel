@@ -14,7 +14,6 @@ class TermsOfServiceSeeder extends Seeder
     public function run(): void
     {
         TermsOfService::create([
-            'title' => 'Regulamin sklepu DartShop',
             'is_active' => true,
             'content' => '
 <h2>§ 1. Postanowienia ogólne</h2>

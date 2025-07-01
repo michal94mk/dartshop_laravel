@@ -5,7 +5,8 @@ export const useAlertStore = defineStore('alert', {
     alerts: [],
     nextId: 1,
     successMessage: '',
-    errorMessage: ''
+    errorMessage: '',
+    infoMessage: ''
   }),
   
   actions: {
@@ -53,6 +54,15 @@ export const useAlertStore = defineStore('alert', {
     },
     
     info(message, timeout = 5000) {
+      this.infoMessage = message;
+      
+      // Automatically clear info message after timeout
+      if (timeout > 0) {
+        setTimeout(() => {
+          this.infoMessage = '';
+        }, timeout);
+      }
+      
       return this.add(message, 'info', timeout);
     },
     
@@ -67,6 +77,7 @@ export const useAlertStore = defineStore('alert', {
       this.alerts = [];
       this.successMessage = '';
       this.errorMessage = '';
+      this.infoMessage = '';
     },
     
     clearSuccess() {
@@ -75,6 +86,10 @@ export const useAlertStore = defineStore('alert', {
     
     clearError() {
       this.errorMessage = '';
+    },
+    
+    clearInfo() {
+      this.infoMessage = '';
     }
   }
 }); 

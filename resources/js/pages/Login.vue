@@ -132,6 +132,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
+import { useAlertStore } from '../stores/alertStore';
 
 export default {
   name: 'LoginPage',
@@ -141,6 +142,7 @@ export default {
     const password = ref('');
     const router = useRouter();
     const authStore = useAuthStore();
+    const alertStore = useAlertStore();
     
     // Clear error messages when component is mounted
     onMounted(() => {
@@ -164,12 +166,24 @@ export default {
         const success = await authStore.login(email.value, password.value);
         
         if (success) {
+          // Show success message with shorter timeout for quick redirect
+          alertStore.success(`👋 Witaj ponownie, ${authStore.userName}!`, 3000);
+          
           // Check if redirect parameter exists
           const redirectPath = router.currentRoute.value.query.redirect || '/';
-          router.push(redirectPath).catch(err => {
+          const verified = router.currentRoute.value.query.verified;
+          
+          // If there's a verified parameter, add it to the redirect path
+          let finalRedirectPath = redirectPath;
+          if (verified && redirectPath.includes('/profile')) {
+            const separator = redirectPath.includes('?') ? '&' : '?';
+            finalRedirectPath = `${redirectPath}${separator}verified=${verified}`;
+          }
+          
+          router.push(finalRedirectPath).catch(err => {
             // In case of error redirect to home page
             if (err.name === 'NavigationDuplicated') {
-                              // Ignore navigation duplicates (same URL)
+              // Ignore navigation duplicates (same URL)
               return;
             }
             console.error('Navigation error:', err);
@@ -183,6 +197,9 @@ export default {
 
     const handleGoogleLogin = async () => {
       try {
+        // Save info that this is a login attempt (not registration)
+        localStorage.setItem('google_auth_action', 'login');
+        
         // authStore.loginWithGoogle() already handles redirect to profile for login page
         await authStore.loginWithGoogle();
         // Don't do router.push here, as Google OAuth redirects the entire page

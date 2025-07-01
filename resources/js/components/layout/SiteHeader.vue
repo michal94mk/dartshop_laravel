@@ -442,6 +442,7 @@
 import { useAuthStore } from '../../stores/authStore';
 import { useCartStore } from '../../stores/cartStore';
 import { useCategoryStore } from '../../stores/categoryStore';
+import { useAlertStore } from '../../stores/alertStore';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { computed } from 'vue';
@@ -471,6 +472,7 @@ export default {
     const authStore = useAuthStore();
     const cartStore = useCartStore();
     const categoryStore = useCategoryStore();
+    const alertStore = useAlertStore();
     const router = useRouter();
     
     // Używamy storeToRefs, aby zachować reaktywność getterów i state w Pinia
@@ -488,6 +490,7 @@ export default {
       authStore,
       cartStore,
       categoryStore,
+      alertStore,
       router,
       isLoggedIn,
       isAdmin,
@@ -528,6 +531,10 @@ export default {
     logout() {
       try {
         console.log('Starting logout from SiteHeader...');
+        
+        // Set logout success message BEFORE logout
+        this.alertStore.success('👋 Do zobaczenia! Zostałeś pomyślnie wylogowany.', 5000);
+        
         this.authStore.logout().then(() => {
           this.userMenuOpen = false;
           

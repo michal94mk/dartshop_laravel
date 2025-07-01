@@ -110,6 +110,19 @@ export default {
           
           success.value = true;
           
+          // Show success message based on action type
+          const { useAlertStore } = await import('../stores/alertStore');
+          const alertStore = useAlertStore();
+          
+          const authAction = localStorage.getItem('google_auth_action') || 'login';
+          localStorage.removeItem('google_auth_action');
+          
+          if (authAction === 'register') {
+            alertStore.success(`🎉 Konto utworzone przez Google! Witaj, ${authStore.user.name}!`, 4000);
+          } else {
+            alertStore.success(`👋 Witaj ponownie, ${authStore.user.name}!`, 3000);
+          }
+          
           // Get redirect path from localStorage or use profile as default
           const redirectPath = localStorage.getItem('google_auth_redirect') || '/profile';
           localStorage.removeItem('google_auth_redirect');

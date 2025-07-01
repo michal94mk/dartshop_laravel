@@ -35,7 +35,7 @@
                   </svg>
                 </div>
                 <div class="ml-3">
-                  <p class="font-medium">Za chwilę zostaniesz przekierowany na stronę główną.</p>
+                  <p class="font-medium">Za chwilę zostaniesz przekierowany do Twojego profilu.</p>
                 </div>
               </div>
             </div>
@@ -69,13 +69,13 @@
             <h3 class="text-xl font-bold text-green-800 mb-3">Email już zweryfikowany</h3>
             <p class="text-green-700 mb-6">Twój adres e-mail został już zweryfikowany.</p>
             <router-link 
-              to="/" 
+              to="/profile" 
               class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
               </svg>
-              Przejdź do strony głównej
+              Przejdź do profilu
             </router-link>
           </div>
         
@@ -152,7 +152,12 @@ import axios from 'axios';
 export default {
   name: 'VerifyEmailPage',
   
-  setup() {
+  props: {
+    id: String,
+    hash: String
+  },
+  
+  setup(props) {
     const verified = ref(false);
     const isLoading = ref(false);
     const status = ref('');
@@ -168,8 +173,8 @@ export default {
       }
       
       // Check if this is a return from verification link
-      const id = route.params.id;
-      const hash = route.query.hash;
+      const id = props.id || route.params.id;
+      const hash = props.hash || route.params.hash; // Now hash is a URL parameter, not query
       const expires = route.query.expires;
       const signature = route.query.signature;
       
@@ -183,9 +188,8 @@ export default {
       errorMessage.value = '';
       
       try {
-        const response = await axios.get(`/api/email/verify/${id}`, {
+        const response = await axios.get(`/api/email/verify/${id}/${hash}`, {
           params: {
-            hash,
             expires,
             signature
           }
@@ -196,9 +200,9 @@ export default {
         // Refresh user data
         await authStore.initAuth();
         
-                  // Redirect to home page after 2 seconds
+        // Redirect to profile page after 2 seconds
         setTimeout(() => {
-          router.push('/');
+          router.push('/profile');
         }, 2000);
       } catch (error) {
         console.error('Email verification failed:', error);

@@ -15,48 +15,48 @@ class ReviewsTableSeeder extends Seeder
      */
     public function run(): void
     {
-        // Pobieramy istniejących użytkowników i produkty
+        // Get existing users and products
         $users = User::all();
         $products = Product::all();
         
         if ($users->isEmpty() || $products->isEmpty()) {
-            $this->command->info('Brak użytkowników lub produktów do przypisania recenzji.');
+            $this->command->info('No users or products available for reviews.');
             return;
         }
         
-        // Przykładowe recenzje
+        // Sample reviews
         $reviews = [
             [
-                'title' => 'Najlepsze lotki na rynku!',
-                'content' => 'Kupiłem te lotki miesiąc temu i jestem zachwycony. Lot jest stabilny, a wykonanie na najwyższym poziomie. Polecam każdemu, kto szuka profesjonalnego sprzętu.',
+                'title' => 'Best darts on the market!',
+                'content' => 'Bought these darts a month ago and I\'m thrilled. Stable flight and top-quality construction. Recommend to anyone looking for professional equipment.',
                 'rating' => 5,
                 'is_approved' => true,
                 'is_featured' => true
             ],
             [
-                'title' => 'Bardzo dobra jakość',
-                'content' => 'Tarcza jest wykonana z solidnych materiałów, które wytrzymają lata użytkowania. Polecam początkującym i średniozaawansowanym graczom.',
+                'title' => 'Very good quality',
+                'content' => 'Dartboard made from solid materials that will last for years. Recommend for beginners and intermediate players.',
                 'rating' => 4,
                 'is_approved' => true,
                 'is_featured' => false
             ],
             [
-                'title' => 'Idealny zestaw do nauki',
-                'content' => 'Kupiłem ten zestaw, aby nauczyć moje dzieci gry w darta. Świetny stosunek jakości do ceny. Polecam wszystkim początkującym!',
+                'title' => 'Perfect learning set',
+                'content' => 'Bought this set to teach my kids darts. Great value for money. Recommend to all beginners!',
                 'rating' => 5,
                 'is_approved' => true,
                 'is_featured' => true
             ],
             [
-                'title' => 'Świetny design i funkcjonalność',
-                'content' => 'To już mój drugi zakup w tym sklepie i ponownie jestem bardzo zadowolony. Szybka dostawa, produkty zgodne z opisem. DartShop to mój ulubiony sklep z akcesoriami do darta!',
+                'title' => 'Great design and functionality',
+                'content' => 'This is my second purchase from this store and again I\'m very satisfied. Fast delivery, products as described. DartShop is my favorite dart accessories store!',
                 'rating' => 5,
                 'is_approved' => true,
                 'is_featured' => false
             ],
             [
-                'title' => 'Dobry stosunek jakości do ceny',
-                'content' => 'Nie spodziewałem się tak dobrej jakości w tej cenie. Polecam każdemu, kto szuka solidnego sprzętu bez wydawania fortuny.',
+                'title' => 'Good value for money',
+                'content' => 'Didn\'t expect such good quality at this price. Recommend to anyone looking for solid equipment without spending a fortune.',
                 'rating' => 4,
                 'is_approved' => true,
                 'is_featured' => false
@@ -64,25 +64,23 @@ class ReviewsTableSeeder extends Seeder
         ];
         
         foreach ($reviews as $reviewData) {
-            // Losowy użytkownik i produkt dla każdej recenzji
+            // Random user and product for each review
             $user = $users->random();
             $product = $products->random();
             
-            // Spradzamy czy ten użytkownik już dodał recenzję do tego produktu
+            // Check if user already reviewed this product
             $existingReview = Review::where('user_id', $user->id)
                                   ->where('product_id', $product->id)
                                   ->first();
             
-            // Jeśli nie, tworzymy nową recenzję
+            // Create review if doesn't exist
             if (!$existingReview) {
                 Review::create([
                     'user_id' => $user->id,
                     'product_id' => $product->id,
-                    'title' => $reviewData['title'],
-                    'content' => $reviewData['content'],
+                    'comment' => $reviewData['content'],
                     'rating' => $reviewData['rating'],
-                    'is_approved' => $reviewData['is_approved'],
-                    'is_featured' => $reviewData['is_featured']
+                    'is_approved' => $reviewData['is_approved']
                 ]);
             }
         }

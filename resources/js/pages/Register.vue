@@ -20,18 +20,29 @@
       <!-- Register Form Card -->
       <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
         <div class="px-8 py-8">
-          <div v-if="authStore.hasError" class="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-md">
-            <div class="flex">
-              <div class="flex-shrink-0">
-                <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <div class="ml-3">
-                <p class="font-medium">{{ authStore.errorMessage || 'Błąd rejestracji. Spróbuj ponownie.' }}</p>
+          <!-- Error Alert -->
+          <transition 
+            name="alert-fade" 
+            enter-active-class="transition-all ease-out duration-500 transform"
+            enter-from-class="opacity-0 -translate-y-4 scale-95"
+            enter-to-class="opacity-100 translate-y-0 scale-100"
+            leave-active-class="transition-all ease-in duration-300 transform"
+            leave-from-class="opacity-100 translate-y-0 scale-100"
+            leave-to-class="opacity-0 -translate-y-2 scale-95"
+          >
+            <div v-if="authStore.hasError" class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-sm" role="alert">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="font-medium">{{ authStore.errorMessage }}</p>
+                </div>
               </div>
             </div>
-          </div>
+          </transition>
           
           <form @submit.prevent="handleRegister" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -219,9 +230,10 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
+import { useAlertStore } from '../stores/alertStore';
 
 export default {
   name: 'RegisterPage',
@@ -237,6 +249,7 @@ export default {
     const newsletterConsent = ref(false);
     const router = useRouter();
     const authStore = useAuthStore();
+    const alertStore = useAlertStore();
     
     // Clear error messages when component is mounted
     onMounted(() => {
@@ -262,6 +275,9 @@ export default {
         );
         
         if (success) {
+          // Show success message with longer timeout for important info
+          alertStore.success('🎉 Konto zostało pomyślnie utworzone! Sprawdź email aby zweryfikować swoje konto.', 6000);
+          
           router.push('/').catch(err => {
             console.error('Navigation error:', err);
           });
@@ -273,6 +289,9 @@ export default {
 
     const handleGoogleLogin = async () => {
       try {
+        // Save info that this is a registration attempt (not login)
+        localStorage.setItem('google_auth_action', 'register');
+        
         const success = await authStore.loginWithGoogle();
         
         if (success) {

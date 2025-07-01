@@ -255,9 +255,6 @@
 
     <!-- Główna treść -->
     <div class="pt-16 lg:ml-64 h-screen overflow-hidden">
-      <!-- Alerts Container -->
-      <alerts-container />
-
       <!-- Page Content -->
       <main class="p-4 bg-gray-100 h-full overflow-y-auto">
         <router-view :key="$route.fullPath" />
@@ -271,12 +268,11 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useAlertStore } from '../../stores/alertStore'
-import AlertsContainer from '../ui/AlertsContainer.vue'
 
 export default {
   name: 'AdminLayout',
   components: {
-    AlertsContainer
+    // AlertsContainer removed - now global in App.vue
   },
   setup() {
     const authStore = useAuthStore()
@@ -344,8 +340,6 @@ export default {
     const userInitial = computed(() => {
       return userName.value ? userName.value.charAt(0).toUpperCase() : '';
     })
-    
-    // Alert messages (AlertsContainer handles toast display now)
     
     // Toggle menu functions
     const toggleUserMenu = () => {

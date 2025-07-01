@@ -9,45 +9,40 @@ class DatabaseSeeder extends Seeder
 {
     /**
      * Seed the application's database.
-     *
-     * @return void
      */
     public function run()
     {
-        // 1. Zawsze rozpoczynamy od ról i uprawnień
+        // 1. Roles and permissions
         $this->call(RolesAndPermissionsSeeder::class);
         
-        // 2. Najpierw seedujemy tabele bez zależności
+        // 2. Base lookup tables
         $this->call([
             CategorySeeder::class,
             BrandSeeder::class,
             AboutUsSeeder::class,
+            PrivacyPolicySeeder::class,
+            TermsOfServiceSeeder::class,
         ]);
         
-        // 3. Seedujemy tabele z podstawowymi zależnościami
+        // 3. User-dependent data
         $this->call([
             UserSeeder::class,
             ProductSeeder::class,
         ]);
         
-        // 4. Seedujemy tabele z zależnościami do powyższych tabel
+        // 4. Related data
         $this->call([
             ShippingAddressSeeder::class,
             ReviewsTableSeeder::class,
-            ContactMessageSeeder::class,
             PromotionSeeder::class,
+            NewsletterSeeder::class,
+            ContactMessageSeeder::class,
         ]);
         
-        // 5. Na koniec seedujemy tabele z najbardziej złożonymi zależnościami
+        // 5. Complex dependencies
         $this->call([
-            OrderSeeder::class,
             TutorialSeeder::class,
-        ]);
-
-        $this->call([
-            NewsletterSeeder::class,
-            PrivacyPolicySeeder::class,
-            TermsOfServiceSeeder::class,
+            OrderSeeder::class, // Optional: Generates test order data for admin demo
         ]);
     }
 }

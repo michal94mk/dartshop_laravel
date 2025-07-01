@@ -14,10 +14,15 @@ class Category extends Model
 
     protected $fillable = [
         'name', 
-        'slug'
+        'slug',
+        'description',
+        'image',
+        'is_active'
     ];
 
-    protected $casts = [];
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 
     protected $appends = ['products_count'];
 

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContactMessage;
+use App\Mail\ContactMessageNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class ContactController extends Controller
@@ -36,8 +38,11 @@ class ContactController extends Controller
             'email' => $request->email,
             'subject' => $request->subject,
             'message' => $request->message,
-            'status' => 'unread',
         ]);
+
+        // Send notification to admin
+        $adminEmail = config('mail.admin_email', config('mail.from.address'));
+        Mail::to($adminEmail)->queue(new ContactMessageNotification($contactMessage));
 
         return response()->json([
             'success' => true,

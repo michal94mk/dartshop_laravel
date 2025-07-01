@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Enums\RoleEnum;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Auth\Events\Registered;
 
 class AuthController extends Controller
 {
@@ -25,8 +26,12 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (Auth::attempt($request->only('email', 'password'))) {
+        if (Auth::attempt($request->only('email', 'password'), true)) { // Remember user
             $user = Auth::user();
+            
+            // Also login via web guard for session-based auth
+            Auth::guard('web')->login($user, true);
+            
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
@@ -72,11 +77,18 @@ class AuthController extends Controller
         // Assign default user role
         $user->assignRole(RoleEnum::User->value);
 
+        // Send email verification notification
+        $user->sendEmailVerificationNotification();
+
         // Handle newsletter subscription if consent was given
         if ($request->newsletter_consent) {
             // You might want to handle newsletter subscription here
             // For example, create a newsletter subscription record
         }
+
+        // Auto-login the user after registration (both Sanctum and web session)
+        Auth::login($user, true); // Remember user
+        Auth::guard('web')->login($user, true);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 

@@ -12,7 +12,6 @@ class TermsOfService extends Model
     protected $table = 'terms_of_service';
 
     protected $fillable = [
-        'title',
         'content',
         'is_active',
     ];

@@ -287,7 +287,7 @@ import { useAuthStore } from '../stores/authStore'
 import { useProductStore } from '../stores/productStore'
 import { useCartStore } from '../stores/cartStore'
 import { useFavoriteStore } from '../stores/favoriteStore'
-import { useToast } from 'vue-toastification'
+import { useAlertStore } from '../stores/alertStore'
 import FavoriteButton from '../components/ui/FavoriteButton.vue'
 import StarRating from '../components/ui/StarRating.vue'
 import ReviewsList from '../components/ui/ReviewsList.vue'
@@ -310,7 +310,7 @@ export default {
   },
   setup(props) {
     const route = useRoute()
-    const toast = useToast()
+    const alertStore = useAlertStore()
     const authStore = useAuthStore()
     const productStore = useProductStore()
     const cartStore = useCartStore()
@@ -400,14 +400,14 @@ export default {
       try {
         const success = await cartStore.addToCart(product.value.id, quantity.value)
         if (success) {
-          toast.success(`🛒 Produkt "${product.value.name}" został dodany do koszyka (${quantity.value} szt.)`, {
-            timeout: 3000
-          })
+          // Reset quantity after successful add
+          quantity.value = 1
+          alertStore.success(`🛒 Świetnie! "${product.value.name}" został dodany do koszyka (${quantity.value > 1 ? quantity.value + ' szt.' : ''})!`, 4000)
         } else {
-          toast.error('❌ Nie udało się dodać produktu do koszyka')
+          alertStore.error('😞 Ups! Nie udało się dodać produktu do koszyka. Spróbuj ponownie!', 5000)
         }
       } catch (error) {
-        toast.error('❌ Wystąpił błąd podczas dodawania produktu do koszyka')
+        alertStore.error('😞 Wystąpił błąd podczas dodawania produktu. Spróbuj ponownie!', 5000)
         console.error('Error adding product to cart:', error)
       } finally {
         cartLoading.value = false
@@ -415,22 +415,16 @@ export default {
     }
 
     const handleFavoriteAdded = (product) => {
-      toast.success(`❤️ Produkt "${product.name}" został dodany do ulubionych`, {
-        timeout: 3000
-      })
+      alertStore.success(`😍 Udało się! "${product.name}" jest teraz w Twoich ulubionych!`, 3500)
     }
 
     const handleFavoriteRemoved = (product) => {
-      toast.info(`💔 Produkt "${product.name}" został usunięty z ulubionych`, {
-        timeout: 3000
-      })
+      alertStore.info(`💭 Produkt "${product.name}" został usunięty z ulubionych.`, 3000)
     }
 
     const handleReviewSuccess = (newReview) => {
       showReviewForm.value = false
-      toast.success('✅ Recenzja została dodana i czeka na zatwierdzenie przez administratora', {
-        timeout: 4000
-      })
+      alertStore.success('🎉 Świetnie! Twoja recenzja została dodana i czeka na zatwierdzenie!', 4000)
       // Refresh reviews and check permissions
       fetchReviews()
       checkCanReview()
