@@ -162,13 +162,28 @@
                         @favorite-removed="handleFavoriteRemoved"
                       />
                     </div>
+                    <!-- Local success message for cart -->
+                    <transition name="success-fade">
+                      <div v-if="hasCartSuccessMessage(product.id)" class="mb-3 bg-green-50 border border-green-200 rounded-lg p-2 text-center">
+                        <p class="text-green-700 text-xs font-medium">🛒 Dodano do koszyka!</p>
+                      </div>
+                    </transition>
+                    
+                    <!-- Local success message for favorites -->
+                    <transition name="success-fade">
+                      <div v-if="hasFavoriteSuccessMessage(product.id)" class="mb-3 bg-pink-50 border border-pink-200 rounded-lg p-2 text-center">
+                        <p class="text-pink-700 text-xs font-medium">{{ favoriteSuccessMessages[product.id] }}</p>
+                      </div>
+                    </transition>
+                    
                     <div class="space-y-2">
                       <button 
                         @click="addToCart(product)"
-                        :disabled="cartLoading" 
+                        :disabled="isCartLoading(product.id)"
+                        :class="{ 'opacity-75 cursor-not-allowed': isCartLoading(product.id) }"
                         class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 text-sm"
                       >
-                        <template v-if="cartLoading">
+                        <template v-if="isCartLoading(product.id)">
                           <svg class="animate-spin w-4 h-4 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -269,32 +284,28 @@
                       </div>
                     </transition>
                     
+                    <!-- Local success message for favorites -->
+                    <transition name="success-fade">
+                      <div v-if="hasFavoriteSuccessMessage(product.id)" class="mb-3 bg-pink-50 border border-pink-200 rounded-lg p-2 text-center">
+                        <p class="text-pink-700 text-xs font-medium">{{ favoriteSuccessMessages[product.id] }}</p>
+                      </div>
+                    </transition>
+                    
                     <div class="space-y-2">
-                      <button 
-                        @click="addToCart(product)"
-                        class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 text-sm"
-                        :disabled="cartLoading"
-                      >
-                        <template v-if="cartLoading">
-                          <svg class="animate-spin w-4 h-4 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Dodawanie...
-                        </template>
-                        <template v-else>
-                          <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 2.5M7 13l2.5 2.5m4.5-2.5V13"/>
-                          </svg>
-                          Dodaj do koszyka
-                        </template>
-                      </button>
                       <router-link 
-                        :to="`/products/${product.id}`" 
-                        class="w-full block text-center py-2 px-4 border border-indigo-600 text-indigo-600 font-medium rounded-lg hover:bg-indigo-50 transition-colors duration-200 text-sm"
+                        to="/products"
+                        class="w-full block text-center bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 text-sm"
                       >
-                        Zobacz szczegóły
+                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6a2 2 0 002 2h4a2 2 0 002-2v-6M8 11h8"/>
+                        </svg>
+                        Zobacz wszystkie produkty
                       </router-link>
+                      <div class="text-center">
+                        <p class="text-xs text-gray-500">
+                          To są przykładowe produkty. Odwiedź nasz sklep, aby zobaczyć pełną ofertę!
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -461,6 +472,7 @@
 </template>
 
 <script>
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useProductStore } from '../stores/productStore';
 import { useCartStore } from '../stores/cartStore';
 import { useFavoriteStore } from '../stores/favoriteStore';
@@ -477,182 +489,235 @@ export default {
     FavoriteButton,
     StarRating
   },
-  data() {
-    return {
-      fallbackProducts: [
-        {
-          id: 1,
-          name: 'Lotki Target Agora A30',
-          description: 'Profesjonalne lotki ze stali wolframowej 90%',
-          price: 149.99,
-          image_url: '/img/product01.png'
-        },
-        {
-          id: 2,
-          name: 'Tarcza elektroniczna Winmau Blade 6',
-          description: 'Zaawansowana tarcza dla profesjonalistów',
-          price: 299.99,
-          image_url: '/img/product02.png'
-        },
-        {
-          id: 3,
-          name: 'Zestaw punktowy XQ Max',
-          description: 'Zestaw do zapisywania punktów z kredą i ścierką',
-          price: 49.99,
-          image_url: '/img/product03.png'
-        },
-        {
-          id: 4,
-          name: 'Lotki Red Dragon Razor Edge',
-          description: 'Lotki z wysokiej jakości stali wolframowej',
-          price: 129.99,
-          image_url: '/img/product04.png'
-        }
-      ],
-      cartLoading: false,
-      showScrollButton: false,
-      cartSuccessMessages: {} // Track success messages per product
-    }
-  },
-  computed: {
-    categories() {
-      // Use real categories from the store and only show categories with products
-      return this.categoryStore.categoriesWithProducts;
-    }
-  },
-  created() {
-    this.productStore = useProductStore();
-    this.cartStore = useCartStore();
-    this.favoriteStore = useFavoriteStore();
-    this.categoryStore = useCategoryStore();
-    this.toast = useToast();
-    this.alertStore = useAlertStore();
-    this.reviewStore = useReviewStore();
-  },
-  async mounted() {
-    console.log('Home.vue mounted');
-
-    // Load categories first
-    try {
-      await this.categoryStore.fetchCategories();
-      console.log('Categories loaded in Home.vue:', this.categoryStore.categories.length);
-    } catch (error) {
-      console.error('Error loading categories in Home.vue:', error);
-    }
-
-    // Load products and other data
-    await this.loadLatestProducts();
-    await this.loadLatestReviews();
-
-    // Add scroll listener for scroll to top button
-    this.handleScroll = () => {
-      this.showScrollButton = window.scrollY > 300;
+  setup() {
+    const fallbackProducts = ref([
+      {
+        id: 'fallback-1',
+        name: 'Lotki Target Agora A30',
+        description: 'Profesjonalne lotki ze stali wolframowej 90%',
+        price: 149.99,
+        image_url: '/img/product01.png',
+        isFallback: true
+      },
+      {
+        id: 'fallback-2',
+        name: 'Tarcza elektroniczna Winmau Blade 6',
+        description: 'Zaawansowana tarcza dla profesjonalistów',
+        price: 299.99,
+        image_url: '/img/product02.png',
+        isFallback: true
+      },
+      {
+        id: 'fallback-3',
+        name: 'Zestaw punktowy XQ Max',
+        description: 'Zestaw do zapisywania punktów z kredą i ścierką',
+        price: 49.99,
+        image_url: '/img/product03.png',
+        isFallback: true
+      },
+      {
+        id: 'fallback-4',
+        name: 'Lotki Red Dragon Razor Edge',
+        description: 'Lotki z wysokiej jakości stali wolframowej',
+        price: 129.99,
+        image_url: '/img/product04.png',
+        isFallback: true
+      }
+    ]);
+    
+    const showScrollButton = ref(false);
+    const cartSuccessMessages = ref({}); // Track success messages per product
+    const favoriteSuccessMessages = ref({}); // Track favorite messages per product
+    
+    // Stores
+    const productStore = useProductStore();
+    const cartStore = useCartStore();
+    const favoriteStore = useFavoriteStore();
+    const categoryStore = useCategoryStore();
+    const toast = useToast();
+    const alertStore = useAlertStore();
+    const reviewStore = useReviewStore();
+    
+    // Computed
+    const categories = computed(() => {
+      return categoryStore.categoriesWithProducts;
+    });
+    
+    // Methods
+    const loadLatestProducts = () => {
+      productStore.fetchLatestProducts();
     };
-    window.addEventListener('scroll', this.handleScroll);
-  },
-  
-  methods: {
-    loadLatestProducts() {
-      this.productStore.fetchLatestProducts();
-    },
-    loadLatestReviews() {
-      this.reviewStore.fetchLatestReviews();
-    },
-    getCategoryProductCount(category) {
+    
+    const loadLatestReviews = () => {
+      reviewStore.fetchLatestReviews();
+    };
+    
+    const getCategoryProductCount = (category) => {
       return category.products_count || 0;
-    },
-    formatPrice(price) {
-      // Check if price is a valid number
+    };
+    
+    const formatPrice = (price) => {
       if (price === null || price === undefined || isNaN(price)) {
         return '0.00';
       }
       return parseFloat(price).toFixed(2);
-    },
-    async addToCart(product) {
-      this.cartLoading = true;
-      
+    };
+    
+    const addToCart = async (product) => {
       try {
-        const success = await this.cartStore.addToCart(product.id);
+        const success = await cartStore.addToCart(product.id);
         if (success) {
-          // Show local success message for this specific product
-          this.$set(this.cartSuccessMessages, product.id, true);
+          cartSuccessMessages.value[product.id] = true;
           setTimeout(() => {
-            this.$delete(this.cartSuccessMessages, product.id);
+            delete cartSuccessMessages.value[product.id];
           }, 2000);
         } else {
-          this.alertStore.error('😞 Ups! Nie udało się dodać produktu do koszyka. Spróbuj ponownie!', 5000)
+          alertStore.error('😞 Ups! Nie udało się dodać produktu do koszyka. Spróbuj ponownie!', 5000)
         }
       } catch (error) {
-        this.alertStore.error('😞 Wystąpił błąd podczas dodawania produktu. Spróbuj ponownie!', 5000)
+        alertStore.error('😞 Wystąpił błąd podczas dodawania produktu. Spróbuj ponownie!', 5000)
         console.error('Error adding product to cart:', error);
-      } finally {
-        this.cartLoading = false;
       }
-    },
-    toggleFavorite(product) {
-      this.favoriteStore.toggleFavoriteItem(product);
-    },
-    isInFavorites(productId) {
-      return this.favoriteStore.isInFavorites(productId);
-    },
-    handleFavoriteAdded(product) {
-      // Use global alert for home page - it's appropriate for this page
-      this.alertStore.success(`😍 Udało się! "${product.name}" jest teraz w Twoich ulubionych!`, 3500)
-    },
-    handleFavoriteRemoved(product) {
-      // Use global alert for home page - it's appropriate for this page
-      this.alertStore.info(`💭 Produkt "${product.name}" został usunięty z ulubionych.`, 3000)
-    },
-    // Promotion helper functions
-    hasPromotion(product) {
+    };
+    
+    const isCartLoading = (productId) => {
+      return cartStore.isLoadingProduct(productId);
+    };
+    
+    const toggleFavorite = (product) => {
+      favoriteStore.toggleFavoriteItem(product);
+    };
+    
+    const isInFavorites = (productId) => {
+      return favoriteStore.isInFavorites(productId);
+    };
+    
+    const handleFavoriteAdded = (product) => {
+      favoriteSuccessMessages.value[product.id] = '😍 Dodano do ulubionych!';
+      setTimeout(() => {
+        delete favoriteSuccessMessages.value[product.id];
+      }, 2500);
+    };
+    
+    const handleFavoriteRemoved = (product) => {
+      favoriteSuccessMessages.value[product.id] = '💭 Usunięto z ulubionych';
+      setTimeout(() => {
+        delete favoriteSuccessMessages.value[product.id];
+      }, 2000);
+    };
+    
+    const hasPromotion = (product) => {
       return product.promotion_price && parseFloat(product.promotion_price) < parseFloat(product.price);
-    },
-    getDiscountPercentage(product) {
-      if (!this.hasPromotion(product)) return 0;
+    };
+    
+    const getDiscountPercentage = (product) => {
+      if (!hasPromotion(product)) return 0;
       const originalPrice = parseFloat(product.price);
       const promotionalPrice = parseFloat(product.promotion_price);
       return Math.round(((originalPrice - promotionalPrice) / originalPrice) * 100);
-    },
-    getPromotionBadgeColor(product) {
-      if (this.hasPromotion(product)) {
-        const discountPercentage = this.getDiscountPercentage(product);
-        if (discountPercentage > 50) return '#ef4444'; // red-500
-        if (discountPercentage > 30) return '#f97316'; // orange-500
-        if (discountPercentage > 10) return '#eab308'; // yellow-500
-        return '#22c55e'; // green-500
+    };
+    
+    const getPromotionBadgeColor = (product) => {
+      if (hasPromotion(product)) {
+        const discountPercentage = getDiscountPercentage(product);
+        if (discountPercentage > 50) return '#ef4444';
+        if (discountPercentage > 30) return '#f97316';
+        if (discountPercentage > 10) return '#eab308';
+        return '#22c55e';
       }
-      return '#6b7280'; // gray-500
-    },
-    getPromotionBadgeText(product) {
-      if (this.hasPromotion(product)) {
-        const discountPercentage = this.getDiscountPercentage(product);
+      return '#6b7280';
+    };
+    
+    const getPromotionBadgeText = (product) => {
+      if (hasPromotion(product)) {
+        const discountPercentage = getDiscountPercentage(product);
         if (discountPercentage > 50) return 'Duża zniżka';
         if (discountPercentage > 30) return 'Zniżka';
         if (discountPercentage > 10) return 'Okazja';
         return 'Promocja';
       }
       return null;
-    },
-    formatDate(date) {
+    };
+    
+    const formatDate = (date) => {
       const formattedDate = new Date(date).toLocaleDateString('pl-PL', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       });
       return formattedDate;
-    },
-    scrollToTop() {
+    };
+    
+    const scrollToTop = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    },
-    hasCartSuccessMessage(productId) {
-      return this.cartSuccessMessages[productId] || false;
-    }
-  },
-  beforeUnmount() {
-    // Remove scroll listener
-    if (this.handleScroll) {
-      window.removeEventListener('scroll', this.handleScroll);
-    }
+    };
+    
+    const hasCartSuccessMessage = (productId) => {
+      return cartSuccessMessages.value[productId] || false;
+    };
+    
+    const hasFavoriteSuccessMessage = (productId) => {
+      return favoriteSuccessMessages.value[productId] || false;
+    };
+    
+    // Lifecycle hooks
+    onMounted(async () => {
+      console.log('Home.vue mounted');
+      
+      // Load categories first
+      try {
+        await categoryStore.fetchCategories();
+        console.log('Categories loaded in Home.vue:', categoryStore.categories.length);
+      } catch (error) {
+        console.error('Error loading categories in Home.vue:', error);
+      }
+      
+      // Load products and other data
+      await loadLatestProducts();
+      await loadLatestReviews();
+      
+      // Add scroll listener for scroll to top button
+      const handleScroll = () => {
+        showScrollButton.value = window.scrollY > 300;
+      };
+      window.addEventListener('scroll', handleScroll);
+      
+      // Cleanup function
+      onBeforeUnmount(() => {
+        window.removeEventListener('scroll', handleScroll);
+      });
+    });
+    
+    return {
+      fallbackProducts,
+      showScrollButton,
+      cartSuccessMessages,
+      favoriteSuccessMessages,
+      categories,
+      productStore,
+      cartStore,
+      favoriteStore,
+      categoryStore,
+      reviewStore,
+      loadLatestProducts,
+      loadLatestReviews,
+      getCategoryProductCount,
+      formatPrice,
+      addToCart,
+      isCartLoading,
+      toggleFavorite,
+      isInFavorites,
+      handleFavoriteAdded,
+      handleFavoriteRemoved,
+      hasPromotion,
+      getDiscountPercentage,
+      getPromotionBadgeColor,
+      getPromotionBadgeText,
+      formatDate,
+      scrollToTop,
+      hasCartSuccessMessage,
+      hasFavoriteSuccessMessage
+    };
   }
 }
 </script>

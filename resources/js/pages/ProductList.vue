@@ -493,10 +493,11 @@
                 <div class="space-y-2">
                   <button 
                     @click="addToCart(product)"
-                    :disabled="cartLoading"
+                    :disabled="isCartLoading(product.id)"
                     class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 text-sm"
+                    :class="{ 'opacity-75 cursor-not-allowed': isCartLoading(product.id) }"
                   >
-                    <template v-if="cartLoading">
+                    <template v-if="isCartLoading(product.id)">
                       <svg class="animate-spin w-4 h-4 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -619,7 +620,6 @@ export default {
     const toast = useToast();
     const alertStore = useAlertStore();
     const priceRange = ref([0, 1000]);
-    const cartLoading = ref(false);
     const selectedCategory = ref(null);
     const cartSuccessMessages = ref({}); // Object to track success messages per product
     const favoriteSuccessMessages = ref({}); // Object to track favorite messages per product
@@ -757,9 +757,6 @@ export default {
     };
 
     const addToCart = async (product) => {
-      // Show loading indicator for this product
-      cartLoading.value = true;
-      
       try {
         const success = await cartStore.addToCart(product.id, 1);
         if (success) {
@@ -774,8 +771,6 @@ export default {
       } catch (error) {
         alertStore.error('😞 Wystąpił błąd podczas dodawania produktu. Spróbuj ponownie!', 5000)
         console.error('Error adding product to cart:', error);
-      } finally {
-        cartLoading.value = false;
       }
     };
 
@@ -886,7 +881,6 @@ export default {
     return {
       productStore,
       priceRange,
-      cartLoading,
       paginationPages,
       loadProducts,
       applyFilters,

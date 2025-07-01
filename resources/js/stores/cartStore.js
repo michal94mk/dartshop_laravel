@@ -82,11 +82,6 @@ export const useCartStore = defineStore('cart', {
   },
   
   actions: {
-    // Check if a specific product is in loading state
-    isLoading(productId) {
-      return this.loadingProductIds.includes(productId);
-    },
-    
     // Load local cart data from localStorage on initialization
     initCart() {
       this.isLoading = true;
@@ -186,14 +181,17 @@ export const useCartStore = defineStore('cart', {
     async addToCart(productId, quantity = 1) {
       const authStore = useAuthStore();
       
+      // Check if product is already being added to prevent duplicates
+      if (this.loadingProductIds.includes(productId)) {
+        return;
+      }
+      
       // Add to loading products
       this.loadingProductIds.push(productId);
       
-      if (authStore.isLoggedIn) {
-        // Dla zalogowanego użytkownika: użyj API
-        this.isLoading = true;
-        
-        try {
+      try {
+        if (authStore.isLoggedIn) {
+          // Dla zalogowanego użytkownika: użyj API
           const response = await axios.post('/api/cart', {
             product_id: productId,
             quantity: quantity
@@ -201,58 +199,54 @@ export const useCartStore = defineStore('cart', {
           
           await this.fetchCart(); // Refresh cart after adding
           return response.data;
-        } catch (error) {
-          console.error('Failed to add item to cart:', error);
-          this.hasError = true;
-          this.errorMessage = 'Failed to add product to cart';
-          throw error;
-        } finally {
-          this.isLoading = false;
-          // Remove from loading products
-          this.loadingProductIds = this.loadingProductIds.filter(id => id !== productId);
-        }
-      } else {
-        // Dla gościa: obsługa w localStorage
-        const existingItemIndex = this.items.findIndex(item => item.product.id === productId);
-        
-        if (existingItemIndex !== -1) {
-                      // Product already exists in cart, increase quantity
-          this.items[existingItemIndex].quantity += quantity;
         } else {
-          // Najpierw pobierz dane produktu z API
-          try {
-            const response = await axios.get(`/api/products/${productId}`);
-            const product = response.data;
-            
-            // Dodaj nowy produkt do koszyka z pełnymi danymi
-            this.items.push({
-              id: Date.now(), // Tymczasowe ID dla localStorage
-              product_id: productId,
-              quantity: quantity,
-              product: product
-            });
-          } catch (error) {
-            console.error('Failed to fetch product details:', error);
-            // Jeśli nie udało się pobrać danych produktu, użyj podstawowych informacji
-            const product = { id: productId, name: 'Produkt', price: 0 };
-            
-            this.items.push({
-              id: Date.now(),
-              product_id: productId,
-              quantity: quantity,
-              product: product
-            });
+          // Dla gościa: obsługa w localStorage
+          const existingItemIndex = this.items.findIndex(item => item.product.id === productId);
+          
+          if (existingItemIndex !== -1) {
+            // Product already exists in cart, increase quantity
+            this.items[existingItemIndex].quantity += quantity;
+          } else {
+            // Najpierw pobierz dane produktu z API
+            try {
+              const response = await axios.get(`/api/products/${productId}`);
+              const product = response.data;
+              
+              // Dodaj nowy produkt do koszyka z pełnymi danymi
+              this.items.push({
+                id: Date.now(), // Tymczasowe ID dla localStorage
+                product_id: productId,
+                quantity: quantity,
+                product: product
+              });
+            } catch (error) {
+              console.error('Failed to fetch product details:', error);
+              // Jeśli nie udało się pobrać danych produktu, użyj podstawowych informacji
+              const product = { id: productId, name: 'Produkt', price: 0 };
+              
+              this.items.push({
+                id: Date.now(),
+                product_id: productId,
+                quantity: quantity,
+                product: product
+              });
+            }
           }
+          
+          // Zapisz zmiany w localStorage
+          this.saveToLocalStorage();
+          
+          // Return true to indicate success for guest users
+          return true;
         }
-        
-        // Remove from loading products
+      } catch (error) {
+        console.error('Failed to add item to cart:', error);
+        this.hasError = true;
+        this.errorMessage = 'Failed to add product to cart';
+        throw error;
+      } finally {
+        // Always remove from loading products, regardless of success or error
         this.loadingProductIds = this.loadingProductIds.filter(id => id !== productId);
-        
-        // Zapisz zmiany w localStorage
-        this.saveToLocalStorage();
-        
-        // Return true to indicate success for guest users
-        return true;
       }
     },
     
