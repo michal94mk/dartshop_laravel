@@ -107,7 +107,7 @@
       <div>
         <!-- Filters and sorting interface -->
         <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-          <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Enhanced sorting interface -->
             <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4">
               <div class="flex flex-col gap-4">
@@ -124,7 +124,7 @@
                   <button 
                     @click="setSorting('newest')" 
                     class="w-full px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
-                    :class="{'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg': productStore.filters.sort === 'newest', 'bg-white text-gray-700 hover:bg-blue-50 border border-gray-200': productStore.filters.sort !== 'newest'}"
+                    :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort === 'newest', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': productStore.filters.sort !== 'newest'}"
                   >
                     <span class="flex items-center justify-center">
                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,7 +142,7 @@
                     <button 
                       @click="setSorting('price_asc')" 
                       class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
-                      :class="{'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg': productStore.filters.sort === 'price_asc', 'bg-white text-gray-700 hover:bg-green-50 border border-gray-200': productStore.filters.sort !== 'price_asc'}"
+                      :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort === 'price_asc', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': productStore.filters.sort !== 'price_asc'}"
                     >
                       <span class="flex items-center justify-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,7 +154,7 @@
                     <button 
                       @click="setSorting('price_desc')" 
                       class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
-                      :class="{'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg': productStore.filters.sort === 'price_desc', 'bg-white text-gray-700 hover:bg-red-50 border border-gray-200': productStore.filters.sort !== 'price_desc'}"
+                      :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort === 'price_desc', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': productStore.filters.sort !== 'price_desc'}"
                     >
                       <span class="flex items-center justify-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,7 +173,7 @@
                     <button 
                       @click="setSorting('name_asc')" 
                       class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
-                      :class="{'bg-gradient-to-r from-purple-600 to-violet-600 text-white shadow-lg': productStore.filters.sort === 'name_asc', 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200': productStore.filters.sort !== 'name_asc'}"
+                      :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort === 'name_asc', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': productStore.filters.sort !== 'name_asc'}"
                     >
                       <span class="flex items-center justify-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,7 +185,7 @@
                     <button 
                       @click="setSorting('name_desc')" 
                       class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
-                      :class="{'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-lg': productStore.filters.sort === 'name_desc', 'bg-white text-gray-700 hover:bg-orange-50 border border-gray-200': productStore.filters.sort !== 'name_desc'}"
+                      :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort === 'name_desc', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': productStore.filters.sort !== 'name_desc'}"
                     >
                       <span class="flex items-center justify-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,80 +209,114 @@
                   <span class="text-sm font-semibold text-gray-700">Zakres cen:</span>
                 </div>
                 
-                <!-- Pola wprowadzania cen -->
+                <!-- Nowoczesny filtr cen -->
+                <div class="space-y-4">
+                  <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                    Filtruj po cenie
+                  </div>
+                  
+                  <!-- Kompaktowe inputy cen -->
+                  <div class="flex items-center justify-center gap-4">
+                    <div class="flex flex-col items-center">
+                      <label class="text-xs text-gray-500 mb-1">Od</label>
+                      <div class="relative">
+                        <span class="absolute left-1 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs">zł</span>
+                        <input 
+                          type="number" 
+                          v-model.number="priceRange[0]"
+                          placeholder="0" 
+                          min="0" 
+                          step="1"
+                          class="w-28 h-9 pl-4 pr-1 text-xs font-medium text-gray-900 border border-gray-300 rounded focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 text-center bg-white"
+                          style="max-width: 114px; max-height: 38px; font-size: 11px;"
+                        >
+                      </div>
+                    </div>
+                    
+                    <div class="text-gray-400 text-sm mt-5">—</div>
+                    
+                    <div class="flex flex-col items-center">
+                      <label class="text-xs text-gray-500 mb-1">Do</label>
+                      <div class="relative">
+                        <span class="absolute left-1 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs">zł</span>
+                        <input 
+                          type="number" 
+                          v-model.number="priceRange[1]"
+                          placeholder="∞" 
+                          min="0" 
+                          step="1"
+                          class="w-28 h-9 pl-4 pr-1 text-xs font-medium text-gray-900 border border-gray-300 rounded focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 text-center bg-white"
+                          style="max-width: 114px; max-height: 38px; font-size: 11px;"
+                        >
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Aktualny zakres -->
+                  <div class="bg-indigo-50 rounded-lg p-3 text-center">
+                    <div class="text-xs text-indigo-600 font-medium">Aktualny zakres</div>
+                    <div class="text-sm font-bold text-indigo-800">
+                      {{ priceRange[0] || 0 }} zł - {{ priceRange[1] || '∞' }} zł
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Szybkie filtry cenowe -->
                 <div class="space-y-3">
-                  <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Filtruj po cenie</div>
-                  <div class="flex flex-col sm:flex-row items-center gap-2">
-                    <input 
-                      type="number" 
-                      v-model="priceRange[0]"
-                      placeholder="Od" 
-                      min="0" 
-                      class="w-full sm:flex-1 px-2 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center text-sm min-w-0"
-                    >
-                    <span class="text-gray-400 font-medium text-xs sm:text-sm">-</span>
-                    <input 
-                      type="number" 
-                      v-model="priceRange[1]"
-                      placeholder="Do" 
-                      min="0" 
-                      class="w-full sm:flex-1 px-2 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center text-sm min-w-0"
-                    >
+                  <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Popularne zakresy</div>
+                  <div class="space-y-2">
+                    <div class="grid grid-cols-2 gap-2">
+                      <button 
+                        @click="setQuickPriceFilter(0, 50)"
+                        class="px-3 py-2.5 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 border border-gray-200 text-xs font-semibold hover:border-gray-300 shadow-sm"
+                      >
+                        0-50 zł
+                      </button>
+                      <button 
+                        @click="setQuickPriceFilter(50, 100)"
+                        class="px-3 py-2.5 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 border border-gray-200 text-xs font-semibold hover:border-gray-300 shadow-sm"
+                      >
+                        50-100 zł
+                      </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                      <button 
+                        @click="setQuickPriceFilter(100, 200)"
+                        class="px-3 py-2.5 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 border border-gray-200 text-xs font-semibold hover:border-gray-300 shadow-sm"
+                      >
+                        100-200 zł
+                      </button>
+                      <button 
+                        @click="setQuickPriceFilter(200, null)"
+                        class="px-3 py-2.5 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 border border-gray-200 text-xs font-semibold hover:border-gray-300 shadow-sm"
+                      >
+                        200+ zł
+                      </button>
+                    </div>
                   </div>
                 </div>
 
                 <!-- Przyciski akcji -->
                 <div class="space-y-3">
                   <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Akcje</div>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <button 
                       @click="applyPriceFilter"
-                      class="px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm font-medium"
+                      class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm font-semibold"
                     >
-                      <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
                       </svg>
-                      Filtruj
+                      Zastosuj filtry
                     </button>
                     <button 
                       @click="resetFilters"
-                      class="px-4 py-3 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 border border-gray-200 text-sm font-medium"
+                      class="px-6 py-3 bg-white text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 border-2 border-gray-200 text-sm font-semibold hover:border-gray-300"
                     >
-                      <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                       </svg>
-                      Reset
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Szybkie filtry cenowe -->
-                <div class="space-y-3">
-                  <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Szybkie filtry</div>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <button 
-                      @click="setQuickPriceFilter(0, 50)"
-                      class="px-3 py-2 bg-white text-gray-700 rounded-lg hover:bg-indigo-50 transition-all duration-200 border border-gray-200 text-xs font-medium"
-                    >
-                      0-50 zł
-                    </button>
-                    <button 
-                      @click="setQuickPriceFilter(50, 100)"
-                      class="px-3 py-2 bg-white text-gray-700 rounded-lg hover:bg-indigo-50 transition-all duration-200 border border-gray-200 text-xs font-medium"
-                    >
-                      50-100 zł
-                    </button>
-                    <button 
-                      @click="setQuickPriceFilter(100, 200)"
-                      class="px-3 py-2 bg-white text-gray-700 rounded-lg hover:bg-indigo-50 transition-all duration-200 border border-gray-200 text-xs font-medium"
-                    >
-                      100-200 zł
-                    </button>
-                    <button 
-                      @click="setQuickPriceFilter(200, null)"
-                      class="px-3 py-2 bg-white text-gray-700 rounded-lg hover:bg-indigo-50 transition-all duration-200 border border-gray-200 text-xs font-medium"
-                    >
-                      200+ zł
+                      Wyczyść
                     </button>
                   </div>
                 </div>
@@ -437,8 +471,8 @@
                   <FavoriteButton 
                     :product="product"
                     buttonClasses="p-1.5 rounded-full border border-gray-300 text-gray-400 hover:text-red-500 hover:border-red-300 transition-colors duration-200"
-                    @favorite-added="handleFavoriteAdded"
-                    @favorite-removed="handleFavoriteRemoved"
+                    @favorite-added="(prod) => handleFavoriteAdded(prod, product.id)"
+                    @favorite-removed="(prod) => handleFavoriteRemoved(prod, product.id)"
                   />
                 </div>
                 
@@ -446,6 +480,13 @@
                 <transition name="success-fade">
                   <div v-if="hasCartSuccessMessage(product.id)" class="mb-3 bg-green-50 border border-green-200 rounded-lg p-2 text-center">
                     <p class="text-green-700 text-xs font-medium">🛒 Dodano do koszyka!</p>
+                  </div>
+                </transition>
+                
+                <!-- Local success message for favorites -->
+                <transition name="success-fade">
+                  <div v-if="hasFavoriteSuccessMessage(product.id)" class="mb-3 bg-pink-50 border border-pink-200 rounded-lg p-2 text-center">
+                    <p class="text-pink-700 text-xs font-medium">{{ favoriteSuccessMessages[product.id] }}</p>
                   </div>
                 </transition>
                 
@@ -577,10 +618,11 @@ export default {
     const categoryStore = useCategoryStore();
     const toast = useToast();
     const alertStore = useAlertStore();
-    const priceRange = ref([null, null]);
+    const priceRange = ref([0, 1000]);
     const cartLoading = ref(false);
     const selectedCategory = ref(null);
     const cartSuccessMessages = ref({}); // Object to track success messages per product
+    const favoriteSuccessMessages = ref({}); // Object to track favorite messages per product
     
     // Define loadProducts function first
     const loadProducts = async () => {
@@ -751,12 +793,25 @@ export default {
       applyFilters();
     };
 
-    const handleFavoriteAdded = (product) => {
-      alertStore.success(`😍 Udało się! "${product.name}" jest teraz w Twoich ulubionych!`, 3500)
+    const setQuickPriceFilter = (min, max) => {
+      priceRange.value = [min, max];
+      applyPriceFilter();
+    };
+
+    const handleFavoriteAdded = (product, productId) => {
+      // Show local success message for this specific product
+      favoriteSuccessMessages.value[productId] = '😍 Dodano do ulubionych!';
+      setTimeout(() => {
+        delete favoriteSuccessMessages.value[productId];
+      }, 2500);
     };
     
-    const handleFavoriteRemoved = (product) => {
-      alertStore.info(`💭 Produkt "${product.name}" został usunięty z ulubionych.`, 3000)
+    const handleFavoriteRemoved = (product, productId) => {
+      // Show local info message for this specific product
+      favoriteSuccessMessages.value[productId] = '💭 Usunięto z ulubionych';
+      setTimeout(() => {
+        delete favoriteSuccessMessages.value[productId];
+      }, 2000);
     };
 
     const clearSearch = () => {
@@ -820,13 +875,12 @@ export default {
       return category ? category.name : 'Inne';
     };
 
-    const setQuickPriceFilter = (min, max) => {
-      priceRange.value = [min, max];
-      applyPriceFilter();
-    };
-
     const hasCartSuccessMessage = (productId) => {
       return cartSuccessMessages.value[productId] || false;
+    };
+
+    const hasFavoriteSuccessMessage = (productId) => {
+      return favoriteSuccessMessages.value[productId] || false;
     };
 
     return {
@@ -856,7 +910,9 @@ export default {
       categoryStore,
       setQuickPriceFilter,
       cartSuccessMessages,
-      hasCartSuccessMessage
+      hasCartSuccessMessage,
+      favoriteSuccessMessages,
+      hasFavoriteSuccessMessage
     };
   }
 }

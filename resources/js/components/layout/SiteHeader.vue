@@ -21,18 +21,17 @@
           </router-link>
           
           <!-- Products with dropdown -->
-          <div class="relative flex items-center" @mouseenter="showProductsDropdown = true" @mouseleave="showProductsDropdown = false">
-            <router-link 
-              to="/products" 
-              class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium h-16"
+          <div class="relative flex items-center">
+            <button 
+              @click="toggleProductsDropdown"
+              class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium h-16 focus:outline-none"
               :class="[$route.path.includes('/categories') || $route.path.includes('/products') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']"
-              @click.prevent="navigateTo('/products', $event)"
             >
               Produkty
-              <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="ml-1 h-4 w-4 transition-transform duration-200" :class="{ 'rotate-180': showProductsDropdown }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
               </svg>
-            </router-link>
+            </button>
             
             <!-- Dropdown Menu -->
             <div 
@@ -319,18 +318,22 @@
           
           <!-- Products with mobile dropdown -->
           <div class="border-l-4 border-transparent">
-            <router-link
-              to="/products"
-              class="flex items-center px-4 py-3 text-base font-medium"
+            <button
+              @click="toggleMobileProductsDropdown"
+              class="flex items-center justify-between w-full px-4 py-3 text-base font-medium text-left focus:outline-none"
               :class="[$route.path.includes('/categories') || $route.path.includes('/products') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800']"
-              @click.prevent="navigateTo('/products', $event)"
             >
-              <i class="fas fa-box w-5 mr-3 text-gray-400"></i>
-              Produkty
-            </router-link>
+              <div class="flex items-center">
+                <i class="fas fa-box w-5 mr-3 text-gray-400"></i>
+                Produkty
+              </div>
+              <svg class="h-4 w-4 transition-transform duration-200" :class="{ 'rotate-180': showMobileProductsDropdown }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
             
             <!-- Mobile categories submenu -->
-            <div class="ml-8 space-y-1 border-l border-gray-200 pl-4">
+            <div v-show="showMobileProductsDropdown" class="ml-8 space-y-1 border-l border-gray-200 pl-4">
               <router-link
                 to="/products"
                 class="block py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded px-2"
@@ -458,6 +461,7 @@ export default {
     return {
       userMenuOpen: false,
       showProductsDropdown: false,
+      showMobileProductsDropdown: false,
       mobileMenuOpen: false,
       mobileSearchQuery: '',
       searchTimeout: null,
@@ -482,7 +486,7 @@ export default {
     // Computed property for top categories (first 5 categories with products)
     const topCategories = computed(() => {
       return categoryStore.orderedCategories
-        .filter(cat => cat.is_active && cat.products_count > 0)
+        .filter(cat => cat.is_active !== false && cat.products_count > 0)
         .slice(0, 5); // Show only first 5 categories in dropdown
     });
     
@@ -517,6 +521,12 @@ export default {
     toggleUserMenu() {
       this.userMenuOpen = !this.userMenuOpen;
     },
+    toggleProductsDropdown() {
+      this.showProductsDropdown = !this.showProductsDropdown;
+    },
+    toggleMobileProductsDropdown() {
+      this.showMobileProductsDropdown = !this.showMobileProductsDropdown;
+    },
     closeDropdowns(event) {
       // Zamknij user menu jeśli kliknięto poza nim
       if (this.userMenuOpen && !event.target.closest('#user-menu-button') && !event.target.closest('[role="menuitem"]')) {
@@ -524,7 +534,10 @@ export default {
       }
       
       // Zamknij products dropdown jeśli kliknięto poza nim
-      if (this.showProductsDropdown && !event.target.closest('.relative')) {
+      const productsDropdownContainer = event.target.closest('.relative.flex.items-center');
+      const isInsideProductsDropdown = productsDropdownContainer && productsDropdownContainer.querySelector('button')?.textContent?.includes('Produkty');
+      
+      if (this.showProductsDropdown && !isInsideProductsDropdown) {
         this.showProductsDropdown = false;
       }
     },
@@ -558,6 +571,8 @@ export default {
       // Close menus
       this.userMenuOpen = false;
       this.mobileMenuOpen = false;
+      this.showProductsDropdown = false;
+      this.showMobileProductsDropdown = false;
 
       // Log navigation attempt
       console.log('Router navigating from', this.$route.path, 'to', path);

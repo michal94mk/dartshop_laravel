@@ -115,6 +115,13 @@
                   @favorite-added="handleFavoriteAdded"
                   @favorite-removed="handleFavoriteRemoved"
                 />
+                
+                <!-- Local success message for favorites -->
+                <transition name="success-fade">
+                  <div v-if="showFavoriteSuccess" class="mt-2 bg-pink-50 border border-pink-200 rounded-lg p-2 text-center">
+                    <p class="text-pink-700 text-xs font-medium">{{ favoriteMessage }}</p>
+                  </div>
+                </transition>
               </div>
               
               <!-- Reviews rating -->
@@ -330,6 +337,8 @@ export default {
     const canAddReview = ref(false)
     const showReviewForm = ref(false)
     const existingReviewInfo = ref(null)
+    const showFavoriteSuccess = ref(false)
+    const favoriteMessage = ref('')
 
     // Methods
     const fetchProduct = async () => {
@@ -415,11 +424,21 @@ export default {
     }
 
     const handleFavoriteAdded = (product) => {
-      alertStore.success(`😍 Udało się! "${product.name}" jest teraz w Twoich ulubionych!`, 3500)
+      // Show local success message
+      favoriteMessage.value = '😍 Dodano do ulubionych!'
+      showFavoriteSuccess.value = true
+      setTimeout(() => {
+        showFavoriteSuccess.value = false
+      }, 2500)
     }
 
     const handleFavoriteRemoved = (product) => {
-      alertStore.info(`💭 Produkt "${product.name}" został usunięty z ulubionych.`, 3000)
+      // Show local info message
+      favoriteMessage.value = '💭 Usunięto z ulubionych'
+      showFavoriteSuccess.value = true
+      setTimeout(() => {
+        showFavoriteSuccess.value = false
+      }, 2000)
     }
 
     const handleReviewSuccess = (newReview) => {
@@ -479,7 +498,9 @@ export default {
       handleReviewSuccess,
       hasPromotion,
       getDiscountPercentage,
-      existingReviewInfo
+      existingReviewInfo,
+      showFavoriteSuccess,
+      favoriteMessage
     }
   }
 }
@@ -487,4 +508,20 @@ export default {
 
 <style scoped>
 /* Custom styles for product details */
+
+/* Success message animation */
+.success-fade-enter-active,
+.success-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.success-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+.success-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-5px) scale(0.95);
+}
 </style> 

@@ -82,6 +82,13 @@
           </div>
         </transition>
         
+        <!-- Local success message for favorites -->
+        <transition name="success-fade">
+          <div v-if="showFavoriteSuccess" class="mb-3 bg-pink-50 border border-pink-200 rounded-lg p-2 text-center">
+            <p class="text-pink-700 text-xs font-medium">{{ favoriteMessage }}</p>
+          </div>
+        </transition>
+        
         <div class="space-y-2">
           <button 
             @click="addToCart"
@@ -142,6 +149,8 @@ export default {
     // State
     const cartLoading = ref(false)
     const showCartSuccess = ref(false)
+    const showFavoriteSuccess = ref(false)
+    const favoriteMessage = ref('')
 
     // Computed properties for promotion logic
     const hasPromotion = computed(() => {
@@ -201,11 +210,21 @@ export default {
     }
 
     const handleFavoriteAdded = (product) => {
-      alertStore.success(`😍 Udało się! "${product.name}" jest teraz w Twoich ulubionych!`, 3500)
+      // Show local success message
+      favoriteMessage.value = '😍 Dodano do ulubionych!'
+      showFavoriteSuccess.value = true
+      setTimeout(() => {
+        showFavoriteSuccess.value = false
+      }, 2500)
     }
 
     const handleFavoriteRemoved = (product) => {
-      alertStore.info(`💭 Produkt "${product.name}" został usunięty z ulubionych.`, 3000)
+      // Show local info message
+      favoriteMessage.value = '💭 Usunięto z ulubionych'
+      showFavoriteSuccess.value = true
+      setTimeout(() => {
+        showFavoriteSuccess.value = false
+      }, 2000)
     }
 
     return {
@@ -218,6 +237,8 @@ export default {
       promotionBadgeColor,
       cartLoading,
       showCartSuccess,
+      showFavoriteSuccess,
+      favoriteMessage,
       formatPrice,
       addToCart,
       handleFavoriteAdded,

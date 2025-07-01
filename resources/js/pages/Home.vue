@@ -596,9 +596,11 @@ export default {
       return this.favoriteStore.isInFavorites(productId);
     },
     handleFavoriteAdded(product) {
+      // Use global alert for home page - it's appropriate for this page
       this.alertStore.success(`😍 Udało się! "${product.name}" jest teraz w Twoich ulubionych!`, 3500)
     },
     handleFavoriteRemoved(product) {
+      // Use global alert for home page - it's appropriate for this page
       this.alertStore.info(`💭 Produkt "${product.name}" został usunięty z ulubionych.`, 3000)
     },
     // Promotion helper functions

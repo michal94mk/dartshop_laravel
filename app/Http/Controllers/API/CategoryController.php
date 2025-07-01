@@ -50,6 +50,7 @@ class CategoryController extends Controller
                     'id' => $category->id,
                     'name' => $category->name,
                     'slug' => $category->slug,
+                    'is_active' => $category->is_active,
                     'products_count' => $category->products_count,
                     'preview_products' => $category->products->map(function ($product) {
                         return [
