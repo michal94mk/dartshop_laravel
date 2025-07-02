@@ -326,8 +326,8 @@ class ProductController extends Controller
                     }]);
                 }
                 
-                // Order by creation date (newest first) and take 8 products
-                $products = $query->latest('created_at')->take(8)->get();
+                // Order by creation date (newest first) and take 9 products
+                $products = $query->latest('created_at')->take(9)->get();
                 
                 return $products;
             });

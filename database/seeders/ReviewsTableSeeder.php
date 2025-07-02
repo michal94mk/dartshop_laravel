@@ -78,9 +78,11 @@ class ReviewsTableSeeder extends Seeder
                 Review::create([
                     'user_id' => $user->id,
                     'product_id' => $product->id,
-                    'comment' => $reviewData['content'],
+                    'title' => $reviewData['title'],
+                    'content' => $reviewData['content'],
                     'rating' => $reviewData['rating'],
-                    'is_approved' => $reviewData['is_approved']
+                    'is_approved' => $reviewData['is_approved'],
+                    'is_featured' => $reviewData['is_featured']
                 ]);
             }
         }

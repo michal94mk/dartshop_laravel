@@ -454,25 +454,12 @@
       </div>
     </section>
 
-    <!-- Scroll to top button -->
-    <transition name="fade">
-      <button
-        v-show="showScrollButton"
-        @click="scrollToTop"
-        class="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white p-4 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-indigo-300 will-change-transform scroll-to-top"
-        aria-label="Przejdź na górę strony"
-        title="Przejdź na górę strony"
-      >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
-        </svg>
-      </button>
-    </transition>
+
   </div>
 </template>
 
 <script>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useProductStore } from '../stores/productStore';
 import { useCartStore } from '../stores/cartStore';
 import { useFavoriteStore } from '../stores/favoriteStore';
@@ -524,8 +511,6 @@ export default {
         isFallback: true
       }
     ]);
-    
-    const showScrollButton = ref(false);
     const cartSuccessMessages = ref({}); // Track success messages per product
     const favoriteSuccessMessages = ref({}); // Track favorite messages per product
     
@@ -648,10 +633,6 @@ export default {
       return formattedDate;
     };
     
-    const scrollToTop = () => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-    
     const hasCartSuccessMessage = (productId) => {
       return cartSuccessMessages.value[productId] || false;
     };
@@ -675,22 +656,10 @@ export default {
       // Load products and other data
       await loadLatestProducts();
       await loadLatestReviews();
-      
-      // Add scroll listener for scroll to top button
-      const handleScroll = () => {
-        showScrollButton.value = window.scrollY > 300;
-      };
-      window.addEventListener('scroll', handleScroll);
-      
-      // Cleanup function
-      onBeforeUnmount(() => {
-        window.removeEventListener('scroll', handleScroll);
-      });
     });
     
     return {
       fallbackProducts,
-      showScrollButton,
       cartSuccessMessages,
       favoriteSuccessMessages,
       categories,
@@ -714,7 +683,6 @@ export default {
       getPromotionBadgeColor,
       getPromotionBadgeText,
       formatDate,
-      scrollToTop,
       hasCartSuccessMessage,
       hasFavoriteSuccessMessage
     };
@@ -727,31 +695,7 @@ export default {
   aspect-ratio: 1 / 1;
 }
 
-/* Fade transition for scroll to top button */
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
 
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-  transform: translateY(20px) scale(0.8);
-}
-
-.fade-enter-to, .fade-leave-from {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-/* Enhanced scroll button styles */
-.scroll-to-top {
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.scroll-to-top:hover {
-  backdrop-filter: blur(15px);
-  box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.5);
-}
 
 /* Success message animation */
 .success-fade-enter-active,

@@ -33,6 +33,9 @@
 
     <!-- Footer z lepszym kontrastem i stylizacją -->
     <site-footer class="shadow-inner mt-auto" />
+    
+    <!-- Global Scroll to top button -->
+    <scroll-to-top />
   </div>
 </template>
 
@@ -40,19 +43,21 @@
 import PromotionBar from '../layout/PromotionBar.vue';
 import SiteHeader from '../layout/SiteHeader.vue';
 import SiteFooter from '../layout/SiteFooter.vue';
+import ScrollToTop from '../ui/ScrollToTop.vue';
 
 export default {
   name: 'DefaultLayout',
   components: {
     PromotionBar,
     SiteHeader,
-    SiteFooter
-  },
-  // No setup needed - alerts are now global in App.vue
+    SiteFooter,
+    ScrollToTop
+  }
 };
 </script>
 
 <style scoped>
+/* Page transition */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;

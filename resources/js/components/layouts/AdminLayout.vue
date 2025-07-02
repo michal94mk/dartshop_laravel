@@ -260,6 +260,9 @@
         <router-view :key="$route.fullPath" />
       </main>
     </div>
+    
+    <!-- Global Scroll to top button for Admin -->
+    <scroll-to-top :admin-mode="true" />
   </div>
 </template>
 
@@ -268,11 +271,12 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useAlertStore } from '../../stores/alertStore'
+import ScrollToTop from '../ui/ScrollToTop.vue'
 
 export default {
   name: 'AdminLayout',
   components: {
-    // AlertsContainer removed - now global in App.vue
+    ScrollToTop
   },
   setup() {
     const authStore = useAuthStore()
