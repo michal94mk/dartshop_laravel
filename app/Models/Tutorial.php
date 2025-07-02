@@ -20,6 +20,7 @@ class Tutorial extends Model
         'slug',
         'content',
         'video_url',
+        'image_url',
         'order',
         'is_published'
     ];
@@ -86,19 +87,19 @@ class Tutorial extends Model
     }
 
     /**
-     * Get default image URL for tutorials.
+     * Get featured image URL for tutorials.
      */
     public function getFeaturedImageUrlAttribute()
     {
-        return asset('img/tutorial-default.jpg');
+        return $this->image_url ? asset($this->image_url) : asset('img/tutorial-default.jpg');
     }
 
     /**
-     * Get default thumbnail URL for tutorials.
+     * Get thumbnail image URL for tutorials.
      */
     public function getThumbnailImageUrlAttribute()
     {
-        return asset('img/tutorial-thumbnail-default.jpg');
+        return $this->image_url ? asset($this->image_url) : asset('img/tutorial-thumbnail-default.jpg');
     }
 
     /**

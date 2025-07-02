@@ -50,7 +50,8 @@ const routes = [
     name: 'home',
     component: Home,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'DartShop'
     }
   },
   {
@@ -59,7 +60,8 @@ const routes = [
     component: ProductList,
     meta: { 
       reloadAlways: true,
-      layout: 'default'
+      layout: 'default',
+      title: 'Produkty'
     }
   },
   {
@@ -68,7 +70,8 @@ const routes = [
     component: ProductDetails,
     props: true,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Szczegóły produktu'
     }
   },
   {
@@ -76,7 +79,8 @@ const routes = [
     name: 'cart',
     component: Cart,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Koszyk'
     }
   },
   {
@@ -84,7 +88,8 @@ const routes = [
     name: 'checkout',
     component: Checkout,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Kasa'
     }
   },
   {
@@ -92,7 +97,8 @@ const routes = [
     name: 'payment-success',
     component: PaymentSuccess,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Płatność zakończona'
     }
   },
   {
@@ -100,7 +106,8 @@ const routes = [
     name: 'about',
     component: About,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'O nas'
     }
   },
   {
@@ -108,7 +115,8 @@ const routes = [
     name: 'contact',
     component: Contact,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Kontakt'
     }
   },
   {
@@ -116,7 +124,8 @@ const routes = [
     name: 'privacy',
     component: Privacy,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Polityka prywatności'
     }
   },
   {
@@ -124,7 +133,8 @@ const routes = [
     name: 'terms',
     component: Terms,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Regulamin'
     }
   },
   {
@@ -132,7 +142,8 @@ const routes = [
     name: 'promotions',
     component: Promotions,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Promocje'
     }
   },
   {
@@ -140,7 +151,8 @@ const routes = [
     name: 'tutorials',
     component: Tutorials,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Poradniki'
     }
   },
   {
@@ -149,7 +161,8 @@ const routes = [
     component: Tutorial,
     props: true,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Poradnik'
     }
   },
   // Auth routes
@@ -159,7 +172,8 @@ const routes = [
     component: Login,
     meta: {
       guest: true,
-      layout: 'default'
+      layout: 'default',
+      title: 'Logowanie'
     }
   },
   {
@@ -168,7 +182,8 @@ const routes = [
     component: Register,
     meta: {
       guest: true,
-      layout: 'default'
+      layout: 'default',
+      title: 'Rejestracja'
     }
   },
   {
@@ -177,7 +192,8 @@ const routes = [
     component: Profile,
     meta: {
       requiresAuth: true,
-      layout: 'default'
+      layout: 'default',
+      title: 'Profil'
     }
   },
   {
@@ -186,7 +202,8 @@ const routes = [
     component: ForgotPassword,
     meta: {
       guest: true,
-      layout: 'default'
+      layout: 'default',
+      title: 'Odzyskiwanie hasła'
     }
   },
   {
@@ -195,7 +212,8 @@ const routes = [
     component: ResetPassword,
     meta: {
       guest: true,
-      layout: 'default'
+      layout: 'default',
+      title: 'Resetowanie hasła'
     }
   },
   {
@@ -203,7 +221,8 @@ const routes = [
     name: 'verify-email',
     component: VerifyEmail,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Weryfikacja email'
     }
   },
   {
@@ -212,7 +231,8 @@ const routes = [
     component: VerifyEmail,
     props: true,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Weryfikacja email'
     }
   },
   {
@@ -221,7 +241,8 @@ const routes = [
     component: VerifyEmail,
     props: true,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Weryfikacja email'
     }
   },
   {
@@ -229,7 +250,8 @@ const routes = [
     name: 'newsletter-verify',
     component: NewsletterVerification,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Weryfikacja newslettera'
     }
   },
   {
@@ -237,7 +259,8 @@ const routes = [
     name: 'google-callback',
     component: GoogleCallback,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Logowanie Google'
     }
   },
   {
@@ -245,7 +268,8 @@ const routes = [
     name: 'auto-login',
     component: AutoLogin,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Automatyczne logowanie'
     }
   },
   // Admin routes
@@ -267,72 +291,114 @@ const routes = [
       {
         path: 'dashboard',
         name: 'admin-dashboard',
-        component: AdminDashboard
+        component: AdminDashboard,
+        meta: {
+          title: 'Panel Admina'
+        }
       },
       {
         path: 'products',
         name: 'admin-products',
-        component: AdminProducts
+        component: AdminProducts,
+        meta: {
+          title: 'Admin - Produkty'
+        }
       },
       {
         path: 'categories',
         name: 'admin-categories',
-        component: AdminCategories
+        component: AdminCategories,
+        meta: {
+          title: 'Admin - Kategorie'
+        }
       },
       {
         path: 'users',
         name: 'admin-users',
-        component: AdminUsers
+        component: AdminUsers,
+        meta: {
+          title: 'Admin - Użytkownicy'
+        }
       },
       {
         path: 'orders',
         name: 'admin-orders',
-        component: AdminOrders
+        component: AdminOrders,
+        meta: {
+          title: 'Admin - Zamówienia'
+        }
       },
       {
         path: 'brands',
         name: 'admin-brands',
-        component: AdminBrands
+        component: AdminBrands,
+        meta: {
+          title: 'Admin - Marki'
+        }
       },
       {
         path: 'reviews',
         name: 'admin-reviews',
-        component: AdminReviews
+        component: AdminReviews,
+        meta: {
+          title: 'Admin - Recenzje'
+        }
       },
       {
         path: 'promotions',
         name: 'admin-promotions',
-        component: AdminPromotions
+        component: AdminPromotions,
+        meta: {
+          title: 'Admin - Promocje'
+        }
       },
       {
         path: 'tutorials',
         name: 'admin-tutorials',
-        component: AdminTutorials
+        component: AdminTutorials,
+        meta: {
+          title: 'Admin - Poradniki'
+        }
       },
       {
         path: 'contact-messages',
         name: 'admin-contact-messages',
-        component: AdminContactMessages
+        component: AdminContactMessages,
+        meta: {
+          title: 'Admin - Wiadomości'
+        }
       },
       {
         path: 'about',
         name: 'admin-about',
-        component: AdminAbout
+        component: AdminAbout,
+        meta: {
+          title: 'Admin - O nas'
+        }
       },
       {
         path: 'newsletter',
         name: 'admin-newsletter',
-        component: AdminNewsletter
+        component: AdminNewsletter,
+        meta: {
+          title: 'Admin - Newsletter'
+        }
       },
       {
         path: 'privacy-policies',
         name: 'admin-privacy-policies',
-        component: AdminPrivacyPolicies
+        component: AdminPrivacyPolicies,
+        meta: {
+          title: 'Admin - Prywatność'
+        }
       },
       {
         path: 'terms-of-service',
         name: 'admin-terms-of-service',
-        component: AdminTermsOfService
+        component: AdminTermsOfService,
+        meta: {
+          title: 'Admin - Regulamin'
+        }
       }
     ]
   },
@@ -342,7 +408,8 @@ const routes = [
     name: 'not-found',
     component: NotFound,
     meta: {
-      layout: 'default'
+      layout: 'default',
+      title: 'Strona nie znaleziona'
     }
   },
 ];
@@ -520,6 +587,14 @@ router.beforeEach(async (to, from, next) => {
     console.log('No special route conditions, proceeding normally');
     next();
   }
+});
+
+// Set page title after each route change
+router.afterEach((to) => {
+  // Use the title from route meta or fall back to default
+  const defaultTitle = 'DartShop';
+  const title = to.meta.title || defaultTitle;
+  document.title = title;
 });
 
 export default router; 

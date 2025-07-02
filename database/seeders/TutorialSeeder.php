@@ -19,6 +19,7 @@ class TutorialSeeder extends Seeder
             [
                 'title' => 'Podstawy gry w rzutki dla początkujących',
                 'slug' => 'podstawy-gry-w-rzutki-dla-poczatkujacych',
+                'image_url' => 'img/tutorials/dart-basics-beginners.jpg',
                 'content' => '<h2>Podstawy gry w rzutki dla początkujących</h2>
                 <p>Gra w rzutki to świetna rozrywka, która może przerodzić się w pasję na lata. Ten poradnik przeprowadzi Cię przez podstawy, które pozwolą Ci rozpocząć przygodę z darts.</p>
                 
@@ -82,6 +83,7 @@ class TutorialSeeder extends Seeder
             [
                 'title' => 'Jak wybrać pierwsze lotki?',
                 'slug' => 'jak-wybrac-pierwsze-lotki',
+                'image_url' => 'img/tutorials/how-to-choose-first-darts.jpg',
                 'content' => '<h2>Jak wybrać pierwsze lotki?</h2>
                 <p>Wybór pierwszych lotek to ważna decyzja, która może znacząco wpłynąć na Twoje początkowe doświadczenia z darts. W tym poradniku pomożemy Ci dokonać właściwego wyboru.</p>
                 
@@ -143,6 +145,7 @@ class TutorialSeeder extends Seeder
             [
                 'title' => 'Techniki treningowe dla średniozaawansowanych graczy',
                 'slug' => 'techniki-treningowe-dla-sredniozaawansowanych-graczy',
+                'image_url' => 'img/tutorials/training-techniques-intermediate.jpg',
                 'content' => '<h2>Techniki treningowe dla średniozaawansowanych graczy</h2>
                 <p>Gdy opanowałeś już podstawy gry w rzutki, czas na podniesienie swoich umiejętności na wyższy poziom. Ten poradnik przedstawia zaawansowane techniki treningowe dla średniozaawansowanych graczy.</p>
                 
@@ -219,6 +222,7 @@ class TutorialSeeder extends Seeder
             [
                 'title' => 'Zasady gry w turniejach darts - co musisz wiedzieć',
                 'slug' => 'zasady-gry-w-turniejach-darts-co-musisz-wiedziec',
+                'image_url' => 'img/tutorials/tournament-rules-guide.jpg',
                 'content' => '<h2>Zasady gry w turniejach darts - co musisz wiedzieć</h2>
                 <p>Uczestnictwo w turniejach to ekscytujący krok w rozwoju każdego dartera. Ten poradnik przybliży najważniejsze zasady i etykietę turniejową, których powinieneś przestrzegać.</p>
                 
@@ -297,6 +301,7 @@ class TutorialSeeder extends Seeder
             [
                 'title' => 'Zaawansowane strategie gry w 501 dla profesjonalistów',
                 'slug' => 'zaawansowane-strategie-gry-w-501-dla-profesjonalistow',
+                'image_url' => 'img/tutorials/advanced-501-strategies.jpg',
                 'content' => '<h2>Zaawansowane strategie gry w 501 dla profesjonalistów</h2>
                 <p>Gra 501 na poziomie profesjonalnym wymaga nie tylko precyzji, ale także doskonałego zrozumienia strategii. Ten poradnik omawia zaawansowane koncepcje, które mogą podnieść Twoją grę na najwyższy poziom.</p>
                 

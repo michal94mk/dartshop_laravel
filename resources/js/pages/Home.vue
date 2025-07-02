@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50">
     <!-- Hero section -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 py-20">
+    <div class="relative overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 py-8 lg:py-12">
       <div class="absolute inset-0 bg-black opacity-20"></div>
       <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="lg:grid lg:grid-cols-2 lg:gap-12 items-center">
@@ -30,13 +30,16 @@
               </router-link>
             </div>
           </div>
-          <div class="mt-12 lg:mt-0">
-            <div class="relative">
-              <img class="w-full rounded-2xl shadow-2xl" src="https://via.placeholder.com/800x600/indigo/fff?text=Dart+Shop" alt="Dart equipment">
+          <div class="mt-8 lg:mt-0">
+            <div class="relative h-64 sm:h-80 lg:h-[400px]">
+              <img 
+                class="w-full h-full rounded-2xl shadow-2xl object-cover transition-opacity duration-300" 
+                src="/img/hero_image.jpg" 
+                alt="Profesjonalne akcesoria do dart - lotki, tarcze i akcesoria" 
+                loading="eager"
+                onerror="this.src='https://via.placeholder.com/800x600/4f46e5/fff?text=DartShop+Hero';this.alt='DartShop - Profesjonalne akcesoria do dart'"
+              >
               <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl"></div>
-              <!-- Decorative elements -->
-              <div class="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full opacity-20"></div>
-              <div class="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-r from-indigo-400 to-purple-500 rounded-full opacity-30"></div>
             </div>
           </div>
         </div>
