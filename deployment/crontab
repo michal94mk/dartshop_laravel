@@ -1,0 +1,11 @@
+# Laravel Scheduler
+* * * * * cd /var/www/dartshop && php artisan schedule:run >> /dev/null 2>&1
+
+# Backup database daily at 2:00 AM
+0 2 * * * cd /var/www/dartshop && php artisan backup:database >> /var/log/dartshop-backup.log 2>&1
+
+# Clean old logs weekly
+0 3 * * 0 find /var/www/dartshop/storage/logs -name "*.log" -type f -mtime +30 -delete
+
+# Clean old cache files daily
+0 4 * * * cd /var/www/dartshop && php artisan cache:prune-stale-tags >> /dev/null 2>&1 
