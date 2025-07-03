@@ -42,7 +42,7 @@
                 <router-link 
                   to="/products" 
                   class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
-                  @click="showProductsDropdown = false"
+                  @click.prevent="navigateTo('/products', $event)"
                 >
                   <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
@@ -54,13 +54,13 @@
                 <div class="px-4 py-2">
                   <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Kategorie</p>
                 </div>
-                <router-link 
-                  v-for="category in topCategories"
-                  :key="category.id"
-                  :to="`/products?category=${category.id}`" 
-                  class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
-                  @click="showProductsDropdown = false"
-                >
+                              <router-link
+                v-for="category in topCategories"
+                :key="category.id"
+                :to="`/products?category=${category.id}`" 
+                class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
+                @click.prevent="navigateToCategory(category.id, $event)"
+              >
                   <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                   </svg>
@@ -337,7 +337,7 @@
               <router-link
                 to="/products"
                 class="block py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded px-2"
-                @click="mobileMenuOpen = false"
+                @click.prevent="navigateTo('/products', $event)"
               >
                 <i class="fas fa-list w-4 mr-2 text-gray-400"></i>
                 Wszystkie produkty
@@ -347,7 +347,7 @@
                 :key="`mobile-${category.id}`"
                 :to="`/products?category=${category.id}`"
                 class="block py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded px-2"
-                @click="mobileMenuOpen = false"
+                @click.prevent="navigateToCategory(category.id, $event)"
               >
                 <i class="fas fa-folder w-4 mr-2 text-gray-400"></i>
                 {{ category.name }}
@@ -446,6 +446,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { useCartStore } from '../../stores/cartStore';
 import { useCategoryStore } from '../../stores/categoryStore';
 import { useAlertStore } from '../../stores/alertStore';
+import { useProductStore } from '../../stores/productStore';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { computed } from 'vue';
@@ -477,6 +478,7 @@ export default {
     const cartStore = useCartStore();
     const categoryStore = useCategoryStore();
     const alertStore = useAlertStore();
+    const productStore = useProductStore();
     const router = useRouter();
     
     // Używamy storeToRefs, aby zachować reaktywność getterów i state w Pinia
@@ -495,6 +497,7 @@ export default {
       cartStore,
       categoryStore,
       alertStore,
+      productStore,
       router,
       isLoggedIn,
       isAdmin,
@@ -543,8 +546,6 @@ export default {
     },
     logout() {
       try {
-        console.log('Starting logout from SiteHeader...');
-        
         // Set logout success message BEFORE logout
         this.alertStore.success('👋 Do zobaczenia! Zostałeś pomyślnie wylogowany.', 5000);
         
@@ -574,17 +575,57 @@ export default {
       this.showProductsDropdown = false;
       this.showMobileProductsDropdown = false;
 
-      // Log navigation attempt
-      console.log('Router navigating from', this.$route.path, 'to', path);
+
       
       // If navigating to same route as current, do nothing
-      if (this.$route.path === path) {
-        console.log('Already on path:', path);
+      if (this.$route.path === path && path !== '/products') {
         return;
       }
       
-      // Navigate to new route
-      this.$router.push(path).catch(err => {
+      // Special handling for products page - always clear query parameters and filters
+      if (path === '/products') {
+        // Clear all filters in store
+        this.productStore.clearAllFilters();
+        
+        // Navigate to clean products page
+        this.$router.push({ path: '/products' }).then(() => {
+          // Force reload products with cleared filters
+          this.productStore.fetchProducts();
+        }).catch(err => {
+          console.error('Navigation error:', err);
+        });
+      } else {
+        // Navigate to new route normally
+        this.$router.push(path).catch(err => {
+          console.error('Navigation error:', err);
+        });
+      }
+    },
+    
+    navigateToCategory(categoryId, event) {
+      // Prevent default behavior
+      if (event) {
+        event.preventDefault();
+      }
+      
+      // Close menus
+      this.userMenuOpen = false;
+      this.mobileMenuOpen = false;
+      this.showProductsDropdown = false;
+      this.showMobileProductsDropdown = false;
+
+      // Clear search filter but keep category
+      this.productStore.clearSearchFilter();
+      this.productStore.setFilters({ category: categoryId });
+      
+      // Navigate to products page with category
+      this.$router.push({ 
+        path: '/products', 
+        query: { category: categoryId } 
+      }).then(() => {
+        // Force reload products with category filter
+        this.productStore.fetchProducts();
+      }).catch(err => {
         console.error('Navigation error:', err);
       });
     },

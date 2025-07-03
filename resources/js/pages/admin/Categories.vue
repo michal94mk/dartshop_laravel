@@ -320,21 +320,9 @@ export default {
           sort_direction: filters.sort_direction
         }
         
-        console.log('Fetching categories with params:', params)
-        console.log('Auth state:', {
-          isLoggedIn: authStore.isLoggedIn,
-          isAdmin: authStore.isAdmin,
-          user: authStore.user
-        })
-        
         const response = await axios.get('/api/admin/categories', { params })
-        console.log('Categories API response:', response.data)
         categories.value = response.data
       } catch (error) {
-        console.error('Error fetching categories:', error)
-        console.error('Error details:', error.response?.data)
-        console.error('Status:', error.response?.status)
-        console.error('Status text:', error.response?.statusText)
         alertStore.error('Wystąpił błąd podczas pobierania kategorii: ' + (error.response?.data?.message || error.message))
       } finally {
         loading.value = false
@@ -390,8 +378,7 @@ export default {
         
         showModal.value = false
         fetchCategories()
-      } catch (error) {
-        console.error('Error saving category:', error)
+              } catch (error) {
         if (error.response && error.response.data && error.response.data.errors) {
           const errors = error.response.data.errors
           const errorMessages = Object.values(errors).flat().join('\n')
@@ -405,7 +392,6 @@ export default {
     }
     
     const deleteCategory = (id) => {
-      console.log('Delete category called with ID:', id); // Debug the ID being passed
       categoryToDelete.value = typeof id === 'object' && id.id ? id.id : id;
       showDeleteModal.value = true;
     }
@@ -422,11 +408,8 @@ export default {
                         ? categoryToDelete.value.id 
                         : categoryToDelete.value;
       
-      console.log('Attempting to delete category with ID:', categoryId); // Debug the ID
-      
       try {
         const response = await axios.delete(`/api/admin/categories/${categoryId}`)
-        console.log('Delete response:', response)
         alertStore.success('Kategoria została usunięta.')
         showDeleteModal.value = false
         fetchCategories()
@@ -434,17 +417,7 @@ export default {
         // Close the delete confirmation modal
         showDeleteModal.value = false
         
-        // Complete debugging of the error
-        console.error('Error deleting category:', error)
-        console.dir(error, { depth: null }) // Full error object dump
-        
         if (error.response) {
-          console.group('Error Response Details:')
-          console.log('Status:', error.response.status)
-          console.log('Status Text:', error.response.statusText)
-          console.log('Full Response Data:', error.response.data)
-          console.log('Headers:', error.response.headers)
-          console.groupEnd()
           
           // Always show the error in the detailed modal
           if (error.response.status === 422) {

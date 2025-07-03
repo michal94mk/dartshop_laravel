@@ -55,7 +55,8 @@ export const useProductStore = defineStore('product', {
           sort_direction: this.filters.sort === 'price_desc' || this.filters.sort === 'name_desc' ? 'desc' : 
                          this.filters.sort === 'newest' ? 'desc' : 'asc',
           ...params,
-          _nocache: new Date().getTime()
+          _t: new Date().getTime(),
+          _r: Math.random().toString(36).substring(7)
         };
         
         console.log('Sending API request with params:', requestParams);
@@ -208,6 +209,20 @@ export const useProductStore = defineStore('product', {
         ...this.filters,
         ...filters
       };
+    },
+    
+    clearAllFilters() {
+      this.filters = {
+        category: null,
+        brand: null,
+        search: '',
+        priceRange: [0, 1000],
+        sort: 'newest'
+      };
+    },
+    
+    clearSearchFilter() {
+      this.filters.search = '';
     }
   }
 }); 

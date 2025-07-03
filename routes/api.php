@@ -36,6 +36,7 @@ use App\Http\Controllers\Api\NewsletterController;
 use App\Http\Controllers\API\PrivacyPolicyController;
 use App\Http\Controllers\API\TermsOfServiceController;
 use App\Http\Controllers\API\SocialAuthController;
+use Illuminate\Support\Facades\Cache;
 
 /*
 |--------------------------------------------------------------------------
@@ -156,15 +157,7 @@ Route::prefix('newsletter')->group(function () {
     Route::post('/unsubscribe', [NewsletterController::class, 'unsubscribe']);
     Route::post('/status', [NewsletterController::class, 'status']);
     
-    // Test endpoint
-    Route::get('/test', function () {
-        return response()->json([
-            'success' => true,
-            'message' => 'Newsletter API is working!',
-            'timestamp' => now(),
-            'routes_work' => true
-        ]);
-    });
+
 });
 
 // Guest Checkout API (for non-authenticated users)
@@ -182,15 +175,7 @@ Route::get('/shipping-methods', function () {
     ]);
 });
 
-// Test shipping calculations
-Route::get('/test-shipping/{total}', function ($total) {
-    $shippingService = new \App\Services\ShippingService();
-    return response()->json([
-        'cart_total' => $total,
-        'methods_with_costs' => $shippingService->getShippingMethodsWithCosts($total),
-        'free_shipping_threshold' => $shippingService->getFreeShippingThreshold()
-    ]);
-});
+
 
 // Guest Stripe payment routes
 Route::prefix('guest-stripe')->group(function () {
@@ -217,15 +202,7 @@ Route::prefix('promotions')->group(function () {
 
 // Admin API Routes
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
-    // Test endpoint to check middleware
-    Route::get('/test', function () {
-        return response()->json([
-            'success' => true,
-            'message' => 'Admin middleware is working!',
-            'user' => auth()->user(),
-            'is_admin' => auth()->user()->is_admin ?? false
-        ]);
-    });
+
     
     // Dashboard statistics
     Route::get('/dashboard', [DashboardController::class, 'index']);
@@ -314,5 +291,3 @@ Route::get('/terms-of-service', [TermsOfServiceController::class, 'show']);
 
 // Terms of Service acceptance for authenticated users
 Route::middleware('auth:sanctum')->post('/terms-of-service/accept', [TermsOfServiceController::class, 'accept']);
-
-

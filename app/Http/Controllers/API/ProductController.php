@@ -40,8 +40,16 @@ class ProductController extends Controller
             // Create cache key based on query parameters
             $cacheKey = 'products_list_' . md5(json_encode($request->all()));
             
+            Log::info('Cache check', [
+                'cache_key' => $cacheKey,
+                'request_params' => $request->all(),
+                'cache_exists_before' => Cache::has($cacheKey)
+            ]);
+            
             // Cache products for 30 minutes
-            $products = Cache::remember($cacheKey, 1800, function () use ($request) {
+            $products = Cache::remember($cacheKey, 1800, function () use ($request, $cacheKey) {
+                Log::info('Cache MISS - executing query for key: ' . $cacheKey);
+                
                 // Create base query with promotions
                 $query = Product::with(['category', 'brand', 'activePromotions']);
                 
@@ -167,22 +175,30 @@ class ProductController extends Controller
                 return $product;
             });
             
+            $cacheUsed = Cache::has($cacheKey);
+            
             Log::info('Products query successful', [
                 'total' => $products->total(),
                 'per_page' => $products->perPage(),
                 'current_page' => $products->currentPage(),
                 'last_page' => $products->lastPage(),
-                'cache_used' => Cache::has($cacheKey),
+                'cache_hit' => $cacheUsed,
+                'cache_key' => $cacheKey,
                 'filters_applied' => array_intersect_key($request->all(), array_flip([
                     'category_id', 'brand_id', 'search', 'price_min', 'price_max', 
                     'featured_only', 'in_stock_only', 'on_promotion_only', 'sort_by', 'sort_direction'
                 ]))
             ]);
             
+            if ($cacheUsed) {
+                Log::info('Cache HIT for key: ' . $cacheKey);
+            }
+            
             // Add metadata to response
             $response = $products->toArray();
             $response['meta'] = array_merge($response['meta'] ?? [], [
-                'cache_used' => Cache::has($cacheKey),
+                'cache_hit' => $cacheUsed,
+                'cache_key' => substr($cacheKey, 0, 20) . '...', // Show first 20 chars for debugging
                 'filters_available' => [
                     'categories' => Category::ordered()->get(['id', 'name', 'slug']),
                     'brands' => \App\Models\Brand::orderBy('name')->get(['id', 'name']),
@@ -314,8 +330,16 @@ class ProductController extends Controller
                 ]);
             }
             
+            $cacheKey = 'latest_products';
+            
+            Log::info('Latest products cache check', [
+                'cache_key' => $cacheKey,
+                'cache_exists_before' => Cache::has($cacheKey)
+            ]);
+            
             // Cache latest products for 30 minutes (shorter cache for fresh content)
-            $products = Cache::remember('latest_products', 1800, function () use ($hasReviews) {
+            $products = Cache::remember($cacheKey, 1800, function () use ($hasReviews, $cacheKey) {
+                Log::info('Cache MISS for latest products - executing query for key: ' . $cacheKey);
                 // Get latest products sorted by creation date
                 $query = Product::with(['category', 'brand', 'activePromotions']);
                 
@@ -353,18 +377,26 @@ class ProductController extends Controller
                 return $product;
             });
             
+            $cacheUsed = Cache::has($cacheKey);
+            
             Log::info('Latest products response', [
                 'count' => $products->count(),
                 'columns' => $products->count() > 0 ? array_keys($products->first()->toArray()) : [],
                 'query_log' => DB::getQueryLog(),
-                'cache_used' => Cache::has('latest_products'),
+                'cache_hit' => $cacheUsed,
+                'cache_key' => $cacheKey,
             ]);
+            
+            if ($cacheUsed) {
+                Log::info('Cache HIT for latest products key: ' . $cacheKey);
+            }
             
             return response()->json([
                 'data' => $products,
                 'meta' => [
                     'count' => $products->count(),
-                    'cache_used' => Cache::has('latest_products'),
+                    'cache_hit' => $cacheUsed,
+                    'cache_key' => $cacheKey,
                 ]
             ]);
             

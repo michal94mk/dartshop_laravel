@@ -370,6 +370,12 @@ export default {
       try {
         console.log('AdminLayout: Starting logout...')
         
+        // Show logout message immediately
+        alertStore.success('👋 Do zobaczenia! Zostałeś pomyślnie wylogowany.', 5000);
+        
+        // Small delay to show message
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         // Czekaj na zakończenie procesu wylogowywania
         const success = await authStore.logout()
         

@@ -22,7 +22,7 @@ class UserSeeder extends Seeder
                 'name' => 'Admin',
                 'first_name' => 'Admin',
                 'last_name' => 'User',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('Password123'),
                 'is_admin' => true,
                 'email_verified_at' => now(),
             ]
@@ -36,7 +36,7 @@ class UserSeeder extends Seeder
                     $admin->assignRole($adminRole);
                 } catch (\Exception $e) {
                     // Role assignment failed, but user still has is_admin = true
-                    \Log::warning('Could not assign admin role to user: ' . $e->getMessage());
+                    Log::warning('Could not assign admin role to user: ' . $e->getMessage());
                 }
             }
         }
@@ -62,7 +62,7 @@ class UserSeeder extends Seeder
                     $user->assignRole($userRole);
                 } catch (\Exception $e) {
                     // Role assignment failed
-                    \Log::warning('Could not assign user role to user: ' . $e->getMessage());
+                    Log::warning('Could not assign user role to user: ' . $e->getMessage());
                 }
             }
         }
@@ -88,7 +88,7 @@ class UserSeeder extends Seeder
                     $testUser->assignRole($userRole);
                 } catch (\Exception $e) {
                     // Role assignment failed
-                    \Log::warning('Could not assign user role to test user: ' . $e->getMessage());
+                    Log::warning('Could not assign user role to test user: ' . $e->getMessage());
                 }
             }
         }
@@ -101,7 +101,7 @@ class UserSeeder extends Seeder
                     $adminRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin']);
                     $adminUser->assignRole($adminRole);
                 } catch (\Exception $e) {
-                    \Log::warning('Could not assign admin role to existing admin user: ' . $e->getMessage());
+                    Log::warning('Could not assign admin role to existing admin user: ' . $e->getMessage());
                 }
             }
         }
@@ -114,7 +114,85 @@ class UserSeeder extends Seeder
                     $userRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'user']);
                     $regularUser->assignRole($userRole);
                 } catch (\Exception $e) {
-                    \Log::warning('Could not assign user role to existing regular user: ' . $e->getMessage());
+                    Log::warning('Could not assign user role to existing regular user: ' . $e->getMessage());
+                }
+            }
+        }
+
+        // Additional realistic users for reviews
+        $realisticUsers = [
+            [
+                'name' => 'Anna Kowalska',
+                'first_name' => 'Anna',
+                'last_name' => 'Kowalska',
+                'email' => 'anna.kowalska@example.com'
+            ],
+            [
+                'name' => 'Piotr Nowak',
+                'first_name' => 'Piotr',
+                'last_name' => 'Nowak',
+                'email' => 'piotr.nowak@example.com'
+            ],
+            [
+                'name' => 'Katarzyna Wiśniewska',
+                'first_name' => 'Katarzyna',
+                'last_name' => 'Wiśniewska',
+                'email' => 'katarzyna.wisniewska@example.com'
+            ],
+            [
+                'name' => 'Marek Adamski',
+                'first_name' => 'Marek',
+                'last_name' => 'Adamski',
+                'email' => 'marek.adamski@example.com'
+            ],
+            [
+                'name' => 'Aleksandra Jankowska',
+                'first_name' => 'Aleksandra',
+                'last_name' => 'Jankowska',
+                'email' => 'aleksandra.jankowska@example.com'
+            ],
+            [
+                'name' => 'Tomasz Krawczyk',
+                'first_name' => 'Tomasz',
+                'last_name' => 'Krawczyk',
+                'email' => 'tomasz.krawczyk@example.com'
+            ],
+            [
+                'name' => 'Monika Pawłowska',
+                'first_name' => 'Monika',
+                'last_name' => 'Pawłowska',
+                'email' => 'monika.pawlowska@example.com'
+            ],
+            [
+                'name' => 'Michał Dąbrowski',
+                'first_name' => 'Michał',
+                'last_name' => 'Dąbrowski',
+                'email' => 'michal.dabrowski@example.com'
+            ]
+        ];
+
+        foreach ($realisticUsers as $userData) {
+            $realisticUser = User::updateOrCreate(
+                ['email' => $userData['email']],
+                [
+                    'name' => $userData['name'],
+                    'first_name' => $userData['first_name'],
+                    'last_name' => $userData['last_name'],
+                    'password' => Hash::make('password'),
+                    'is_admin' => false,
+                    'email_verified_at' => now(),
+                ]
+            );
+
+            // Assign user role if it exists
+            if ($realisticUser && method_exists($realisticUser, 'hasRole')) {
+                if (!$realisticUser->hasRole('user')) {
+                    try {
+                        $userRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'user']);
+                        $realisticUser->assignRole($userRole);
+                    } catch (\Exception $e) {
+                        Log::warning('Could not assign user role to realistic user: ' . $e->getMessage());
+                    }
                 }
             }
         }

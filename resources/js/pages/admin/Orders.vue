@@ -639,30 +639,7 @@ import AdminModal from '../../components/admin/ui/AdminModal.vue'
 import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
 import ActionButtons from '../../components/admin/ActionButtons.vue'
 
-// Add axios interceptors for debugging
-axios.interceptors.request.use(request => {
-  if (request.url.includes('/api/admin/orders') && request.method === 'post') {
-    console.log('Request:', request.method, request.url)
-    console.log('Request data:', request.data)
-  }
-  return request
-}, error => {
-  return Promise.reject(error)
-})
 
-axios.interceptors.response.use(response => {
-  if (response.config.url.includes('/api/admin/orders') && response.config.method === 'post') {
-    console.log('Response:', response.status)
-    console.log('Response data:', response.data)
-  }
-  return response
-}, error => {
-  if (error.response) {
-    console.log('Error response:', error.response.status)
-    console.log('Error data:', error.response.data)
-  }
-  return Promise.reject(error)
-})
 
 export default {
   name: 'AdminOrders',
@@ -1122,12 +1099,6 @@ export default {
         editedOrder.value.postal_code = ''
       }
     })
-
-    // Add these helper functions outside handleSubmit
-    const debugFormValue = (key, value) => {
-      console.log(`Field ${key}:`, value, 'Type:', typeof value, 'Value is empty?', !value)
-      return value
-    }
 
     const ensureString = (value) => {
       if (value === null || value === undefined || value === '') return ''

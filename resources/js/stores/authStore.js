@@ -131,11 +131,7 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         console.error('Failed to initialize auth state:', error);
         
-        // Debug response
-        if (error.response) {
-          console.error('Error status:', error.response.status);
-          console.error('Error data:', error.response.data);
-        }
+
         
         // Set error only if it's not 401 Unauthorized (user not logged in)
         if (error.response && error.response.status !== 401) {

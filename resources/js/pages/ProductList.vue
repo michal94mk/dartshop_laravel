@@ -54,7 +54,7 @@
           
           <div class="flex flex-wrap gap-3">
             <button 
-              @click="filterByCategory(null)" 
+              @click="filterByCategory(null)"
               class="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm"
               :class="{'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg': !selectedCategory, 'bg-gray-100 text-gray-700 hover:bg-indigo-50 border border-gray-200': selectedCategory}"
             >
@@ -626,7 +626,12 @@ export default {
     
     // Define loadProducts function first
     const loadProducts = async () => {
+      console.log('🔄 loadProducts called with current filters:', { ...productStore.filters });
+      console.log('🔄 Current route query:', route.query);
+      console.log('🔄 loadProducts stack trace:', new Error().stack);
       await productStore.fetchProducts();
+      console.log('✅ loadProducts completed. Products count:', productStore.products.length);
+      console.log('✅ First product name (if any):', productStore.products[0]?.name || 'No products');
     };
     
     // Load categories on mount
@@ -656,29 +661,66 @@ export default {
       await loadProducts();
     });
     
+    // Flag to prevent watcher from triggering during manual filter updates
+    const isManualUpdate = ref(false);
+    
     // Watch for route changes to update filters  
-    watch(() => route.query, (newQuery, oldQuery) => {
-      // Only proceed if this is not the initial load
-      if (oldQuery) {
+    watch(() => route.query, async (newQuery, oldQuery) => {
+      console.log('🔍 WATCHER triggered', { 
+        newQuery, 
+        oldQuery, 
+        isManualUpdate: isManualUpdate.value,
+        currentStoreFilters: { ...productStore.filters }
+      });
+      
+      // Only proceed if this is not the initial load and not a manual update
+      if (oldQuery && !isManualUpdate.value) {
+        console.log('🔍 WATCHER proceeding with route change');
+        console.log('🔍 WATCHER: Store filters BEFORE changes:', { ...productStore.filters });
+        let filtersChanged = false;
+        
         // Update productStore filters from route query
         if (newQuery.search !== productStore.filters.search) {
+          console.log('🔍 WATCHER: search changed', newQuery.search, '→', productStore.filters.search);
           productStore.filters.search = newQuery.search || '';
+          filtersChanged = true;
         }
         
         if (newQuery.category && newQuery.category !== productStore.filters.category) {
-          productStore.filters.category = newQuery.category;
+          console.log('🔍 WATCHER: category changed', newQuery.category);
+          productStore.filters.category = parseInt(newQuery.category);
           selectedCategory.value = parseInt(newQuery.category);
-        } else if (!newQuery.category) {
+          filtersChanged = true;
+        } else if (!newQuery.category && productStore.filters.category) {
+          console.log('🔍 WATCHER: category cleared');
           productStore.filters.category = null;
           selectedCategory.value = null;
+          filtersChanged = true;
         }
         
         if (newQuery.sort && newQuery.sort !== productStore.filters.sort) {
+          console.log('🔍 WATCHER: sort changed', newQuery.sort);
           productStore.filters.sort = newQuery.sort;
+          filtersChanged = true;
         }
         
-        // Load products with new filters
-        loadProducts();
+        // Only load products if filters actually changed
+        if (filtersChanged) {
+          console.log('🔍 WATCHER: Store filters AFTER changes:', { ...productStore.filters });
+          console.log('🔍 WATCHER: loading products due to filter changes');
+          await loadProducts();
+        } else {
+          console.log('🔍 WATCHER: no filter changes, skipping load');
+          console.log('🔍 WATCHER: Store filters UNCHANGED:', { ...productStore.filters });
+        }
+      } else {
+        console.log('🔍 WATCHER: skipped due to initial load or manual update');
+      }
+      
+      // Reset manual update flag after watcher execution
+      if (isManualUpdate.value) {
+        console.log('🔍 WATCHER: resetting manual update flag');
+        isManualUpdate.value = false;
       }
     }, { deep: true });
 
@@ -725,7 +767,13 @@ export default {
       productStore.fetchProducts();
     };
 
-    const resetFilters = () => {
+    const resetFilters = async () => {
+      console.log('🔄 resetFilters called');
+      
+      // Set manual update flag to prevent watcher interference
+      isManualUpdate.value = true;
+      
+      // Reset all filters
       productStore.filters = {
         category: null,
         brand: null,
@@ -733,8 +781,21 @@ export default {
         priceRange: [0, 1000],
         sort: 'newest'
       };
+      
+      // Reset UI state
       priceRange.value = [0, 1000];
-      productStore.fetchProducts();
+      selectedCategory.value = null;
+      
+      // Clear any success messages
+      cartSuccessMessages.value = {};
+      favoriteSuccessMessages.value = {};
+      
+      // Update URL to clear all parameters
+      router.push({ path: route.path });
+      
+      // Reload products with cleared filters
+      console.log('🔄 resetFilters calling loadProducts');
+      await loadProducts();
     };
 
     const goToPage = (page) => {
@@ -809,11 +870,23 @@ export default {
       }, 2000);
     };
 
-    const clearSearch = () => {
+    const clearSearch = async () => {
+      console.log('🔍 clearSearch called');
+      
+      // Set manual update flag to prevent watcher interference
+      isManualUpdate.value = true;
+      
       productStore.filters.search = '';
-      productStore.fetchProducts();
-      // Also update the URL to remove search parameter
-      router.push({ path: '/products' });
+      
+      // Update URL to remove search parameter but keep other params
+      const query = { ...route.query };
+      delete query.search;
+      
+      router.push({ path: route.path, query });
+      
+      // Reload products with cleared search
+      console.log('🔍 clearSearch calling loadProducts');
+      await loadProducts();
     };
 
     // Promotion helper functions
@@ -851,17 +924,32 @@ export default {
     };
 
     const filterByCategory = (category) => {
-      selectedCategory.value = category;
-      productStore.filters.category = category;
+      console.log('🏷️ filterByCategory called with:', category);
+      console.log('🏷️ Current filters before change:', { ...productStore.filters });
       
-      // Update URL
+      selectedCategory.value = category;
+      
+      // Clear any success messages
+      cartSuccessMessages.value = {};
+      favoriteSuccessMessages.value = {};
+      
+      // Update URL - keep existing query params but update/remove category and search
       const query = { ...route.query };
+      
+      // Remove search from URL - this is key for clearing search
+      delete query.search;
+      
+      // Set or remove category
       if (category) {
         query.category = category;
       } else {
         delete query.category;
       }
       
+      console.log('🏷️ New URL query:', query);
+      console.log('🏷️ Pushing new URL and letting watcher handle filter sync...');
+      
+      // Update URL - watcher will handle filter synchronization and product loading
       router.push({ path: route.path, query });
     };
 
@@ -877,6 +965,8 @@ export default {
     const hasFavoriteSuccessMessage = (productId) => {
       return favoriteSuccessMessages.value[productId] || false;
     };
+
+
 
     return {
       productStore,
@@ -906,7 +996,8 @@ export default {
       cartSuccessMessages,
       hasCartSuccessMessage,
       favoriteSuccessMessages,
-      hasFavoriteSuccessMessage
+      hasFavoriteSuccessMessage,
+      isManualUpdate
     };
   }
 }
