@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Product;
+use App\Models\Category;
+use App\Models\Brand;
 use Illuminate\Support\Str;
 
 class ProductSeeder extends Seeder
@@ -13,274 +15,325 @@ class ProductSeeder extends Seeder
      */
     public function run()
     {
+        // Get category IDs
+        $lotkiId = Category::where('slug', 'lotki')->first()->id;
+        $tarczeId = Category::where('slug', 'tarcze')->first()->id;
+        $oponyId = Category::where('slug', 'opony')->first()->id;
+        $piorkaId = Category::where('slug', 'piorka')->first()->id;
+        $shaftyId = Category::where('slug', 'shafty')->first()->id;
+        $oswietlenieId = Category::where('slug', 'oswietlenie')->first()->id;
+
+        // Get brand IDs
+        $unicornId = Brand::where('slug', 'unicorn')->first()->id;
+        $harrowsId = Brand::where('slug', 'harrows')->first()->id;
+        $targetId = Brand::where('slug', 'target')->first()->id;
+        $winmauId = Brand::where('slug', 'winmau')->first()->id;
+
         $products = [
-            // Dartboards
+            // Tarcze (Dartboards)
             [
-                'name' => 'Winmau Blade 6 Triple Core Carbon',
-                'description' => 'Profesjonalna tarcza turniejowa z potrójnym rdzeniem i włóknem węglowym. Cieńsze druty redukują odbicia, a system Dual Core zapewnia większą trwałość.',
-                'price' => 89.95,
-                'category_id' => 2, // Dartboards
-                'brand_id' => 4, // Winmau
-                'image' => 'product01.png',
+                'name' => 'Winmau Blade 6 Professional',
+                'description' => 'Profesjonalna tarcza turniejowa Winmau Blade 6. Wyposażona w rewolucyjny system Dual Core dla zwiększonej trwałości i redukcji odbić. Cieńsze druty i zwiększona powierzchnia scoring area zapewniają lepsze wyniki.',
+                'price' => 299.99,
+                'category_id' => $tarczeId,
+                'brand_id' => $winmauId,
+                'image' => 'winmau-tarcza-winmau-blade-6-profesjonalne.webp',
                 'stock_quantity' => 15,
                 'featured' => true,
             ],
             [
-                'name' => 'Target Aspar',
-                'description' => 'Wysokiej jakości tarcza turniejowa z cienkimi drutami i zwiększoną powierzchnią wbijania.',
-                'price' => 44.95,
-                'category_id' => 2, // Dartboards
-                'brand_id' => 3, // Target
-                'image' => 'product02.png',
-                'stock_quantity' => 8,
-                'featured' => false,
-            ],
-            [
-                'name' => 'Unicorn Eclipse Ultra',
-                'description' => 'Profesjonalna tarcza turniejowa z systemem Eclipse HD. Cienkie druty i wyraźny kontrast kolorów dla lepszej widoczności.',
-                'price' => 59.95,
-                'category_id' => 2, // Dartboards
-                'brand_id' => 1, // Unicorn
-                'image' => 'product03.png',
+                'name' => 'Target Tor Professional',
+                'description' => 'Profesjonalna tarcza Target Tor z innowacyjnym systemem mocowania drutów. Wysoka jakość wykonania i precyzja. Idealna zarówno do użytku domowego jak i turniejowego.',
+                'price' => 259.99,
+                'category_id' => $tarczeId,
+                'brand_id' => $targetId,
+                'image' => 'target-tarcza-target-tor-profesjonalne.webp',
                 'stock_quantity' => 12,
                 'featured' => false,
             ],
-            
-            // Steel tip darts
             [
-                'name' => 'Target Vapor 8 Black',
-                'description' => 'Lotki z 80% wolframu z charakterystycznym czarnym wykończeniem i unikalnym systemem uchwytu. Dostępne w wersjach z kolorowymi akcentami.',
-                'price' => 56.95,
-                'category_id' => 1, // Darts
-                'brand_id' => 3, // Target
-                'image' => 'product04.png',
-                'stock_quantity' => 25,
-                'featured' => true,
-            ],
-            [
-                'name' => 'Red Dragon Amberjack 25g',
-                'description' => 'Profesjonalne lotki z 90% wolframu z charakterystycznym pomarańczowo-czarnym wzorem grippowym. Wyjątkowa precyzja i kontrola.',
-                'price' => 37.95,
-                'category_id' => 1, // Darts
-                'brand_id' => 5, // Red Dragon
-                'image' => 'product05.png',
-                'stock_quantity' => 20,
-                'featured' => false,
-            ],
-            [
-                'name' => 'Winmau Blackout',
-                'description' => 'Eleganckie czarne lotki z 90% wolframu z matowym wykończeniem i precyzyjnym systemem gripowym.',
-                'price' => 49.95,
-                'category_id' => 1, // Darts
-                'brand_id' => 4, // Winmau
-                'image' => 'product06.png',
-                'stock_quantity' => 18,
-                'featured' => false,
-            ],
-            
-            // Soft tip darts
-            [
-                'name' => 'Target Bolide 01',
-                'description' => 'Lotki softip z 90% wolframu zaprojektowane dla maksymalnej kontroli i precyzji.',
-                'price' => 59.95,
-                'category_id' => 1, // Darts 
-                'brand_id' => 3, // Target
-                'image' => 'product07.png',
-                'stock_quantity' => 15,
-                'featured' => true,
-            ],
-            [
-                'name' => 'Harrows Spina',
-                'description' => 'Lotki softip z 90% wolframu z charakterystycznym spiralnym wzorem gripowym.',
-                'price' => 44.95,
-                'category_id' => 1, // Darts
-                'brand_id' => 2, // Harrows
-                'image' => 'product08.png',
-                'stock_quantity' => 22,
-                'featured' => false,
-            ],
-            
-            // Accessories
-            [
-                'name' => 'Target Corona Vision Lighting System',
-                'description' => 'Profesjonalny system oświetlenia tarczy eliminujący cienie i poprawiający widoczność.',
-                'price' => 79.95,
-                'category_id' => 3, // Accessories
-                'brand_id' => 3, // Target
-                'image' => 'product09.png',
+                'name' => 'Unicorn Eclipse Ultra Professional',
+                'description' => 'Tarcza turniejowa Unicorn Eclipse Ultra z systemem Eclipse HD. Wyraźny kontrast kolorów i zoptymalizowana konstrukcja drutów dla maksymalnej precyzji i trwałości.',
+                'price' => 279.99,
+                'category_id' => $tarczeId,
+                'brand_id' => $unicornId,
+                'image' => 'unicorn-tarcza-unicorn-eclipse-ultra-profesjonalne.webp',
                 'stock_quantity' => 10,
                 'featured' => false,
             ],
+
+            // Opony (Surrounds)
             [
-                'name' => 'Winmau Simon Whitlock Case',
-                'description' => 'Profesjonalne etui na lotki z twardą obudową, sygnowane przez Simona Whitlocka.',
-                'price' => 19.95,
-                'category_id' => 5, // Cases
-                'brand_id' => 4, // Winmau
-                'image' => 'shop01.png',
-                'stock_quantity' => 30,
-                'featured' => false,
-            ],
-            
-            // Professional darts
-            [
-                'name' => 'Mission Snakebite World Champion Edition',
-                'description' => 'Lotki z 90% wolframu sygnowane przez mistrza świata PDC Petera Wrighta, z charakterystycznym wzorem wężowej skóry.',
-                'price' => 69.95,
-                'category_id' => 1, // Darts
-                'brand_id' => 7, // Mission
-                'image' => 'shop02.png',
-                'stock_quantity' => 12,
+                'name' => 'Target Pro Tour Dartboard Surround Black',
+                'description' => 'Profesjonalna opona turniejowa Target Pro Tour w kolorze czarnym. Chroni ścianę przed uszkodzeniem i ułatwia wyciąganie lotek.',
+                'price' => 89.99,
+                'category_id' => $oponyId,
+                'brand_id' => $targetId,
+                'image' => 'target-target-pro-tour-dartboard-surround-black.webp',
+                'stock_quantity' => 20,
                 'featured' => true,
             ],
-            
-            // Components
             [
-                'name' => 'Target Pro Grip Shafts',
-                'description' => 'Profesjonalne shafty z unikalnym systemem Pro Grip zapobiegającym luzowaniu się podczas gry.',
-                'price' => 5.95,
-                'category_id' => 7, // Shafts
-                'brand_id' => 3, // Target
-                'image' => 'shop03.png',
-                'stock_quantity' => 50,
+                'name' => 'Winmau Surround Pro Line Blade 6',
+                'description' => 'Dedykowana opona do tarczy Blade 6. Wykonana z wysokiej jakości materiału, zapewnia ochronę ściany i profesjonalny wygląd.',
+                'price' => 79.99,
+                'category_id' => $oponyId,
+                'brand_id' => $winmauId,
+                'image' => 'winmau-winmau-surround-pro-line-blade-6.webp',
+                'stock_quantity' => 25,
                 'featured' => false,
             ],
+
+            // Piórka (Flights)
             [
-                'name' => 'Designa DSX Flights',
-                'description' => 'Wytrzymałe i aerodynamiczne lotki dostępne w różnych kształtach i wzorach.',
-                'price' => 2.95,
-                'category_id' => 6, // Flights
-                'brand_id' => 9, // Designa
-                'image' => 'hotdeal.png',
+                'name' => 'Target Crux Pro Ultra No.6',
+                'description' => 'Profesjonalne piórka Target Crux z serii Pro Ultra. Zoptymalizowany kształt nr 6 zapewnia stabilny lot i precyzję.',
+                'price' => 9.99,
+                'category_id' => $piorkaId,
+                'brand_id' => $targetId,
+                'image' => 'target-piorka-target-crux-3-sets-pro-ultra-no6.jpg',
                 'stock_quantity' => 100,
                 'featured' => false,
             ],
             [
-                'name' => 'Bull\'s Dartmate Plus Scorepad',
-                'description' => 'Profesjonalna tablica do zapisywania wyników z magnetycznym markerem.',
-                'price' => 24.95,
-                'category_id' => 3, // Accessories
-                'brand_id' => 8, // Bull's
-                'image' => 'hotdeal.jpg',
+                'name' => 'Target Cult Pro Ultra No.6',
+                'description' => 'Piórka Target Cult Pro Ultra o klasycznym kształcie nr 6. Wykonane z wytrzymałego materiału dla długotrwałego użytkowania.',
+                'price' => 8.99,
+                'category_id' => $piorkaId,
+                'brand_id' => $targetId,
+                'image' => 'target-piorka-target-cult-pro-ultra-no6.jpg',
+                'stock_quantity' => 100,
+                'featured' => false,
+            ],
+            [
+                'name' => 'Target Nathan Aspinall Pro Ultra No.6',
+                'description' => 'Sygnowane piórka Nathana Aspinalla z serii Pro Ultra. Charakterystyczny design i sprawdzony kształt.',
+                'price' => 11.99,
+                'category_id' => $piorkaId,
+                'brand_id' => $targetId,
+                'image' => 'target-piorka-target-nathan-aspinall-pro-ultra-no6.webp',
+                'stock_quantity' => 80,
+                'featured' => true,
+            ],
+            [
+                'name' => 'Unicorn Ultrafly James Wade',
+                'description' => 'Piórka sygnowane przez Jamesa Wade\'a z serii Ultrafly. Wyjątkowa trwałość i stabilność lotu.',
+                'price' => 10.99,
+                'category_id' => $piorkaId,
+                'brand_id' => $unicornId,
+                'image' => 'unicorn-piorka-unicorn-ultrafly-james-wade.webp',
+                'stock_quantity' => 90,
+                'featured' => false,
+            ],
+            [
+                'name' => 'Unicorn Ultrafly Gary Anderson',
+                'description' => 'Oficjalne piórka Gary\'ego Andersona z serii Ultrafly. Aerodynamiczny kształt i charakterystyczny design.',
+                'price' => 10.99,
+                'category_id' => $piorkaId,
+                'brand_id' => $unicornId,
+                'image' => 'unicorn-piorka-unicorn-ultrafly-gary-anderson-phas.webp',
+                'stock_quantity' => 85,
+                'featured' => true,
+            ],
+            [
+                'name' => 'Winmau MVG Standard',
+                'description' => 'Standardowe piórka Michaela van Gerwena. Klasyczny kształt i charakterystyczne zielone wykończenie.',
+                'price' => 9.99,
+                'category_id' => $piorkaId,
+                'brand_id' => $winmauId,
+                'image' => 'winmau-piorka-winmau-michael-van-gerwen-standard-b.webp',
+                'stock_quantity' => 120,
+                'featured' => true,
+            ],
+            [
+                'name' => 'Winmau Prism Alpha Joe Cullen',
+                'description' => 'Piórka Joe Cullena z serii Prism Alpha. Innowacyjny materiał i unikalny design.',
+                'price' => 12.99,
+                'category_id' => $piorkaId,
+                'brand_id' => $winmauId,
+                'image' => 'winmau-piorka-winmau-prims-alpha-joe-cullen.webp',
+                'stock_quantity' => 70,
+                'featured' => false,
+            ],
+
+            // Shafty
+            [
+                'name' => 'Winmau Prism Shaft Blue',
+                'description' => 'Niebieskie shafty Winmau Prism wykonane z wytrzymałego materiału kompozytowego. Innowacyjny system zapobiegający luzowaniu.',
+                'price' => 14.99,
+                'category_id' => $shaftyId,
+                'brand_id' => $winmauId,
+                'image' => 'winmau-shafty-winmau-prism-shaft-blue.webp',
+                'stock_quantity' => 150,
+                'featured' => false,
+            ],
+            [
+                'name' => 'Winmau Prism Force Red',
+                'description' => 'Czerwone shafty Winmau Prism Force. Wzmocniona konstrukcja i system anty-wibracyjny.',
+                'price' => 16.99,
+                'category_id' => $shaftyId,
+                'brand_id' => $winmauId,
+                'image' => 'winmau-shafty-winmau-prism-force-red.webp',
+                'stock_quantity' => 130,
+                'featured' => true,
+            ],
+
+            // Oświetlenie
+            [
+                'name' => 'Target Corona Vision',
+                'description' => 'Profesjonalne oświetlenie tarczy Target Corona Vision. Eliminuje cienie i zapewnia równomierne oświetlenie całej powierzchni tarczy.',
+                'price' => 199.99,
+                'category_id' => $oswietlenieId,
+                'brand_id' => $targetId,
+                'image' => 'target-oswietlenie-tarczy-target-corona-vision.webp',
+                'stock_quantity' => 10,
+                'featured' => true,
+            ],
+            [
+                'name' => 'Winmau Plasma',
+                'description' => 'System oświetlenia Winmau Plasma z regulacją jasności. Nowoczesny design i równomierne oświetlenie tarczy.',
+                'price' => 179.99,
+                'category_id' => $oswietlenieId,
+                'brand_id' => $winmauId,
+                'image' => 'winmau-oswietlenie-tarczy-winmau-plasma.webp',
+                'stock_quantity' => 15,
+                'featured' => false,
+            ],
+
+            // Lotki (Darts) - Harrows
+            [
+                'name' => 'Harrows Fire Inferno',
+                'description' => 'Lotki Harrows Fire Inferno wykonane z wysokiej jakości wolframu. Charakterystyczny czerwony design i precyzyjny grip zapewniający doskonałą kontrolę rzutu.',
+                'price' => 129.99,
+                'category_id' => $lotkiId,
+                'brand_id' => $harrowsId,
+                'image' => 'harrows-lotki-harrows-fire-inferno.webp',
+                'stock_quantity' => 25,
+                'featured' => true,
+            ],
+            [
+                'name' => 'Harrows Noble',
+                'description' => 'Eleganckie lotki Harrows Noble z precyzyjnym systemem gripowym. Idealne wyważenie i kontrola dla graczy na każdym poziomie zaawansowania.',
+                'price' => 119.99,
+                'category_id' => $lotkiId,
+                'brand_id' => $harrowsId,
+                'image' => 'harrows-lotki-harrows-noble.webp',
+                'stock_quantity' => 20,
+                'featured' => false,
+            ],
+            [
+                'name' => 'Harrows Supergrip Ultra',
+                'description' => 'Lotki Harrows Supergrip Ultra z zaawansowanym systemem uchwytu. Specjalna powierzchnia gripowa zapewnia pewny chwyt w każdych warunkach.',
+                'price' => 109.99,
+                'category_id' => $lotkiId,
+                'brand_id' => $harrowsId,
+                'image' => 'harrows-lotki-harrows-supergrip-ultra.webp',
+                'stock_quantity' => 30,
+                'featured' => false,
+            ],
+
+            // Lotki (Darts) - Target
+            [
+                'name' => 'Target 975 Ultra Marine Swiss Point',
+                'description' => 'Profesjonalne lotki Target 975 Ultra Marine z systemem Swiss Point. Wykonane z wysokiej jakości wolframu, zapewniają doskonałą precyzję i możliwość szybkiej wymiany grotów.',
+                'price' => 189.99,
+                'category_id' => $lotkiId,
+                'brand_id' => $targetId,
+                'image' => 'target-lotki-target-975-ultra-marine-02-swiss-poin.webp',
+                'stock_quantity' => 15,
+                'featured' => true,
+            ],
+            [
+                'name' => 'Target Rob Cross G1 Swiss Point',
+                'description' => 'Sygnowane lotki mistrza świata PDC Roba Crossa. Wyposażone w system Swiss Point, wykonane z najwyższej jakości wolframu z unikalnym designem.',
+                'price' => 199.99,
+                'category_id' => $lotkiId,
+                'brand_id' => $targetId,
+                'image' => 'target-lotki-target-rob-cross-g1-swiss-point.webp',
+                'stock_quantity' => 18,
+                'featured' => true,
+            ],
+            [
+                'name' => 'Target Sebastian Bialecki G1 Swiss Point',
+                'description' => 'Oficjalne lotki polskiego talentu Sebastiana Białeckiego. Wykonane z premium wolframu, wyposażone w system Swiss Point i charakterystyczny design.',
+                'price' => 179.99,
+                'category_id' => $lotkiId,
+                'brand_id' => $targetId,
+                'image' => 'target-lotki-target-sebastian-bialecki-g1-swiss-po.webp',
+                'stock_quantity' => 20,
+                'featured' => true,
+            ],
+
+            // Lotki (Darts) - Unicorn
+            [
+                'name' => 'Unicorn Gary Anderson WC Phase 3',
+                'description' => 'Lotki dwukrotnego mistrza świata Gary\'ego Andersona. Najnowsza seria Phase 3 z unikalnym systemem gripowym i premium wykończeniem.',
+                'price' => 189.99,
+                'category_id' => $lotkiId,
+                'brand_id' => $unicornId,
+                'image' => 'unicorn-lotki-unicorn-gary-anderson-wc-phase-3.webp',
+                'stock_quantity' => 22,
+                'featured' => true,
+            ],
+            [
+                'name' => 'Unicorn Premier James Wade',
+                'description' => 'Sygnowane lotki Jamesa Wade\'a z serii Premier. Precyzyjnie wykonane z wysokiej jakości wolframu, zapewniające doskonałą kontrolę rzutu.',
+                'price' => 159.99,
+                'category_id' => $lotkiId,
+                'brand_id' => $unicornId,
+                'image' => 'unicorn-lotki-unicorn-premier-james-wade.webp',
                 'stock_quantity' => 25,
                 'featured' => false,
             ],
             [
-                'name' => 'One80 Reflex Points',
-                'description' => 'Profesjonalne groty steel o zwiększonej wytrzymałości i zmniejszonej częstotliwości odbić.',
-                'price' => 9.95,
-                'category_id' => 3, // Accessories
-                'brand_id' => 10, // One80
-                'image' => 'logo.png',
-                'stock_quantity' => 40,
+                'name' => 'Unicorn Ross Smith Two Tone',
+                'description' => 'Profesjonalne lotki Rossa Smitha w unikalnym dwukolorowym wykończeniu. Zaawansowany system gripowy i precyzyjne wyważenie.',
+                'price' => 149.99,
+                'category_id' => $lotkiId,
+                'brand_id' => $unicornId,
+                'image' => 'unicorn-lotki-unicorn-ross-smith-two-tone.jpg',
+                'stock_quantity' => 20,
                 'featured' => false,
             ],
-            
-            // Additional products
+
+            // Lotki (Darts) - Winmau
             [
-                'name' => 'Target Swiss Point Silver',
-                'description' => 'Lotki z 90% wolframu z systemem Swiss Point umożliwiającym łatwą wymianę grotów.',
-                'price' => 74.95,
-                'category_id' => 1, // Darts
-                'brand_id' => 3, // Target
-                'image' => 'product01.png',
-                'stock_quantity' => 14,
-                'featured' => false,
-            ],
-            [
-                'name' => 'Harrows Assassin 85%',
-                'description' => 'Klasyczne lotki z 85% wolframu o sprawdzonej geometrii i doskonałej równowadze.',
-                'price' => 32.95,
-                'category_id' => 1, // Darts
-                'brand_id' => 2, // Harrows
-                'image' => 'product02.png',
+                'name' => 'Winmau Blackout',
+                'description' => 'Lotki Winmau Blackout z charakterystycznym czarnym wykończeniem. Wykonane z wysokiej jakości wolframu, zapewniają doskonałą kontrolę i precyzję rzutu.',
+                'price' => 139.99,
+                'category_id' => $lotkiId,
+                'brand_id' => $winmauId,
+                'image' => 'winmau-lotki-winmau-blackout-1.jpg',
                 'stock_quantity' => 28,
                 'featured' => false,
             ],
             [
-                'name' => 'Unicorn Core XL Trainer',
-                'description' => 'Tarcza treningowa z pogrubionymi drutami idealna dla początkujących graczy.',
-                'price' => 34.95,
-                'category_id' => 2, // Dartboards
-                'brand_id' => 1, // Unicorn
-                'image' => 'product03.png',
-                'stock_quantity' => 16,
-                'featured' => false,
-            ],
-            [
-                'name' => 'Red Dragon Championship Shirt',
-                'description' => 'Oficjalna koszulka turniejowa z oddychającego materiału.',
-                'price' => 29.95,
-                'category_id' => 4, // Apparel
-                'brand_id' => 5, // Red Dragon
-                'image' => 'product04.png',
-                'stock_quantity' => 35,
-                'featured' => false,
-            ],
-            [
-                'name' => 'Winmau Xtreme Cabinet Oak',
-                'description' => 'Ekskluzywna szafka dębowa z oświetleniem LED i miejscem na akcesoria.',
-                'price' => 199.95,
-                'category_id' => 7, // Cabinets
-                'brand_id' => 4, // Winmau
-                'image' => 'product05.png',
-                'stock_quantity' => 5,
+                'name' => 'Winmau Michael van Gerwen Exact',
+                'description' => 'Oficjalne lotki trzykrotnego mistrza świata Michaela van Gerwena. Precyzyjnie wykonane według specyfikacji MVG, zapewniające najwyższą jakość gry.',
+                'price' => 199.99,
+                'category_id' => $lotkiId,
+                'brand_id' => $winmauId,
+                'image' => 'winmau-lotki-winmau-michael-van-gerwen-exact.webp',
+                'stock_quantity' => 15,
                 'featured' => true,
             ],
             [
-                'name' => 'Target Takoma Wallet',
-                'description' => 'Kompaktowe etui na lotki z miejscem na 2 komplety i akcesoria.',
-                'price' => 14.95,
-                'category_id' => 5, // Cases
-                'brand_id' => 3, // Target
-                'image' => 'product06.png',
-                'stock_quantity' => 45,
+                'name' => 'Winmau Sniper V3',
+                'description' => 'Trzecia generacja popularnych lotek Winmau Sniper. Ulepszona konstrukcja z precyzyjnym systemem gripowym i doskonałym wyważeniem.',
+                'price' => 129.99,
+                'category_id' => $lotkiId,
+                'brand_id' => $winmauId,
+                'image' => 'winmau-lotki-winmau-sniper-v3.webp',
+                'stock_quantity' => 30,
                 'featured' => false,
             ],
-            [
-                'name' => 'Harrows Quantum Soft Tips',
-                'description' => 'Końcówki soft tip z polimeru najwyższej jakości o zwiększonej trwałości.',
-                'price' => 3.95,
-                'category_id' => 6, // Tips
-                'brand_id' => 2, // Harrows
-                'image' => 'product07.png',
-                'stock_quantity' => 80,
-                'featured' => false,
-            ],
-            [
-                'name' => 'Mission LED Surround',
-                'description' => 'Podświetlenie LED wokół tarczy eliminujące cienie i poprawiający widoczność.',
-                'price' => 89.95,
-                'category_id' => 8, // Lighting
-                'brand_id' => 7, // Mission
-                'image' => 'product08.png',
-                'stock_quantity' => 8,
-                'featured' => false,
-            ],
-            [
-                'name' => 'Bull\'s Fighting Pig',
-                'description' => 'Limitowana edycja lotek z 95% wolframu z charakterystycznym wzorem świni.',
-                'price' => 124.95,
-                'category_id' => 1, // Darts
-                'brand_id' => 8, // Bull's
-                'image' => 'product09.png',
-                'stock_quantity' => 6,
-                'featured' => true,
-            ],
-            [
-                'name' => 'Designa Patriot X UK',
-                'description' => 'Patriotyczne lotki z motywami brytyjskimi, 90% wolfram.',
-                'price' => 42.95,
-                'category_id' => 1, // Darts
-                'brand_id' => 9, // Designa
-                'image' => 'shop01.png',
-                'stock_quantity' => 19,
-                'featured' => false,
-            ]
         ];
 
-        foreach ($products as $product) {
-            Product::create($product);
+        foreach ($products as $productData) {
+            Product::updateOrCreate(
+                ['name' => $productData['name']],
+                $productData
+            );
         }
     }
 } 

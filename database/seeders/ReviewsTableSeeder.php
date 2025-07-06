@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Product;
 use App\Models\Review;
 use App\Models\User;
+use App\Models\Category;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,194 +16,178 @@ class ReviewsTableSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get existing users and products
+        // Get existing users and products by category
         $users = User::all();
-        $products = Product::all();
         
-        if ($users->isEmpty() || $products->isEmpty()) {
-            $this->command->info('No users or products available for reviews.');
+        if ($users->isEmpty()) {
+            $this->command->info('No users available for reviews.');
             return;
         }
+
+        // Get categories
+        $lotkiId = Category::where('slug', 'lotki')->first()->id;
+        $tarczeId = Category::where('slug', 'tarcze')->first()->id;
+        $oponyId = Category::where('slug', 'opony')->first()->id;
+        $piorkaId = Category::where('slug', 'piorka')->first()->id;
+        $shaftyId = Category::where('slug', 'shafty')->first()->id;
+        $oswietlenieId = Category::where('slug', 'oswietlenie')->first()->id;
         
-        // Sample reviews
-        $reviews = [
-            // Dartboard reviews
-            [
-                'title' => 'Najlepsza tarcza na rynku!',
-                'content' => 'Kupiłem tę tarczę miesiąc temu i jestem zachwycony. Cienkie druty, praktycznie zero odbić. Jakość wykonania na najwyższym poziomie. Polecam każdemu kto szuka profesjonalnego sprzętu.',
-                'rating' => 5,
-                'is_approved' => true,
-                'is_featured' => true
+        // Reviews by category
+        $reviewsByCategory = [
+            // Recenzje dla tarcz
+            $tarczeId => [
+                [
+                    'title' => 'Najlepsza tarcza na rynku!',
+                    'content' => 'Kupiłem tę tarczę miesiąc temu i jestem zachwycony. Cienkie druty, praktycznie zero odbić. Jakość wykonania na najwyższym poziomie. Polecam każdemu kto szuka profesjonalnego sprzętu.',
+                    'rating' => 5,
+                    'is_approved' => true,
+                    'is_featured' => true
+                ],
+                [
+                    'title' => 'Rewelacyjna tarcza dla klubu',
+                    'content' => 'Kupiliśmy tę tarczę do naszego klubu dartowego. Po miesiącu intensywnego użytkowania nie widać śladów zużycia. Druty nadal są idealne, kolory wyraźne. Inwestycja na lata!',
+                    'rating' => 5,
+                    'is_approved' => true,
+                    'is_featured' => true
+                ],
+                [
+                    'title' => 'Bardzo dobra jakość',
+                    'content' => 'Tarcza wykonana z solidnych materiałów, które wytrzymają lata użytkowania. Druty są cienkie i dobrze zamocowane. Polecam dla początkujących i średnio zaawansowanych graczy.',
+                    'rating' => 4,
+                    'is_approved' => true,
+                    'is_featured' => false
+                ]
             ],
-            [
-                'title' => 'Bardzo dobra jakość',
-                'content' => 'Tarcza wykonana z solidnych materiałów, które wytrzymają lata użytkowania. Polecam dla początkujących i średnio zaawansowanych graczy.',
-                'rating' => 4,
-                'is_approved' => true,
-                'is_featured' => false
+
+            // Recenzje dla lotek
+            $lotkiId => [
+                [
+                    'title' => 'Lotki o perfekcyjnej równowadze',
+                    'content' => 'Te lotki mają niesamowitą równowagę. 90% wolfram to czuć od razu - stabilny lot i precyzja rzutów. Po przesiadce z tańszych modeli różnica jest kolosalna.',
+                    'rating' => 5,
+                    'is_approved' => true,
+                    'is_featured' => true
+                ],
+                [
+                    'title' => 'Profesjonalne lotki dla wymagających',
+                    'content' => 'Grywam w darta od 15 lat i to są jedne z najlepszych lotek jakie miałem. Wolfram wysokiej jakości, precyzyjne wykonanie. Warto dopłacić za taką jakość.',
+                    'rating' => 5,
+                    'is_approved' => true,
+                    'is_featured' => true
+                ],
+                [
+                    'title' => 'Świetny grip i kontrola',
+                    'content' => 'Grip jest idealny - nie za ostry i nie za śliski. Lotki świetnie leżą w dłoni, a lot jest bardzo stabilny. Polecam szczególnie dla graczy preferujących rzut z rotacją.',
+                    'rating' => 4,
+                    'is_approved' => true,
+                    'is_featured' => false
+                ]
             ],
-            [
-                'title' => 'Idealny zestaw do nauki',
-                'content' => 'Kupiłem ten zestaw, żeby nauczyć dzieci gry w darta. Świetny stosunek jakości do ceny. Polecam wszystkim początkującym!',
-                'rating' => 5,
-                'is_approved' => true,
-                'is_featured' => true
+
+            // Recenzje dla opon (surrounds)
+            $oponyId => [
+                [
+                    'title' => 'Skuteczna ochrona ściany',
+                    'content' => 'Opona doskonale chroni ścianę przed uszkodzeniem. Materiał jest trwały i dobrze tłumi uderzenia. Montaż zajął dosłownie 5 minut.',
+                    'rating' => 5,
+                    'is_approved' => true,
+                    'is_featured' => true
+                ],
+                [
+                    'title' => 'Solidne wykonanie',
+                    'content' => 'Opona jest bardzo solidna, dobrze przylega do ściany. Wygląda profesjonalnie i spełnia swoją funkcję. Jedyny minus to dość wysoka cena.',
+                    'rating' => 4,
+                    'is_approved' => true,
+                    'is_featured' => false
+                ]
             ],
-            
-            // Darts reviews
-            [
-                'title' => 'Lotki o perfekcyjnej równowadze',
-                'content' => 'Te lotki mają niesamowitą równowagę. 90% wolfram to czuć od razu - stabilny lot i precyzja rzutów. Po przesiadce z tańszych modeli różnica jest kolosalna.',
-                'rating' => 5,
-                'is_approved' => true,
-                'is_featured' => true
+
+            // Recenzje dla piórek
+            $piorkaId => [
+                [
+                    'title' => 'Trwałe i stabilne piórka',
+                    'content' => 'Używam tych piórek od miesiąca i jestem pod wrażeniem ich trwałości. Lot jest stabilny, a kształt idealnie pasuje do mojego stylu gry.',
+                    'rating' => 5,
+                    'is_approved' => true,
+                    'is_featured' => true
+                ],
+                [
+                    'title' => 'Świetny stosunek jakości do ceny',
+                    'content' => 'Piórka są bardzo dobrze wykonane, nie odkształcają się i nie niszczą tak szybko jak tańsze modele. W zestawie dostajemy 3 komplety, więc cena jest bardzo atrakcyjna.',
+                    'rating' => 4,
+                    'is_approved' => true,
+                    'is_featured' => false
+                ]
             ],
-            [
-                'title' => 'Świetny design i funkcjonalność',
-                'content' => 'To już mój drugi zakup w tym sklepie i ponownie jestem bardzo zadowolony. Szybka dostawa, produkty zgodne z opisem. DartShop to mój ulubiony sklep z akcesoriami do darta!',
-                'rating' => 5,
-                'is_approved' => true,
-                'is_featured' => false
+
+            // Recenzje dla shaftów
+            $shaftyId => [
+                [
+                    'title' => 'Innowacyjny system anti-loose',
+                    'content' => 'Te shafty mają świetny system zapobiegający luzowaniu się podczas gry. Materiał jest bardzo wytrzymały, a połączenie z piórkami pewne.',
+                    'rating' => 5,
+                    'is_approved' => true,
+                    'is_featured' => true
+                ],
+                [
+                    'title' => 'Wytrzymałe i lekkie',
+                    'content' => 'Shafty są bardzo lekkie, a jednocześnie wytrzymałe. Nie pękają przy upadku lotki i świetnie trzymają piórka. Polecam szczególnie do cięższych lotek.',
+                    'rating' => 4,
+                    'is_approved' => true,
+                    'is_featured' => false
+                ]
             ],
-            [
-                'title' => 'Dobry stosunek jakości do ceny',
-                'content' => 'Nie spodziewałem się takiej dobrej jakości w tej cenie. Polecam każdemu kto szuka solidnego sprzętu bez wydawania fortuny.',
-                'rating' => 4,
-                'is_approved' => true,
-                'is_featured' => false
-            ],
-            [
-                'title' => 'Profesjonalne lotki dla wymagających',
-                'content' => 'Grywam w darta od 15 lat i to są jedne z najlepszych lotek jakie miałem. Wolfram wysokiej jakości, precyzyjne wykonanie. Warto dopłacić za taką jakość.',
-                'rating' => 5,
-                'is_approved' => true,
-                'is_featured' => true
-            ],
-            [
-                'title' => 'Mieszane uczucia',
-                'content' => 'Lotki są w porządku, ale spodziewałem się więcej za tę cenę. Jakość wykonania dobra, ale nie wybitna. Dla rozpoczynających przygodę z dartem w sam raz.',
-                'rating' => 3,
-                'is_approved' => true,
-                'is_featured' => false
-            ],
-            
-            // Accessories reviews
-            [
-                'title' => 'Świetne oświetlenie',
-                'content' => 'System oświetlenia idealnie eliminuje cienie. Po zamontowaniu gra stała się o wiele przyjemniejsza, szczególnie wieczorami. Montaż prosty i szybki.',
-                'rating' => 5,
-                'is_approved' => true,
-                'is_featured' => false
-            ],
-            [
-                'title' => 'Solidne etui',
-                'content' => 'Etui chroni lotki perfekcyjnie. Zmieści się w nim wszystko co potrzeba - lotki, groty, shafty. Materiał wygląda na trwały.',
-                'rating' => 4,
-                'is_approved' => true,
-                'is_featured' => false
-            ],
-            [
-                'title' => 'Niezawodne groty',
-                'content' => 'Groty wbijają się mocno w tarczę i rzadko się łamią. Zdecydowanie lepsze od standardowych grotów w zestawach początkowych.',
-                'rating' => 4,
-                'is_approved' => true,
-                'is_featured' => false
-            ],
-            
-            // More detailed reviews
-            [
-                'title' => 'Rewelacyjna tarcza dla klubu',
-                'content' => 'Kupiliśmy tę tarczę do naszego klubu dartowego. Po miesiącu intensywnego użytkowania nie widać śladów zużycia. Druty nadal są idealne, kolory wyraźne. Inwestycja na lata!',
-                'rating' => 5,
-                'is_approved' => true,
-                'is_featured' => true
-            ],
-            [
-                'title' => 'Genialny zestaw dla początkujących',
-                'content' => 'Moja żona zaczęła grać w darta i ten zestaw był idealnym wyborem. Wszystko czego potrzeba w jednym pakiecie. Instrukcja bardzo pomocna.',
-                'rating' => 5,
-                'is_approved' => true,
-                'is_featured' => false
-            ],
-            [
-                'title' => 'Stylowe i funkcjonalne',
-                'content' => 'Te lotki nie tylko świetnie wyglądają, ale również doskonale się rzuca. Czarno-pomarańczowy design przyciąga wzrok na turnieju.',
-                'rating' => 4,
-                'is_approved' => true,
-                'is_featured' => false
-            ],
-            [
-                'title' => 'Luksusowa szafka, ale cena...',
-                'content' => 'Szafka wykonana bardzo solidnie, dęb wygląda przepięknie. Oświetlenie LED dodaje stylu. Jedyny minus to cena - dla niektórych może być zbyt wysoka.',
-                'rating' => 4,
-                'is_approved' => true,
-                'is_featured' => false
-            ],
-            [
-                'title' => 'Kompaktowe i praktyczne',
-                'content' => 'Małe etui które zmieści się w kieszeni. Świetne na podróże i wyjazdy turniejowe. Polecam każdemu kto często gra poza domem.',
-                'rating' => 5,
-                'is_approved' => true,
-                'is_featured' => false
-            ],
-            [
-                'title' => 'Końcówki soft tip najwyższej jakości',
-                'content' => 'Te końcówki są znacznie trwalsze od standardowych. Wytrzymują setki rzutów bez uszkodzeń. Definitely worth the money!',
-                'rating' => 5,
-                'is_approved' => true,
-                'is_featured' => false
-            ],
-            [
-                'title' => 'Podświetlenie które zmienia wszystko',
-                'content' => 'Zamontowałem to podświetlenie LED i różnica jest ogromna. Żadnych cieni, równomierne oświetlenie całej tarczy. Gra stała się o wiele precyzyjniejsza.',
-                'rating' => 5,
-                'is_approved' => true,
-                'is_featured' => true
-            ],
-            [
-                'title' => 'Limitowana edycja na medal',
-                'content' => 'Lotki limitowane Fighting Pig to prawdziwa perła. 95% wolfram, niesamowita precyzja, unikalna stylistyka. Bardzo trudno dostępne - cieszę się że udało mi się je kupić.',
-                'rating' => 5,
-                'is_approved' => true,
-                'is_featured' => true
-            ],
-            [
-                'title' => 'Patriotyczne lotki z charakterem',
-                'content' => 'Lotki z motywami brytyjskimi wyglądają świetnie. Jakość wykonania dobra, ale nic wybitnego. Kupowałem głównie ze względu na design.',
-                'rating' => 4,
-                'is_approved' => true,
-                'is_featured' => false
-            ],
-            [
-                'title' => 'Koszulka dla prawdziwych fanów',
-                'content' => 'Oficjalna koszulka turniejowa bardzo dobrej jakości. Materiał oddychający, doskonały krój. Czuję się jak zawodowiec na turnieju!',
-                'rating' => 4,
-                'is_approved' => true,
-                'is_featured' => false
+
+            // Recenzje dla oświetlenia
+            $oswietlenieId => [
+                [
+                    'title' => 'Rewelacyjne oświetlenie tarczy',
+                    'content' => 'System oświetlenia idealnie eliminuje cienie. Światło jest równomierne i nie męczy wzroku. Montaż był prosty, a efekt przeszedł moje oczekiwania.',
+                    'rating' => 5,
+                    'is_approved' => true,
+                    'is_featured' => true
+                ],
+                [
+                    'title' => 'Profesjonalne rozwiązanie',
+                    'content' => 'Oświetlenie zmienia całkowicie komfort gry. Regulacja jasności to świetna funkcja, szczególnie podczas długich sesji treningowych. Warto zainwestować.',
+                    'rating' => 5,
+                    'is_approved' => true,
+                    'is_featured' => false
+                ]
             ]
         ];
         
-        foreach ($reviews as $reviewData) {
-            // Random user and product for each review
-            $user = $users->random();
-            $product = $products->random();
+        // Create reviews for each category
+        foreach ($reviewsByCategory as $categoryId => $reviews) {
+            // Get products from this category
+            $products = Product::where('category_id', $categoryId)->get();
             
-            // Check if user already reviewed this product
-            $existingReview = Review::where('user_id', $user->id)
-                                  ->where('product_id', $product->id)
-                                  ->first();
+            if ($products->isEmpty()) {
+                continue;
+            }
             
-            // Create review if doesn't exist
-            if (!$existingReview) {
-                Review::create([
-                    'user_id' => $user->id,
-                    'product_id' => $product->id,
-                    'title' => $reviewData['title'],
-                    'content' => $reviewData['content'],
-                    'rating' => $reviewData['rating'],
-                    'is_approved' => $reviewData['is_approved'],
-                    'is_featured' => $reviewData['is_featured']
-                ]);
+            foreach ($reviews as $reviewData) {
+                // Random user and product from the category
+                $user = $users->random();
+                $product = $products->random();
+                
+                // Check if user already reviewed this product
+                $existingReview = Review::where('user_id', $user->id)
+                                      ->where('product_id', $product->id)
+                                      ->first();
+                
+                // Create review if doesn't exist
+                if (!$existingReview) {
+                    Review::create([
+                        'user_id' => $user->id,
+                        'product_id' => $product->id,
+                        'title' => $reviewData['title'],
+                        'content' => $reviewData['content'],
+                        'rating' => $reviewData['rating'],
+                        'is_approved' => $reviewData['is_approved'],
+                        'is_featured' => $reviewData['is_featured']
+                    ]);
+                }
             }
         }
     }

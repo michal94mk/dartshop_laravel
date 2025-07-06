@@ -25,24 +25,16 @@ class CategorySeeder extends Seeder
                 'slug' => 'tarcze'
             ],
             [
-                'name' => 'Akcesoria',
-                'slug' => 'akcesoria'
+                'name' => 'Opony',
+                'slug' => 'opony'
             ],
             [
-                'name' => 'Odzież',
-                'slug' => 'odziez'
+                'name' => 'Piórka',
+                'slug' => 'piorka'
             ],
             [
-                'name' => 'Walizki i Etui',
-                'slug' => 'walizki-etui'
-            ],
-            [
-                'name' => 'Lotki Końcówki',
-                'slug' => 'lotki-koncowki'
-            ],
-            [
-                'name' => 'Szafy i Szafki',
-                'slug' => 'szafy-szafki'
+                'name' => 'Shafty',
+                'slug' => 'shafty'
             ],
             [
                 'name' => 'Oświetlenie',
