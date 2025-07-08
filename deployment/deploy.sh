@@ -73,7 +73,7 @@ update_code() {
     git stash
     
     # Pull latest changes
-    git pull origin main
+    git pull origin master
     
     log_success "Code updated"
 }
