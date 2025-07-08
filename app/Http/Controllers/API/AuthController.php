@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Enums\RoleEnum;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Auth\Events\Registered;
 
 class AuthController extends Controller
 {
