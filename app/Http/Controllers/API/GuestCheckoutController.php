@@ -8,201 +8,180 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Services\ShippingService;
+use App\Services\CartService;
+use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class GuestCheckoutController extends Controller
 {
     protected $shippingService;
+    protected $cartService;
 
-    public function __construct(ShippingService $shippingService)
-    {
+    public function __construct(
+        ShippingService $shippingService,
+        CartService $cartService
+    ) {
         $this->shippingService = $shippingService;
-    }
-
-    /**
-     * Get cart data for guest checkout
-     */
-    public function index(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'cart_items' => 'required|array',
-            'cart_items.*.product_id' => 'required|exists:products,id',
-            'cart_items.*.quantity' => 'required|integer|min:1',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Nieprawidłowe dane koszyka',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        try {
-            $cartData = $request->cart_items;
-            $cartItems = [];
-
-            foreach ($cartData as $item) {
-                $product = Product::with('activePromotions')->find($item['product_id']);
-                if ($product) {
-                    // Add promotional price information
-                    if ($product->hasActivePromotion()) {
-                        $product->promotion_price = $product->getPromotionalPrice();
-                        $product->savings = $product->getSavingsAmount();
-                        $product->promotion = $product->getBestActivePromotion();
-                    } else {
-                        $product->promotion_price = $product->price;
-                        $product->savings = 0;
-                        $product->promotion = null;
-                    }
-                    
-                    $cartItems[] = [
-                        'product_id' => $product->id,
-                        'quantity' => $item['quantity'],
-                        'product' => $product
-                    ];
-                }
-            }
-
-            if (empty($cartItems)) {
-                return response()->json([
-                    'message' => 'Koszyk jest pusty'
-                ], 400);
-            }
-
-            // Calculate cart total with promotional prices
-            $cartTotal = collect($cartItems)->sum(function ($item) {
-                return $item['product']->getPromotionalPrice() * $item['quantity'];
-            });
-
-            // Get shipping methods with calculated costs
-            $shippingMethods = $this->shippingService->getShippingMethodsWithCosts($cartTotal);
-
-            return response()->json([
-                'cart_items' => $cartItems,
-                'shipping_methods' => $shippingMethods,
-                'cart_total' => $cartTotal,
-                'free_shipping_threshold' => $this->shippingService->getFreeShippingThreshold()
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Wystąpił błąd podczas pobierania danych koszyka'
-            ], 500);
-        }
+        $this->cartService = $cartService;
     }
 
     /**
      * Process guest checkout
      */
-    public function process(Request $request)
+    public function __invoke(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'shipping.name' => 'required|string|max:255',
-            'shipping.email' => 'required|email|max:255',
-            'shipping.address' => 'required|string|max:255',
-            'shipping.city' => 'required|string|max:255',
-            'shipping.postalCode' => 'required|string|max:10',
-            'shipping_method' => 'required|string',
-            'cart_items' => 'required|array',
-            'cart_items.*.product_id' => 'required|exists:products,id',
-            'cart_items.*.quantity' => 'required|integer|min:1',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Nieprawidłowe dane',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
         try {
-            DB::beginTransaction();
+            Log::info('Rozpoczęcie procesu checkoutu dla gościa', [
+                'request_data' => $request->all()
+            ]);
 
-            // Pobierz produkty i sprawdź dostępność
-            $cartData = $request->cart_items;
-            $cartItems = [];
-            $subtotal = 0;
+            // Walidacja danych
+            $validated = $request->validate([
+                'shipping_address.first_name' => 'required|string|max:255',
+                'shipping_address.last_name' => 'required|string|max:255',
+                'shipping_address.email' => 'required|email|max:255',
+                'shipping_address.street' => 'required|string|max:255',
+                'shipping_address.city' => 'required|string|max:255',
+                'shipping_address.postal_code' => 'required|string|max:10|regex:/^[0-9]{2}-[0-9]{3}$/',
+                'shipping_address.phone' => 'nullable|string|max:20',
+                'payment_method' => 'required|string|in:stripe,cod',
+                'shipping_method' => 'required|string|in:courier,inpost,pickup,express',
+                'notes' => 'nullable|string'
+            ]);
 
-            foreach ($cartData as $item) {
-                $product = Product::with('activePromotions')->find($item['product_id']);
-                if (!$product) {
-                    throw new \Exception("Produkt o ID {$item['product_id']} nie istnieje");
-                }
+            Log::info('Walidacja danych przeszła pomyślnie', [
+                'validated_data' => $validated
+            ]);
 
-                $promotionalPrice = $product->getPromotionalPrice();
-                $cartItems[] = [
-                    'product' => $product,
-                    'quantity' => $item['quantity'],
-                    'price' => $promotionalPrice,
-                    'total' => $promotionalPrice * $item['quantity']
-                ];
-
-                $subtotal += $promotionalPrice * $item['quantity'];
-            }
+            // Pobierz koszyk
+            $cartItems = $this->cartService->getGuestCartItems();
+            Log::info('Pobrano przedmioty z koszyka gościa', [
+                'cart_items_count' => count($cartItems),
+                'cart_items' => $cartItems
+            ]);
 
             if (empty($cartItems)) {
-                throw new \Exception('Koszyk jest pusty');
+                Log::warning('Próba utworzenia zamówienia z pustym koszykiem');
+                return response()->json(['message' => 'Koszyk jest pusty'], 400);
             }
 
-            // Validate and calculate shipping cost
-            $shippingMethod = $request->input('shipping_method');
-            if (!$this->shippingService->isValidMethod($shippingMethod)) {
-                throw new \Exception('Nieprawidłowa metoda wysyłki');
-            }
+            // Rozpocznij transakcję
+            return DB::transaction(function () use ($validated, $cartItems) {
+                try {
+                    // Przygotuj dane adresowe
+                    $shippingData = $validated['shipping_address'];
 
-            $shippingCost = $this->shippingService->calculateShippingCost($shippingMethod, $subtotal);
-            $discount = 0;
-            $total = $subtotal + $shippingCost - $discount;
+                    // Oblicz koszty
+                    $subtotal = collect($cartItems)->sum(function ($item) {
+                        return $item['quantity'] * $item['product']->getPromotionalPrice();
+                    });
 
-            // Podziel imię i nazwisko
-            $nameParts = explode(' ', $request->shipping['name'], 2);
-            $firstName = $nameParts[0];
-            $lastName = isset($nameParts[1]) ? $nameParts[1] : '';
+                    Log::info('Obliczono koszty', [
+                        'subtotal' => $subtotal,
+                        'shipping_method' => $validated['shipping_method']
+                    ]);
 
-            // Utwórz zamówienie (user_id = null dla gości)
-            $order = Order::create([
-                'user_id' => null, // Zamówienie gościa
-                'status' => 'pending',
-                'first_name' => $firstName,
-                'last_name' => $lastName,
-                'email' => $request->shipping['email'],
-                'address' => $request->shipping['address'],
-                'city' => $request->shipping['city'],
-                'postal_code' => $request->shipping['postalCode'],
-                'country' => 'PL',
-                'subtotal' => $subtotal,
-                'shipping_cost' => $shippingCost,
-                'discount' => $discount,
-                'total' => $total,
-                'payment_method' => 'cod',
-                'shipping_method' => $shippingMethod,
-            ]);
+                    $shippingCost = $validated['shipping_method'] === 'express' ? 20.00 : 15.00;
+                    $discount = 0;
+                    $total = $subtotal + $shippingCost - $discount;
 
-            // Utwórz pozycje zamówienia
-            foreach ($cartItems as $cartItem) {
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $cartItem['product']->id,
-                    'product_name' => $cartItem['product']->name,
-                    'quantity' => $cartItem['quantity'],
-                    'product_price' => $cartItem['price'],
-                    'total_price' => $cartItem['total'],
-                ]);
-            }
+                    Log::info('Tworzenie zamówienia dla gościa', [
+                        'shipping_data' => $shippingData,
+                        'total' => $total,
+                        'subtotal' => $subtotal,
+                        'shipping_cost' => $shippingCost,
+                        'discount' => $discount
+                    ]);
 
-            DB::commit();
+                    // Utwórz zamówienie
+                    $order = Order::create([
+                        'user_id' => null, // Zamówienie gościa
+                        'order_number' => $this->generateOrderNumber(),
+                        'status' => OrderStatus::Pending,
+                        'payment_status' => PaymentStatus::Pending,
+                        'first_name' => $shippingData['first_name'],
+                        'last_name' => $shippingData['last_name'],
+                        'email' => $shippingData['email'],
+                        'phone' => $shippingData['phone'] ?? null,
+                        'address' => $shippingData['street'],
+                        'city' => $shippingData['city'],
+                        'postal_code' => $shippingData['postal_code'],
+                        'notes' => $validated['notes'] ?? null,
+                        'subtotal' => $subtotal,
+                        'shipping_cost' => $shippingCost,
+                        'discount' => $discount,
+                        'total' => $total,
+                        'payment_method' => $validated['payment_method'],
+                        'shipping_method' => $validated['shipping_method'],
+                        'country' => 'PL' // Domyślnie Polska
+                    ]);
 
-            return response()->json([
-                'message' => 'Zamówienie zostało utworzone',
-                'order' => $order->load('items')
-            ]);
+                    Log::info('Zamówienie utworzone', [
+                        'order_id' => $order->id
+                    ]);
+
+                    // Dodaj produkty do zamówienia
+                    foreach ($cartItems as $item) {
+                        OrderItem::create([
+                            'order_id' => $order->id,
+                            'product_id' => $item['product']->id,
+                            'product_name' => $item['product']->name,
+                            'quantity' => $item['quantity'],
+                            'product_price' => $item['product']->getPromotionalPrice(),
+                            'total_price' => $item['product']->getPromotionalPrice() * $item['quantity']
+                        ]);
+                    }
+
+                    Log::info('Dodano produkty do zamówienia', [
+                        'order_id' => $order->id,
+                        'items_count' => count($cartItems)
+                    ]);
+
+                    // Wyczyść koszyk gościa
+                    $this->cartService->clearGuestCart();
+
+                    Log::info('Zamówienie gościa zakończone sukcesem', [
+                        'order_id' => $order->id
+                    ]);
+
+                    // Zwróć utworzone zamówienie
+                    return response()->json([
+                        'message' => 'Zamówienie zostało utworzone',
+                        'order' => $order->load('items')
+                    ], 201);
+
+                } catch (\Exception $e) {
+                    Log::error('Błąd w transakcji DB podczas tworzenia zamówienia gościa', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    throw $e;
+                }
+            });
 
         } catch (\Exception $e) {
-            DB::rollBack();
+            Log::error('Błąd podczas przetwarzania zamówienia gościa', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
-                'message' => 'Wystąpił błąd podczas przetwarzania zamówienia: ' . $e->getMessage()
+                'message' => 'Wystąpił błąd podczas tworzenia zamówienia',
+                'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Generate unique order number
+     */
+    private function generateOrderNumber(): string
+    {
+        $prefix = 'G'; // G dla zamówień gości
+        $timestamp = now()->format('ymdHis');
+        $random = str_pad(random_int(0, 999), 3, '0', STR_PAD_LEFT);
+        return $prefix . $timestamp . $random;
     }
 } 

@@ -29,17 +29,31 @@
               <div class="p-6 space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Imię i nazwisko</label>
+                    <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">Imię</label>
                     <input
                       type="text"
-                      id="name"
-                      v-model="shippingDetails.name"
+                      id="first_name"
+                      v-model="shippingDetails.first_name"
                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                      placeholder="Jan Kowalski"
+                      placeholder="Jan"
                       required
                     />
                   </div>
                   
+                  <div>
+                    <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">Nazwisko</label>
+                    <input
+                      type="text"
+                      id="last_name"
+                      v-model="shippingDetails.last_name"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Kowalski"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Adres email</label>
                     <input
@@ -51,14 +65,25 @@
                       required
                     />
                   </div>
+
+                  <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      v-model="shippingDetails.phone"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="123456789"
+                    />
+                  </div>
                 </div>
                 
                 <div>
-                  <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Adres</label>
+                  <label for="street" class="block text-sm font-medium text-gray-700 mb-1">Ulica i numer</label>
                   <input
                     type="text"
-                    id="address"
-                    v-model="shippingDetails.address"
+                    id="street"
+                    v-model="shippingDetails.street"
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="ul. Przykładowa 123"
                     required
@@ -83,12 +108,24 @@
                     <input
                       type="text"
                       id="postal_code"
-                      v-model="shippingDetails.postalCode"
+                      v-model="shippingDetails.postal_code"
                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       placeholder="00-000"
                       required
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label for="country" class="block text-sm font-medium text-gray-700 mb-1">Kraj</label>
+                  <input
+                    type="text"
+                    id="country"
+                    v-model="shippingDetails.country"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Poland"
+                    required
+                  />
                 </div>
               </div>
             </div>
@@ -352,48 +389,59 @@ export default {
     const cartItems = ref([])
     const loading = ref(false)
     const error = ref(null)
-    const paymentMethod = ref('cod')
+    const paymentMethod = ref('stripe')
     const shippingMethods = ref({})
-    const selectedShippingMethod = ref('courier')
+    const selectedShippingMethod = ref('courier')  // Zmienione z 'standard' na 'courier'
     const cartTotal = ref(0)
     const freeShippingThreshold = ref(0)
     const privacyPolicyAccepted = ref(false)
     
     const shippingDetails = ref({
-      name: '',
+      first_name: '',
+      last_name: '',
       email: '',
-      address: '',
+      street: '',
       city: '',
-      postalCode: ''
+      postal_code: '',
+      phone: '',
+      country: 'Poland'
     })
     
     const subtotal = computed(() => {
       if (!cartItems.value?.length) return 0
-      return cartItems.value.reduce((sum, item) => {
+      return Number(cartItems.value.reduce((sum, item) => {
         return sum + (getPromotionalPrice(item.product) * item.quantity)
-      }, 0)
+      }, 0).toFixed(2))
     })
 
     const shippingCost = computed(() => {
       if (!selectedShippingMethod.value || !shippingMethods.value[selectedShippingMethod.value]) return 0
-      return shippingMethods.value[selectedShippingMethod.value].calculated_cost || 0
+      return Number(shippingMethods.value[selectedShippingMethod.value].calculated_cost || 0)
     })
 
     const total = computed(() => {
-      return subtotal.value + shippingCost.value
+      return Number((subtotal.value + shippingCost.value).toFixed(2))
     })
     
     const isFormValid = computed(() => {
-      const basicFormValid = shippingDetails.value.name &&
+      const basicFormValid = shippingDetails.value.first_name &&
+             shippingDetails.value.last_name &&
              shippingDetails.value.email &&
-             shippingDetails.value.address &&
+             shippingDetails.value.street &&
              shippingDetails.value.city &&
-             shippingDetails.value.postalCode;
+             shippingDetails.value.postal_code &&
+             shippingDetails.value.country;
              
+      // Sprawdź czy wybrano metodę wysyłki
+      const shippingMethodValid = !!selectedShippingMethod.value;
+      
+      // Sprawdź czy wybrano metodę płatności
+      const paymentMethodValid = !!paymentMethod.value;
+      
       // Sprawdź politykę prywatności dla gości lub użytkowników, którzy jej nie zaakceptowali
       const privacyPolicyValid = authStore.isLoggedIn && authStore.user?.privacy_policy_accepted ? true : privacyPolicyAccepted.value;
       
-      return basicFormValid && privacyPolicyValid;
+      return basicFormValid && shippingMethodValid && paymentMethodValid && privacyPolicyValid;
     })
     
     const fetchCart = async () => {
@@ -402,36 +450,62 @@ export default {
         error.value = null
         
         if (authStore.isLoggedIn) {
-          // Dla zalogowanych użytkowników - użyj standardowego API
-          const response = await axios.get('/api/checkout')
-          cartItems.value = response.data.cart_items
-          shippingMethods.value = response.data.shipping_methods || {}
-          cartTotal.value = response.data.cart_total || 0
-          freeShippingThreshold.value = response.data.free_shipping_threshold || 0
+          // Pobierz koszyk dla zalogowanych użytkowników
+          const cartResponse = await axios.get('/api/cart')
+          cartItems.value = cartResponse.data.items
+          cartTotal.value = cartResponse.data.total || 0
+
+          // Pobierz metody wysyłki dla zalogowanych użytkowników
+          const shippingResponse = await axios.get('/api/user/shipping-methods', {
+            params: {
+              cart_total: cartTotal.value
+            }
+          })
+          shippingMethods.value = shippingResponse.data.methods || {}
+          freeShippingThreshold.value = shippingResponse.data.free_shipping_threshold || 0
+          
+          // Ustaw domyślną metodę wysyłki, jeśli nie jest jeszcze wybrana
+          if (!selectedShippingMethod.value && Object.keys(shippingMethods.value).length > 0) {
+            selectedShippingMethod.value = 'courier'
+          }
         } else {
-          // Dla gości - pobierz z localStorage i wyślij do guest API
+          // Dla gości - pobierz z localStorage
           const savedCart = localStorage.getItem('cart')
           if (savedCart) {
+            console.log('Saved cart from localStorage:', savedCart)
             const localCartItems = JSON.parse(savedCart)
-            if (localCartItems.length > 0) {
-              // Przekształć dane z localStorage do formatu oczekiwanego przez API
-              const cartData = localCartItems.map(item => ({
-                product_id: item.product_id,
-                quantity: item.quantity
-              }))
-              
-              const response = await axios.post('/api/guest-checkout', {
-                cart_items: cartData
-              })
-              cartItems.value = response.data.cart_items
-              shippingMethods.value = response.data.shipping_methods || {}
-              cartTotal.value = response.data.cart_total || 0
-              freeShippingThreshold.value = response.data.free_shipping_threshold || 0
-            } else {
-              cartItems.value = []
+            console.log('Parsed cart items:', localCartItems)
+            cartItems.value = localCartItems
+            
+            // Oblicz sumę koszyka
+            const calculatedTotal = localCartItems.reduce((total, item) => {
+              console.log('Item:', item)
+              const price = item.product?.promotion_price && parseFloat(item.product.promotion_price) < parseFloat(item.product.price)
+                ? parseFloat(item.product.promotion_price)
+                : parseFloat(item.product.price)
+              console.log('Calculated price:', price, 'Quantity:', item.quantity)
+              return total + (price * item.quantity)
+            }, 0)
+            console.log('Calculated total before Number conversion:', calculatedTotal)
+            cartTotal.value = Number(calculatedTotal.toFixed(2))
+            console.log('Final cartTotal:', cartTotal.value)
+            
+            // Pobierz metody wysyłki dla gości
+            const shippingResponse = await axios.get('/api/shipping-methods', {
+              params: {
+                cart_total: cartTotal.value
+              }
+            })
+            shippingMethods.value = shippingResponse.data.methods || {}
+            freeShippingThreshold.value = shippingResponse.data.free_shipping_threshold || 0
+            
+            // Ustaw domyślną metodę wysyłki, jeśli nie jest jeszcze wybrana
+            if (!selectedShippingMethod.value && Object.keys(shippingMethods.value).length > 0) {
+              selectedShippingMethod.value = 'courier'
             }
           } else {
             cartItems.value = []
+            cartTotal.value = 0
           }
         }
       } catch (err) {
@@ -447,16 +521,10 @@ export default {
       try {
         loading.value = true
         error.value = null
-        
+
         // Sprawdź czy formularz jest wypełniony
         if (!isFormValid.value) {
           error.value = 'Uzupełnij wszystkie wymagane pola'
-          return
-        }
-        
-        // Sprawdź akceptację polityki prywatności dla gości lub nieakceptujących użytkowników
-        if ((!authStore.isLoggedIn || !authStore.user?.privacy_policy_accepted) && !privacyPolicyAccepted.value) {
-          error.value = 'Musisz zaakceptować politykę prywatności'
           return
         }
 
@@ -465,58 +533,54 @@ export default {
           error.value = 'Wybierz metodę wysyłki'
           return
         }
-        
-        // Jeśli wybrano płatność Stripe, utwórz sesję i przekieruj
+
+        // Jeśli wybrano płatność online, przekieruj do Stripe
         if (paymentMethod.value === 'stripe') {
           await processStripeCheckout()
           return
         }
-        
-        // Dla płatności przy odbiorze - przetwórz zamówienie
-        if (authStore.isLoggedIn) {
-          // Dla zalogowanych użytkowników
-          const response = await axios.post('/api/checkout/process', {
-            shipping: shippingDetails.value,
-            shipping_method: selectedShippingMethod.value
-          })
-          
-          // Wyczyść koszyk po udanym zamówieniu
+
+        // Dla płatności przy odbiorze, kontynuuj standardowy proces
+        const checkoutData = {
+          shipping_address: {
+            first_name: shippingDetails.value.first_name,
+            last_name: shippingDetails.value.last_name,
+            email: shippingDetails.value.email,
+            street: shippingDetails.value.street,
+            city: shippingDetails.value.city,
+            postal_code: shippingDetails.value.postal_code,
+            phone: shippingDetails.value.phone,
+            country: shippingDetails.value.country
+          },
+          shipping_method: selectedShippingMethod.value,
+          payment_method: paymentMethod.value,
+          notes: shippingDetails.value.notes
+        }
+
+        console.log('Wysyłanie danych zamówienia:', checkoutData)
+
+        // Wybierz odpowiedni endpoint w zależności od stanu logowania
+        const endpoint = authStore.isLoggedIn ? '/api/checkout' : '/api/guest-checkout'
+        console.log('Używany endpoint:', endpoint)
+
+        const response = await axios.post(endpoint, checkoutData)
+        console.log('Odpowiedź z serwera:', response.data)
+
+        // Obsługa odpowiedzi
+        if (response.data.order) {
+          // Wyczyść koszyk
           await cartStore.clearCart()
           
-          // Przekieruj na stronę sukcesu z ID zamówienia
-          router.push(`/payment/success?order_id=${response.data.order.id}`)
-          
-        } else {
-          // Dla gości - wyślij dane koszyka wraz z danymi wysyłki
-          const savedCart = localStorage.getItem('cart')
-          if (!savedCart) {
-            throw new Error('Koszyk jest pusty')
-          }
-          
-          const localCartItems = JSON.parse(savedCart)
-          const cartData = localCartItems.map(item => ({
-            product_id: item.product_id,
-            quantity: item.quantity
-          }))
-          
-          const response = await axios.post('/api/guest-checkout/process', {
-            shipping: shippingDetails.value,
-            shipping_method: selectedShippingMethod.value,
-            cart_items: cartData
+          // Przekieruj do strony potwierdzenia
+          router.push({
+            name: 'payment-success',
+            query: { order_id: response.data.order.id }
           })
-          
-          // Wyczyść localStorage po udanym zamówieniu
-          localStorage.removeItem('cart')
-          cartStore.items = []
-          
-          // Przekieruj na stronę sukcesu z ID zamówienia
-          router.push(`/payment/success?order_id=${response.data.order.id}`)
         }
-        
+
       } catch (err) {
-        console.error('Error processing checkout:', err)
-        error.value = err.response?.data?.message || 'Nie udało się przetworzyć zamówienia'
-      } finally {
+        console.error('Błąd podczas przetwarzania zamówienia:', err.response || err)
+        error.value = err.response?.data?.message || 'Wystąpił błąd podczas tworzenia zamówienia'
         loading.value = false
       }
     }
@@ -529,10 +593,10 @@ export default {
     }
 
     const getPromotionalPrice = (product) => {
-      const hasPromotion = product.promotion_price !== undefined && 
-                          product.promotion_price !== null && 
-                          parseFloat(product.promotion_price) < parseFloat(product.price);
-      return hasPromotion ? parseFloat(product.promotion_price) : parseFloat(product.price);
+      if (!product) return 0
+      const hasPromotion = product.promotion_price && 
+                          parseFloat(product.promotion_price) < parseFloat(product.price)
+      return Number((hasPromotion ? parseFloat(product.promotion_price) : parseFloat(product.price)).toFixed(2))
     }
 
     const processStripeCheckout = async () => {
@@ -544,7 +608,15 @@ export default {
           : '/api/guest-stripe/create-checkout-session'
         
         const payload = {
-          shipping: shippingDetails.value,
+          shipping: {
+            name: `${shippingDetails.value.first_name} ${shippingDetails.value.last_name}`,
+            email: shippingDetails.value.email,
+            address: shippingDetails.value.street,
+            city: shippingDetails.value.city,
+            postalCode: shippingDetails.value.postal_code,
+            phone: shippingDetails.value.phone,
+            country: shippingDetails.value.country
+          },
           shipping_method: selectedShippingMethod.value,
           ...(authStore.isLoggedIn ? {} : {
             cart_items: cartItems.value.map(item => ({

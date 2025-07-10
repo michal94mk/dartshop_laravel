@@ -12,6 +12,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\CartItem;
 use App\Services\ShippingService;
+use App\Enums\OrderStatus;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -381,7 +382,7 @@ class StripeController extends Controller
             // Utwórz zamówienie
             $order = Order::create([
                 'user_id' => $user->id,
-                'status' => 'processing',
+                'status' => OrderStatus::Processing,
                 'first_name' => $firstName,
                 'last_name' => $lastName,
                 'email' => $request->shipping['email'],
@@ -406,8 +407,8 @@ class StripeController extends Controller
                     'product_id' => $cartItem->product_id,
                     'product_name' => $cartItem->product->name,
                     'quantity' => $cartItem->quantity,
-                    'price' => $promotionalPrice,
-                    'total' => $promotionalPrice * $cartItem->quantity,
+                    'product_price' => $promotionalPrice,
+                    'total_price' => $promotionalPrice * $cartItem->quantity
                 ]);
             }
 
@@ -506,7 +507,7 @@ class StripeController extends Controller
             // Utwórz zamówienie
             $order = Order::create([
                 'user_id' => null,
-                'status' => 'processing',
+                'status' => OrderStatus::Processing,
                 'first_name' => $firstName,
                 'last_name' => $lastName,
                 'email' => $request->shipping['email'],
@@ -579,7 +580,9 @@ class StripeController extends Controller
             }
 
             // Sprawdź czy zamówienie już istnieje
-            $existingOrder = Order::where('payment_intent_id', $session->payment_intent)->first();
+            $existingOrder = Order::where('payment_intent_id', $session->payment_intent)
+                ->orWhere('stripe_session_id', $session->id)
+                ->first();
             if ($existingOrder) {
                 return response()->json([
                     'message' => 'Zamówienie już istnieje',
@@ -625,7 +628,7 @@ class StripeController extends Controller
                 // Utwórz zamówienie
                 $order = Order::create([
                     'user_id' => $user->id,
-                    'status' => 'processing',
+                    'status' => OrderStatus::Processing,
                     'first_name' => $firstName,
                     'last_name' => $lastName,
                     'email' => $shippingData['email'],
@@ -633,13 +636,15 @@ class StripeController extends Controller
                     'city' => $shippingData['city'],
                     'postal_code' => $shippingData['postalCode'],
                     'country' => 'PL',
-                    'subtotal' => $subtotal,
-                    'shipping_cost' => $shippingCost,
-                    'discount' => $discount,
-                    'total' => $total,
+                    'subtotal' => (float) $subtotal,
+                    'shipping_cost' => (float) $shippingCost,
+                    'discount' => (float) $discount,
+                    'total' => (float) $total,
                     'payment_method' => 'stripe',
                     'payment_intent_id' => $session->payment_intent,
+                    'stripe_session_id' => $session->id,
                     'shipping_method' => $shippingMethod,
+                    'payment_status' => 'paid'
                 ]);
 
                 // Utwórz pozycje zamówienia z promocyjnymi cenami
@@ -650,8 +655,8 @@ class StripeController extends Controller
                         'product_id' => $cartItem->product_id,
                         'product_name' => $cartItem->product->name,
                         'quantity' => $cartItem->quantity,
-                        'price' => $promotionalPrice,
-                        'total' => $promotionalPrice * $cartItem->quantity,
+                        'product_price' => $promotionalPrice,
+                        'total_price' => $promotionalPrice * $cartItem->quantity
                     ]);
                 }
 
@@ -694,7 +699,7 @@ class StripeController extends Controller
                 // Utwórz zamówienie
                 $order = Order::create([
                     'user_id' => null,
-                    'status' => 'processing',
+                    'status' => OrderStatus::Processing,
                     'first_name' => $firstName,
                     'last_name' => $lastName,
                     'email' => $shippingData['email'],
@@ -702,13 +707,15 @@ class StripeController extends Controller
                     'city' => $shippingData['city'],
                     'postal_code' => $shippingData['postalCode'],
                     'country' => 'PL',
-                    'subtotal' => $subtotal,
-                    'shipping_cost' => $shippingCost,
-                    'discount' => $discount,
-                    'total' => $total,
+                    'subtotal' => (float) $subtotal,
+                    'shipping_cost' => (float) $shippingCost,
+                    'discount' => (float) $discount,
+                    'total' => (float) $total,
                     'payment_method' => 'stripe',
                     'payment_intent_id' => $session->payment_intent,
+                    'stripe_session_id' => $session->id,
                     'shipping_method' => $shippingMethod,
+                    'payment_status' => 'paid'
                 ]);
 
                 // Utwórz pozycje zamówienia

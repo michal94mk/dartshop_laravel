@@ -38,7 +38,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $tarczeId,
                 'brand_id' => $winmauId,
                 'image' => 'winmau-tarcza-winmau-blade-6-profesjonalne.webp',
-                'stock_quantity' => 15,
                 'featured' => true,
             ],
             [
@@ -48,7 +47,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $tarczeId,
                 'brand_id' => $targetId,
                 'image' => 'target-tarcza-target-tor-profesjonalne.webp',
-                'stock_quantity' => 12,
                 'featured' => false,
             ],
             [
@@ -58,7 +56,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $tarczeId,
                 'brand_id' => $unicornId,
                 'image' => 'unicorn-tarcza-unicorn-eclipse-ultra-profesjonalne.webp',
-                'stock_quantity' => 10,
                 'featured' => false,
             ],
 
@@ -70,7 +67,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $oponyId,
                 'brand_id' => $targetId,
                 'image' => 'target-target-pro-tour-dartboard-surround-black.webp',
-                'stock_quantity' => 20,
                 'featured' => true,
             ],
             [
@@ -80,7 +76,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $oponyId,
                 'brand_id' => $winmauId,
                 'image' => 'winmau-winmau-surround-pro-line-blade-6.webp',
-                'stock_quantity' => 25,
                 'featured' => false,
             ],
 
@@ -92,7 +87,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $piorkaId,
                 'brand_id' => $targetId,
                 'image' => 'target-piorka-target-crux-3-sets-pro-ultra-no6.jpg',
-                'stock_quantity' => 100,
                 'featured' => false,
             ],
             [
@@ -102,7 +96,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $piorkaId,
                 'brand_id' => $targetId,
                 'image' => 'target-piorka-target-cult-pro-ultra-no6.jpg',
-                'stock_quantity' => 100,
                 'featured' => false,
             ],
             [
@@ -112,7 +105,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $piorkaId,
                 'brand_id' => $targetId,
                 'image' => 'target-piorka-target-nathan-aspinall-pro-ultra-no6.webp',
-                'stock_quantity' => 80,
                 'featured' => true,
             ],
             [
@@ -122,7 +114,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $piorkaId,
                 'brand_id' => $unicornId,
                 'image' => 'unicorn-piorka-unicorn-ultrafly-james-wade.webp',
-                'stock_quantity' => 90,
                 'featured' => false,
             ],
             [
@@ -132,7 +123,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $piorkaId,
                 'brand_id' => $unicornId,
                 'image' => 'unicorn-piorka-unicorn-ultrafly-gary-anderson-phas.webp',
-                'stock_quantity' => 85,
                 'featured' => true,
             ],
             [
@@ -142,7 +132,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $piorkaId,
                 'brand_id' => $winmauId,
                 'image' => 'winmau-piorka-winmau-michael-van-gerwen-standard-b.webp',
-                'stock_quantity' => 120,
                 'featured' => true,
             ],
             [
@@ -152,7 +141,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $piorkaId,
                 'brand_id' => $winmauId,
                 'image' => 'winmau-piorka-winmau-prims-alpha-joe-cullen.webp',
-                'stock_quantity' => 70,
                 'featured' => false,
             ],
 
@@ -164,7 +152,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $shaftyId,
                 'brand_id' => $winmauId,
                 'image' => 'winmau-shafty-winmau-prism-shaft-blue.webp',
-                'stock_quantity' => 150,
                 'featured' => false,
             ],
             [
@@ -174,7 +161,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $shaftyId,
                 'brand_id' => $winmauId,
                 'image' => 'winmau-shafty-winmau-prism-force-red.webp',
-                'stock_quantity' => 130,
                 'featured' => true,
             ],
 
@@ -186,7 +172,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $oswietlenieId,
                 'brand_id' => $targetId,
                 'image' => 'target-oswietlenie-tarczy-target-corona-vision.webp',
-                'stock_quantity' => 10,
                 'featured' => true,
             ],
             [
@@ -196,7 +181,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $oswietlenieId,
                 'brand_id' => $winmauId,
                 'image' => 'winmau-oswietlenie-tarczy-winmau-plasma.webp',
-                'stock_quantity' => 15,
                 'featured' => false,
             ],
 
@@ -208,7 +192,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $lotkiId,
                 'brand_id' => $harrowsId,
                 'image' => 'harrows-lotki-harrows-fire-inferno.webp',
-                'stock_quantity' => 25,
                 'featured' => true,
             ],
             [
@@ -218,7 +201,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $lotkiId,
                 'brand_id' => $harrowsId,
                 'image' => 'harrows-lotki-harrows-noble.webp',
-                'stock_quantity' => 20,
                 'featured' => false,
             ],
             [
@@ -228,7 +210,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $lotkiId,
                 'brand_id' => $harrowsId,
                 'image' => 'harrows-lotki-harrows-supergrip-ultra.webp',
-                'stock_quantity' => 30,
                 'featured' => false,
             ],
 
@@ -240,7 +221,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $lotkiId,
                 'brand_id' => $targetId,
                 'image' => 'target-lotki-target-975-ultra-marine-02-swiss-poin.webp',
-                'stock_quantity' => 15,
                 'featured' => true,
             ],
             [
@@ -250,7 +230,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $lotkiId,
                 'brand_id' => $targetId,
                 'image' => 'target-lotki-target-rob-cross-g1-swiss-point.webp',
-                'stock_quantity' => 18,
                 'featured' => true,
             ],
             [
@@ -260,7 +239,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $lotkiId,
                 'brand_id' => $targetId,
                 'image' => 'target-lotki-target-sebastian-bialecki-g1-swiss-po.webp',
-                'stock_quantity' => 20,
                 'featured' => true,
             ],
 
@@ -272,7 +250,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $lotkiId,
                 'brand_id' => $unicornId,
                 'image' => 'unicorn-lotki-unicorn-gary-anderson-wc-phase-3.webp',
-                'stock_quantity' => 22,
                 'featured' => true,
             ],
             [
@@ -282,7 +259,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $lotkiId,
                 'brand_id' => $unicornId,
                 'image' => 'unicorn-lotki-unicorn-premier-james-wade.webp',
-                'stock_quantity' => 25,
                 'featured' => false,
             ],
             [
@@ -292,7 +268,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $lotkiId,
                 'brand_id' => $unicornId,
                 'image' => 'unicorn-lotki-unicorn-ross-smith-two-tone.jpg',
-                'stock_quantity' => 20,
                 'featured' => false,
             ],
 
@@ -304,7 +279,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $lotkiId,
                 'brand_id' => $winmauId,
                 'image' => 'winmau-lotki-winmau-blackout-1.jpg',
-                'stock_quantity' => 28,
                 'featured' => false,
             ],
             [
@@ -314,7 +288,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $lotkiId,
                 'brand_id' => $winmauId,
                 'image' => 'winmau-lotki-winmau-michael-van-gerwen-exact.webp',
-                'stock_quantity' => 15,
                 'featured' => true,
             ],
             [
@@ -324,7 +297,6 @@ class ProductSeeder extends Seeder
                 'category_id' => $lotkiId,
                 'brand_id' => $winmauId,
                 'image' => 'winmau-lotki-winmau-sniper-v3.webp',
-                'stock_quantity' => 30,
                 'featured' => false,
             ],
         ];

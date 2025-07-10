@@ -21,60 +21,34 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255|unique:products,name',
-            'description' => 'required|string|min:10',
-            'price' => 'required|numeric|min:0.01|max:999999.99',
-            'category_id' => 'required|exists:categories,id',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric|min:0',
+            'image_url' => 'nullable|string',
+            'is_featured' => 'boolean',
+            'is_active' => 'boolean',
             'brand_id' => 'required|exists:brands,id',
-            'stock_quantity' => 'required|integer|min:0',
-            'sku' => 'nullable|string|max:100|unique:products,sku',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'featured' => 'boolean',
-            'active' => 'boolean',
-            'weight' => 'nullable|numeric|min:0',
-            'dimensions' => 'nullable|string|max:100',
+            'category_id' => 'required|exists:categories,id',
         ];
     }
 
     /**
-     * Get custom error messages for validation rules.
+     * Get custom error messages for validator errors.
      */
     public function messages(): array
     {
         return [
             'name.required' => 'Nazwa produktu jest wymagana.',
-            'name.unique' => 'Produkt o tej nazwie już istnieje.',
-            'name.max' => 'Nazwa produktu nie może być dłuższa niż 255 znaków.',
-            
-            'description.required' => 'Opis produktu jest wymagany.',
-            'description.min' => 'Opis produktu musi mieć co najmniej 10 znaków.',
-            
-            'price.required' => 'Cena produktu jest wymagana.',
+            'name.string' => 'Nazwa produktu musi być tekstem.',
+            'name.max' => 'Nazwa produktu nie może być dłuższa niż :max znaków.',
+            'description.string' => 'Opis musi być tekstem.',
+            'price.required' => 'Cena jest wymagana.',
             'price.numeric' => 'Cena musi być liczbą.',
-            'price.min' => 'Cena musi być większa niż 0.',
-            'price.max' => 'Cena nie może być większa niż 999,999.99.',
-            
-            'category_id.required' => 'Kategoria jest wymagana.',
-            'category_id.exists' => 'Wybrana kategoria nie istnieje.',
-            
+            'price.min' => 'Cena nie może być ujemna.',
             'brand_id.required' => 'Marka jest wymagana.',
             'brand_id.exists' => 'Wybrana marka nie istnieje.',
-            
-            'stock_quantity.required' => 'Ilość w magazynie jest wymagana.',
-            'stock_quantity.integer' => 'Ilość w magazynie musi być liczbą całkowitą.',
-            'stock_quantity.min' => 'Ilość w magazynie nie może być ujemna.',
-            
-            'sku.unique' => 'SKU musi być unikalne.',
-            'sku.max' => 'SKU nie może być dłuższe niż 100 znaków.',
-            
-            'image.image' => 'Plik musi być obrazem.',
-            'image.mimes' => 'Obraz musi być w formacie: jpeg, png, jpg, gif.',
-            'image.max' => 'Rozmiar obrazu nie może przekraczać 2MB.',
-            
-            'weight.numeric' => 'Waga musi być liczbą.',
-            'weight.min' => 'Waga nie może być ujemna.',
-            
-            'dimensions.max' => 'Wymiary nie mogą być dłuższe niż 100 znaków.',
+            'category_id.required' => 'Kategoria jest wymagana.',
+            'category_id.exists' => 'Wybrana kategoria nie istnieje.',
         ];
     }
 
@@ -87,15 +61,11 @@ class StoreProductRequest extends FormRequest
             'name' => 'nazwa produktu',
             'description' => 'opis',
             'price' => 'cena',
-            'category_id' => 'kategoria',
+            'image_url' => 'zdjęcie',
+            'is_featured' => 'wyróżniony',
+            'is_active' => 'aktywny',
             'brand_id' => 'marka',
-            'stock_quantity' => 'ilość w magazynie',
-            'sku' => 'SKU',
-            'image' => 'obraz',
-            'featured' => 'polecany',
-            'active' => 'aktywny',
-            'weight' => 'waga',
-            'dimensions' => 'wymiary',
+            'category_id' => 'kategoria',
         ];
     }
 
@@ -106,8 +76,8 @@ class StoreProductRequest extends FormRequest
     {
         // Convert string booleans to actual booleans
         $this->merge([
-            'featured' => $this->boolean('featured'),
-            'active' => $this->boolean('active', true), // Default to true
+            'is_featured' => $this->boolean('is_featured'),
+            'is_active' => $this->boolean('is_active', true), // Default to true
         ]);
     }
 } 

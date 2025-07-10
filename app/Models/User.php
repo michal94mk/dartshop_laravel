@@ -10,6 +10,8 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -86,7 +88,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get the reviews associated with the user.
      */
-    public function reviews()
+    public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
     }
@@ -110,7 +112,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get the favorite products of the user.
      */
-    public function favoriteProducts()
+    public function favoriteProducts(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'user_favorite_products')
             ->withTimestamps();
@@ -119,7 +121,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get the shipping addresses associated with the user.
      */
-    public function shippingAddresses()
+    public function shippingAddresses(): HasMany
     {
         return $this->hasMany(ShippingAddress::class);
     }

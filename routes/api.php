@@ -37,6 +37,7 @@ use App\Http\Controllers\API\PrivacyPolicyController;
 use App\Http\Controllers\API\TermsOfServiceController;
 use App\Http\Controllers\API\SocialAuthController;
 use Illuminate\Support\Facades\Cache;
+use App\Http\Controllers\Api\ShippingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -107,11 +108,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/favorites/{product}', [FavoriteProductController::class, 'toggle']);
     Route::get('/favorites/check/{product}', [FavoriteProductController::class, 'check']);
     
+    // Shipping methods for authenticated users
+    Route::get('/user/shipping-methods', [ShippingController::class, 'userShippingMethods']);
+    
     // Checkout routes
-    Route::prefix('checkout')->group(function () {
-        Route::get('/', [CheckoutController::class, 'index']);
-        Route::post('/process', [CheckoutController::class, 'process']);
-    });
+    Route::post('/checkout', [CheckoutController::class, 'store']);
     
     // Stripe payment routes for authenticated users
     Route::prefix('stripe')->group(function () {
@@ -161,21 +162,12 @@ Route::prefix('newsletter')->group(function () {
 });
 
 // Guest Checkout API (for non-authenticated users)
-Route::prefix('guest-checkout')->group(function () {
-    Route::post('/', [GuestCheckoutController::class, 'index']);
-    Route::post('/process', [GuestCheckoutController::class, 'process']);
+Route::middleware(['web'])->group(function () {
+    Route::post('/guest-checkout', GuestCheckoutController::class);
 });
 
-// Shipping methods API
-Route::get('/shipping-methods', function () {
-    $shippingService = new \App\Services\ShippingService();
-    return response()->json([
-        'methods' => $shippingService->getShippingMethods(),
-        'free_shipping_threshold' => $shippingService->getFreeShippingThreshold()
-    ]);
-});
-
-
+// Shipping methods API - public access
+Route::get('/shipping-methods', [ShippingController::class, 'index']);
 
 // Guest Stripe payment routes
 Route::prefix('guest-stripe')->group(function () {

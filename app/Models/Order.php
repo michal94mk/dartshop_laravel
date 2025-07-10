@@ -46,6 +46,7 @@ class Order extends Model
         'total',
         'payment_method',
         'payment_intent_id',
+        'stripe_session_id',
         'shipping_method',
         'session_id',
         'promotion_code'
@@ -58,6 +59,10 @@ class Order extends Model
      */
     protected $casts = [
         'status' => OrderStatus::class,
+        'subtotal' => 'float',
+        'shipping_cost' => 'float',
+        'discount' => 'float',
+        'total' => 'float',
     ];
     
     /**

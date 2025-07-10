@@ -284,50 +284,37 @@ export default {
     },
     
     async increaseQuantity(item) {
-      this.updatingItemId = item.product_id;
       try {
-        const itemId = this.authStore.isLoggedIn ? item.id : item.product_id;
-        await this.cartStore.updateCartItem(itemId, item.quantity + 1);
+        await this.cartStore.updateCartItem(item.product_id, item.quantity + 1);
       } catch (error) {
         console.error('Error increasing quantity:', error);
-      } finally {
-        this.updatingItemId = null;
       }
     },
     
     async decreaseQuantity(item) {
       if (item.quantity <= 1) return;
       
-      this.updatingItemId = item.product_id;
       try {
-        const itemId = this.authStore.isLoggedIn ? item.id : item.product_id;
-        await this.cartStore.updateCartItem(itemId, item.quantity - 1);
+        await this.cartStore.updateCartItem(item.product_id, item.quantity - 1);
       } catch (error) {
         console.error('Error decreasing quantity:', error);
-      } finally {
-        this.updatingItemId = null;
       }
     },
     
     async removeItem(productId) {
-      this.removingItemId = productId;
       try {
-        const itemToRemove = this.cartStore.items.find(item => item.product_id === productId);
-        const itemId = this.authStore.isLoggedIn && itemToRemove ? itemToRemove.id : productId;
-        await this.cartStore.removeFromCart(itemId);
+        await this.cartStore.removeFromCart(productId);
       } catch (error) {
         console.error('Error removing item:', error);
-      } finally {
-        this.removingItemId = null;
       }
     },
     
     isUpdatingItem(productId) {
-      return this.updatingItemId === productId;
+      return false;
     },
     
     isRemovingItem(productId) {
-      return this.removingItemId === productId;
+      return false;
     },
     
     clearCart() {

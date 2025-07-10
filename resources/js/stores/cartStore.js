@@ -181,6 +181,12 @@ export const useCartStore = defineStore('cart', {
     async addToCart(productId, quantity = 1) {
       const authStore = useAuthStore();
       
+      // Ensure quantity is a number and valid
+      quantity = parseInt(quantity);
+      if (isNaN(quantity) || quantity < 1) {
+        quantity = 1;
+      }
+      
       // Check if product is already being added to prevent duplicates
       if (this.loadingProductIds.includes(productId)) {
         return;
@@ -250,95 +256,64 @@ export const useCartStore = defineStore('cart', {
       }
     },
     
-    // Zmień ilość produktu w koszyku
-    async updateCartItem(itemId, quantity) {
+    // Update cart item quantity
+    async updateCartItem(productId, quantity) {
       const authStore = useAuthStore();
       
-      if (authStore.isLoggedIn) {
-        // Dla zalogowanego użytkownika: użyj API
-        this.isLoading = true;
-        
-        try {
-          const response = await axios.put(`/api/cart/${itemId}`, {
+      try {
+        if (authStore.isLoggedIn) {
+          // For logged in users: use API
+          await axios.put(`/api/cart/${productId}`, {
             quantity: quantity
           });
           
-          await this.fetchCart(); // Odśwież koszyk po aktualizacji
-          return response.data;
-        } catch (error) {
-          console.error('Failed to update cart item:', error);
-          
-          // Jeśli element nie istnieje (404), odśwież koszyk
-          if (error.response && error.response.status === 404) {
-            console.log(`Cart item ${itemId} not found, refreshing cart`);
-            await this.fetchCart();
-            this.hasError = true;
-            this.errorMessage = 'Element koszyka już nie istnieje. Koszyk został odświeżony.';
-          } else {
-            this.hasError = true;
-            this.errorMessage = 'Nie udało się zaktualizować produktu w koszyku';
-            throw error;
+          // Update local state directly
+          const itemIndex = this.items.findIndex(item => item.product_id === productId);
+          if (itemIndex !== -1) {
+            this.items[itemIndex].quantity = quantity;
           }
-        } finally {
-          this.isLoading = false;
+        } else {
+          // For guests: handle in localStorage
+          const existingItemIndex = this.items.findIndex(item => item.product_id === productId);
+          
+          if (existingItemIndex !== -1) {
+            this.items[existingItemIndex].quantity = quantity;
+            this.saveToLocalStorage();
+          }
         }
-      } else {
-        // Dla gościa: obsługa w localStorage
-        // Sprawdź czy itemId jest id produktu czy id koszyka
-        const itemIndex = this.items.findIndex(item => 
-          item.id === itemId || item.product_id === itemId || item.product.id === itemId
-        );
-        
-        if (itemIndex !== -1) {
-          this.items[itemIndex].quantity = quantity;
-          this.saveToLocalStorage();
-        }
+        return true;
+      } catch (error) {
+        console.error('Failed to update cart item:', error);
+        this.hasError = true;
+        this.errorMessage = 'Failed to update cart item';
+        throw error;
       }
     },
-    
-    // Usuń produkt z koszyka
-    async removeFromCart(itemId) {
+
+    // Remove item from cart
+    async removeFromCart(productId) {
       const authStore = useAuthStore();
       
-      if (authStore.isLoggedIn) {
-        // Dla zalogowanego użytkownika: użyj API
-        this.isLoading = true;
-        
-        try {
-          const response = await axios.delete(`/api/cart/${itemId}`);
-          
-          await this.fetchCart(); // Odśwież koszyk po usunięciu
-          return response.data;
-        } catch (error) {
-          console.error('Failed to remove item from cart:', error);
-          
-          // Jeśli element nie istnieje (404), odśwież koszyk
-          if (error.response && error.response.status === 404) {
-            console.log(`Cart item ${itemId} not found, refreshing cart`);
-            await this.fetchCart();
-            this.hasError = true;
-            this.errorMessage = 'Element koszyka już nie istnieje. Koszyk został odświeżony.';
-          } else {
-            this.hasError = true;
-            this.errorMessage = 'Nie udało się usunąć produktu z koszyka';
-            throw error;
-          }
-        } finally {
-          this.isLoading = false;
+      try {
+        if (authStore.isLoggedIn) {
+          // For logged in users: use API
+          await axios.delete(`/api/cart/${productId}`);
         }
-      } else {
-        // Dla gościa: obsługa w localStorage
-        // Need to check all possible ID matches 
-        this.items = this.items.filter(item => {
-          // If none of these match, keep the item
-          return !(
-            item.id === itemId || 
-            item.product_id === itemId || 
-            (item.product && item.product.id === itemId)
-          );
-        });
         
-        this.saveToLocalStorage();
+        // Update local state for both logged in and guest users
+        this.items = this.items.filter(item => item.product_id !== productId);
+        
+        // Save to localStorage for guests
+        if (!authStore.isLoggedIn) {
+          this.saveToLocalStorage();
+        }
+        
+        return true;
+      } catch (error) {
+        console.error('Failed to remove item from cart:', error);
+        this.hasError = true;
+        this.errorMessage = 'Failed to remove item from cart';
+        throw error;
       }
     },
     

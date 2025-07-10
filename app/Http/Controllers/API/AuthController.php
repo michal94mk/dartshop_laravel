@@ -8,15 +8,22 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Enums\RoleEnum;
+use App\Services\CartService;
 use Illuminate\Validation\ValidationException;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
+    protected $cartService;
+    
+    public function __construct(CartService $cartService)
+    {
+        $this->cartService = $cartService;
+    }
+
     /**
      * Login user and create token
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function login(Request $request)
     {
@@ -25,11 +32,14 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (Auth::attempt($request->only('email', 'password'), true)) { // Remember user
+        if (Auth::attempt($request->only('email', 'password'), true)) {
             $user = Auth::user();
             
             // Also login via web guard for session-based auth
             Auth::guard('web')->login($user, true);
+            
+            // Migrate session cart to database
+            $this->cartService->migrateSessionCartToDatabase($user);
             
             $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -47,9 +57,6 @@ class AuthController extends Controller
 
     /**
      * Register a new user
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function register(Request $request)
     {
@@ -82,12 +89,14 @@ class AuthController extends Controller
         // Handle newsletter subscription if consent was given
         if ($request->newsletter_consent) {
             // You might want to handle newsletter subscription here
-            // For example, create a newsletter subscription record
         }
 
-        // Auto-login the user after registration (both Sanctum and web session)
-        Auth::login($user, true); // Remember user
+        // Auto-login the user after registration
+        Auth::login($user, true);
         Auth::guard('web')->login($user, true);
+        
+        // Migrate session cart to database
+        $this->cartService->migrateSessionCartToDatabase($user);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -99,10 +108,74 @@ class AuthController extends Controller
     }
 
     /**
+     * Handle Google OAuth login/register
+     */
+    public function handleGoogleCallback(Request $request)
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+            
+            // Find existing user or create new one
+            $user = User::where('google_id', $googleUser->id)->first();
+            
+            $isNewUser = false;
+            
+            if (!$user) {
+                // Check if user exists with same email
+                $user = User::where('email', $googleUser->email)->first();
+                
+                if ($user) {
+                    // Link existing account with Google
+                    $user->update([
+                        'google_id' => $googleUser->id,
+                        'avatar' => $googleUser->avatar
+                    ]);
+                } else {
+                    // Create new user
+                    $user = User::create([
+                        'name' => $googleUser->name,
+                        'email' => $googleUser->email,
+                        'google_id' => $googleUser->id,
+                        'avatar' => $googleUser->avatar,
+                        'email_verified_at' => now(), // Google accounts are pre-verified
+                        'password' => Hash::make(Str::random(24)), // Random password for security
+                        'privacy_policy_accepted' => true,
+                        'privacy_policy_accepted_at' => now(),
+                    ]);
+                    
+                    // Assign default user role
+                    $user->assignRole(RoleEnum::User->value);
+                    
+                    $isNewUser = true;
+                }
+            }
+            
+            // Login user
+            Auth::login($user, true);
+            Auth::guard('web')->login($user, true);
+            
+            // Migrate session cart to database
+            $this->cartService->migrateSessionCartToDatabase($user);
+            
+            $token = $user->createToken('auth_token')->plainTextToken;
+            
+            return response()->json([
+                'user' => $this->getUserWithRolesAndPermissions($user),
+                'token' => $token,
+                'token_type' => 'Bearer',
+                'is_new_user' => $isNewUser
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error during Google authentication',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get the authenticated user
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function user(Request $request)
     {
@@ -112,19 +185,15 @@ class AuthController extends Controller
 
     /**
      * Logout user (Revoke the token)
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function logout(Request $request)
     {
         // Handle token-based logout (API tokens)
         if ($request->user()) {
-            // Delete all tokens instead of just current one
             $request->user()->tokens()->delete();
         }
         
-        // Handle session-based logout (cookies)
+        // Handle session-based logout
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -137,9 +206,6 @@ class AuthController extends Controller
 
     /**
      * Get user with roles and permissions
-     *
-     * @param  \App\Models\User  $user
-     * @return array
      */
     protected function getUserWithRolesAndPermissions(User $user)
     {

@@ -195,13 +195,20 @@
                 <div class="flex flex-col sm:flex-row gap-4">
                   <div class="sm:w-1/3">
                     <label for="quantity" class="block text-sm font-semibold text-gray-700 mb-2">Ilość</label>
-                    <select 
-                      id="quantity" 
-                      v-model="quantity" 
-                      class="block w-full py-3 px-4 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-medium transition-colors duration-200"
-                    >
-                      <option v-for="i in 10" :key="i" :value="i">{{ i }}</option>
-                    </select>
+                    <div class="relative">
+                      <select 
+                        id="quantity" 
+                        v-model="quantity"
+                        class="block w-full py-3 pl-4 pr-10 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-medium transition-colors duration-200 appearance-none"
+                      >
+                        <option v-for="i in 10" :key="i" :value="i">{{ i }} {{ i === 1 ? 'sztuka' : (i < 5 ? 'sztuki' : 'sztuk') }}</option>
+                      </select>
+                      <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                   
                   <div class="flex-1 flex items-end">
@@ -407,11 +414,17 @@ export default {
       cartLoading.value = true
       
       try {
-        const success = await cartStore.addToCart(product.value.id, quantity.value)
+        const quantityNum = parseInt(quantity.value)
+        if (isNaN(quantityNum) || quantityNum < 1) {
+          alertStore.error('Nieprawidłowa ilość produktu!', 3000)
+          return
+        }
+        
+        const success = await cartStore.addToCart(product.value.id, quantityNum)
         if (success) {
           // Reset quantity after successful add
           quantity.value = 1
-          alertStore.success(`🛒 Świetnie! "${product.value.name}" został dodany do koszyka (${quantity.value > 1 ? quantity.value + ' szt.' : ''})!`, 4000)
+          alertStore.success(`🛒 Świetnie! "${product.value.name}" został dodany do koszyka (${quantityNum > 1 ? quantityNum + ' szt.' : ''})!`, 4000)
         } else {
           alertStore.error('😞 Ups! Nie udało się dodać produktu do koszyka. Spróbuj ponownie!', 5000)
         }
@@ -471,6 +484,18 @@ export default {
 
     watch(() => route.params.id, () => {
       fetchProduct()
+    })
+
+    watch(() => quantity.value, (newValue) => {
+      // Convert to number and ensure it's within bounds
+      let num = parseInt(newValue)
+      if (isNaN(num) || num < 1) {
+        quantity.value = 1
+      } else if (num > 99) {
+        quantity.value = 99
+      } else {
+        quantity.value = num
+      }
     })
 
     // Watch for auth state changes
