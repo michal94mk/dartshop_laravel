@@ -78,7 +78,7 @@ export const useProductStore = defineStore('product', {
             ...product,
             price: product.price || 0,
             name: product.name || 'Unnamed Product',
-            image_url: product.image_url || product.image || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
+            image_url: product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
           }));
           
           this.pagination = {
@@ -92,7 +92,7 @@ export const useProductStore = defineStore('product', {
             ...product,
             price: product.price || 0,
             name: product.name || 'Unnamed Product',
-            image_url: product.image_url || product.image || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
+            image_url: product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
           }));
           
           this.pagination = {
@@ -135,7 +135,7 @@ export const useProductStore = defineStore('product', {
             ...product,
             price: product.price || 0,
             name: product.name || 'Unnamed Product',
-            image_url: product.image_url || product.image || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
+            image_url: product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
           }));
         } else if (Array.isArray(response.data)) {
           // Fallback for direct array response
@@ -143,7 +143,7 @@ export const useProductStore = defineStore('product', {
             ...product,
             price: product.price || 0,
             name: product.name || 'Unnamed Product',
-            image_url: product.image_url || product.image || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
+            image_url: product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
           }));
         } else {
           console.error('Unexpected latest products API response format:', response.data);
@@ -174,7 +174,7 @@ export const useProductStore = defineStore('product', {
             ...productData,
             price: productData.price || 0,
             name: productData.name || 'Unnamed Product',
-            image_url: productData.image_url || productData.image || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
+            image_url: productData.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
           };
           
           console.log('Current product set:', this.currentProduct);

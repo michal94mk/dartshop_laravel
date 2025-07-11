@@ -78,7 +78,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                 </svg>
                 {{ category.name }}
-                <span class="ml-2 text-xs opacity-75">({{ category.products_count }})</span>
+                <span v-if="category.products_count > 0" class="ml-2 text-xs opacity-75">({{ category.products_count }})</span>
               </span>
             </button>
           </div>
@@ -603,6 +603,7 @@ import StarRating from '../components/ui/StarRating.vue';
 import { useToast } from 'vue-toastification';
 import { useAlertStore } from '../stores/alertStore';
 import axios from 'axios';
+import api from '../services/api';
 
 export default {
   name: 'ProductList',
@@ -623,6 +624,7 @@ export default {
     const selectedCategory = ref(null);
     const cartSuccessMessages = ref({}); // Object to track success messages per product
     const favoriteSuccessMessages = ref({}); // Object to track favorite messages per product
+
     
     // Define loadProducts function first
     const loadProducts = async () => {
@@ -661,6 +663,14 @@ export default {
       await loadProducts();
     });
     
+    // Watch for route changes to refresh categories
+    watch(
+      () => route.query,
+      async () => {
+        await categoryStore.fetchCategories()
+      }
+    )
+
     // Flag to prevent watcher from triggering during manual filter updates
     const isManualUpdate = ref(false);
     
@@ -965,6 +975,7 @@ export default {
     const hasFavoriteSuccessMessage = (productId) => {
       return favoriteSuccessMessages.value[productId] || false;
     };
+
 
 
 

@@ -10,17 +10,7 @@ class Brand extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'name',
-        'slug', 
-        'description',
-        'logo',
-        'is_active'
-    ];
-
-    protected $casts = [
-        'is_active' => 'boolean',
-    ];
+    protected $fillable = ['name'];
 
     public function products()
     {
@@ -29,18 +19,19 @@ class Brand extends Model
 
     public static function rules($id = null)
     {
-        $rules = [
-            'name' => 'required|string|max:255|unique:brands,name',
-        ];
-
         if ($id) {
-            $rules['name'] = [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('brands', 'name')->ignore($id),
+            return [
+                'name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('brands')->ignore($id)
+                ]
             ];
         }
-        return $rules;
+
+        return [
+            'name' => 'required|string|max:255|unique:brands'
+        ];
     }
 }

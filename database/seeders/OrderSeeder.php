@@ -41,10 +41,10 @@ class OrderSeeder extends Seeder
         
         // Order statuses
         $statuses = [
-            OrderStatus::PENDING->value,
-            OrderStatus::PROCESSING->value, 
-            OrderStatus::COMPLETED->value,
-            OrderStatus::CANCELLED->value
+            OrderStatus::Pending->value,
+            OrderStatus::Processing->value,
+            OrderStatus::Delivered->value,
+            OrderStatus::Cancelled->value
         ];
         $paymentMethods = ['credit_card', 'paypal', 'bank_transfer', 'blik'];
         
@@ -75,15 +75,14 @@ class OrderSeeder extends Seeder
                 'address' => $addresses[array_rand($addresses)],
                 'city' => $cities[array_rand($cities)],
                 'postal_code' => $postalCodes[array_rand($postalCodes)],
-                'country' => 'Polska',
                 'notes' => rand(0, 1) ? 'Dodatkowe uwagi do zamówienia' : null,
                 'subtotal' => 0, // Will update after adding items
                 'shipping_cost' => $shippingCost,
                 'discount' => $discount,
                 'total' => 0, // Will update after adding items
                 'payment_method' => $paymentMethods[array_rand($paymentMethods)],
-                'session_id' => Str::random(32),
-                'promotion_code' => rand(0, 1) ? strtoupper(Str::random(8)) : null,
+                'payment_intent_id' => $status !== OrderStatus::Pending->value ? 'pi_' . Str::random(24) : null,
+                'stripe_session_id' => $status !== OrderStatus::Pending->value ? 'cs_' . Str::random(24) : null,
                 'created_at' => $orderDate,
                 'updated_at' => $orderDate
             ]);
@@ -119,9 +118,9 @@ class OrderSeeder extends Seeder
             ]);
             
             // Create payment for the order
-            if ($status !== OrderStatus::PENDING->value) {
-                $paymentStatus = ($status == OrderStatus::COMPLETED->value) ? PaymentStatus::COMPLETED->value : 
-                                 ($status == OrderStatus::CANCELLED->value ? PaymentStatus::FAILED->value : PaymentStatus::PENDING->value);
+            if ($status !== OrderStatus::Pending->value) {
+                $paymentStatus = ($status == OrderStatus::Delivered->value) ? PaymentStatus::Completed->value : 
+                                ($status == OrderStatus::Cancelled->value ? PaymentStatus::Failed->value : PaymentStatus::Processing->value);
                 
                 Payment::create([
                     'order_id' => $order->id,

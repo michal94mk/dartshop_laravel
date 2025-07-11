@@ -23,7 +23,7 @@
           <!-- Products with dropdown -->
           <div class="relative flex items-center">
             <button 
-              @click="toggleProductsDropdown"
+              @click="toggleProductsDropdown($event)"
               class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium h-16 focus:outline-none"
               :class="[$route.path.includes('/categories') || $route.path.includes('/products') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']"
             >
@@ -36,7 +36,7 @@
             <!-- Dropdown Menu -->
             <div 
               v-show="showProductsDropdown"
-              class="absolute left-0 top-full mt-1 w-56 origin-top-left bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
+              class="products-dropdown absolute left-0 top-full mt-1 w-56 origin-top-left bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
             >
               <div class="py-1">
                 <router-link 
@@ -54,18 +54,18 @@
                 <div class="px-4 py-2">
                   <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Kategorie</p>
                 </div>
-                              <router-link
-                v-for="category in topCategories"
-                :key="category.id"
-                :to="`/products?category=${category.id}`" 
-                class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
-                @click.prevent="navigateToCategory(category.id, $event)"
-              >
+                <router-link
+                  v-for="category in topCategories"
+                  :key="category.id"
+                  :to="`/products?category=${category.id}`" 
+                  class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
+                  @click.prevent="navigateToCategory(category.id, $event)"
+                >
                   <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                   </svg>
                   {{ category.name }}
-                  <span class="ml-auto text-xs text-gray-400">({{ category.products_count }})</span>
+                  <span v-if="category.products_count > 0" class="ml-auto text-xs text-gray-400">({{ category.products_count }})</span>
                 </router-link>
               </div>
             </div>
@@ -343,7 +343,7 @@
                 Wszystkie produkty
               </router-link>
               <router-link
-                v-for="category in topCategories"
+                v-for="category in categoryStore.orderedCategories.filter(cat => cat.is_active !== false && cat.products_count > 0)"
                 :key="`mobile-${category.id}`"
                 :to="`/products?category=${category.id}`"
                 class="block py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded px-2"
@@ -448,8 +448,8 @@ import { useCategoryStore } from '../../stores/categoryStore';
 import { useAlertStore } from '../../stores/alertStore';
 import { useProductStore } from '../../stores/productStore';
 import { storeToRefs } from 'pinia';
-import { useRouter } from 'vue-router';
-import { computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { computed, ref, onMounted, watch, onUnmounted } from 'vue';
 import ProductSearch from '../ui/ProductSearch.vue';
 import axios from 'axios';
 
@@ -458,293 +458,247 @@ export default {
   components: {
     ProductSearch
   },
-  data() {
-    return {
-      userMenuOpen: false,
-      showProductsDropdown: false,
-      showMobileProductsDropdown: false,
-      mobileMenuOpen: false,
-      mobileSearchQuery: '',
-      searchTimeout: null,
-      mobileSearchFocused: false,
-      showMobileSearchDropdown: false,
-      mobileSearchResults: [],
-      mobileSearchLoading: false,
-      mobileSearchTotalResults: 0
-    }
-  },
   setup() {
-    const authStore = useAuthStore();
-    const cartStore = useCartStore();
-    const categoryStore = useCategoryStore();
-    const alertStore = useAlertStore();
-    const productStore = useProductStore();
-    const router = useRouter();
-    
+    const router = useRouter()
+    const route = useRoute()
+    const authStore = useAuthStore()
+    const cartStore = useCartStore()
+    const categoryStore = useCategoryStore()
+    const alertStore = useAlertStore()
+    const productStore = useProductStore()
+
+    const showProductsDropdown = ref(false)
+    const userMenuOpen = ref(false)
+    const mobileMenuOpen = ref(false)
+    const mobileProductsOpen = ref(false)
+    const showMobileProductsDropdown = ref(false)
+    const mobileSearchQuery = ref('')
+    const mobileSearchFocused = ref(false)
+    const showMobileSearchDropdown = ref(false)
+    const mobileSearchResults = ref([])
+    const mobileSearchLoading = ref(false)
+    const mobileSearchTotalResults = ref(0)
+
     // Używamy storeToRefs, aby zachować reaktywność getterów i state w Pinia
-    const { isLoggedIn, isAdmin, userName, userEmail, userInitial } = storeToRefs(authStore);
-    const { totalItems: cartItemsCount } = storeToRefs(cartStore);
+    const { isLoggedIn, isAdmin, userName, userEmail, userInitial } = storeToRefs(authStore)
+    const { totalItems: cartItemsCount } = storeToRefs(cartStore)
     
-    // Computed property for top categories (first 5 categories with products)
+    // Computed property for top categories (show all categories, regardless of product count)
     const topCategories = computed(() => {
       return categoryStore.orderedCategories
-        .filter(cat => cat.is_active !== false && cat.products_count > 0)
-        .slice(0, 5); // Show only first 5 categories in dropdown
-    });
-    
+        .filter(cat => cat.is_active !== false) // Only check is_active, not products_count
+        .slice(0, 10) // Show up to 10 categories instead of 5
+    })
+
+    // Close dropdowns when clicking outside
+    const handleClickOutside = (event) => {
+      const productsDropdown = document.querySelector('.products-dropdown')
+      const toggleButton = event.target.closest('button')
+      
+      // Don't close if clicking the toggle button or inside dropdown
+      if (toggleButton && toggleButton.textContent.includes('Produkty')) {
+        return
+      }
+      
+      if (productsDropdown && !productsDropdown.contains(event.target)) {
+        showProductsDropdown.value = false
+      }
+    }
+
+    // Watch for route changes to refresh categories when navigating to/from admin
+    watch(
+      () => route.fullPath,
+      async (newPath) => {
+        showProductsDropdown.value = false
+        userMenuOpen.value = false
+        mobileMenuOpen.value = false
+        showMobileProductsDropdown.value = false
+        
+        // Force refresh categories when coming from admin routes
+        if (!newPath.startsWith('/admin') && route.fullPath.startsWith('/admin')) {
+          await categoryStore.forceRefreshCategories()
+        }
+      }
+    )
+
+    // Mobile search functionality
+    let searchTimeout = null
+
+    const onMobileSearchInput = () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout)
+      }
+      
+      if (mobileSearchQuery.value.length >= 3) {
+        mobileSearchLoading.value = true
+        searchTimeout = setTimeout(async () => {
+          try {
+            const response = await axios.get(`/api/products`, {
+              params: {
+                search: mobileSearchQuery.value,
+                per_page: 5
+              }
+            })
+            
+            mobileSearchResults.value = response.data.data
+            mobileSearchTotalResults.value = response.data.total
+            showMobileSearchDropdown.value = true
+          } catch (error) {
+            console.error('Error searching products:', error)
+          } finally {
+            mobileSearchLoading.value = false
+          }
+        }, 300)
+      } else {
+        mobileSearchResults.value = []
+        showMobileSearchDropdown.value = false
+      }
+    }
+
+    const onMobileSearchBlur = () => {
+      setTimeout(() => {
+        showMobileSearchDropdown.value = false
+        mobileSearchFocused.value = false
+      }, 200)
+    }
+
+    const performMobileSearch = () => {
+      if (mobileSearchQuery.value.trim()) {
+        router.push({
+          path: '/products',
+          query: { search: mobileSearchQuery.value }
+        })
+        mobileMenuOpen.value = false
+        showMobileSearchDropdown.value = false
+        mobileSearchQuery.value = ''
+      }
+    }
+
+    const goToMobileProduct = (product) => {
+      router.push(`/products/${product.id}`)
+      mobileMenuOpen.value = false
+      showMobileSearchDropdown.value = false
+      mobileSearchQuery.value = ''
+    }
+
+    const viewAllMobileResults = () => {
+      router.push({
+        path: '/products',
+        query: { search: mobileSearchQuery.value }
+      })
+      mobileMenuOpen.value = false
+      showMobileSearchDropdown.value = false
+      mobileSearchQuery.value = ''
+    }
+
+    // Navigation functions
+    const navigateTo = (path, event) => {
+      if (event) {
+        event.preventDefault()
+      }
+      router.push(path)
+      // Close any open dropdowns
+      showProductsDropdown.value = false
+      userMenuOpen.value = false
+      mobileMenuOpen.value = false
+    }
+
+    const navigateToCategory = (categoryId, event) => {
+      if (event) {
+        event.preventDefault()
+      }
+      router.push(`/products?category=${categoryId}`)
+      showProductsDropdown.value = false
+    }
+
+    const toggleProductsDropdown = (event) => {
+      if (event) {
+        event.stopPropagation()
+      }
+      
+      showProductsDropdown.value = !showProductsDropdown.value
+      userMenuOpen.value = false
+    }
+
+    const toggleUserMenu = () => {
+      userMenuOpen.value = !userMenuOpen.value
+      showProductsDropdown.value = false
+    }
+
+    const toggleMobileMenu = () => {
+      mobileMenuOpen.value = !mobileMenuOpen.value
+    }
+
+    const logout = async () => {
+      try {
+        await authStore.logout()
+        router.push('/')
+      } catch (error) {
+        console.error('Logout error:', error)
+        alertStore.addAlert('Błąd podczas wylogowywania', 'error')
+      }
+    }
+
+    // Initialize stores - only one onMounted hook
+    onMounted(async () => {
+      await cartStore.initCart()
+      await categoryStore.fetchCategories()
+      document.addEventListener('click', handleClickOutside)
+    })
+
+    // Cleanup on component unmount
+    onUnmounted(() => {
+      document.removeEventListener('click', handleClickOutside)
+    })
+
     return {
-      authStore,
-      cartStore,
-      categoryStore,
-      alertStore,
-      productStore,
-      router,
+      // Reactive refs
+      showProductsDropdown,
+      userMenuOpen,
+      mobileMenuOpen,
+      mobileProductsOpen,
+      showMobileProductsDropdown,
+      mobileSearchQuery,
+      mobileSearchFocused,
+      showMobileSearchDropdown,
+      mobileSearchResults,
+      mobileSearchLoading,
+      mobileSearchTotalResults,
+      
+      // Computed properties
+      topCategories,
+      
+      // Store refs
       isLoggedIn,
       isAdmin,
       userName,
       userEmail,
       userInitial,
       cartItemsCount,
-      topCategories
-    }
-  },
-  mounted() {
-    // Inicjalizacja auth store i cart store
-    this.authStore.initAuth();
-    this.cartStore.initCart();
-    this.categoryStore.fetchCategories();
-    
-    // Zamykaj dropdown przy kliknięciu poza nim
-    document.addEventListener('click', this.closeDropdowns);
-  },
-  beforeUnmount() {
-    document.removeEventListener('click', this.closeDropdowns);
-  },
-  methods: {
-    toggleUserMenu() {
-      this.userMenuOpen = !this.userMenuOpen;
-    },
-    toggleProductsDropdown() {
-      this.showProductsDropdown = !this.showProductsDropdown;
-    },
-    toggleMobileProductsDropdown() {
-      this.showMobileProductsDropdown = !this.showMobileProductsDropdown;
-    },
-    closeDropdowns(event) {
-      // Zamknij user menu jeśli kliknięto poza nim
-      if (this.userMenuOpen && !event.target.closest('#user-menu-button') && !event.target.closest('[role="menuitem"]')) {
-        this.userMenuOpen = false;
-      }
       
-      // Zamknij products dropdown jeśli kliknięto poza nim
-      const productsDropdownContainer = event.target.closest('.relative.flex.items-center');
-      const isInsideProductsDropdown = productsDropdownContainer && productsDropdownContainer.querySelector('button')?.textContent?.includes('Produkty');
+      // Store instances
+      categoryStore,
       
-      if (this.showProductsDropdown && !isInsideProductsDropdown) {
-        this.showProductsDropdown = false;
-      }
-    },
-    logout() {
-      try {
-        // Set logout success message BEFORE logout
-        this.alertStore.success('👋 Do zobaczenia! Zostałeś pomyślnie wylogowany.', 5000);
-        
-        this.authStore.logout().then(() => {
-          this.userMenuOpen = false;
-          
-          // Użyj routera zamiast window.location
-          this.$router.push('/');
-        }).catch(error => {
-          console.error('Logout error in SiteHeader:', error);
-          alert('Wystąpił błąd podczas wylogowywania.');
-        });
-      } catch (error) {
-        console.error('Logout error in SiteHeader:', error);
-        alert('Wystąpił błąd podczas wylogowywania.');
-      }
-    },
-    navigateTo(path, event) {
-      // Prevent default behavior
-      if (event) {
-        event.preventDefault();
-      }
+      // Methods
+      navigateTo,
+      navigateToCategory,
+      toggleProductsDropdown,
+      toggleUserMenu,
+      toggleMobileMenu,
+      logout,
+      onMobileSearchInput,
+      onMobileSearchBlur,
+      performMobileSearch,
+      goToMobileProduct,
+      viewAllMobileResults,
       
-      // Close menus
-      this.userMenuOpen = false;
-      this.mobileMenuOpen = false;
-      this.showProductsDropdown = false;
-      this.showMobileProductsDropdown = false;
-
-
-      
-      // If navigating to same route as current, do nothing
-      if (this.$route.path === path && path !== '/products') {
-        return;
+      // Helper functions
+      hasPromotion: (product) => {
+        return product.promotion_price && product.promotion_price < product.price
+      },
+      formatPrice: (price) => {
+        return Number(price).toFixed(2)
       }
-      
-      // Special handling for products page - always clear query parameters and filters
-      if (path === '/products') {
-        // Clear all filters in store
-        this.productStore.clearAllFilters();
-        
-        // Navigate to clean products page
-        this.$router.push({ path: '/products' }).then(() => {
-          // Force reload products with cleared filters
-          this.productStore.fetchProducts();
-        }).catch(err => {
-          console.error('Navigation error:', err);
-        });
-      } else {
-        // Navigate to new route normally
-        this.$router.push(path).catch(err => {
-          console.error('Navigation error:', err);
-        });
-      }
-    },
-    
-    navigateToCategory(categoryId, event) {
-      // Prevent default behavior
-      if (event) {
-        event.preventDefault();
-      }
-      
-      // Close menus
-      this.userMenuOpen = false;
-      this.mobileMenuOpen = false;
-      this.showProductsDropdown = false;
-      this.showMobileProductsDropdown = false;
-
-      // Clear search filter but keep category
-      this.productStore.clearSearchFilter();
-      this.productStore.setFilters({ category: categoryId });
-      
-      // Navigate to products page with category
-      this.$router.push({ 
-        path: '/products', 
-        query: { category: categoryId } 
-      }).then(() => {
-        // Force reload products with category filter
-        this.productStore.fetchProducts();
-      }).catch(err => {
-        console.error('Navigation error:', err);
-      });
-    },
-    toggleMobileMenu() {
-      this.mobileMenuOpen = !this.mobileMenuOpen;
-    },
-    onMobileSearchInput(event) {
-      // Clear existing timeout
-      if (this.searchTimeout) {
-        clearTimeout(this.searchTimeout);
-      }
-      
-      if (this.mobileSearchQuery.length < 3) {
-        this.mobileSearchResults = [];
-        this.showMobileSearchDropdown = false;
-        this.mobileSearchLoading = false;
-        return;
-      }
-
-      this.mobileSearchLoading = true;
-      this.showMobileSearchDropdown = true;
-      
-      // Add debounce for better performance
-      this.searchTimeout = setTimeout(() => {
-        this.performMobileSearchAPI();
-      }, 300);
-    },
-    async performMobileSearchAPI() {
-      if (this.mobileSearchQuery.length < 3) {
-        this.mobileSearchLoading = false;
-        return;
-      }
-
-      try {
-        const response = await axios.get('/api/products', {
-          params: {
-            search: this.mobileSearchQuery,
-            per_page: 6 // Limit results for mobile dropdown
-          }
-        });
-
-        if (response.data.data && Array.isArray(response.data.data)) {
-          this.mobileSearchResults = response.data.data;
-          this.mobileSearchTotalResults = response.data.total || response.data.data.length;
-        } else if (Array.isArray(response.data)) {
-          this.mobileSearchResults = response.data;
-          this.mobileSearchTotalResults = response.data.length;
-        } else {
-          this.mobileSearchResults = [];
-          this.mobileSearchTotalResults = 0;
-        }
-      } catch (error) {
-        console.error('Mobile search error:', error);
-        this.mobileSearchResults = [];
-        this.mobileSearchTotalResults = 0;
-      } finally {
-        this.mobileSearchLoading = false;
-      }
-    },
-    performMobileSearch() {
-      if (this.mobileSearchQuery.trim().length > 0) {
-        // Close mobile menu and dropdown
-        this.mobileMenuOpen = false;
-        this.showMobileSearchDropdown = false;
-        
-        // Navigate to products page with search query
-        this.router.push({
-          path: '/products',
-          query: { search: this.mobileSearchQuery.trim() }
-        });
-        
-        // Clear search query and results
-        this.mobileSearchQuery = '';
-        this.mobileSearchResults = [];
-      }
-    },
-    onMobileSearchBlur() {
-      // Delay hiding dropdown to allow clicks on results
-      setTimeout(() => {
-        this.showMobileSearchDropdown = false;
-      }, 200);
-    },
-    goToMobileProduct(product) {
-      // Close mobile menu and dropdown
-      this.mobileMenuOpen = false;
-      this.showMobileSearchDropdown = false;
-      
-      // Navigate to product page
-      this.router.push(`/products/${product.id}`);
-      
-      // Clear search query and results
-      this.mobileSearchQuery = '';
-      this.mobileSearchResults = [];
-    },
-    viewAllMobileResults() {
-      if (this.mobileSearchQuery.trim().length > 0) {
-        // Close mobile menu and dropdown
-        this.mobileMenuOpen = false;
-        this.showMobileSearchDropdown = false;
-        
-        // Navigate to products page with search query
-        this.router.push({
-          path: '/products',
-          query: { search: this.mobileSearchQuery.trim() }
-        });
-        
-        // Clear search query and results
-        this.mobileSearchQuery = '';
-        this.mobileSearchResults = [];
-      }
-    },
-    formatPrice(price) {
-      if (price === null || price === undefined || isNaN(price)) {
-        return '0.00';
-      }
-      return parseFloat(price).toFixed(2);
-    },
-    hasPromotion(product) {
-      return product.promotion_price && product.promotion_price < product.price;
     }
   }
 }

@@ -5,19 +5,32 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends BaseAdminController
 {
     /**
-     * Create a new controller instance.
-     *
-     * @return void
+     * Clear all category-related cache
      */
-    public function __construct()
+    private function clearCategoriesCache()
     {
-        parent::__construct();
-        \Illuminate\Support\Facades\Log::info('Admin CategoryController initialized');
+        // Get all cache keys that might contain category data
+        $patterns = [
+            'categories_list_*',
+            'category_detail_*'
+        ];
+        
+        // Clear cache by pattern (Laravel doesn't have built-in pattern clearing, so we'll clear common ones)
+        $commonKeys = [
+            'categories_list_' . md5('[]'),
+            'categories_list_' . md5('{}'),
+            'categories_list_' . md5('{"with_products_only":true}'),
+            'categories_list_' . md5('{"with_products_only":false}'),
+        ];
+        
+        foreach ($commonKeys as $key) {
+            Cache::forget($key);
+        }
     }
 
     /**
@@ -29,16 +42,12 @@ class CategoryController extends BaseAdminController
     public function index(Request $request)
     {
         try {
-            \Illuminate\Support\Facades\Log::info('Admin CategoryController@index called with filters:', $request->all());
-            
             $query = Category::withCount('products');
             
             // Apply search filter
             if ($request->has('search') && !empty($request->search)) {
                 $search = $request->search;
-                $query->where(function($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%");
-                });
+                $query->where('name', 'like', "%{$search}%");
             }
             
             // Apply sorting
@@ -61,14 +70,8 @@ class CategoryController extends BaseAdminController
             $perPage = $request->per_page ?? 10;
             $categories = $query->paginate($perPage);
             
-            \Illuminate\Support\Facades\Log::info('Admin CategoryController@index success. Categories count: ' . $categories->count());
-            
             return response()->json($categories);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('CategoryController@index error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-                'request' => $request->all()
-            ]);
             return $this->errorResponse('Error fetching categories: ' . $e->getMessage(), 500);
         }
     }
@@ -90,11 +93,12 @@ class CategoryController extends BaseAdminController
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $categoryData = [
+            $category = Category::create([
                 'name' => $request->name
-            ];
+            ]);
 
-            $category = Category::create($categoryData);
+            // Clear all categories cache
+            $this->clearCategoriesCache();
 
             return $this->successResponse('Category created successfully', $category, 201);
         } catch (\Exception $e) {
@@ -138,11 +142,13 @@ class CategoryController extends BaseAdminController
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $updateData = [
+            $category->update([
                 'name' => $request->name
-            ];
+            ]);
 
-            $category->update($updateData);
+            // Clear all categories cache
+            $this->clearCategoriesCache();
+            Cache::forget('category_detail_' . $id);
 
             return $this->successResponse('Category updated successfully', $category);
         } catch (\Exception $e) {
@@ -158,72 +164,26 @@ class CategoryController extends BaseAdminController
      */
     public function destroy($id)
     {
-        \Illuminate\Support\Facades\Log::info('CategoryController@destroy called for ID: ' . $id);
-        
         try {
-            // First check if the category exists and load it
-            if (!$category = Category::find($id)) {
-                \Illuminate\Support\Facades\Log::warning('Category not found during deletion attempt:', ['id' => $id]);
-                
-                // Build and log response for debugging
-                $response = [
-                    'success' => false,
-                    'message' => 'Nie znaleziono kategorii o ID: ' . $id
-                ];
-                \Illuminate\Support\Facades\Log::debug('Sending 404 not found response', ['response' => $response]);
-                
-                return response()->json($response, 404);
-            }
-            
-            // Load product count
-            $category->loadCount('products');
-            \Illuminate\Support\Facades\Log::info('Found category to delete:', [
-                'id' => $category->id, 
-                'name' => $category->name, 
-                'products_count' => $category->products_count
-            ]);
+            $category = Category::findOrFail($id);
             
             // Check if category has associated products
-            if ($category->products_count > 0) {
-                \Illuminate\Support\Facades\Log::warning('Cannot delete category as it has associated products:', ['id' => $id, 'products_count' => $category->products_count]);
-                
-                // Create error message
-                $productsText = $category->products_count == 1 ? 'produkt' : 
-                               ($category->products_count < 5 ? 'produkty' : 'produktów');
-                               
-                $errorMessage = "Nie można usunąć kategorii \"{$category->name}\" (ID: {$category->id})." . PHP_EOL . PHP_EOL
-                              . "Przyczyna: Kategoria zawiera {$category->products_count} {$productsText}." . PHP_EOL . PHP_EOL
-                              . "Aby zachować integralność danych, kategorie zawierające produkty nie mogą zostać usunięte." . PHP_EOL . PHP_EOL
-                              . "Możliwe rozwiązania:" . PHP_EOL
-                              . "1. Przenieś produkty do innej kategorii, a następnie usuń tę kategorię." . PHP_EOL
-                              . "2. Pozostaw kategorię jeśli chcesz zachować historię zamówień.";
-                
+            if ($category->products()->count() > 0) {
                 return response()->json([
                     'success' => false,
-                    'message' => $errorMessage
-                ], 422, [
-                    'Content-Type' => 'application/json;charset=UTF-8'
-                ]);
+                    'message' => "Nie można usunąć kategorii \"{$category->name}\", ponieważ posiada przypisane produkty."
+                ], 422);
             }
             
-            // If we reach here, the category has no products and can be deleted
             $category->delete();
-            \Illuminate\Support\Facades\Log::info('Category deleted successfully', ['id' => $id]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Kategoria została usunięta pomyślnie'
-            ]);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error deleting category: ' . $e->getMessage(), [
-                'id' => $id,
-                'trace' => $e->getTraceAsString()
-            ]);
             
-            return response()->json([
-                'success' => false,
-                'message' => 'Wystąpił błąd podczas usuwania kategorii: ' . $e->getMessage()
-            ], 500);
+            // Clear all categories cache
+            $this->clearCategoriesCache();
+            Cache::forget('category_detail_' . $id);
+            
+            return $this->successResponse('Category deleted successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error deleting category: ' . $e->getMessage(), 500);
         }
     }
 } 

@@ -10,10 +10,29 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class ProductController extends BaseAdminController
 {
+    /**
+     * Clear all category-related cache
+     */
+    private function clearCategoriesCache()
+    {
+        // Clear cache by pattern (Laravel doesn't have built-in pattern clearing, so we'll clear common ones)
+        $commonKeys = [
+            'categories_list_' . md5('[]'),
+            'categories_list_' . md5('{}'),
+            'categories_list_' . md5('{"with_products_only":true}'),
+            'categories_list_' . md5('{"with_products_only":false}'),
+        ];
+        
+        foreach ($commonKeys as $key) {
+            Cache::forget($key);
+        }
+    }
+
     /**
      * Create a new controller instance.
      *
@@ -151,6 +170,9 @@ class ProductController extends BaseAdminController
             $product = Product::create($productData);
             \Illuminate\Support\Facades\Log::info('Product created with ID: ' . $product->id);
             
+            // Clear categories cache since product count changed
+            $this->clearCategoriesCache();
+            
             DB::commit();
             
             return $this->successResponse(
@@ -262,6 +284,9 @@ class ProductController extends BaseAdminController
             $product->update($productData);
             \Illuminate\Support\Facades\Log::info('Product updated successfully', ['id' => $product->id]);
             
+            // Clear categories cache since product count might have changed (category change)
+            $this->clearCategoriesCache();
+            
             DB::commit();
             
             // Return the updated product with relationships
@@ -308,6 +333,9 @@ class ProductController extends BaseAdminController
                 $product->update(['is_active' => false]);
                 \Illuminate\Support\Facades\Log::info('Product deactivated instead of deleted:', ['id' => $id]);
                 
+                // Clear categories cache since product might not count anymore
+                $this->clearCategoriesCache();
+                
                 return $this->errorResponse(
                     'This product cannot be deleted because it is associated with existing orders. ' .
                     'Products that have been ordered cannot be deleted to maintain order history integrity. ' .
@@ -342,6 +370,9 @@ class ProductController extends BaseAdminController
             
             $product->delete();
             \Illuminate\Support\Facades\Log::info('Product deleted successfully', ['id' => $id]);
+            
+            // Clear categories cache since product count changed
+            $this->clearCategoriesCache();
             
             return $this->successResponse('Product deleted successfully');
         } catch (\Exception $e) {

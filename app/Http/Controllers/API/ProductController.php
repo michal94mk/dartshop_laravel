@@ -113,8 +113,8 @@ class ProductController extends Controller
                 // Featured products filter
                 if ($request->boolean('featured_only')) {
                     $columns = DB::getSchemaBuilder()->getColumnListing('products');
-                    if (in_array('featured', $columns)) {
-                        $query->where('featured', true);
+                    if (in_array('is_featured', $columns)) {
+                        $query->where('is_featured', true);
                     }
                 }
                 
@@ -200,7 +200,7 @@ class ProductController extends Controller
                 'cache_hit' => $cacheUsed,
                 'cache_key' => substr($cacheKey, 0, 20) . '...', // Show first 20 chars for debugging
                 'filters_available' => [
-                    'categories' => Category::ordered()->get(['id', 'name', 'slug']),
+                    'categories' => Category::ordered()->get(['id', 'name']),
                     'brands' => \App\Models\Brand::orderBy('name')->get(['id', 'name']),
                     'price_range' => [
                         'min' => Product::min('price'),

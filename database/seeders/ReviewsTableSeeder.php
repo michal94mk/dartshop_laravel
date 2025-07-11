@@ -25,12 +25,12 @@ class ReviewsTableSeeder extends Seeder
         }
 
         // Get categories
-        $lotkiId = Category::where('slug', 'lotki')->first()->id;
-        $tarczeId = Category::where('slug', 'tarcze')->first()->id;
-        $oponyId = Category::where('slug', 'opony')->first()->id;
-        $piorkaId = Category::where('slug', 'piorka')->first()->id;
-        $shaftyId = Category::where('slug', 'shafty')->first()->id;
-        $oswietlenieId = Category::where('slug', 'oswietlenie')->first()->id;
+        $lotkiId = Category::where('name', 'Lotki')->first()->id;
+        $tarczeId = Category::where('name', 'Tarcze')->first()->id;
+        $oponyId = Category::where('name', 'Opony')->first()->id;
+        $piorkaId = Category::where('name', 'Piórka')->first()->id;
+        $shaftyId = Category::where('name', 'Shafty')->first()->id;
+        $oswietlenieId = Category::where('name', 'Oświetlenie')->first()->id;
         
         // Reviews by category
         $reviewsByCategory = [

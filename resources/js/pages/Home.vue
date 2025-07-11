@@ -102,7 +102,7 @@
                   
                   <!-- Product badge -->
                   <div v-else class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-blue-600">
-                    PRODUKT
+                    {{ product.category ? product.category.name : 'PRODUKT' }}
                   </div>
                 </div>
                 
@@ -201,10 +201,14 @@
                         </template>
                       </button>
                       <router-link 
-                        :to="`/products/${product.id}`" 
-                        class="w-full block text-center py-2 px-4 border border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors duration-200 text-sm"
+                        :to="{ name: 'product-details', params: { id: product.id }}"
+                        class="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 px-4 rounded-lg transition-all duration-200 text-sm"
                       >
-                        Zobacz szczegóły
+                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        Szczegóły
                       </router-link>
                     </div>
                   </div>

@@ -72,8 +72,8 @@ export default {
   },
   
   // Categories
-  getCategories() {
-    return withLogging(api.get, 'getCategories')('/categories');
+  getCategories(params = {}) {
+    return withLogging(api.get, 'getCategories')('/categories', { params });
   },
   
   getCategory(id) {

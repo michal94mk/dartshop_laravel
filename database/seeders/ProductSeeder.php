@@ -16,18 +16,18 @@ class ProductSeeder extends Seeder
     public function run()
     {
         // Get category IDs
-        $lotkiId = Category::where('slug', 'lotki')->first()->id;
-        $tarczeId = Category::where('slug', 'tarcze')->first()->id;
-        $oponyId = Category::where('slug', 'opony')->first()->id;
-        $piorkaId = Category::where('slug', 'piorka')->first()->id;
-        $shaftyId = Category::where('slug', 'shafty')->first()->id;
-        $oswietlenieId = Category::where('slug', 'oswietlenie')->first()->id;
+        $lotkiId = Category::where('name', 'Lotki')->first()->id;
+        $tarczeId = Category::where('name', 'Tarcze')->first()->id;
+        $oponyId = Category::where('name', 'Opony')->first()->id;
+        $piorkaId = Category::where('name', 'Piórka')->first()->id;
+        $shaftyId = Category::where('name', 'Shafty')->first()->id;
+        $oswietlenieId = Category::where('name', 'Oświetlenie')->first()->id;
 
         // Get brand IDs
-        $unicornId = Brand::where('slug', 'unicorn')->first()->id;
-        $harrowsId = Brand::where('slug', 'harrows')->first()->id;
-        $targetId = Brand::where('slug', 'target')->first()->id;
-        $winmauId = Brand::where('slug', 'winmau')->first()->id;
+        $unicornId = Brand::where('name', 'Unicorn')->first()->id;
+        $harrowsId = Brand::where('name', 'Harrows')->first()->id;
+        $targetId = Brand::where('name', 'Target')->first()->id;
+        $winmauId = Brand::where('name', 'Winmau')->first()->id;
 
         $products = [
             // Tarcze (Dartboards)
@@ -37,8 +37,9 @@ class ProductSeeder extends Seeder
                 'price' => 299.99,
                 'category_id' => $tarczeId,
                 'brand_id' => $winmauId,
-                'image' => 'winmau-tarcza-winmau-blade-6-profesjonalne.webp',
-                'featured' => true,
+                'image_url' => 'winmau-tarcza-winmau-blade-6-profesjonalne.webp',
+                'is_featured' => true,
+                'is_active' => true,
             ],
             [
                 'name' => 'Target Tor Professional',
@@ -46,8 +47,9 @@ class ProductSeeder extends Seeder
                 'price' => 259.99,
                 'category_id' => $tarczeId,
                 'brand_id' => $targetId,
-                'image' => 'target-tarcza-target-tor-profesjonalne.webp',
-                'featured' => false,
+                'image_url' => 'target-tarcza-target-tor-profesjonalne.webp',
+                'is_featured' => false,
+                'is_active' => true,
             ],
             [
                 'name' => 'Unicorn Eclipse Ultra Professional',
@@ -55,8 +57,9 @@ class ProductSeeder extends Seeder
                 'price' => 279.99,
                 'category_id' => $tarczeId,
                 'brand_id' => $unicornId,
-                'image' => 'unicorn-tarcza-unicorn-eclipse-ultra-profesjonalne.webp',
-                'featured' => false,
+                'image_url' => 'unicorn-tarcza-unicorn-eclipse-ultra-profesjonalne.webp',
+                'is_featured' => false,
+                'is_active' => true,
             ],
 
             // Opony (Surrounds)
@@ -66,8 +69,9 @@ class ProductSeeder extends Seeder
                 'price' => 89.99,
                 'category_id' => $oponyId,
                 'brand_id' => $targetId,
-                'image' => 'target-target-pro-tour-dartboard-surround-black.webp',
-                'featured' => true,
+                'image_url' => 'target-target-pro-tour-dartboard-surround-black.webp',
+                'is_featured' => true,
+                'is_active' => true,
             ],
             [
                 'name' => 'Winmau Surround Pro Line Blade 6',
@@ -75,8 +79,9 @@ class ProductSeeder extends Seeder
                 'price' => 79.99,
                 'category_id' => $oponyId,
                 'brand_id' => $winmauId,
-                'image' => 'winmau-winmau-surround-pro-line-blade-6.webp',
-                'featured' => false,
+                'image_url' => 'winmau-winmau-surround-pro-line-blade-6.webp',
+                'is_featured' => false,
+                'is_active' => true,
             ],
 
             // Piórka (Flights)
@@ -86,8 +91,9 @@ class ProductSeeder extends Seeder
                 'price' => 9.99,
                 'category_id' => $piorkaId,
                 'brand_id' => $targetId,
-                'image' => 'target-piorka-target-crux-3-sets-pro-ultra-no6.jpg',
-                'featured' => false,
+                'image_url' => 'target-piorka-target-crux-3-sets-pro-ultra-no6.jpg',
+                'is_featured' => false,
+                'is_active' => true,
             ],
             [
                 'name' => 'Target Cult Pro Ultra No.6',
@@ -95,8 +101,9 @@ class ProductSeeder extends Seeder
                 'price' => 8.99,
                 'category_id' => $piorkaId,
                 'brand_id' => $targetId,
-                'image' => 'target-piorka-target-cult-pro-ultra-no6.jpg',
-                'featured' => false,
+                'image_url' => 'target-piorka-target-cult-pro-ultra-no6.jpg',
+                'is_featured' => false,
+                'is_active' => true,
             ],
             [
                 'name' => 'Target Nathan Aspinall Pro Ultra No.6',
@@ -104,8 +111,9 @@ class ProductSeeder extends Seeder
                 'price' => 11.99,
                 'category_id' => $piorkaId,
                 'brand_id' => $targetId,
-                'image' => 'target-piorka-target-nathan-aspinall-pro-ultra-no6.webp',
-                'featured' => true,
+                'image_url' => 'target-piorka-target-nathan-aspinall-pro-ultra-no6.webp',
+                'is_featured' => true,
+                'is_active' => true,
             ],
             [
                 'name' => 'Unicorn Ultrafly James Wade',
@@ -113,8 +121,9 @@ class ProductSeeder extends Seeder
                 'price' => 10.99,
                 'category_id' => $piorkaId,
                 'brand_id' => $unicornId,
-                'image' => 'unicorn-piorka-unicorn-ultrafly-james-wade.webp',
-                'featured' => false,
+                'image_url' => 'unicorn-piorka-unicorn-ultrafly-james-wade.webp',
+                'is_featured' => false,
+                'is_active' => true,
             ],
             [
                 'name' => 'Unicorn Ultrafly Gary Anderson',
@@ -122,8 +131,9 @@ class ProductSeeder extends Seeder
                 'price' => 10.99,
                 'category_id' => $piorkaId,
                 'brand_id' => $unicornId,
-                'image' => 'unicorn-piorka-unicorn-ultrafly-gary-anderson-phas.webp',
-                'featured' => true,
+                'image_url' => 'unicorn-piorka-unicorn-ultrafly-gary-anderson-phas.webp',
+                'is_featured' => true,
+                'is_active' => true,
             ],
             [
                 'name' => 'Winmau MVG Standard',
@@ -131,8 +141,9 @@ class ProductSeeder extends Seeder
                 'price' => 9.99,
                 'category_id' => $piorkaId,
                 'brand_id' => $winmauId,
-                'image' => 'winmau-piorka-winmau-michael-van-gerwen-standard-b.webp',
-                'featured' => true,
+                'image_url' => 'winmau-piorka-winmau-michael-van-gerwen-standard-b.webp',
+                'is_featured' => true,
+                'is_active' => true,
             ],
             [
                 'name' => 'Winmau Prism Alpha Joe Cullen',
@@ -140,8 +151,9 @@ class ProductSeeder extends Seeder
                 'price' => 12.99,
                 'category_id' => $piorkaId,
                 'brand_id' => $winmauId,
-                'image' => 'winmau-piorka-winmau-prims-alpha-joe-cullen.webp',
-                'featured' => false,
+                'image_url' => 'winmau-piorka-winmau-prims-alpha-joe-cullen.webp',
+                'is_featured' => false,
+                'is_active' => true,
             ],
 
             // Shafty
@@ -151,8 +163,9 @@ class ProductSeeder extends Seeder
                 'price' => 14.99,
                 'category_id' => $shaftyId,
                 'brand_id' => $winmauId,
-                'image' => 'winmau-shafty-winmau-prism-shaft-blue.webp',
-                'featured' => false,
+                'image_url' => 'winmau-shafty-winmau-prism-shaft-blue.webp',
+                'is_featured' => false,
+                'is_active' => true,
             ],
             [
                 'name' => 'Winmau Prism Force Red',
@@ -160,8 +173,9 @@ class ProductSeeder extends Seeder
                 'price' => 16.99,
                 'category_id' => $shaftyId,
                 'brand_id' => $winmauId,
-                'image' => 'winmau-shafty-winmau-prism-force-red.webp',
-                'featured' => true,
+                'image_url' => 'winmau-shafty-winmau-prism-force-red.webp',
+                'is_featured' => true,
+                'is_active' => true,
             ],
 
             // Oświetlenie
@@ -171,8 +185,9 @@ class ProductSeeder extends Seeder
                 'price' => 199.99,
                 'category_id' => $oswietlenieId,
                 'brand_id' => $targetId,
-                'image' => 'target-oswietlenie-tarczy-target-corona-vision.webp',
-                'featured' => true,
+                'image_url' => 'target-oswietlenie-tarczy-target-corona-vision.webp',
+                'is_featured' => true,
+                'is_active' => true,
             ],
             [
                 'name' => 'Winmau Plasma',
@@ -180,8 +195,9 @@ class ProductSeeder extends Seeder
                 'price' => 179.99,
                 'category_id' => $oswietlenieId,
                 'brand_id' => $winmauId,
-                'image' => 'winmau-oswietlenie-tarczy-winmau-plasma.webp',
-                'featured' => false,
+                'image_url' => 'winmau-oswietlenie-tarczy-winmau-plasma.webp',
+                'is_featured' => false,
+                'is_active' => true,
             ],
 
             // Lotki (Darts) - Harrows
@@ -191,8 +207,9 @@ class ProductSeeder extends Seeder
                 'price' => 129.99,
                 'category_id' => $lotkiId,
                 'brand_id' => $harrowsId,
-                'image' => 'harrows-lotki-harrows-fire-inferno.webp',
-                'featured' => true,
+                'image_url' => 'harrows-lotki-harrows-fire-inferno.webp',
+                'is_featured' => true,
+                'is_active' => true,
             ],
             [
                 'name' => 'Harrows Noble',
@@ -200,112 +217,129 @@ class ProductSeeder extends Seeder
                 'price' => 119.99,
                 'category_id' => $lotkiId,
                 'brand_id' => $harrowsId,
-                'image' => 'harrows-lotki-harrows-noble.webp',
-                'featured' => false,
+                'image_url' => 'harrows-lotki-harrows-noble.webp',
+                'is_featured' => false,
+                'is_active' => true,
             ],
             [
                 'name' => 'Harrows Supergrip Ultra',
-                'description' => 'Lotki Harrows Supergrip Ultra z zaawansowanym systemem uchwytu. Specjalna powierzchnia gripowa zapewnia pewny chwyt w każdych warunkach.',
+                'description' => 'Lotki Harrows Supergrip Ultra z zaawansowanym systemem gripowym. Doskonała kontrola i precyzja rzutu.',
                 'price' => 109.99,
                 'category_id' => $lotkiId,
                 'brand_id' => $harrowsId,
-                'image' => 'harrows-lotki-harrows-supergrip-ultra.webp',
-                'featured' => false,
+                'image_url' => 'harrows-lotki-harrows-supergrip-ultra.webp',
+                'is_featured' => false,
+                'is_active' => true,
             ],
 
             // Lotki (Darts) - Target
             [
                 'name' => 'Target 975 Ultra Marine Swiss Point',
-                'description' => 'Profesjonalne lotki Target 975 Ultra Marine z systemem Swiss Point. Wykonane z wysokiej jakości wolframu, zapewniają doskonałą precyzję i możliwość szybkiej wymiany grotów.',
-                'price' => 189.99,
+                'description' => 'Lotki Target 975 Ultra Marine z systemem Swiss Point. Nowoczesny design i doskonałe parametry techniczne.',
+                'price' => 159.99,
                 'category_id' => $lotkiId,
                 'brand_id' => $targetId,
-                'image' => 'target-lotki-target-975-ultra-marine-02-swiss-poin.webp',
-                'featured' => true,
+                'image_url' => 'target-lotki-target-975-ultra-marine-02-swiss-poin.webp',
+                'is_featured' => true,
+                'is_active' => true,
             ],
             [
                 'name' => 'Target Rob Cross G1 Swiss Point',
-                'description' => 'Sygnowane lotki mistrza świata PDC Roba Crossa. Wyposażone w system Swiss Point, wykonane z najwyższej jakości wolframu z unikalnym designem.',
-                'price' => 199.99,
+                'description' => 'Oficjalne lotki Roba Crossa z serii G1 wyposażone w system Swiss Point. Profesjonalny model turniejowy.',
+                'price' => 169.99,
                 'category_id' => $lotkiId,
                 'brand_id' => $targetId,
-                'image' => 'target-lotki-target-rob-cross-g1-swiss-point.webp',
-                'featured' => true,
+                'image_url' => 'target-lotki-target-rob-cross-g1-swiss-point.webp',
+                'is_featured' => false,
+                'is_active' => true,
             ],
             [
-                'name' => 'Target Sebastian Bialecki G1 Swiss Point',
-                'description' => 'Oficjalne lotki polskiego talentu Sebastiana Białeckiego. Wykonane z premium wolframu, wyposażone w system Swiss Point i charakterystyczny design.',
-                'price' => 179.99,
+                'name' => 'Target Sebastian Białecki G1 Swiss Point',
+                'description' => 'Sygnowane lotki Sebastiana Białeckiego z serii G1 z systemem Swiss Point. Precyzyjnie wykonany model turniejowy.',
+                'price' => 169.99,
                 'category_id' => $lotkiId,
                 'brand_id' => $targetId,
-                'image' => 'target-lotki-target-sebastian-bialecki-g1-swiss-po.webp',
-                'featured' => true,
+                'image_url' => 'target-lotki-target-sebastian-bialecki-g1-swiss-po.webp',
+                'is_featured' => true,
+                'is_active' => true,
             ],
 
             // Lotki (Darts) - Unicorn
             [
                 'name' => 'Unicorn Gary Anderson WC Phase 3',
-                'description' => 'Lotki dwukrotnego mistrza świata Gary\'ego Andersona. Najnowsza seria Phase 3 z unikalnym systemem gripowym i premium wykończeniem.',
-                'price' => 189.99,
-                'category_id' => $lotkiId,
-                'brand_id' => $unicornId,
-                'image' => 'unicorn-lotki-unicorn-gary-anderson-wc-phase-3.webp',
-                'featured' => true,
-            ],
-            [
-                'name' => 'Unicorn Premier James Wade',
-                'description' => 'Sygnowane lotki Jamesa Wade\'a z serii Premier. Precyzyjnie wykonane z wysokiej jakości wolframu, zapewniające doskonałą kontrolę rzutu.',
-                'price' => 159.99,
-                'category_id' => $lotkiId,
-                'brand_id' => $unicornId,
-                'image' => 'unicorn-lotki-unicorn-premier-james-wade.webp',
-                'featured' => false,
-            ],
-            [
-                'name' => 'Unicorn Ross Smith Two Tone',
-                'description' => 'Profesjonalne lotki Rossa Smitha w unikalnym dwukolorowym wykończeniu. Zaawansowany system gripowy i precyzyjne wyważenie.',
+                'description' => 'Lotki turniejowe Gary\'ego Andersona z serii World Champion Phase 3. Najwyższej jakości wolfram i precyzyjne wykonanie.',
                 'price' => 149.99,
                 'category_id' => $lotkiId,
                 'brand_id' => $unicornId,
-                'image' => 'unicorn-lotki-unicorn-ross-smith-two-tone.jpg',
-                'featured' => false,
+                'image_url' => 'unicorn-lotki-unicorn-gary-anderson-wc-phase-3.webp',
+                'is_featured' => true,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Unicorn Premier James Wade',
+                'description' => 'Lotki James Wade\'a z serii Premier. Klasyczny design i sprawdzona konstrukcja.',
+                'price' => 139.99,
+                'category_id' => $lotkiId,
+                'brand_id' => $unicornId,
+                'image_url' => 'unicorn-lotki-unicorn-premier-james-wade.webp',
+                'is_featured' => false,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Unicorn Ross Smith Two Tone',
+                'description' => 'Lotki Ross Smith Two Tone. Unikalny dwukolorowy design i profesjonalne parametry.',
+                'price' => 144.99,
+                'category_id' => $lotkiId,
+                'brand_id' => $unicornId,
+                'image_url' => 'unicorn-lotki-unicorn-ross-smith-two-tone.jpg',
+                'is_featured' => false,
+                'is_active' => true,
             ],
 
             // Lotki (Darts) - Winmau
             [
                 'name' => 'Winmau Blackout',
-                'description' => 'Lotki Winmau Blackout z charakterystycznym czarnym wykończeniem. Wykonane z wysokiej jakości wolframu, zapewniają doskonałą kontrolę i precyzję rzutu.',
-                'price' => 139.99,
+                'description' => 'Lotki Winmau Blackout z charakterystycznym czarnym wykończeniem. Profesjonalny model o wysokich parametrach.',
+                'price' => 134.99,
                 'category_id' => $lotkiId,
                 'brand_id' => $winmauId,
-                'image' => 'winmau-lotki-winmau-blackout-1.jpg',
-                'featured' => false,
+                'image_url' => 'winmau-lotki-winmau-blackout-1.jpg',
+                'is_featured' => true,
+                'is_active' => true,
             ],
             [
                 'name' => 'Winmau Michael van Gerwen Exact',
-                'description' => 'Oficjalne lotki trzykrotnego mistrza świata Michaela van Gerwena. Precyzyjnie wykonane według specyfikacji MVG, zapewniające najwyższą jakość gry.',
-                'price' => 199.99,
+                'description' => 'Oficjalne lotki MVG z serii Exact. Precyzyjnie wykonany model turniejowy.',
+                'price' => 179.99,
                 'category_id' => $lotkiId,
                 'brand_id' => $winmauId,
-                'image' => 'winmau-lotki-winmau-michael-van-gerwen-exact.webp',
-                'featured' => true,
+                'image_url' => 'winmau-lotki-winmau-michael-van-gerwen-exact.webp',
+                'is_featured' => true,
+                'is_active' => true,
             ],
             [
                 'name' => 'Winmau Sniper V3',
-                'description' => 'Trzecia generacja popularnych lotek Winmau Sniper. Ulepszona konstrukcja z precyzyjnym systemem gripowym i doskonałym wyważeniem.',
-                'price' => 129.99,
+                'description' => 'Lotki Winmau Sniper V3. Trzecia generacja popularnego modelu z udoskonalonym systemem gripowym.',
+                'price' => 124.99,
                 'category_id' => $lotkiId,
                 'brand_id' => $winmauId,
-                'image' => 'winmau-lotki-winmau-sniper-v3.webp',
-                'featured' => false,
+                'image_url' => 'winmau-lotki-winmau-sniper-v3.webp',
+                'is_featured' => false,
+                'is_active' => true,
             ],
         ];
 
-        foreach ($products as $productData) {
-            Product::updateOrCreate(
-                ['name' => $productData['name']],
-                $productData
-            );
+        foreach ($products as $product) {
+            Product::create([
+                'name' => $product['name'],
+                'description' => $product['description'],
+                'price' => $product['price'],
+                'category_id' => $product['category_id'],
+                'brand_id' => $product['brand_id'],
+                'image_url' => $product['image_url'],
+                'is_featured' => $product['is_featured'],
+                'is_active' => $product['is_active']
+            ]);
         }
     }
 } 

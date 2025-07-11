@@ -25,11 +25,11 @@ class Product extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
-        'featured' => 'boolean',
+        'is_featured' => 'boolean',
         'is_active' => 'boolean',
     ];
     
-    protected $appends = ['image_url', 'average_rating', 'reviews_count'];
+    protected $appends = ['average_rating', 'reviews_count'];
 
     public function category(): BelongsTo
     {
@@ -119,34 +119,34 @@ class Product extends Model
 
     public function getImageUrlAttribute(): ?string
     {
-        if (!$this->image) {
+        if (!$this->attributes['image_url']) {
             return null;
         }
         
         // Jeśli obrazek już zawiera pełną ścieżkę storage
-        if (str_starts_with($this->image, '/storage/') || str_starts_with($this->image, 'storage/')) {
-            return asset($this->image);
+        if (str_starts_with($this->attributes['image_url'], '/storage/') || str_starts_with($this->attributes['image_url'], 'storage/')) {
+            return asset($this->attributes['image_url']);
         }
         
         // Jeśli to pełny URL (http/https)
-        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
-            return $this->image;
+        if (str_starts_with($this->attributes['image_url'], 'http://') || str_starts_with($this->attributes['image_url'], 'https://')) {
+            return $this->attributes['image_url'];
         }
         
         // Sprawdź czy plik istnieje w storage/products
-        $storagePath = 'storage/products/' . $this->image;
+        $storagePath = 'storage/products/' . $this->attributes['image_url'];
         if (file_exists(public_path($storagePath))) {
             return asset($storagePath);
         }
         
         // Sprawdź czy plik istnieje w img
-        $imgPath = 'img/' . $this->image;
+        $imgPath = 'img/' . $this->attributes['image_url'];
         if (file_exists(public_path($imgPath))) {
             return asset($imgPath);
         }
         
         // Fallback - spróbuj storage
-        return asset('storage/' . $this->image);
+        return asset('storage/' . $this->attributes['image_url']);
     }
 
     /**

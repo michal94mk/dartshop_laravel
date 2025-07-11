@@ -196,6 +196,7 @@
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useAlertStore } from '../../stores/alertStore'
 import { useAuthStore } from '../../stores/authStore'
+import { useCategoryStore } from '../../stores/categoryStore'
 import axios from 'axios'
 import DetailedErrorModal from '../../components/ui/DetailedErrorModal.vue'
 import AdminModal from '../../components/admin/ui/AdminModal.vue'
@@ -227,6 +228,7 @@ export default {
   setup() {
     const alertStore = useAlertStore()
     const authStore = useAuthStore()
+    const categoryStore = useCategoryStore()
     
 
 
@@ -354,38 +356,24 @@ export default {
     const saveCategory = async () => {
       try {
         submitting.value = true
-        const formData = new FormData()
-        formData.append('name', currentCategory.value.name)
+        const url = currentCategory.value.id 
+          ? `/api/admin/categories/${currentCategory.value.id}`
+          : '/api/admin/categories'
         
-        if (currentCategory.value.id) {
-          // Update existing category - use POST with _method for file upload
-          formData.append('_method', 'PUT')
-          await axios.post(`/api/admin/categories/${currentCategory.value.id}`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          })
-          alertStore.success('Kategoria została zaktualizowana.')
-        } else {
-          // Create new category
-          await axios.post('/api/admin/categories', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          })
-          alertStore.success('Kategoria została dodana.')
-        }
+        const method = currentCategory.value.id ? 'put' : 'post'
+        
+        const response = await axios[method](url, {
+          name: currentCategory.value.name
+        })
         
         showModal.value = false
-        fetchCategories()
-              } catch (error) {
-        if (error.response && error.response.data && error.response.data.errors) {
-          const errors = error.response.data.errors
-          const errorMessages = Object.values(errors).flat().join('\n')
-          alertStore.error('Błędy walidacji:\n' + errorMessages)
-        } else {
-          alertStore.error('Wystąpił błąd podczas zapisywania kategorii.')
-        }
+        alertStore.success(currentCategory.value.id ? 'Kategoria została zaktualizowana' : 'Kategoria została dodana')
+        await fetchCategories()
+        // Refresh categories in the store
+        await categoryStore.refreshCategories()
+        
+      } catch (error) {
+        handleError(error)
       } finally {
         submitting.value = false
       }
@@ -397,56 +385,15 @@ export default {
     }
     
     const confirmDelete = async () => {
-      if (!categoryToDelete.value) {
-        alertStore.error('Brak ID kategorii do usunięcia.')
-        showDeleteModal.value = false
-        return
-      }
-      
-      // Ensure categoryToDelete is a number or string, not an object
-      const categoryId = typeof categoryToDelete.value === 'object' 
-                        ? categoryToDelete.value.id 
-                        : categoryToDelete.value;
-      
       try {
-        const response = await axios.delete(`/api/admin/categories/${categoryId}`)
-        alertStore.success('Kategoria została usunięta.')
+        const response = await axios.delete(`/api/admin/categories/${categoryToDelete.value.id}`)
         showDeleteModal.value = false
-        fetchCategories()
+        alertStore.success('Kategoria została usunięta')
+        await fetchCategories()
+        // Refresh categories in the store
+        await categoryStore.refreshCategories()
       } catch (error) {
-        // Close the delete confirmation modal
-        showDeleteModal.value = false
-        
-        if (error.response) {
-          
-          // Always show the error in the detailed modal
-          if (error.response.status === 422) {
-            // For database constraint errors
-            if (error.response.data.message) {
-              errorMessage.value = error.response.data.message
-            } else {
-              // If there's no message, stringify the entire response
-              errorMessage.value = JSON.stringify(error.response.data, null, 2)
-            }
-            showErrorModal.value = true
-          } else if (error.response.status === 404) {
-            alertStore.error('Nie znaleziono kategorii.')
-          } else {
-            // For any other error, also show detailed error
-            if (error.response.data && error.response.data.message) {
-              errorMessage.value = error.response.data.message
-            } else {
-              errorMessage.value = 'Wystąpił błąd: ' + error.message
-            }
-            showErrorModal.value = true
-          }
-        } else {
-          // Network error or something else
-          alertStore.error('Wystąpił błąd podczas komunikacji z serwerem.')
-        }
-        
-        // Always refresh the categories list
-        fetchCategories()
+        handleError(error)
       }
     }
     
