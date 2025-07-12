@@ -65,9 +65,13 @@
         </div>
 
         <div class="mt-10">
-          <div v-if="productStore.loading" class="text-center py-10">
-            <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p class="mt-2 text-gray-500">Ładowanie produktów...</p>
+          <!-- Test loading state -->
+          <div v-if="productStore.loading" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <!-- Simple loading spinner -->
+            <div class="col-span-full text-center py-16">
+              <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p class="mt-4 text-gray-600">Ładowanie produktów...</p>
+            </div>
           </div>
           
           <div v-else-if="productStore.error" class="text-center py-10">
@@ -77,271 +81,158 @@
             </button>
           </div>
           
-          <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <!-- Display API products if available -->
-            <template v-if="productStore.latestProducts && productStore.latestProducts.length > 0">
-              <div v-for="product in productStore.latestProducts" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
-                <div class="relative h-4/5 overflow-hidden">
-                  <img 
-                    :src="getProductImageUrl(product.image_url, product.name)" 
-                    :alt="product.name" 
-                    class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    loading="lazy"
-                    @error="(e) => handleImageError(e, product.name)"
+          <div v-else-if="productStore.latestProducts && productStore.latestProducts.length > 0" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <!-- Display API products -->
+            <div v-for="product in productStore.latestProducts" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
+              <div class="relative h-4/5 overflow-hidden">
+                <img 
+                  :src="getProductImageUrl(product.image_url, product.name)" 
+                  :alt="product.name" 
+                  class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  loading="lazy"
+                  @error="(e) => handleImageError(e, product.name)"
+                >
+                <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <!-- Promotion Badge -->
+                <div v-if="hasPromotion(product)" class="absolute top-3 left-3">
+                  <div 
+                    class="px-2 py-1 rounded-full text-xs font-bold text-white shadow-lg"
+                    :style="{ backgroundColor: getPromotionBadgeColor(product) }"
                   >
-                  <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  
-                  <!-- Promotion Badge -->
-                  <div v-if="hasPromotion(product)" class="absolute top-3 left-3">
-                    <div 
-                      class="px-2 py-1 rounded-full text-xs font-bold text-white shadow-lg"
-                      :style="{ backgroundColor: getPromotionBadgeColor(product) }"
-                    >
-                      {{ getPromotionBadgeText(product) || `${getDiscountPercentage(product)}% OFF` }}
-                    </div>
-                  </div>
-                  
-                  <!-- Product badge -->
-                  <div v-else class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-blue-600">
-                    {{ product.category ? product.category.name : 'PRODUKT' }}
+                    {{ getPromotionBadgeText(product) || `${getDiscountPercentage(product)}% OFF` }}
                   </div>
                 </div>
                 
-                <div class="p-4 flex-1 flex flex-col justify-between">
-                  <div>
-                    <h3 class="text-base font-bold text-gray-900 line-clamp-2 mb-2 leading-tight">{{ product.name }}</h3>
-                    
-                    <!-- Reviews rating -->
-                    <div v-if="product.reviews_count > 0" class="mb-2">
+                <!-- Product badge -->
+                <div v-else class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-blue-600">
+                  {{ product.category ? product.category.name : 'PRODUKT' }}
+                </div>
+              </div>
+              
+              <div class="p-4 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 class="text-base font-bold text-gray-900 line-clamp-2 mb-2 leading-tight">{{ product.name }}</h3>
+                  
+                  <!-- Reviews rating -->
+                  <div v-if="product.reviews_count > 0" class="mb-2">
+                    <StarRating 
+                      :model-value="product.average_rating" 
+                      :review-count="product.reviews_count"
+                      size="sm"
+                      show-text
+                      :precision="0.1"
+                    />
+                  </div>
+                  <div v-else class="mb-2">
+                    <div class="flex items-center text-gray-400 text-sm">
                       <StarRating 
-                        :model-value="product.average_rating" 
-                        :review-count="product.reviews_count"
+                        :model-value="0" 
                         size="sm"
-                        show-text
                         :precision="0.1"
                       />
+                      <span class="ml-2 text-xs">Brak recenzji</span>
                     </div>
-                    <div v-else class="mb-2">
-                      <div class="flex items-center text-gray-400 text-sm">
-                        <StarRating 
-                          :model-value="0" 
-                          size="sm"
-                          :precision="0.1"
-                        />
-                        <span class="ml-2 text-xs">Brak recenzji</span>
-                      </div>
-                    </div>
-                    
-                    <p class="text-xs text-gray-600 line-clamp-2 mb-3 leading-relaxed">{{ product.short_description || product.description }}</p>
                   </div>
                   
-                  <div>
-                    <div class="flex items-center justify-between mb-3">
-                      <!-- Price section with promotion support -->
-                      <div class="flex flex-col">
-                        <div v-if="hasPromotion(product)" class="space-y-1">
-                          <!-- Original price (crossed out) -->
-                          <div class="flex items-center space-x-2">
-                            <span class="text-sm text-gray-500 line-through">
-                              {{ formatPrice(product.price) }} zł
-                            </span>
-                            <span class="text-xs text-red-600 font-medium bg-red-100 px-1.5 py-0.5 rounded">
-                              -{{ getDiscountPercentage(product) }}%
-                            </span>
-                          </div>
-                          <!-- Promotional price -->
-                          <div class="text-lg font-bold text-red-600">
-                            {{ formatPrice(product.promotion_price) }} zł
-                          </div>
-                        </div>
-                        <!-- Regular price (no promotion) -->
-                        <div v-else class="text-lg font-bold text-blue-600">
-                          {{ formatPrice(product.price) }} zł
-                        </div>
-                      </div>
-                      <FavoriteButton 
-                        :product="product"
-                        buttonClasses="p-1.5 rounded-full border border-gray-300 text-gray-400 hover:text-red-500 hover:border-red-300 transition-colors duration-200"
-                        @favorite-added="handleFavoriteAdded"
-                        @favorite-removed="handleFavoriteRemoved"
-                      />
-                    </div>
-                    <!-- Local success message for cart -->
-                    <transition name="success-fade">
-                      <div v-if="hasCartSuccessMessage(product.id)" class="mb-3 bg-green-50 border border-green-200 rounded-lg p-2 text-center">
-                        <p class="text-green-700 text-xs font-medium">🛒 Dodano do koszyka!</p>
-                      </div>
-                    </transition>
-                    
-                    <!-- Local success message for favorites -->
-                    <transition name="success-fade">
-                      <div v-if="hasFavoriteSuccessMessage(product.id)" class="mb-3 bg-pink-50 border border-pink-200 rounded-lg p-2 text-center">
-                        <p class="text-pink-700 text-xs font-medium">{{ favoriteSuccessMessages[product.id] }}</p>
-                      </div>
-                    </transition>
-                    
-                    <div class="space-y-2">
-                      <button 
-                        @click="addToCart(product)"
-                        :disabled="isCartLoading(product.id)"
-                        :class="{ 'opacity-75 cursor-not-allowed': isCartLoading(product.id) }"
-                        class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 text-sm"
-                      >
-                        <template v-if="isCartLoading(product.id)">
-                          <svg class="animate-spin w-4 h-4 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Dodawanie...
-                        </template>
-                        <template v-else>
-                          <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 2.5M7 13l2.5 2.5m4.5-2.5V13"/>
-                          </svg>
-                          Dodaj do koszyka
-                        </template>
-                      </button>
-                      <router-link 
-                        :to="{ name: 'product-details', params: { id: product.id }}"
-                        class="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 px-4 rounded-lg transition-all duration-200 text-sm"
-                      >
-                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                        </svg>
-                        Szczegóły
-                      </router-link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </template>
-            
-                            <!-- Fallback products if API fails -->
-            <template v-else>
-              <div v-for="product in fallbackProducts" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
-                <div class="relative h-4/5 overflow-hidden">
-                  <img 
-                    :src="getProductImageUrl(product.image_url, product.name)" 
-                    :alt="product.name" 
-                    class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    loading="lazy"
-                    @error="(e) => handleImageError(e, product.name)"
-                  >
-                  <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <!-- Product badge -->
-                  <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-indigo-600">
-                    NOWOŚĆ
-                  </div>
+                  <p class="text-xs text-gray-600 line-clamp-2 mb-3 leading-relaxed">{{ product.short_description || product.description }}</p>
                 </div>
                 
-                <div class="p-4 flex-1 flex flex-col justify-between">
-                  <div>
-                    <h3 class="text-base font-bold text-gray-900 line-clamp-2 mb-2 leading-tight">{{ product.name }}</h3>
-                    
-                    <!-- Reviews rating for fallback products (usually no reviews) -->
-                    <div class="mb-2">
-                      <div class="flex items-center text-gray-400 text-sm">
-                        <StarRating 
-                          :model-value="0" 
-                          size="sm"
-                          :precision="0.1"
-                        />
-                        <span class="ml-2 text-xs">Brak recenzji</span>
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <!-- Price section with promotion support -->
+                    <div class="flex flex-col">
+                      <div v-if="hasPromotion(product)" class="space-y-1">
+                        <!-- Original price (crossed out) -->
+                        <div class="flex items-center space-x-2">
+                          <span class="text-sm text-gray-500 line-through">
+                            {{ formatPrice(product.price) }} zł
+                          </span>
+                          <span class="text-xs text-red-600 font-medium bg-red-100 px-1.5 py-0.5 rounded">
+                            -{{ getDiscountPercentage(product) }}%
+                          </span>
+                        </div>
+                        <!-- Promotional price -->
+                        <div class="text-lg font-bold text-red-600">
+                          {{ formatPrice(product.promotion_price) }} zł
+                        </div>
+                      </div>
+                      <!-- Regular price (no promotion) -->
+                      <div v-else class="text-lg font-bold text-blue-600">
+                        {{ formatPrice(product.price) }} zł
                       </div>
                     </div>
-                    
-                    <p class="text-xs text-gray-600 line-clamp-2 mb-3 leading-relaxed">{{ product.description }}</p>
+                    <FavoriteButton 
+                      :product="product"
+                      buttonClasses="p-1.5 rounded-full border border-gray-300 text-gray-400 hover:text-red-500 hover:border-red-300 transition-colors duration-200"
+                      @favorite-added="handleFavoriteAdded"
+                      @favorite-removed="handleFavoriteRemoved"
+                    />
                   </div>
+                  <!-- Local success message for cart -->
+                  <transition name="success-fade">
+                    <div v-if="hasCartSuccessMessage(product.id)" class="mb-3 bg-green-50 border border-green-200 rounded-lg p-2 text-center">
+                      <p class="text-green-700 text-xs font-medium">🛒 Dodano do koszyka!</p>
+                    </div>
+                  </transition>
                   
-                  <div>
-                    <div class="flex items-center justify-between mb-3">
-                      <!-- Price section with promotion support -->
-                      <div class="flex flex-col">
-                        <div v-if="hasPromotion(product)" class="space-y-1">
-                          <!-- Original price (crossed out) -->
-                          <div class="flex items-center space-x-2">
-                            <span class="text-sm text-gray-500 line-through">
-                              {{ formatPrice(product.price) }} zł
-                            </span>
-                            <span class="text-xs text-red-600 font-medium bg-red-100 px-1.5 py-0.5 rounded">
-                              -{{ getDiscountPercentage(product) }}%
-                            </span>
-                          </div>
-                          <!-- Promotional price -->
-                          <div class="text-lg font-bold text-red-600">
-                            {{ formatPrice(product.promotion_price) }} zł
-                          </div>
-                        </div>
-                        <!-- Regular price (no promotion) -->
-                        <div v-else class="text-lg font-bold text-indigo-600">
-                          {{ formatPrice(product.price) }} zł
-                        </div>
-                      </div>
-                      <FavoriteButton 
-                        :product="product"
-                        buttonClasses="p-1.5 rounded-full border border-gray-300 text-gray-400 hover:text-red-500 hover:border-red-300 transition-colors duration-200"
-                        @favorite-added="handleFavoriteAdded"
-                        @favorite-removed="handleFavoriteRemoved"
-                      />
+                  <!-- Local success message for favorites -->
+                  <transition name="success-fade">
+                    <div v-if="hasFavoriteSuccessMessage(product.id)" class="mb-3 bg-pink-50 border border-pink-200 rounded-lg p-2 text-center">
+                      <p class="text-pink-700 text-xs font-medium">{{ favoriteSuccessMessages[product.id] }}</p>
                     </div>
-                    
-                    <!-- Local success message for cart -->
-                    <transition name="success-fade">
-                      <div v-if="hasCartSuccessMessage(product.id)" class="mb-3 bg-green-50 border border-green-200 rounded-lg p-2 text-center">
-                        <p class="text-green-700 text-xs font-medium">🛒 Dodano do koszyka!</p>
-                      </div>
-                    </transition>
-                    
-                    <!-- Local success message for favorites -->
-                    <transition name="success-fade">
-                      <div v-if="hasFavoriteSuccessMessage(product.id)" class="mb-3 bg-pink-50 border border-pink-200 rounded-lg p-2 text-center">
-                        <p class="text-pink-700 text-xs font-medium">{{ favoriteSuccessMessages[product.id] }}</p>
-                      </div>
-                    </transition>
-                    
-                    <div class="space-y-2">
-                      <router-link 
-                        to="/products"
-                        class="w-full block text-center bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 text-sm"
-                      >
-                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6a2 2 0 002 2h4a2 2 0 002-2v-6M8 11h8"/>
+                  </transition>
+                  
+                  <div class="space-y-2">
+                    <button 
+                      @click="addToCart(product)"
+                      :disabled="isCartLoading(product.id)"
+                      :class="{ 'opacity-75 cursor-not-allowed': isCartLoading(product.id) }"
+                      class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 text-sm"
+                    >
+                      <template v-if="isCartLoading(product.id)">
+                        <svg class="animate-spin w-4 h-4 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Zobacz wszystkie produkty
-                      </router-link>
-                      <div class="text-center">
-                        <p class="text-xs text-gray-500">
-                          To są przykładowe produkty. Odwiedź nasz sklep, aby zobaczyć pełną ofertę!
-                        </p>
-                      </div>
-                    </div>
+                        Dodawanie...
+                      </template>
+                      <template v-else>
+                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 2.5M7 13l2.5 2.5m4.5-2.5V13"/>
+                        </svg>
+                        Dodaj do koszyka
+                      </template>
+                    </button>
+                    <router-link 
+                      :to="{ name: 'product-details', params: { id: product.id }}"
+                      class="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 px-4 rounded-lg transition-all duration-200 text-sm"
+                    >
+                      <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                      </svg>
+                      Szczegóły
+                    </router-link>
                   </div>
                 </div>
               </div>
-            </template>
+            </div>
           </div>
           
-          <div class="mt-16 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl p-8 text-center text-white">
-            <h3 class="text-2xl font-bold mb-4">Nie możesz znaleźć tego, czego szukasz?</h3>
-            <p class="text-indigo-100 mb-6 max-w-2xl mx-auto">
-              Sprawdź pełną ofertę produktów lub skontaktuj się z nami - pomożemy Ci znaleźć idealne akcesoria do dart.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-              <router-link to="/products" 
-                           class="inline-flex items-center px-8 py-4 border border-transparent text-base font-semibold rounded-xl text-indigo-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-all duration-200 shadow-lg">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6a2 2 0 002 2h4a2 2 0 002-2v-6M8 11h8"/>
+          <div v-else class="text-center py-16">
+            <div class="max-w-md mx-auto">
+              <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+              </svg>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">Brak produktów</h3>
+              <p class="text-gray-500 mb-6">Nie znaleziono żadnych produktów do wyświetlenia.</p>
+              <button @click="loadLatestProducts" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                 </svg>
-                Zobacz wszystkie produkty
-              </router-link>
-              <router-link to="/contact" 
-                           class="inline-flex items-center px-8 py-4 border-2 border-white text-base font-semibold rounded-xl text-white bg-transparent hover:bg-white hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-all duration-200">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                </svg>
-                Skontaktuj się z nami
-              </router-link>
+                Odśwież
+              </button>
             </div>
           </div>
         </div>
@@ -487,40 +378,6 @@ export default {
     StarRating
   },
   setup() {
-    const fallbackProducts = ref([
-      {
-        id: 'fallback-1',
-        name: 'Lotki Target Agora A30',
-        description: 'Profesjonalne lotki ze stali wolframowej 90%',
-        price: 149.99,
-        image_url: '/img/product01.png',
-        isFallback: true
-      },
-      {
-        id: 'fallback-2',
-        name: 'Tarcza elektroniczna Winmau Blade 6',
-        description: 'Zaawansowana tarcza dla profesjonalistów',
-        price: 299.99,
-        image_url: '/img/product02.png',
-        isFallback: true
-      },
-      {
-        id: 'fallback-3',
-        name: 'Zestaw punktowy XQ Max',
-        description: 'Zestaw do zapisywania punktów z kredą i ścierką',
-        price: 49.99,
-        image_url: '/img/product03.png',
-        isFallback: true
-      },
-      {
-        id: 'fallback-4',
-        name: 'Lotki Red Dragon Razor Edge',
-        description: 'Lotki z wysokiej jakości stali wolframowej',
-        price: 129.99,
-        image_url: '/img/product04.png',
-        isFallback: true
-      }
-    ]);
     const cartSuccessMessages = ref({}); // Track success messages per product
     const favoriteSuccessMessages = ref({}); // Track favorite messages per product
     
@@ -651,6 +508,10 @@ export default {
       return favoriteSuccessMessages.value[productId] || false;
     };
     
+    const forceReload = () => {
+      productStore.forceReloadProducts();
+    };
+    
     // Lifecycle hooks
     onMounted(async () => {
       console.log('Home.vue mounted');
@@ -669,7 +530,6 @@ export default {
     });
     
     return {
-      fallbackProducts,
       cartSuccessMessages,
       favoriteSuccessMessages,
       categories,
@@ -696,7 +556,8 @@ export default {
       hasCartSuccessMessage,
       hasFavoriteSuccessMessage,
       getProductImageUrl,
-      handleImageError
+      handleImageError,
+      forceReload
     };
   }
 }

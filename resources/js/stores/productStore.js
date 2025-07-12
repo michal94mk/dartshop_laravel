@@ -6,7 +6,7 @@ export const useProductStore = defineStore('product', {
     products: [],
     latestProducts: [],
     currentProduct: null,
-    loading: false,
+    loading: true,
     error: null,
     filters: {
       category: null,
@@ -125,6 +125,9 @@ export const useProductStore = defineStore('product', {
     },
 
     async fetchLatestProducts() {
+      this.loading = true;
+      this.error = null;
+      
       try {
         const response = await axios.get('/api/products/latest');
         console.log('Latest products API response:', response.data);
@@ -154,6 +157,9 @@ export const useProductStore = defineStore('product', {
       } catch (error) {
         console.error('Error fetching latest products:', error);
         this.latestProducts = [];
+        this.error = 'Wystąpił błąd podczas ładowania produktów. Spróbuj ponownie później.';
+      } finally {
+        this.loading = false;
       }
     },
     
@@ -223,6 +229,13 @@ export const useProductStore = defineStore('product', {
     
     clearSearchFilter() {
       this.filters.search = '';
+    },
+    
+    forceReloadProducts() {
+      this.latestProducts = [];
+      this.loading = true;
+      this.error = null;
+      this.fetchLatestProducts();
     }
   }
 }); 
