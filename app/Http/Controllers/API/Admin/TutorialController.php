@@ -68,7 +68,7 @@ class TutorialController extends BaseAdminController
                     'slug' => $tutorial->slug,
                     'excerpt' => $tutorial->excerpt, // Uses getter
                     'content' => $tutorial->content,
-                    'video_url' => $tutorial->video_url,
+                    'image_url' => $tutorial->image_url,
                     'order' => $tutorial->order,
                     'published_at' => $tutorial->published_at, // Uses getter (returns created_at)
                     'status' => $tutorial->is_published ? 'published' : 'draft',
@@ -97,7 +97,7 @@ class TutorialController extends BaseAdminController
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:tutorials',
             'content' => 'required|string',
-            'video_url' => 'nullable|url',
+            'image_url' => 'nullable|string',
             'order' => 'nullable|integer',
             'status' => 'required|string|in:draft,published'
         ]);
@@ -114,7 +114,7 @@ class TutorialController extends BaseAdminController
             'title' => $request->title,
             'slug' => $slug,
             'content' => $request->content,
-            'video_url' => $request->video_url,
+            'image_url' => $request->image_url,
             'order' => $request->order ?? 0,
             'is_published' => $request->status === 'published'
         ];
@@ -128,7 +128,7 @@ class TutorialController extends BaseAdminController
             'slug' => $tutorial->slug,
             'excerpt' => $tutorial->excerpt, // Uses getter
             'content' => $tutorial->content,
-            'video_url' => $tutorial->video_url,
+            'image_url' => $tutorial->image_url,
             'order' => $tutorial->order,
             'published_at' => $tutorial->published_at, // Uses getter
             'status' => $tutorial->is_published ? 'published' : 'draft',
@@ -155,7 +155,7 @@ class TutorialController extends BaseAdminController
             'slug' => $tutorial->slug,
             'excerpt' => $tutorial->excerpt, // Uses getter
             'content' => $tutorial->content,
-            'video_url' => $tutorial->video_url,
+            'image_url' => $tutorial->image_url,
             'order' => $tutorial->order,
             'published_at' => $tutorial->published_at, // Uses getter
             'status' => $tutorial->is_published ? 'published' : 'draft',
@@ -181,7 +181,7 @@ class TutorialController extends BaseAdminController
             'title' => 'sometimes|string|max:255',
             'slug' => 'sometimes|string|max:255|unique:tutorials,slug,' . $tutorial->id,
             'content' => 'sometimes|string',
-            'video_url' => 'nullable|url',
+            'image_url' => 'nullable|string',
             'order' => 'nullable|integer',
             'status' => 'sometimes|string|in:draft,published'
         ]);
@@ -211,8 +211,8 @@ class TutorialController extends BaseAdminController
             $updateData['content'] = $request->content;
         }
         
-        if ($request->has('video_url')) {
-            $updateData['video_url'] = $request->video_url;
+        if ($request->has('image_url')) {
+            $updateData['image_url'] = $request->image_url;
         }
         
         if ($request->has('order')) {
@@ -235,7 +235,7 @@ class TutorialController extends BaseAdminController
             'slug' => $tutorial->slug,
             'excerpt' => $tutorial->excerpt, // Uses getter
             'content' => $tutorial->content,
-            'video_url' => $tutorial->video_url,
+            'image_url' => $tutorial->image_url,
             'order' => $tutorial->order,
             'published_at' => $tutorial->published_at, // Uses getter
             'status' => $tutorial->is_published ? 'published' : 'draft',

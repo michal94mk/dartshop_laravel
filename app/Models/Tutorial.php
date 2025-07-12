@@ -19,7 +19,6 @@ class Tutorial extends Model
         'title',
         'slug',
         'content',
-        'video_url',
         'image_url',
         'order',
         'is_published'
@@ -91,7 +90,21 @@ class Tutorial extends Model
      */
     public function getFeaturedImageUrlAttribute()
     {
-        return $this->image_url ? asset($this->image_url) : asset('img/tutorial-default.jpg');
+        if ($this->image_url) {
+            // Check if it's already a full URL
+            if (str_starts_with($this->image_url, 'http')) {
+                return $this->image_url;
+            }
+            
+            // Check if it's a seeder image (starts with 'img/')
+            if (str_starts_with($this->image_url, 'img/')) {
+                return asset($this->image_url);
+            }
+            
+            // If it's a storage path, construct the proper URL
+            return asset('storage/' . $this->image_url);
+        }
+        return asset('img/tutorials/dart-basics-beginners.jpg');
     }
 
     /**
@@ -99,7 +112,21 @@ class Tutorial extends Model
      */
     public function getThumbnailImageUrlAttribute()
     {
-        return $this->image_url ? asset($this->image_url) : asset('img/tutorial-thumbnail-default.jpg');
+        if ($this->image_url) {
+            // Check if it's already a full URL
+            if (str_starts_with($this->image_url, 'http')) {
+                return $this->image_url;
+            }
+            
+            // Check if it's a seeder image (starts with 'img/')
+            if (str_starts_with($this->image_url, 'img/')) {
+                return asset($this->image_url);
+            }
+            
+            // If it's a storage path, construct the proper URL
+            return asset('storage/' . $this->image_url);
+        }
+        return asset('img/tutorials/dart-basics-beginners.jpg');
     }
 
     /**

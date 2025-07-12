@@ -140,11 +140,11 @@
             <div class="text-center group">
               <div class="w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                 <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                 </svg>
               </div>
-              <h3 class="text-xl font-semibold text-gray-900 mb-3">Wsparcie 24/7</h3>
-              <p class="text-gray-600">Nasz zespół ekspertów jest dostępny przez całą dobę, aby pomóc Ci w każdej sprawie.</p>
+              <h3 class="text-xl font-semibold text-gray-900 mb-3">Wsparcie klienta</h3>
+              <p class="text-gray-600">Nasz zespół ekspertów jest gotowy pomóc Ci w każdej sprawie w godzinach pracy.</p>
             </div>
           </div>
         </div>

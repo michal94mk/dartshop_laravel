@@ -86,11 +86,11 @@
           <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 text-center">
             <div class="w-12 h-12 bg-gradient-to-r from-purple-400 to-pink-500 rounded-xl flex items-center justify-center mx-auto mb-4">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900 mb-1">24/7</h3>
-            <p class="text-gray-600">Dostęp przez całą dobę</p>
+            <h3 class="text-2xl font-bold text-gray-900 mb-1">Online</h3>
+            <p class="text-gray-600">Zawsze dostępne</p>
           </div>
         </div>
 

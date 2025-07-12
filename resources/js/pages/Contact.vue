@@ -49,7 +49,7 @@
                 <div class="ml-4">
                   <h3 class="text-lg font-semibold text-gray-900">Email</h3>
                   <p class="text-gray-600 mt-1">kontakt@dartshop.pl</p>
-                  <p class="text-sm text-gray-500 mt-1">Odpowiadamy w 24h</p>
+                  <p class="text-sm text-gray-500 mt-1">Odpowiadamy w ciągu 24h</p>
                 </div>
               </div>
             </div>

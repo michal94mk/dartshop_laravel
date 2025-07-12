@@ -201,6 +201,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     
     // Image uploads
     Route::post('/upload/image/about', [ImageUploadController::class, 'uploadAboutImage']);
+    Route::post('/upload/image/tutorial', [ImageUploadController::class, 'uploadTutorialImage']);
     
     // Products management - custom routes must be defined BEFORE the resource route
     Route::get('/products/form-data', [AdminProductController::class, 'getFormData']);

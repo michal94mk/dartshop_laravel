@@ -76,7 +76,6 @@ class TutorialSeeder extends Seeder
                 </ul>
                 
                 <p>Pamiętaj, że najważniejsza jest regularność i cierpliwość. Każdy profesjonalny gracz zaczynał od podstaw!</p>',
-                'video_url' => null,
                 'order' => 1,
                 'is_published' => true
             ],
@@ -138,7 +137,6 @@ class TutorialSeeder extends Seeder
                 </ol>
                 
                 <p>Pamiętaj, że najważniejsze jest, aby lotki były wygodne dla Ciebie. Każdy gracz ma swoje preferencje, które wykształcają się z czasem i praktyką.</p>',
-                'video_url' => null,
                 'order' => 2,
                 'is_published' => true
             ],
@@ -215,7 +213,6 @@ class TutorialSeeder extends Seeder
                 </ul>
                 
                 <p>Pamiętaj, że kluczem do sukcesu jest regularność i skupienie na jakości, nie na ilości rzutów. Lepiej trenować 30 minut z pełną koncentracją niż 2 godziny bez zaangażowania.</p>',
-                'video_url' => null,
                 'order' => 3,
                 'is_published' => true
             ],
@@ -294,7 +291,6 @@ class TutorialSeeder extends Seeder
                 </ul>
                 
                 <p>Pamiętaj, że udział w turniejach to świetna okazja do rozwoju - zarówno pod względem umiejętności, jak i mentalnym. Niezależnie od wyniku, każdy turniej to cenne doświadczenie!</p>',
-                'video_url' => null,
                 'order' => 4,
                 'is_published' => true
             ],
@@ -360,7 +356,6 @@ class TutorialSeeder extends Seeder
                 </ul>
                 
                 <p>Pamiętaj, że na najwyższym poziomie różnica między zwycięstwem a porażką często nie leży w technice, ale w strategii i psychologii. Doskonalenie tych aspektów może dać Ci przewagę nad równie utalentowanymi technicznie przeciwnikami.</p>',
-                'video_url' => null,
                 'order' => 5,
                 'is_published' => true
             ]

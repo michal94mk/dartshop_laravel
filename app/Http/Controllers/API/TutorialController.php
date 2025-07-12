@@ -33,7 +33,6 @@ class TutorialController extends Controller
                     'author' => 'DartShop Admin',
                     'views' => $tutorial->views,
                     'order' => $tutorial->order,
-                    'video_url' => $tutorial->video_url,
                     'is_published' => $tutorial->is_published,
                     'created_at' => $tutorial->created_at,
                     'updated_at' => $tutorial->updated_at,
@@ -71,7 +70,6 @@ class TutorialController extends Controller
             'meta_title' => $tutorial->meta_title,
             'meta_description' => $tutorial->meta_description,
             'order' => $tutorial->order,
-            'video_url' => $tutorial->video_url,
         ]);
     }
 } 
