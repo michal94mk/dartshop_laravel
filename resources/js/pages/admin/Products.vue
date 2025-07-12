@@ -98,17 +98,15 @@
                   <div class="flex items-center">
                     <div class="h-10 w-10 flex-shrink-0">
                       <img 
-                        v-if="item.image && !item.imageError" 
-                        :src="item.fallbackSrc || getImageSrc(item.image)" 
+                        :src="getProductImageUrl(item.image_url, item.name, 40, 40)" 
                         class="h-10 w-10 rounded-full object-cover" 
-                        @error="tryFallbackImage(item)"
-                        alt="Product image" 
+                        @error="(e) => handleImageError(e, item.name, 40, 40)"
+                        @load="() => console.log('Image loaded successfully:', item.image_url)"
+                        :alt="item.name" 
+                        loading="lazy"
+                        crossorigin="anonymous"
+                        ref="productImage"
                       />
-                      <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        <svg class="h-6 w-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
                     </div>
                     <div class="ml-4">
                       <div class="text-sm font-medium text-gray-900">{{ item.name }}</div>
@@ -263,17 +261,19 @@
                   <div>
                     <label class="block text-sm font-medium text-gray-700">Zdjęcie produktu</label>
                     <div class="mt-1 flex items-center">
-                      <span v-if="currentProduct.image && !isFileObject(currentProduct.image) && !currentProductImageError" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
+                                              <span v-if="currentProduct.image_url && !isFileObject(currentProduct.image_url)" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
+                          <img 
+                            :src="getProductImageUrl(currentProduct.image_url, currentProduct.name, 48, 48)" 
+                            class="h-full w-full object-cover modal-product-image" 
+                            @error="(e) => handleImageError(e, currentProduct.name, 48, 48)" 
+                            :alt="currentProduct.name"
+                            loading="lazy"
+                            crossorigin="anonymous"
+                          />
+                        </span>
+                      <span v-else-if="currentProduct.image_url && isFileObject(currentProduct.image_url)" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
                         <img 
-                          :src="currentProduct.fallbackSrc || getImageSrc(currentProduct.image)" 
-                          class="h-full w-full object-cover modal-product-image" 
-                          @error="tryModalFallbackImage()" 
-                          alt="Product image"
-                        />
-                      </span>
-                      <span v-else-if="currentProduct.image && isFileObject(currentProduct.image)" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
-                        <img 
-                          :src="getImagePreviewUrl(currentProduct.image)" 
+                          :src="getImagePreviewUrl(currentProduct.image_url)" 
                           class="h-full w-full object-cover"
                           alt="Uploaded image"
                         />
@@ -295,10 +295,10 @@
                         @click="triggerFileUpload"
                         class="ml-5 bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                       >
-                        {{ currentProduct.image ? 'Zmień zdjęcie' : 'Dodaj zdjęcie' }}
+                        {{ currentProduct.image_url ? 'Zmień zdjęcie' : 'Dodaj zdjęcie' }}
                       </button>
                       <button
-                        v-if="currentProduct.image"
+                        v-if="currentProduct.image_url"
                         type="button"
                         @click="removeImage"
                         class="ml-2 bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-red-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
@@ -383,20 +383,15 @@
               
               <div v-if="selectedProductForDetails" class="space-y-6">
                 <!-- Product Image -->
-                <div v-if="selectedProductForDetails.image" class="flex justify-center">
+                                <div class="flex justify-center">
                   <img 
-                    :src="selectedProductForDetails.fallbackSrc || getImageSrc(selectedProductForDetails.image)" 
+                    :src="getProductImageUrl(selectedProductForDetails.image_url, selectedProductForDetails.name, 128, 128)" 
                     :alt="selectedProductForDetails.name"
                     class="w-32 h-32 object-cover rounded-lg shadow-md"
-                    @error="tryFallbackImage(selectedProductForDetails)"
+                    @error="(e) => handleImageError(e, selectedProductForDetails.name, 128, 128)"
+                    loading="lazy"
+                    crossorigin="anonymous"
                   />
-                </div>
-                <div v-else class="flex justify-center">
-                  <div class="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <svg class="h-16 w-16 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
                 </div>
                 
                 <!-- Basic Info -->
@@ -493,7 +488,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useAlertStore } from '../../stores/alertStore'
 import { useAuthStore } from '../../stores/authStore'
 import axios from 'axios'
-import debounce from 'lodash/debounce'
+import { debounce } from 'lodash-es'
 import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
 import SearchFilters from '../../components/admin/SearchFilters.vue'
@@ -503,6 +498,7 @@ import Pagination from '../../components/admin/Pagination.vue'
 import PageHeader from '../../components/admin/PageHeader.vue'
 import ActionButtons from '../../components/admin/ActionButtons.vue'
 import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
+import { getProductImageUrl, handleImageError } from '../../utils/imageHelpers'
 
 export default {
   name: 'AdminProducts',
@@ -520,6 +516,7 @@ export default {
   setup() {
     const alertStore = useAlertStore()
     const authStore = useAuthStore()
+    const productImage = ref(null)
     
     // Simple settings for stock status calculation
     const settings = reactive({
@@ -575,11 +572,10 @@ export default {
       price: 0,
       category_id: '',
       brand_id: '',
-      image: null
+      image_url: null
     })
     
-    // Flag to track if the current product image failed to load
-    const currentProductImageError = ref(false)
+
     
     // File input ref
     const fileInput = ref(null)
@@ -610,7 +606,7 @@ export default {
     // Methods
     const fetchProducts = async () => {
       try {
-        loading.value = true
+        loading.value = true;
         
         const params = {
           page: filters.page,
@@ -619,47 +615,33 @@ export default {
           brand_id: filters.brand_id,
           sort_field: filters.sort_field,
           sort_direction: filters.sort_direction
+        };
+        
+        console.log('Fetching products with params:', params);
+        console.log('Auth state:', authStore.$state);
+        
+        const response = await axios.get('/api/admin/products', { params });
+        
+        console.log('Products API response:', response.data);
+        // Log image URLs for debugging
+        if (response.data.data) {
+          console.log('Product image URLs:', response.data.data.map(p => ({
+            id: p.id,
+            name: p.name,
+            original_url: p.image_url,
+            processed_url: getProductImageUrl(p.image_url, p.name)
+          })));
         }
         
-        console.log('Fetching products with params:', params)
-        console.log('Auth state:', {
-          isLoggedIn: authStore.isLoggedIn,
-          isAdmin: authStore.isAdmin,
-          user: authStore.user
-        })
-        
-        const response = await axios.get('/api/admin/products', { params })
-        
-        console.log('Products API response:', response.data)
-        
-        // Initialize imageError property for each product
-        if (response.data && response.data.data) {
-          response.data.data.forEach(product => {
-            // Add the imageError property to track image loading failures
-            product.imageError = false;
-            
-            // Pre-transform image paths for directly uploaded files
-            if (product.image && (
-                product.image.includes('/storage/products/') || 
-                product.image.includes('storage/products/')
-            )) {
-              // This is a directly uploaded file, should work with the /storage symlink
-              product.fallbackSrc = getApiBaseUrl() + (product.image.startsWith('/') ? product.image : `/${product.image}`);
-            }
-          });
-        }
-        
-        products.value = response.data
+        products.value = response.data;
       } catch (error) {
-        console.error('Error fetching products:', error)
-        console.error('Error details:', error.response?.data)
-        console.error('Status:', error.response?.status)
-        console.error('Status text:', error.response?.statusText)
-        alertStore.error('Wystąpił błąd podczas pobierania produktów: ' + (error.response?.data?.message || error.message))
+        console.error('Error fetching products:', error);
+        console.error('Error details:', error.response?.data);
+        alertStore.error('Wystąpił błąd podczas pobierania produktów: ' + (error.response?.data?.message || error.message));
       } finally {
-        loading.value = false
+        loading.value = false;
       }
-    }
+    };
     
     const debouncedFetchProducts = debounce(fetchProducts, 300)
     
@@ -683,52 +665,6 @@ export default {
       return window.location.origin;
     };
     
-    // Array of possible paths to try for product images
-    const imageFallbackPaths = [
-      // For user-uploaded images (which have /storage/products/ paths)
-      (imageName) => `/storage/products/${imageName}`,
-      
-      // For the default product images (either directly in storage or in img)
-      (imageName) => `/img/${imageName}`,
-      (imageName) => `/storage/${imageName}`,
-      
-      // Less likely but worth trying
-      (imageName) => `/images/${imageName}`,
-      (imageName) => `/${imageName}`
-    ];
-    
-    const getImageSrc = (imagePath) => {
-      if (!imagePath) return '';
-      
-      // Get the API base URL (without /api) for full URLs
-      const apiBaseUrl = getApiBaseUrl();
-      
-      // If it's already a full URL, return it as is
-      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-        return imagePath;
-      }
-      
-      // If it starts with '/storage/' already, make it absolute
-      if (imagePath.startsWith('/storage/')) {
-        // Ensure the path is absolute by prefixing with API base URL if needed
-        return imagePath.startsWith('http') ? imagePath : `${apiBaseUrl}${imagePath}`;
-      }
-      
-      // If it starts with a slash, make it absolute
-      if (imagePath.startsWith('/')) {
-        return `${apiBaseUrl}${imagePath}`;
-      }
-      
-      // Check if it starts with 'storage/' (without leading slash)
-      if (imagePath.startsWith('storage/')) {
-        return `${apiBaseUrl}/${imagePath}`;
-      }
-      
-      // For "simple" filenames like "product.jpg" try the img directory first
-      const imgPath = `${apiBaseUrl}/img/${imagePath}`;
-      return imgPath;
-    };
-    
     const isFileObject = (obj) => {
       // Check if it's a File object by looking for typical File properties
       return obj && 
@@ -748,13 +684,13 @@ export default {
     const handleFileChange = (event) => {
       const file = event.target.files[0]
       if (file) {
-        currentProduct.value.image = file
+        currentProduct.value.image_url = file
       }
     }
     
     const removeImage = () => {
       // Reset the image in the currentProduct
-      currentProduct.value.image = null;
+      currentProduct.value.image_url = null;
       
       // Reset the file input safely
       const fileInputElement = document.getElementById('file-upload');
@@ -786,9 +722,6 @@ export default {
     }
     
     const openModal = (product = null) => {
-      // Reset the image error flag and fallback index
-      currentProductImageError.value = false
-      modalFallbackPathIndex.value = 0
       
       if (product) {
         // Make a deep copy of the product to prevent reactivity issues
@@ -799,8 +732,7 @@ export default {
           price: product.price,
           category_id: product.category_id,
           brand_id: product.brand_id,
-          image: product.image,
-          fallbackSrc: product.fallbackSrc // Keep the fallback source if already found
+          image_url: product.image_url
         }
       } else {
         // Default values for new product
@@ -811,7 +743,7 @@ export default {
           price: 0,
           category_id: categories.value.length ? categories.value[0].id : '',
           brand_id: brands.value.length ? brands.value[0].id : '',
-          image: null
+          image_url: null
         }
       }
       
@@ -823,7 +755,7 @@ export default {
         loading.value = true
         
         // Check if we're dealing with a file upload
-        const hasFileUpload = isFileObject(currentProduct.value.image);
+        const hasFileUpload = isFileObject(currentProduct.value.image_url);
         
         let response;
         
@@ -835,7 +767,7 @@ export default {
           formData.append('price', parseFloat(currentProduct.value.price));
           formData.append('category_id', parseInt(currentProduct.value.category_id));
           formData.append('brand_id', parseInt(currentProduct.value.brand_id));
-          formData.append('image', currentProduct.value.image);
+          formData.append('image', currentProduct.value.image_url);
           
           if (currentProduct.value.id) {
             // Update with file upload
@@ -982,97 +914,6 @@ export default {
       return text.length > length ? text.substring(0, length) + '...' : text
     }
     
-    // Track which fallback path we're trying for each product
-    const fallbackPathIndex = new Map();
-    
-    // Try fallback image paths when the primary one fails
-    const tryFallbackImage = (product) => {
-      if (!product.image) {
-        product.imageError = true;
-        return;
-      }
-      
-      // Extract just the filename without any path
-      let imageName = product.image;
-      if (imageName.includes('/')) {
-        imageName = imageName.substring(imageName.lastIndexOf('/') + 1);
-      }
-      
-      // Initialize fallback index if not already set
-      if (!fallbackPathIndex.has(product.id)) {
-        fallbackPathIndex.set(product.id, 0);
-      }
-      
-      // Get current index and increment for next fallback
-      const currentIndex = fallbackPathIndex.get(product.id);
-      fallbackPathIndex.set(product.id, currentIndex + 1);
-      
-      // If we've tried all fallbacks, give up and show placeholder
-      if (currentIndex >= imageFallbackPaths.length) {
-        product.imageError = true;
-        return;
-      }
-      
-      // Try the next fallback path
-      const fallbackPathRelative = imageFallbackPaths[currentIndex](imageName);
-      const apiBaseUrl = getApiBaseUrl();
-      const fallbackPath = `${apiBaseUrl}${fallbackPathRelative}`;
-      
-      // Update the product's image path to use fallback
-      product.fallbackSrc = fallbackPath;
-      
-      // Slight delay to prevent immediate error trigger again
-      setTimeout(() => {
-        const img = document.querySelector(`[data-product-id="${product.id}"] img`);
-        if (img) {
-          img.src = fallbackPath;
-        }
-      }, 100); // Increased timeout for more reliable loading
-    }
-    
-    // Track which fallback path we're trying for the modal
-    const modalFallbackPathIndex = ref(0);
-    
-    // Try fallback image paths for the current product in the modal
-    const tryModalFallbackImage = () => {
-      if (!currentProduct.value.image) {
-        currentProductImageError.value = true;
-        return;
-      }
-      
-      // Extract just the filename without any path
-      let imageName = currentProduct.value.image;
-      if (imageName.includes('/')) {
-        imageName = imageName.substring(imageName.lastIndexOf('/') + 1);
-      }
-      
-      // Get current index and increment for next fallback
-      const currentIndex = modalFallbackPathIndex.value;
-      modalFallbackPathIndex.value++;
-      
-      // If we've tried all fallbacks, give up and show placeholder
-      if (currentIndex >= imageFallbackPaths.length) {
-        currentProductImageError.value = true;
-        return;
-      }
-      
-      // Try the next fallback path
-      const fallbackPathRelative = imageFallbackPaths[currentIndex](imageName);
-      const apiBaseUrl = getApiBaseUrl();
-      const fallbackPath = `${apiBaseUrl}${fallbackPathRelative}`;
-      
-      // Update the current product's fallback source
-      currentProduct.value.fallbackSrc = fallbackPath;
-      
-      // Slight delay to prevent immediate error trigger again
-      setTimeout(() => {
-        const img = document.querySelector('.modal-product-image');
-        if (img) {
-          img.src = fallbackPath;
-        }
-      }, 100);
-    }
-    
     const resetFilters = () => {
       Object.assign(filters, defaultFilters)
       fetchProducts()
@@ -1109,9 +950,9 @@ export default {
       showProductDetailsModal,
       selectedProductForDetails,
       currentProduct,
-      currentProductImageError,
       settings,
       submitting,
+      productImage,
       fetchProducts,
       debouncedFetchProducts,
       goToPage,
@@ -1124,12 +965,11 @@ export default {
       removeImage,
       isFileObject,
       getImagePreviewUrl,
-      getImageSrc,
       triggerFileUpload,
-      tryFallbackImage,
-      tryModalFallbackImage,
       resetFilters,
-      showProductDetails
+      showProductDetails,
+      getProductImageUrl,
+      handleImageError
     }
   }
 }

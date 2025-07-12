@@ -92,9 +92,10 @@
             <div class="lg:w-1/2">
               <div class="relative bg-gray-50 rounded-lg overflow-hidden" style="height: 500px;">
                 <img 
-                  :src="product.image_url || `https://via.placeholder.com/800x600/indigo/fff?text=${encodeURIComponent(product.name)}`" 
+                  :src="getProductImageUrl(product.image_url, product.name, 800, 600)" 
                   :alt="product.name" 
                   class="w-full h-full object-contain p-8"
+                  @error="(e) => handleImageError(e, product.name, 800, 600)"
                 >
               </div>
             </div>
@@ -301,7 +302,9 @@ import { useAuthStore } from '../stores/authStore'
 import { useProductStore } from '../stores/productStore'
 import { useCartStore } from '../stores/cartStore'
 import { useFavoriteStore } from '../stores/favoriteStore'
-import { useAlertStore } from '../stores/alertStore'
+import { useAlertStore } from '../stores/alertStore';
+import { useReviewStore } from '../stores/reviewStore';
+import { getProductImageUrl, handleImageError } from '../utils/imageHelpers';
 import FavoriteButton from '../components/ui/FavoriteButton.vue'
 import StarRating from '../components/ui/StarRating.vue'
 import ReviewsList from '../components/ui/ReviewsList.vue'
@@ -525,7 +528,9 @@ export default {
       getDiscountPercentage,
       existingReviewInfo,
       showFavoriteSuccess,
-      favoriteMessage
+      favoriteMessage,
+      getProductImageUrl,
+      handleImageError
     }
   }
 }

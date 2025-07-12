@@ -283,9 +283,10 @@
                   <div v-for="item in cartItems" :key="item.product_id || item.id" class="flex items-center space-x-3">
                     <div class="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-lg overflow-hidden">
                       <img 
-                        :src="item.product.image_url || `https://via.placeholder.com/48x48/indigo/fff?text=${item.product.name}`" 
+                        :src="getProductImageUrl(item.product.image_url, item.product.name, 48, 48)" 
                         :alt="item.product.name" 
-                        class="w-full h-full object-cover"
+                                                  class="w-full h-full object-cover"
+                          @error="(e) => handleImageError(e, item.product.name, 48, 48)"
                       >
                     </div>
                     <div class="flex-1 min-w-0">
@@ -377,6 +378,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { useCartStore } from '../stores/cartStore'
+import { getProductImageUrl, handleImageError } from '../utils/imageHelpers'
 import axios from 'axios'
 
 export default {
@@ -674,6 +676,8 @@ export default {
       processStripeCheckout,
       formatPrice,
       getPromotionalPrice,
+      getProductImageUrl,
+      handleImageError,
       privacyPolicyAccepted
     }
   }

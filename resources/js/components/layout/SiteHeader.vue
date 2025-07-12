@@ -246,9 +246,10 @@
                   <div class="flex items-center">
                     <div class="flex-shrink-0 h-12 w-12">
                       <img
-                        :src="product.image_url || 'https://via.placeholder.com/48x48/indigo/fff?text=P'"
+                        :src="getProductImageUrl(product.image_url, product.name, 48, 48)"
                         :alt="product.name"
                         class="h-12 w-12 rounded-lg object-cover shadow-md"
+                        @error="(e) => handleImageError(e, product.name, 48, 48)"
                       />
                     </div>
                     <div class="ml-3 flex-1">
@@ -451,6 +452,7 @@ import { storeToRefs } from 'pinia';
 import { useRouter, useRoute } from 'vue-router';
 import { computed, ref, onMounted, watch, onUnmounted } from 'vue';
 import ProductSearch from '../ui/ProductSearch.vue';
+import { getProductImageUrl, handleImageError } from '../../utils/imageHelpers';
 import axios from 'axios';
 
 export default {
@@ -698,7 +700,9 @@ export default {
       },
       formatPrice: (price) => {
         return Number(price).toFixed(2)
-      }
+      },
+      getProductImageUrl,
+      handleImageError
     }
   }
 }

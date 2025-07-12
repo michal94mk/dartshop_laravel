@@ -579,11 +579,12 @@
     >
       <div v-if="selectedProduct" class="space-y-6">
         <!-- Product Image -->
-        <div v-if="selectedProduct.image_url" class="flex justify-center">
+        <div class="flex justify-center">
           <img 
-            :src="selectedProduct.image_url" 
+            :src="getProductImageUrl(selectedProduct.image_url, selectedProduct.name, 128, 128)" 
             :alt="selectedProduct.name"
             class="w-32 h-32 object-cover rounded-lg shadow-md"
+            @error="(e) => handleImageError(e, selectedProduct.name, 128, 128)"
           />
         </div>
         
@@ -682,6 +683,7 @@
 import { ref, computed, onMounted, reactive, watch } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
+import { getProductImageUrl, handleImageError } from '../../utils/imageHelpers'
 import Modal from '../../components/admin/ui/AdminModal.vue'
 import PageHeader from '../../components/admin/PageHeader.vue'
 import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
@@ -1320,7 +1322,9 @@ export default {
       getUserInitials,
       showProductDetailsModal,
       selectedProduct,
-      showProductDetails
+      showProductDetails,
+      getProductImageUrl,
+      handleImageError
     }
   }
 }

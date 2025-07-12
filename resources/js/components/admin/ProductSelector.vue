@@ -36,9 +36,10 @@
         >
           <div class="flex items-center space-x-3">
             <img
-              :src="product.image_url || 'https://via.placeholder.com/40x40/indigo/fff?text=IMG'"
+                              :src="getProductImageUrl(product.image_url, product.name, 40, 40)"
               :alt="product.name"
-              class="w-10 h-10 rounded object-cover"
+                              class="w-10 h-10 rounded object-cover"
+                @error="(e) => handleImageError(e, product.name, 40, 40)"
             >
             <div>
               <p class="text-sm font-medium text-gray-900">{{ product.name }}</p>
@@ -81,9 +82,10 @@
         >
           <div class="flex items-center space-x-3">
             <img
-              :src="product.image_url || 'https://via.placeholder.com/48x48/indigo/fff?text=IMG'"
+              :src="getProductImageUrl(product.image_url, product.name, 48, 48)"
               :alt="product.name"
-              class="w-12 h-12 rounded object-cover"
+                              class="w-12 h-12 rounded object-cover"
+                @error="(e) => handleImageError(e, product.name, 48, 48)"
             >
             <div>
               <p class="text-sm font-medium text-gray-900">{{ product.name }}</p>
@@ -126,6 +128,7 @@
 
 <script>
 import axios from 'axios';
+import { getProductImageUrl, handleImageError } from '../../utils/imageHelpers';
 
 export default {
   name: 'ProductSelector',
@@ -241,7 +244,11 @@ export default {
     emitChange() {
       this.$emit('update:modelValue', this.selectedProducts.map(p => p.id));
       this.$emit('products-changed', this.selectedProducts);
-    }
+    },
+
+    // Image helpers
+    getProductImageUrl,
+    handleImageError
   }
 };
 </script> 

@@ -393,10 +393,11 @@
           <div v-for="product in productStore.products" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
             <div class="relative h-4/5 overflow-hidden">
               <img 
-                :src="product.image_url || 'https://via.placeholder.com/400x400/indigo/fff?text=' + product.name" 
+                :src="getProductImageUrl(product.image_url, product.name)" 
                 :alt="product.name" 
                 class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
                 loading="lazy"
+                @error="(e) => handleImageError(e, product.name)"
               >
               <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               
@@ -604,6 +605,7 @@ import { useToast } from 'vue-toastification';
 import { useAlertStore } from '../stores/alertStore';
 import axios from 'axios';
 import api from '../services/api';
+import { getProductImageUrl, handleImageError } from '../utils/imageHelpers';
 
 export default {
   name: 'ProductList',
@@ -1008,7 +1010,9 @@ export default {
       hasCartSuccessMessage,
       favoriteSuccessMessages,
       hasFavoriteSuccessMessage,
-      isManualUpdate
+      isManualUpdate,
+      getProductImageUrl,
+      handleImageError
     };
   }
 }

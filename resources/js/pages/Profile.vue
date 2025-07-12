@@ -363,9 +363,10 @@
                    <div class="flex">
                      <div class="w-20 h-20 flex-shrink-0 bg-white rounded-lg overflow-hidden shadow-sm">
                        <img 
-                         :src="product.image_url || '/images/placeholder.png'" 
+                         :src="getProductImageUrl(product.image_url, product.name, 80, 80)" 
                          :alt="product.name"
                          class="w-full h-full object-cover"
+                         @error="(e) => handleImageError(e, product.name, 80, 80)"
                        />
                      </div>
                      <div class="ml-4 flex-grow">
@@ -637,6 +638,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 import { useFavoriteStore } from '../stores/favoriteStore';
 import { useAlertStore } from '../stores/alertStore';
+import { getProductImageUrl, handleImageError } from '../utils/imageHelpers';
 import axios from 'axios';
 
 export default {
@@ -981,7 +983,9 @@ export default {
       formatDate,
       formatPrice,
       hasPromotion,
-      getDiscountPercentage
+      getDiscountPercentage,
+      getProductImageUrl,
+      handleImageError
     };
   }
 }

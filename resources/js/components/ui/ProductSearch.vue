@@ -70,10 +70,10 @@
           <div class="flex items-center">
             <div class="flex-shrink-0 h-16 w-16">
               <img
-                :src="product.image_url || 'https://via.placeholder.com/64x64/indigo/fff?text=P'"
+                :src="getProductImageUrl(product.image_url, product.name, 64, 64)"
                 :alt="product.name"
                 class="h-16 w-16 rounded-xl object-cover shadow-md"
-                @error="handleImageError"
+                @error="(e) => handleImageError(e, product.name, 64, 64)"
               />
             </div>
             <div class="ml-4 flex-1">
@@ -136,9 +136,10 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { getProductImageUrl, handleImageError } from '../../utils/imageHelpers'
 
 export default {
   name: 'ProductSearch',
@@ -154,8 +155,7 @@ export default {
     const totalResults = ref(0)
     const searchTimeout = ref(null)
 
-    // Computed
-    const hasResults = computed(() => searchResults.value.length > 0)
+    // No computed properties needed
 
     // Methods
     const onSearchInput = () => {
@@ -278,10 +278,6 @@ export default {
       return parseFloat(price || 0).toFixed(2)
     }
 
-    const handleImageError = (event) => {
-      event.target.src = 'https://via.placeholder.com/64x64/indigo/fff?text=P'
-    }
-
     const hasPromotion = (product) => {
       return product.promotion_price && product.promotion_price < product.price
     }
@@ -314,7 +310,6 @@ export default {
       showDropdown,
       selectedIndex,
       totalResults,
-      hasResults,
       onSearchInput,
       onFocus,
       onBlur,
@@ -327,7 +322,8 @@ export default {
       highlightMatch,
       formatPrice,
       handleImageError,
-      hasPromotion
+      hasPromotion,
+      getProductImageUrl // Added to expose the new helper
     }
   }
 }

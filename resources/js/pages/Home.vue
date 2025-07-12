@@ -37,7 +37,7 @@
                 src="/img/hero_image.jpg" 
                 alt="Profesjonalne akcesoria do dart - lotki, tarcze i akcesoria" 
                 loading="eager"
-                onerror="this.src='https://via.placeholder.com/800x600/4f46e5/fff?text=DartShop+Hero';this.alt='DartShop - Profesjonalne akcesoria do dart'"
+                onerror="this.src='data:image/svg+xml;base64,' + btoa('<svg width=800 height=600 xmlns=http://www.w3.org/2000/svg><rect width=100% height=100% fill=#4f46e5/><text x=50% y=50% text-anchor=middle dy=.3em font-family=Arial font-size=48 fill=white>DartShop Hero</text></svg>');this.alt='DartShop - Profesjonalne akcesoria do dart'"
               >
               <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl"></div>
             </div>
@@ -83,10 +83,11 @@
               <div v-for="product in productStore.latestProducts" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
                 <div class="relative h-4/5 overflow-hidden">
                   <img 
-                    :src="product.image_url || 'https://via.placeholder.com/400x400/indigo/fff?text=' + product.name" 
+                    :src="getProductImageUrl(product.image_url, product.name)" 
                     :alt="product.name" 
                     class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
                     loading="lazy"
+                    @error="(e) => handleImageError(e, product.name)"
                   >
                   <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   
@@ -221,10 +222,11 @@
               <div v-for="product in fallbackProducts" :key="product.id" class="bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
                 <div class="relative h-4/5 overflow-hidden">
                   <img 
-                    :src="product.image_url" 
+                    :src="getProductImageUrl(product.image_url, product.name)" 
                     :alt="product.name" 
                     class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
                     loading="lazy"
+                    @error="(e) => handleImageError(e, product.name)"
                   >
                   <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <!-- Product badge -->
@@ -472,10 +474,11 @@ import { useCartStore } from '../stores/cartStore';
 import { useFavoriteStore } from '../stores/favoriteStore';
 import { useCategoryStore } from '../stores/categoryStore';
 import { useAlertStore } from '../stores/alertStore';
+import { useReviewStore } from '../stores/reviewStore';
+import { getProductImageUrl, handleImageError } from '../utils/imageHelpers';
 import FavoriteButton from '../components/ui/FavoriteButton.vue';
 import StarRating from '../components/ui/StarRating.vue';
 import { useToast } from 'vue-toastification';
-import { useReviewStore } from '../stores/reviewStore';
 
 export default {
   name: 'HomePage',
@@ -691,7 +694,9 @@ export default {
       getPromotionBadgeText,
       formatDate,
       hasCartSuccessMessage,
-      hasFavoriteSuccessMessage
+      hasFavoriteSuccessMessage,
+      getProductImageUrl,
+      handleImageError
     };
   }
 }

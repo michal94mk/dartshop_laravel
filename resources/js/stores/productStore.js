@@ -78,7 +78,7 @@ export const useProductStore = defineStore('product', {
             ...product,
             price: product.price || 0,
             name: product.name || 'Unnamed Product',
-            image_url: product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
+            image_url: product.image_url || null
           }));
           
           this.pagination = {
@@ -92,7 +92,7 @@ export const useProductStore = defineStore('product', {
             ...product,
             price: product.price || 0,
             name: product.name || 'Unnamed Product',
-            image_url: product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
+            image_url: product.image_url || null
           }));
           
           this.pagination = {
@@ -135,7 +135,7 @@ export const useProductStore = defineStore('product', {
             ...product,
             price: product.price || 0,
             name: product.name || 'Unnamed Product',
-            image_url: product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
+            image_url: product.image_url || null
           }));
         } else if (Array.isArray(response.data)) {
           // Fallback for direct array response
@@ -143,7 +143,7 @@ export const useProductStore = defineStore('product', {
             ...product,
             price: product.price || 0,
             name: product.name || 'Unnamed Product',
-            image_url: product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
+            image_url: product.image_url || null
           }));
         } else {
           console.error('Unexpected latest products API response format:', response.data);
@@ -174,7 +174,7 @@ export const useProductStore = defineStore('product', {
             ...productData,
             price: productData.price || 0,
             name: productData.name || 'Unnamed Product',
-            image_url: productData.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=Default'
+            image_url: productData.image_url || null
           };
           
           console.log('Current product set:', this.currentProduct);
@@ -194,7 +194,7 @@ export const useProductStore = defineStore('product', {
           name: 'Fallback Product',
           description: 'This is a fallback product due to API error',
           price: 99.99,
-          image_url: 'https://via.placeholder.com/300x300/indigo/fff?text=Fallback+Product'
+          image_url: null
         };
         
         // Return the fallback product

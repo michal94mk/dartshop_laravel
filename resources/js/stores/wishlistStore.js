@@ -28,7 +28,7 @@ export const useWishlistStore = defineStore('wishlist', {
           id: product.id,
           name: product.name,
           price: product.price,
-          image_url: product.image_url || 'https://via.placeholder.com/300x300/indigo/fff?text=' + product.name,
+          image_url: product.image_url || null,
           added_at: new Date().toISOString()
         });
         this.saveWishlistToLocalStorage();

@@ -53,9 +53,10 @@
           >
             <div class="flex items-start space-x-3">
               <img
-                :src="product.image_url || 'https://via.placeholder.com/64x64/indigo/fff?text=IMG'"
+                :src="getProductImageUrl(product.image_url, product.name, 64, 64)"
                 :alt="product.name"
                 class="w-16 h-16 rounded object-cover flex-shrink-0"
+                @error="(e) => handleImageError(e, product.name, 64, 64)"
               >
               <div class="flex-1 min-w-0">
                 <h5 class="text-sm font-medium text-gray-900 truncate">{{ product.name }}</h5>
@@ -131,9 +132,10 @@
             >
               <div class="flex items-center space-x-3">
                 <img
-                  :src="product.image_url || 'https://via.placeholder.com/48x48/indigo/fff?text=IMG'"
+                  :src="getProductImageUrl(product.image_url, product.name, 48, 48)"
                   :alt="product.name"
                   class="w-12 h-12 rounded object-cover"
+                  @error="(e) => handleImageError(e, product.name, 48, 48)"
                 >
                 <div>
                   <p class="text-sm font-medium text-gray-900">{{ product.name }}</p>
@@ -188,6 +190,7 @@
 
 <script>
 import axios from 'axios';
+import { getProductImageUrl, handleImageError } from '../../utils/imageHelpers';
 
 export default {
   name: 'ProductManagementModal',
@@ -321,7 +324,11 @@ export default {
       } else {
         return Math.max(0, price - this.promotion.discount_value).toFixed(2);
       }
-    }
+    },
+
+    // Image helpers
+    getProductImageUrl,
+    handleImageError
   }
 };
 </script> 

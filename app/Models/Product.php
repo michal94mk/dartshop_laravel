@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -17,6 +18,7 @@ class Product extends Model
         'description',
         'price',
         'image_url',
+        'image', // Alias for backwards compatibility
         'is_featured',
         'is_active',
         'brand_id',
@@ -117,36 +119,98 @@ class Product extends Model
         return $this->price - $this->getPromotionalPrice();
     }
 
+    /**
+     * Mutator to handle 'image' field and map it to 'image_url'
+     */
+    public function setImageAttribute($value)
+    {
+        $this->attributes['image_url'] = $value;
+    }
+
     public function getImageUrlAttribute(): ?string
     {
         if (!$this->attributes['image_url']) {
+            \Illuminate\Support\Facades\Log::debug('Product image is null', [
+                'product_id' => $this->id,
+                'product_name' => $this->name
+            ]);
             return null;
         }
         
-        // Jeśli obrazek już zawiera pełną ścieżkę storage
-        if (str_starts_with($this->attributes['image_url'], '/storage/') || str_starts_with($this->attributes['image_url'], 'storage/')) {
-            return asset($this->attributes['image_url']);
-        }
+        \Illuminate\Support\Facades\Log::debug('Processing product image', [
+            'product_id' => $this->id,
+            'product_name' => $this->name,
+            'original_image_url' => $this->attributes['image_url']
+        ]);
         
         // Jeśli to pełny URL (http/https)
         if (str_starts_with($this->attributes['image_url'], 'http://') || str_starts_with($this->attributes['image_url'], 'https://')) {
             return $this->attributes['image_url'];
         }
         
-        // Sprawdź czy plik istnieje w storage/products
-        $storagePath = 'storage/products/' . $this->attributes['image_url'];
-        if (file_exists(public_path($storagePath))) {
-            return asset($storagePath);
+        // Normalizuj separatory ścieżek
+        $path = str_replace('\\', '/', $this->attributes['image_url']);
+        
+        // Usuń ewentualne początkowe slashe
+        $path = ltrim($path, '/');
+        
+        // Jeśli ścieżka zaczyna się od storage/
+        if (str_starts_with($path, 'storage/')) {
+            $path = substr($path, 8); // usuń 'storage/'
         }
         
-        // Sprawdź czy plik istnieje w img
-        $imgPath = 'img/' . $this->attributes['image_url'];
-        if (file_exists(public_path($imgPath))) {
-            return asset($imgPath);
+        // Jeśli ścieżka zaczyna się od products/ lub jest samą nazwą pliku
+        if (str_starts_with($path, 'products/') || !str_contains($path, '/')) {
+            // Sprawdź czy plik istnieje w storage/app/public/products
+            $storagePath = str_starts_with($path, 'products/') ? $path : 'products/' . $path;
+            
+            \Illuminate\Support\Facades\Log::debug('Checking storage path', [
+                'product_id' => $this->id,
+                'storage_path' => $storagePath,
+                'full_path' => Storage::disk('public')->path($storagePath),
+                'exists' => Storage::disk('public')->exists($storagePath)
+            ]);
+            
+            if (Storage::disk('public')->exists($storagePath)) {
+                $url = url('storage/' . $storagePath);
+                \Illuminate\Support\Facades\Log::debug('Found file in storage', [
+                    'product_id' => $this->id,
+                    'storage_path' => $storagePath,
+                    'url' => $url
+                ]);
+                return $url;
+            }
         }
         
-        // Fallback - spróbuj storage
-        return asset('storage/' . $this->attributes['image_url']);
+        // Sprawdź czy plik istnieje w public/img
+        $imgPath = 'img/' . basename($path);
+        $publicPath = public_path($imgPath);
+        
+        \Illuminate\Support\Facades\Log::debug('Checking public path', [
+            'product_id' => $this->id,
+            'img_path' => $imgPath,
+            'public_path' => $publicPath,
+            'exists' => file_exists($publicPath)
+        ]);
+        
+        if (file_exists($publicPath)) {
+            $url = url($imgPath);
+            \Illuminate\Support\Facades\Log::debug('Found file in public/img', [
+                'product_id' => $this->id,
+                'img_path' => $imgPath,
+                'url' => $url
+            ]);
+            return $url;
+        }
+        
+        // Jeśli nie znaleziono pliku, zwróć ścieżkę do storage/products
+        $fallbackUrl = url('storage/products/' . basename($path));
+        \Illuminate\Support\Facades\Log::debug('Using fallback URL', [
+            'product_id' => $this->id,
+            'fallback_url' => $fallbackUrl,
+            'original_path' => $path
+        ]);
+        return $fallbackUrl;
     }
 
     /**

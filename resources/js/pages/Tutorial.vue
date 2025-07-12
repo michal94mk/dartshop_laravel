@@ -47,9 +47,10 @@
         <!-- Tutorial header -->
         <div class="relative">
           <img 
-            :src="tutorial.featured_image_url || `https://via.placeholder.com/800x400/indigo/fff?text=${encodeURIComponent(tutorial.title)}`" 
+            :src="getTutorialImageUrl(tutorial.featured_image_url, tutorial.title)"
             :alt="tutorial.title"
             class="w-full h-[400px] object-cover"
+            @error="(e) => handleTutorialImageError(e, tutorial.title)"
           >
           <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
           <div class="absolute bottom-0 left-0 right-0 p-8">
@@ -160,6 +161,28 @@ export default {
       })
     }
 
+    const generateTutorialPlaceholder = (title, width = 800, height = 400) => {
+      const encodedTitle = encodeURIComponent(title || 'Tutorial');
+      const svg = `
+        <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100%" height="100%" fill="#4f46e5"/>
+          <text x="50%" y="50%" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="24" fill="white">${encodedTitle}</text>
+        </svg>
+      `;
+      return `data:image/svg+xml;base64,${btoa(svg)}`;
+    };
+
+    const getTutorialImageUrl = (imageUrl, title) => {
+      if (imageUrl && !imageUrl.includes('via.placeholder.com')) {
+        return imageUrl;
+      }
+      return generateTutorialPlaceholder(title, 800, 400);
+    };
+
+    const handleTutorialImageError = (event, title) => {
+      event.target.src = generateTutorialPlaceholder(title, 800, 400);
+    };
+
     onMounted(() => {
       fetchTutorial()
     })
@@ -168,7 +191,9 @@ export default {
       tutorial,
       loading,
       error,
-      formatDate
+      formatDate,
+      getTutorialImageUrl,
+      handleTutorialImageError
     }
   }
 }

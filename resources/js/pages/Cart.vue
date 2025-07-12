@@ -80,13 +80,12 @@
               <!-- Product info -->
               <div class="md:col-span-6 flex items-center">
                 <div class="flex-shrink-0 w-24 h-24 bg-gray-100 rounded-xl overflow-hidden shadow-sm">
-                  <img 
-                    :src="item.product && item.product.image_url 
-                      ? item.product.image_url 
-                      : `https://via.placeholder.com/96x96/indigo/fff?text=${item.product?.name || 'Produkt'}`" 
-                    :alt="item.product?.name || 'Produkt'" 
-                    class="w-full h-full object-center object-cover"
-                  >
+                                      <img 
+                      :src="getProductImageUrl(item.product?.image_url, item.product?.name || 'Produkt', 96, 96)" 
+                      :alt="item.product?.name || 'Produkt'" 
+                      class="w-full h-full object-center object-cover"
+                      @error="(e) => handleImageError(e, item.product?.name || 'Produkt', 96, 96)"
+                    >
                 </div>
                 <div class="ml-4 flex-1">
                   <h3 class="text-base font-semibold text-gray-900">
@@ -250,8 +249,10 @@
 </template>
 
 <script>
-import { useCartStore } from '../stores/cartStore';
-import { useAuthStore } from '../stores/authStore';
+import { useCartStore } from '../stores/cartStore'
+import { useAuthStore } from '../stores/authStore'
+import { useAlertStore } from '../stores/alertStore'
+import { getProductImageUrl, handleImageError } from '../utils/imageHelpers'
 
 export default {
   name: 'Cart',
@@ -330,7 +331,11 @@ export default {
     
     getPromotionalPrice(product) {
       return this.hasPromotion(product) ? parseFloat(product.promotion_price) : parseFloat(product.price);
-    }
+    },
+    
+    // Image helper functions
+    getProductImageUrl,
+    handleImageError
   }
 }
 </script>

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class ProductController extends BaseAdminController
@@ -41,7 +42,7 @@ class ProductController extends BaseAdminController
     public function __construct()
     {
         parent::__construct();
-        \Illuminate\Support\Facades\Log::info('Admin ProductController initialized');
+        Log::info('Admin ProductController initialized');
     }
 
     /**
@@ -53,13 +54,13 @@ class ProductController extends BaseAdminController
     public function index(Request $request)
     {
         try {
-            \Illuminate\Support\Facades\Log::info('Admin ProductController@index called with filters:', $request->all());
-            \Illuminate\Support\Facades\Log::info('Request URI: ' . $request->getRequestUri());
-            \Illuminate\Support\Facades\Log::info('Request method: ' . $request->method());
-            \Illuminate\Support\Facades\Log::info('Authenticated user:', [
-                'id' => auth()->id(),
-                'email' => auth()->user()->email ?? 'none',
-                'is_admin' => auth()->user()->is_admin ?? false
+            Log::info('Admin ProductController@index called with filters:', $request->all());
+            Log::info('Request URI: ' . $request->getRequestUri());
+            Log::info('Request method: ' . $request->method());
+            Log::info('Authenticated user:', [
+                'id' => Auth::id() ?? 'none',
+                'email' => Auth::user()?->email ?? 'none',
+                'is_admin' => Auth::user()?->is_admin ?? false
             ]);
             
             $query = Product::with(['category', 'brand']);
@@ -95,7 +96,7 @@ class ProductController extends BaseAdminController
             $query->orderBy($sortField, $sortDirection);
             
             // Log query for debugging
-            \Illuminate\Support\Facades\Log::info('Query SQL:', [
+            Log::info('Query SQL:', [
                 'sql' => $query->toSql(),
                 'bindings' => $query->getBindings()
             ]);
@@ -104,11 +105,11 @@ class ProductController extends BaseAdminController
             $perPage = $this->getPerPage($request);
             $products = $query->paginate($perPage);
             
-            \Illuminate\Support\Facades\Log::info('Admin ProductController@index success. Product count: ' . $products->count());
+            Log::info('Admin ProductController@index success. Product count: ' . $products->count());
             
             return response()->json($products);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Admin ProductController@index error: ' . $e->getMessage(), [
+            Log::error('Admin ProductController@index error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
             return $this->errorResponse('Error fetching products: ' . $e->getMessage(), 500);
@@ -123,9 +124,9 @@ class ProductController extends BaseAdminController
      */
     public function store(Request $request)
     {
-        \Illuminate\Support\Facades\Log::info('ProductController@store called with data:', $request->except('image'));
+        Log::info('ProductController@store called with data:', $request->except('image'));
         if ($request->hasFile('image')) {
-            \Illuminate\Support\Facades\Log::info('Image file received:', [
+            Log::info('Image file received:', [
                 'original_name' => $request->file('image')->getClientOriginalName(),
                 'mime_type' => $request->file('image')->getMimeType(),
                 'size' => $request->file('image')->getSize()
@@ -144,7 +145,7 @@ class ProductController extends BaseAdminController
         ]);
 
         if ($validator->fails()) {
-            \Illuminate\Support\Facades\Log::warning('ProductController@store validation failed:', $validator->errors()->toArray());
+            Log::warning('ProductController@store validation failed:', $validator->errors()->toArray());
             return $this->errorResponse(
                 'Validation error',
                 422,
@@ -156,33 +157,44 @@ class ProductController extends BaseAdminController
             DB::beginTransaction();
             
             $productData = $request->except('image');
-            \Illuminate\Support\Facades\Log::info('Creating product with data:', $productData);
+            Log::info('Creating product with data:', $productData);
             
             // Handle the image upload
             if ($request->hasFile('image') && $request->file('image')->isValid()) {
                 $file = $request->file('image');
                 $imageName = Str::slug($request->name) . '-' . time() . '.' . $file->getClientOriginalExtension();
-                $imagePath = $file->storeAs('products', $imageName, 'public');
-                $productData['image'] = '/storage/' . $imagePath;
-                \Illuminate\Support\Facades\Log::info('Image saved:', ['path' => $productData['image']]);
+                
+                // Save to public/storage/products
+                $file->move(public_path('storage/products'), $imageName);
+                $productData['image_url'] = 'products/' . $imageName;
+                
+                Log::info('Image saved:', [
+                    'name' => $imageName,
+                    'path' => $productData['image_url'],
+                    'full_path' => public_path('storage/products/' . $imageName),
+                    'exists' => file_exists(public_path('storage/products/' . $imageName))
+                ]);
             }
             
             $product = Product::create($productData);
-            \Illuminate\Support\Facades\Log::info('Product created with ID: ' . $product->id);
+            Log::info('Product created with ID: ' . $product->id);
             
             // Clear categories cache since product count changed
             $this->clearCategoriesCache();
             
             DB::commit();
             
+            // Load the product with its relationships and return
+            $product = $product->fresh(['category', 'brand']);
+            
             return $this->successResponse(
                 'Product created successfully',
-                $product->load(['category', 'brand']),
+                $product,
                 201
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            \Illuminate\Support\Facades\Log::error('Error creating product: ' . $e->getMessage(), [
+            Log::error('Error creating product: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
             return $this->errorResponse('Error creating product: ' . $e->getMessage(), 500);
@@ -218,12 +230,10 @@ class ProductController extends BaseAdminController
     public function update(Request $request, $id)
     {
         try {
-            \Illuminate\Support\Facades\Log::info('ProductController@update called for ID: ' . $id . ' with data:', $request->all());
-            \Illuminate\Support\Facades\Log::info('Content-Type: ' . $request->header('Content-Type'));
-            \Illuminate\Support\Facades\Log::info('Request method: ' . $request->method());
+            Log::info('ProductController@update called for ID: ' . $id . ' with data:', $request->except('image'));
             
             $product = Product::findOrFail($id);
-            \Illuminate\Support\Facades\Log::info('Found product to update:', ['id' => $product->id, 'name' => $product->name]);
+            Log::info('Found product to update:', ['id' => $product->id, 'name' => $product->name]);
             
             $validator = Validator::make($request->all(), [
                 'name' => 'sometimes|required|string|max:255',
@@ -237,7 +247,7 @@ class ProductController extends BaseAdminController
             ]);
 
             if ($validator->fails()) {
-                \Illuminate\Support\Facades\Log::warning('ProductController@update validation failed:', $validator->errors()->toArray());
+                Log::warning('ProductController@update validation failed:', $validator->errors()->toArray());
                 return $this->errorResponse(
                     'Validation error',
                     422,
@@ -247,64 +257,52 @@ class ProductController extends BaseAdminController
             
             DB::beginTransaction();
             
-            // If the request is json, log that specifically
-            if ($request->isJson()) {
-                \Illuminate\Support\Facades\Log::info('Request is JSON');
-            }
+            $productData = $request->except(['_method', 'image']);
             
-            // Get all product data except image and method
-            $productData = $request->except(['image', '_method']);
-            \Illuminate\Support\Facades\Log::info('Updating product with data:', $productData);
-            
-            // Handle the image upload if it exists
+            // Handle the image upload
             if ($request->hasFile('image') && $request->file('image')->isValid()) {
-                // Delete the old image if it exists
-                if ($product->image && Storage::disk('public')->exists(str_replace('/storage/', '', $product->image))) {
-                    Storage::disk('public')->delete(str_replace('/storage/', '', $product->image));
-                    \Illuminate\Support\Facades\Log::info('Deleted previous image: ' . $product->image);
+                $file = $request->file('image');
+                $imageName = Str::slug($request->input('name', $product->name)) . '-' . time() . '.' . $file->getClientOriginalExtension();
+                
+                // Delete old image if exists
+                if ($product->image_url) {
+                    $oldImagePath = public_path('storage/' . $product->image_url);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
                 }
                 
-                $file = $request->file('image');
-                $imageName = Str::slug($request->name ?? $product->name) . '-' . time() . '.' . $file->getClientOriginalExtension();
-                $imagePath = $file->storeAs('products', $imageName, 'public');
-                $productData['image'] = '/storage/' . $imagePath;
-                \Illuminate\Support\Facades\Log::info('New image saved:', ['path' => $productData['image']]);
-            } elseif ($request->has('image') && $request->image === null) {
-                // If image is explicitly set to null, remove the existing image
-                if ($product->image && Storage::disk('public')->exists(str_replace('/storage/', '', $product->image))) {
-                    Storage::disk('public')->delete(str_replace('/storage/', '', $product->image));
-                    \Illuminate\Support\Facades\Log::info('Deleted image on nullify: ' . $product->image);
-                }
-                $productData['image'] = null;
+                // Save to public/storage/products
+                $file->move(public_path('storage/products'), $imageName);
+                $productData['image_url'] = 'products/' . $imageName;
+                
+                Log::info('Image updated:', [
+                    'name' => $imageName,
+                    'path' => $productData['image_url'],
+                    'full_path' => public_path('storage/products/' . $imageName),
+                    'exists' => file_exists(public_path('storage/products/' . $imageName))
+                ]);
             }
             
-            \Illuminate\Support\Facades\Log::info('Final product data for update:', $productData);
-            
-            // Perform the update
             $product->update($productData);
-            \Illuminate\Support\Facades\Log::info('Product updated successfully', ['id' => $product->id]);
             
-            // Clear categories cache since product count might have changed (category change)
+            // Clear categories cache
             $this->clearCategoriesCache();
             
             DB::commit();
             
-            // Return the updated product with relationships
-            $updatedProduct = $product->fresh(['category', 'brand']);
-            \Illuminate\Support\Facades\Log::info('Returning updated product data:', $updatedProduct->toArray());
+            // Load the product with its relationships and return
+            $product = $product->fresh(['category', 'brand']);
             
             return $this->successResponse(
                 'Product updated successfully',
-                $updatedProduct
+                $product
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            \Illuminate\Support\Facades\Log::error('Error updating product: ' . $e->getMessage(), [
+            Log::error('Error updating product: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
-            if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
-                return $this->errorResponse('Product not found', 404);
-            }
             return $this->errorResponse('Error updating product: ' . $e->getMessage(), 500);
         }
     }
@@ -318,20 +316,20 @@ class ProductController extends BaseAdminController
     public function destroy($id)
     {
         try {
-            \Illuminate\Support\Facades\Log::info('ProductController@destroy called for ID: ' . $id);
+            Log::info('ProductController@destroy called for ID: ' . $id);
             
             $product = Product::findOrFail($id);
-            \Illuminate\Support\Facades\Log::info('Found product to delete:', ['id' => $product->id, 'name' => $product->name]);
+            Log::info('Found product to delete:', ['id' => $product->id, 'name' => $product->name]);
             
             // Check if product is used in any orders
             $hasOrderItems = DB::table('order_items')->where('product_id', $id)->exists();
             
             if ($hasOrderItems) {
-                \Illuminate\Support\Facades\Log::warning('Cannot delete product as it has associated order items:', ['id' => $id]);
+                Log::warning('Cannot delete product as it has associated order items:', ['id' => $id]);
                 
                 // Instead of deleting, deactivate the product
                 $product->update(['is_active' => false]);
-                \Illuminate\Support\Facades\Log::info('Product deactivated instead of deleted:', ['id' => $id]);
+                Log::info('Product deactivated instead of deleted:', ['id' => $id]);
                 
                 // Clear categories cache since product might not count anymore
                 $this->clearCategoriesCache();
@@ -350,7 +348,7 @@ class ProductController extends BaseAdminController
             if ($hasCartItems) {
                 // For cart items, we can delete them as they are temporary
                 DB::table('cart_items')->where('product_id', $id)->delete();
-                \Illuminate\Support\Facades\Log::info('Deleted associated cart items for product:', ['id' => $id]);
+                Log::info('Deleted associated cart items for product:', ['id' => $id]);
             }
             
             // Check if product has reviews
@@ -359,24 +357,24 @@ class ProductController extends BaseAdminController
             if ($hasReviews) {
                 // For reviews, we can delete them when deleting the product
                 DB::table('reviews')->where('product_id', $id)->delete();
-                \Illuminate\Support\Facades\Log::info('Deleted associated reviews for product:', ['id' => $id]);
+                Log::info('Deleted associated reviews for product:', ['id' => $id]);
             }
             
             // Delete the image if it exists
-            if ($product->image && Storage::disk('public')->exists(str_replace('/storage/', '', $product->image))) {
-                Storage::disk('public')->delete(str_replace('/storage/', '', $product->image));
-                \Illuminate\Support\Facades\Log::info('Deleted product image: ' . $product->image);
+            if ($product->image_url && Storage::disk('public')->exists(str_replace('/storage/', '', $product->image_url))) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $product->image_url));
+                Log::info('Deleted product image: ' . $product->image_url);
             }
             
             $product->delete();
-            \Illuminate\Support\Facades\Log::info('Product deleted successfully', ['id' => $id]);
+            Log::info('Product deleted successfully', ['id' => $id]);
             
             // Clear categories cache since product count changed
             $this->clearCategoriesCache();
             
             return $this->successResponse('Product deleted successfully');
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error deleting product: ' . $e->getMessage(), [
+            Log::error('Error deleting product: ' . $e->getMessage(), [
                 'id' => $id,
                 'trace' => $e->getTraceAsString()
             ]);
@@ -396,19 +394,19 @@ class ProductController extends BaseAdminController
     public function getFormData()
     {
         try {
-            \Illuminate\Support\Facades\Log::info('ProductController@getFormData called');
+            Log::info('ProductController@getFormData called');
             
             $categories = Category::all();
             $brands = Brand::all();
             
-            \Illuminate\Support\Facades\Log::info('ProductController@getFormData success. Categories: ' . $categories->count() . ', Brands: ' . $brands->count());
+            Log::info('ProductController@getFormData success. Categories: ' . $categories->count() . ', Brands: ' . $brands->count());
             
             return response()->json([
                 'categories' => $categories,
                 'brands' => $brands
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('ProductController@getFormData error: ' . $e->getMessage(), [
+            Log::error('ProductController@getFormData error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
             return $this->errorResponse('Error fetching form data: ' . $e->getMessage(), 500);
