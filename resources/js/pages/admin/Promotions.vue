@@ -9,53 +9,57 @@
       />
     </div>
 
-    <!-- Filtry -->
-    <div v-if="!loading" class="mt-6 bg-white shadow rounded-lg p-4">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Wyszukaj</label>
-          <input
-            v-model="filters.search"
-            type="text"
-            placeholder="Nazwa, tytuł..."
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          />
-        </div>
-        <div>
+    <!-- Filters -->
+    <search-filters
+      v-if="!loading"
+      :filters="filters"
+      :sort-options="sortOptions"
+      :default-filters="defaultFilters"
+      search-label="Wyszukaj"
+      search-placeholder="Nazwa, tytuł promocji..."
+      @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
+      @filter-change="fetchPromotions"
+      @reset-filters="resetFilters"
+    >
+      <template v-slot:filters>
+        <div class="w-full sm:w-auto">
           <label class="block text-sm font-medium text-gray-700">Status</label>
           <select
             v-model="filters.is_active"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            @change="fetchPromotions"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">Wszystkie</option>
             <option value="true">Aktywne</option>
             <option value="false">Nieaktywne</option>
           </select>
         </div>
-        <div>
+        <div class="w-full sm:w-auto">
           <label class="block text-sm font-medium text-gray-700">Typ rabatu</label>
           <select
             v-model="filters.discount_type"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            @change="fetchPromotions"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">Wszystkie</option>
             <option value="percentage">Procentowy</option>
             <option value="fixed">Kwotowy</option>
           </select>
         </div>
-        <div>
+        <div class="w-full sm:w-auto">
           <label class="block text-sm font-medium text-gray-700">Wyróżnione</label>
           <select
             v-model="filters.is_featured"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            @change="fetchPromotions"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">Wszystkie</option>
             <option value="true">Wyróżnione</option>
             <option value="false">Zwykłe</option>
           </select>
         </div>
-      </div>
-    </div>
+      </template>
+    </search-filters>
 
     <!-- Content -->
     <div class="mt-6 bg-white shadow overflow-hidden sm:rounded-md">
@@ -290,6 +294,7 @@ import { useAlertStore } from '../../stores/alertStore'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
 import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
 import PageHeader from '../../components/admin/PageHeader.vue'
+import SearchFilters from '../../components/admin/SearchFilters.vue'
 
 export default {
   name: 'AdminPromotions',
@@ -302,7 +307,8 @@ export default {
     PromotionModal,
     AdminButton,
     LoadingSpinner,
-    PageHeader
+    PageHeader,
+    SearchFilters
   },
   setup() {
     const alertStore = useAlertStore()
@@ -316,10 +322,32 @@ export default {
     
     const filters = reactive({
       search: '',
+      sort_field: 'created_at',
+      sort_direction: 'desc',
+      page: 1,
       is_active: '',
       discount_type: '',
       is_featured: ''
     })
+    
+    const defaultFilters = {
+      search: '',
+      sort_field: 'created_at',
+      sort_direction: 'desc',
+      page: 1,
+      is_active: '',
+      discount_type: '',
+      is_featured: ''
+    }
+    
+    const sortOptions = [
+      { value: 'id', label: 'ID' },
+      { value: 'title', label: 'Nazwa' },
+      { value: 'created_at', label: 'Data utworzenia' },
+      { value: 'starts_at', label: 'Data rozpoczęcia' },
+      { value: 'ends_at', label: 'Data zakończenia' },
+      { value: 'discount_value', label: 'Wartość rabatu' }
+    ]
     
     const pagination = reactive({
       current_page: 1,
@@ -352,7 +380,7 @@ export default {
 
         // Dodaj filtry
         Object.entries(filters).forEach(([key, value]) => {
-          if (value !== '') {
+          if (value !== '' && value !== null && value !== undefined) {
             params.append(key, value)
           }
         })
@@ -436,12 +464,11 @@ export default {
     const formatDate = (dateString) => {
       return new Date(dateString).toLocaleDateString('pl-PL')
     }
-
-    // Obserwuj zmiany filtrów
-    watch(filters, () => {
-      pagination.current_page = 1
+    
+    const resetFilters = () => {
+      Object.assign(filters, defaultFilters)
       fetchPromotions()
-    }, { deep: true })
+    }
 
     onMounted(() => {
       fetchPromotions()
@@ -455,6 +482,8 @@ export default {
       showDeleteModal,
       promotionToDelete,
       filters,
+      defaultFilters,
+      sortOptions,
       pagination,
       visiblePages,
       fetchPromotions,
@@ -466,7 +495,8 @@ export default {
       toggleActive,
       deletePromotion,
       confirmDelete,
-      formatDate
+      formatDate,
+      resetFilters
     }
   }
 }
