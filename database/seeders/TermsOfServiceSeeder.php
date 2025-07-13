@@ -14,6 +14,9 @@ class TermsOfServiceSeeder extends Seeder
     public function run(): void
     {
         TermsOfService::create([
+            'title' => 'Regulamin Sklepu Internetowego DartShop',
+            'version' => '1.0',
+            'effective_date' => now(),
             'is_active' => true,
             'content' => '
 <h2>§ 1. Postanowienia ogólne</h2>
@@ -29,45 +32,30 @@ class TermsOfServiceSeeder extends Seeder
 <li><strong>Sprzedawca</strong> - DartShop prowadzący Sklep internetowy</li>
 <li><strong>Klient</strong> - osoba fizyczna, osoba prawna lub jednostka organizacyjna nieposiadająca osobowości prawnej, dokonująca zakupu w Sklepie</li>
 <li><strong>Konsument</strong> - Klient będący osobą fizyczną dokonującą czynności prawnej niezwiązanej bezpośrednio z jej działalnością gospodarczą lub zawodową</li>
-<li><strong>Przedsiębiorca</strong> - Klient będący osobą fizyczną, prawną lub jednostką organizacyjną nieposiadającą osobowości prawnej, prowadzący działalność gospodarczą lub zawodową</li>
-<li><strong>Produkt</strong> - rzecz ruchoma będąca przedmiotem umowy sprzedaży</li>
-<li><strong>Umowa na odległość</strong> - umowa zawarta z Klientem w ramach zorganizowanego systemu zawierania umów na odległość, bez jednoczesnej fizycznej obecności stron</li>
-<li><strong>Konto</strong> - indywidualne konto Klienta w Sklepie, zawierające dane podane przez Klienta</li>
+<li><strong>Produkt</strong> - przedmiot sprzedaży dostępny w Sklepie</li>
+<li><strong>Zamówienie</strong> - oświadczenie woli Klienta składające się z wyboru Produktów i określenia warunków sprzedaży</li>
+<li><strong>Umowa sprzedaży</strong> - umowa zawierana między Sprzedawcą a Klientem</li>
 </ul>
 
-<h2>§ 3. Warunki korzystania ze Sklepu</h2>
-<p><strong>3.1.</strong> Korzystanie ze Sklepu jest możliwe przy spełnieniu następujących minimalnych wymagań technicznych:</p>
-<ul>
-<li>Komputer, laptop, tablet lub inne urządzenie mobilne z dostępem do sieci Internet</li>
-<li>Przeglądarka internetowa obsługująca JavaScript, pliki cookies oraz protokół szyfrowania SSL</li>
-<li>Aktywne konto poczty elektronicznej</li>
-<li>Dla płatności kartą: możliwość dokonywania płatności online</li>
-</ul>
-<p><strong>3.2.</strong> Zakazane jest dostarczanie przez Klienta treści o charakterze bezprawnym, w szczególności treści propagujących przemoc, zniesławiających lub naruszających dobra osobiste i prawa osób trzecich.</p>
-<p><strong>3.3.</strong> Klient zobowiązuje się do korzystania ze Sklepu w sposób zgodny z prawem, niniejszym Regulaminem, dobrymi obyczajami, poszanowaniem dóbr osobistych i praw własności intelektualnej osób trzecich.</p>
-<p><strong>3.4.</strong> Zabrania się podejmowania przez Klienta działań mogących zakłócić funkcjonowanie Sklepu, w szczególności poprzez użycie określonego oprogramowania lub urządzeń.</p>
+<h2>§ 3. Informacje o Sprzedawcy</h2>
+<p><strong>Dane Sprzedawcy:</strong></p>
+<p>DartShop<br>
+Adres: ul. Przykładowa 123, 00-001 Warszawa<br>
+Email: hello@dartshop.pl<br>
+Telefon: +48 123 456 789<br>
+NIP: 1234567890<br>
+REGON: 123456789</p>
 
-<h2>§ 4. Zakładanie i usuwanie Konta</h2>
-<p><strong>4.1.</strong> Założenie Konta w Sklepie jest dobrowolne, ale umożliwia korzystanie z dodatkowych funkcjonalności.</p>
-<p><strong>4.2.</strong> Rejestracja odbywa się poprzez wypełnienie formularza rejestracyjnego dostępnego na stronie Sklepu oraz akceptację niniejszego Regulaminu.</p>
-<p><strong>4.3.</strong> Klient zobowiązuje się do podania prawdziwych, aktualnych i kompletnych danych osobowych w formularzu rejestracyjnym oraz do aktualizowania tych danych w przypadku ich zmiany.</p>
-<p><strong>4.4.</strong> Klient zobowiązuje się do zachowania poufności danych umożliwiających dostęp do Konta, w szczególności loginu i hasła.</p>
-<p><strong>4.5.</strong> Klient zobowiązuje się niezwłocznie poinformować Sprzedawcę o nieautoryzowanym dostępie do swojego Konta lub o naruszeniu poufności hasła.</p>
-<p><strong>4.6.</strong> Klient może w każdej chwili, bez podania przyczyny, usunąć swoje Konto przesyłając odpowiednią wiadomość na adres email Sprzedawcy.</p>
-<p><strong>4.7.</strong> Sprzedawca może usunąć Konto Klienta w przypadku naruszenia przez Klienta postanowień niniejszego Regulaminu, po uprzednim wysłaniu ostrzeżenia i wyznaczeniu 7-dniowego terminu na zaprzestanie naruszeń.</p>
+<h2>§ 4. Zasady korzystania ze Sklepu</h2>
+<p><strong>4.1.</strong> Sklep jest dostępny 24 godziny na dobę, 7 dni w tygodniu.</p>
+<p><strong>4.2.</strong> Korzystanie ze Sklepu wymaga posiadania urządzenia z dostępem do Internetu oraz przeglądarki internetowej.</p>
+<p><strong>4.3.</strong> Sklep zastrzega sobie prawo do czasowego zawieszenia działania Sklepu w celu przeprowadzenia prac technicznych.</p>
+<p><strong>4.4.</strong> Sklep nie ponosi odpowiedzialności za problemy techniczne po stronie Klienta.</p>
 
-<h2>§ 5. Zasady składania zamówienia</h2>
-<p><strong>5.1.</strong> Złożenie zamówienia w Sklepie następuje poprzez:</p>
-<ol>
-<li>Wybór Produktu i dodanie go do koszyka</li>
-<li>Przejście do koszyka i sprawdzenie zawartości</li>
-<li>Wybranie sposobu dostawy i płatności</li>
-<li>Uzupełnienie lub weryfikację danych osobowych i adresowych</li>
-<li>Zapoznanie się z niniejszym Regulaminem</li>
-<li>Złożenie zamówienia poprzez kliknięcie przycisku "Zamawiam i płacę"</li>
-</ol>
-<p><strong>5.2.</strong> Warunkiem złożenia zamówienia przez Klienta niebędącego Konsumentem jest dodatkowa akceptacja wzorca umowy.</p>
-<p><strong>5.3.</strong> Ceny Produktów podane są w złotych polskich (PLN) i zawierają wszystkie składniki, w tym podatek VAT oraz cła.</p>
+<h2>§ 5. Zawieranie umowy sprzedaży</h2>
+<p><strong>5.1.</strong> Umowa sprzedaży zawierana jest w drodze elektronicznej poprzez złożenie Zamówienia przez Klienta i potwierdzenie przyjęcia zamówienia przez Sprzedawcę.</p>
+<p><strong>5.2.</strong> Zamówienie składa się poprzez dodanie Produktów do koszyka, wypełnienie formularza zamówienia i potwierdzenie zamówienia.</p>
+<p><strong>5.3.</strong> Po złożeniu zamówienia Klient otrzymuje potwierdzenie przyjęcia zamówienia na podany adres email.</p>
 <p><strong>5.4.</strong> Łączna wartość zamówienia zawiera cenę za Produkty oraz koszty dostawy, które są uzależnione od wybranego sposobu dostawy i podane przed złożeniem zamówienia.</p>
 <p><strong>5.5.</strong> Po złożeniu zamówienia Klient otrzymuje automatyczne potwierdzenie przyjęcia zamówienia na podany adres email.</p>
 
@@ -92,47 +80,40 @@ class TermsOfServiceSeeder extends Seeder
 <li><strong>Poczta Polska:</strong> przesyłka priorytetowa lub ekonomiczna</li>
 <li><strong>Odbiór osobisty:</strong> w siedzibie Sprzedawcy (po wcześniejszym umówieniu)</li>
 </ul>
-<p><strong>7.3.</strong> Czas realizacji zamówienia wynosi od 1 do 5 dni roboczych od momentu zaksięgowania płatności.</p>
-<p><strong>7.4.</strong> W przypadku produktów dostępnych na zamówienie, czas realizacji może zostać wydłużony do 14 dni roboczych.</p>
-<p><strong>7.5.</strong> Klient zostanie poinformowany o przekazaniu przesyłki do dostawy oraz otrzyma numer przesyłki umożliwiający śledzenie.</p>
-<p><strong>7.6.</strong> Ryzyko przypadkowej utraty lub uszkodzenia Produktu przechodzi na Klienta z chwilą wydania przesyłki przez Sprzedawcę przewoźnikowi.</p>
+<p><strong>7.3.</strong> Koszty dostawy są podane przy każdym sposobie dostawy i doliczane do wartości zamówienia.</p>
+<p><strong>7.4.</strong> Darmowa dostawa przysługuje przy zamówieniach o wartości powyżej 200 PLN.</p>
+<p><strong>7.5.</strong> Czas realizacji zamówienia wynosi 1-3 dni robocze od momentu potwierdzenia płatności.</p>
 
-<h2>§ 8. Prawo odstąpienia od umowy (dla Konsumentów)</h2>
-<p><strong>8.1.</strong> Konsument ma prawo do odstąpienia od umowy sprzedaży w terminie 14 dni bez podania przyczyny.</p>
-<p><strong>8.2.</strong> Termin do odstąpienia od umowy wygasa po upływie 14 dni od dnia objęcia rzeczy w posiadanie przez Konsumenta lub wskazaną przez niego osobę trzecią inną niż przewoźnik.</p>
-<p><strong>8.3.</strong> Aby skorzystać z prawa odstąpienia od umowy, Konsument musi poinformować Sprzedawcę o swojej decyzji poprzez jednoznaczne oświadczenie.</p>
-<p><strong>8.4.</strong> Konsument może skorzystać z wzoru formularza odstąpienia od umowy, dostępnego na stronie Sklepu, lecz nie jest to obowiązkowe.</p>
-<p><strong>8.5.</strong> Aby dotrzymać terminu do odstąpienia od umowy, wystarczy, aby Konsument wysłał informację dotyczącą wykonania prawa odstąpienia od umowy przed upływem terminu do odstąpienia od umowy.</p>
-<p><strong>8.6.</strong> W przypadku odstąpienia od umowy, zwracamy Konsumentowi wszystkie otrzymane od niego płatności niezwłocznie, a w każdym przypadku nie później niż w terminie 14 dni od dnia, w którym zostaliśmy poinformowani o decyzji o wykonaniu prawa odstąpienia od umowy.</p>
-<p><strong>8.7.</strong> Zwrot płatności dokonujemy przy użyciu takich samych sposobów płatności, jakie zostały przez Konsumenta użyte w pierwotnej transakcji, chyba że Konsument wyraźnie zgodził się na inne rozwiązanie.</p>
-<p><strong>8.8.</strong> Możemy wstrzymać się ze zwrotem płatności do otrzymania rzeczy z powrotem lub do przedłożenia przez Konsumenta dowodu odesłania rzeczy.</p>
+<h2>§ 8. Prawo odstąpienia od umowy</h2>
+<p><strong>8.1.</strong> Konsument ma prawo odstąpienia od umowy w terminie 14 dni bez podania przyczyny.</p>
+<p><strong>8.2.</strong> Termin do odstąpienia od umowy rozpoczyna się od dnia objęcia w posiadanie Produktu.</p>
+<p><strong>8.3.</strong> Oświadczenie o odstąpieniu od umowy może być złożone w formie pisemnej lub elektronicznej.</p>
+<p><strong>8.4.</strong> W przypadku odstąpienia od umowy, Sprzedawca zwróci wszystkie otrzymane od Konsumenta płatności w terminie 14 dni.</p>
+<p><strong>8.5.</strong> Prawo odstąpienia nie przysługuje w przypadku Produktów przygotowanych na indywidualne zamówienie Konsumenta.</p>
 
-<h2>§ 9. Zwracanie Produktów</h2>
-<p><strong>9.1.</strong> Konsument powinien odesłać rzecz niezwłocznie, a w każdym przypadku nie później niż w terminie 14 dni od dnia, w którym poinformował Sprzedawcę o odstąpieniu od umowy.</p>
-<p><strong>9.2.</strong> Konsument ponosi bezpośrednie koszty zwrotu rzeczy, chyba że Sprzedawca zgodził się je ponieść lub nie poinformował Konsumenta o tym, że Konsument ma je ponosić.</p>
-<p><strong>9.3.</strong> Konsument odpowiada tylko za zmniejszenie wartości rzeczy wynikające z korzystania z niej w sposób inny niż było to konieczne do stwierdzenia charakteru, cech i funkcjonowania rzeczy.</p>
-<p><strong>9.4.</strong> Produkty należy zwrócić w oryginalnym opakowaniu, z zachowaniem oryginalnych etykiet i metek, w stanie umożliwiającym ponowną sprzedaż.</p>
+<h2>§ 9. Reklamacje</h2>
+<p><strong>9.1.</strong> Klient ma prawo do złożenia reklamacji w przypadku wady Produktu.</p>
+<p><strong>9.2.</strong> Reklamację można złożyć w formie pisemnej, elektronicznej lub ustnie.</p>
+<p><strong>9.3.</strong> Sprzedawca rozpatrzy reklamację w terminie 14 dni od jej otrzymania.</p>
+<p><strong>9.4.</strong> W przypadku uznania reklamacji, Sprzedawca naprawi wadę, wymieni Produkt lub zwróci zapłaconą cenę.</p>
 
-<h2>§ 10. Rękojmia i gwarancja</h2>
-<p><strong>10.1.</strong> Sprzedawca odpowiada wobec Klienta za zgodność towaru z umową na zasadach określonych w przepisach Kodeksu cywilnego.</p>
-<p><strong>10.2.</strong> Reklamację można zgłosić pisemnie na adres email: reklamacje@dartshop.pl lub na adres pocztowy Sprzedawcy.</p>
-<p><strong>10.3.</strong> Zaleca się dołączenie do reklamacji zdjęć przedstawiających wadę oraz kopii dowodu zakupu.</p>
-<p><strong>10.4.</strong> Sprzedawca ustosunkuje się do reklamacji w terminie 14 dni od jej otrzymania.</p>
-<p><strong>10.5.</strong> W przypadku uznania reklamacji, Sprzedawca dokona naprawy, wymiany towaru, obniżenia ceny lub odstąpi od umowy zgodnie z życzeniem Klienta i przepisami prawa.</p>
-<p><strong>10.6.</strong> Na niektóre Produkty producent udziela dodatkowo gwarancji, której warunki określone są w karcie gwarancyjnej dołączonej do Produktu.</p>
+<h2>§ 10. Ochrona danych osobowych</h2>
+<p><strong>10.1.</strong> Administratorem danych osobowych Klientów jest Sprzedawca.</p>
+<p><strong>10.2.</strong> Dane osobowe przetwarzane są w celu realizacji zamówień i świadczenia usług.</p>
+<p><strong>10.3.</strong> Klient ma prawo dostępu do swoich danych osobowych oraz ich poprawiania.</p>
+<p><strong>10.4.</strong> Szczegółowe informacje o przetwarzaniu danych osobowych zawarte są w Polityce Prywatności.</p>
 
-<h2>§ 11. Ochrona danych osobowych</h2>
-<p><strong>11.1.</strong> Szczegółowe zasady przetwarzania danych osobowych określa Polityka Prywatności dostępna na stronie Sklepu.</p>
-<p><strong>11.2.</strong> Podanie danych osobowych jest dobrowolne, ale niezbędne do realizacji zamówienia i świadczenia usług.</p>
-<p><strong>11.3.</strong> Klient ma prawo dostępu, sprostowania, przenoszenia, ograniczenia przetwarzania oraz usunięcia swoich danych osobowych.</p>
-<p><strong>11.4.</strong> Klient może w każdej chwili wycofać zgodę na przetwarzanie danych osobowych w celach marketingowych.</p>
+<h2>§ 11. Własność intelektualna</h2>
+<p><strong>11.1.</strong> Wszystkie prawa własności intelektualnej związane ze Sklepem należą do Sprzedawcy.</p>
+<p><strong>11.2.</strong> Zabronione jest kopiowanie, modyfikowanie i rozpowszechnianie treści Sklepu bez zgody Sprzedawcy.</p>
 
-<h2>§ 12. Pozasądowe sposoby rozpatrywania reklamacji i dochodzenia roszczeń</h2>
-<p><strong>12.1.</strong> Szczegółowe informacje o możliwości skorzystania przez Konsumenta z pozasądowych sposobów rozpatrywania reklamacji i dochodzenia roszczeń oraz zasady dostępu do tych procedur dostępne są w siedzibach oraz na stronach internetowych powiatowych (miejskich) rzeczników konsumentów, organizacji społecznych, o których mowa w art. 61 ustawy z dnia 16 lutego 2007 r. o ochronie konkurencji i konsumentów, Wojewódzkich Inspektoratów Inspekcji Handlowej oraz pod adresem internetowym UOKiK.</p>
-<p><strong>12.2.</strong> Konsument ma możliwość skorzystania z platformy ODR (Online Dispute Resolution), która dostępna jest pod adresem: http://ec.europa.eu/consumers/odr/</p>
+<h2>§ 12. Odpowiedzialność</h2>
+<p><strong>12.1.</strong> Sprzedawca odpowiada za wady Produktów zgodnie z przepisami prawa.</p>
+<p><strong>12.2.</strong> Sprzedawca nie ponosi odpowiedzialności za szkody pośrednie wynikające z korzystania ze Sklepu.</p>
+<p><strong>12.3.</strong> Odpowiedzialność Sprzedawcy jest ograniczona do wysokości zapłaconej ceny.</p>
 
-<h2>§ 13. Postanowienia końcowe</h2>
-<p><strong>13.1.</strong> Niniejszy Regulamin wchodzi w życie z dniem publikacji w Sklepie internetowym.</p>
+<h2>§ 13. Zmiany Regulaminu</h2>
+<p><strong>13.1.</strong> Sprzedawca zastrzega sobie prawo do zmiany Regulaminu.</p>
 <p><strong>13.2.</strong> Sprzedawca zastrzega sobie prawo do wprowadzania zmian w Regulaminie z ważnych przyczyn, takich jak zmiana przepisów prawa, zmiana sposobu płatności i dostawy - w zakresie, w jakim te zmiany wpływają na realizację postanowień niniejszego Regulaminu.</p>
 <p><strong>13.3.</strong> O każdej zmianie Regulaminu Sprzedawca poinformuje Klientów poprzez publikację na stronie internetowej oraz wysłanie wiadomości email do zarejestrowanych Klientów.</p>
 <p><strong>13.4.</strong> Zmieniony Regulamin obowiązuje od momentu jego publikacji, przy czym nie dotyczy zamówień złożonych przed tą datą.</p>

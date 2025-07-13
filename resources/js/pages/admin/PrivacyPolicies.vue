@@ -166,6 +166,29 @@
           />
         </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Wersja</label>
+            <input 
+              v-model="form.version" 
+              type="text" 
+              required
+              placeholder="np. 1.0"
+              class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Data obowiązywania</label>
+            <input 
+              v-model="form.effective_date" 
+              type="date" 
+              required
+              class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+        </div>
+
         <div>
           <label class="flex items-center">
             <input 
@@ -320,6 +343,8 @@ export default {
     // Form
     const form = ref({
       title: '',
+      version: '',
+      effective_date: '',
       content: '',
       is_active: false
     })
@@ -353,6 +378,8 @@ export default {
     const resetForm = () => {
       form.value = {
         title: '',
+        version: '',
+        effective_date: '',
         content: '',
         is_active: false
       }
@@ -369,6 +396,8 @@ export default {
       editingPolicy.value = policy
       form.value = {
         title: policy.title,
+        version: policy.version,
+        effective_date: policy.effective_date,
         content: policy.content,
         is_active: policy.is_active
       }

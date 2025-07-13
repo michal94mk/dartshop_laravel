@@ -14,6 +14,9 @@ class PrivacyPolicySeeder extends Seeder
     public function run(): void
     {
         PrivacyPolicy::create([
+            'title' => 'Polityka Prywatności DartShop',
+            'version' => '1.0',
+            'effective_date' => now(),
             'content' => $this->getDefaultContent(),
             'is_active' => true,
         ]);
@@ -46,98 +49,69 @@ class PrivacyPolicySeeder extends Seeder
 <li><strong>Dane identyfikacyjne:</strong> imię, nazwisko</li>
 <li><strong>Dane kontaktowe:</strong> adres e-mail, numer telefonu</li>
 <li><strong>Dane adresowe:</strong> adres dostawy i fakturowania</li>
-<li><strong>Dane o zamówieniach:</strong> historia zakupów, preferencje</li>
-<li><strong>Dane płatności:</strong> metoda płatności (bez przechowywania danych karty)</li>
-<li><strong>Dane techniczne:</strong> adres IP, dane o przeglądarce, pliki cookies</li>
+<li><strong>Dane transakcyjne:</strong> historia zamówień, preferencje zakupowe</li>
+<li><strong>Dane techniczne:</strong> adres IP, informacje o urządzeniu</li>
 </ul>
 
 <h2>5. Okres przechowywania danych</h2>
-<p>Dane osobowe będą przechowywane przez okres niezbędny do realizacji celów, w tym:</p>
+<p>Dane osobowe przechowujemy przez okres:</p>
 <ul>
-<li><strong>Dane do realizacji zamówień:</strong> przez okres przedawnienia roszczeń (3 lata)</li>
-<li><strong>Dane do newslettera:</strong> do momentu rezygnacji lub cofnięcia zgody</li>
-<li><strong>Dane księgowe:</strong> zgodnie z przepisami prawa (5 lat)</li>
-<li><strong>Dane do marketingu bezpośredniego:</strong> do momentu wniesienia sprzeciwu</li>
-<li><strong>Dane techniczne:</strong> zgodnie z polityką cookies (maksymalnie 2 lata)</li>
+<li><strong>Dane konta użytkownika:</strong> do momentu usunięcia konta</li>
+<li><strong>Dane zamówień:</strong> 5 lat (wymóg prawny)</li>
+<li><strong>Dane newslettera:</strong> do momentu rezygnacji</li>
+<li><strong>Dane techniczne:</strong> 12 miesięcy</li>
 </ul>
 
-<h2>6. Prawa osób, których dane dotyczą</h2>
-<p>Zgodnie z RODO, przysługują Ci następujące prawa:</p>
+<h2>6. Prawa użytkownika</h2>
+<p>Użytkownik ma prawo do:</p>
 <ul>
-<li><strong>Prawo dostępu</strong> - możesz uzyskać informacje o przetwarzanych danych</li>
-<li><strong>Prawo sprostowania</strong> - możesz poprawić nieprawidłowe dane</li>
-<li><strong>Prawo usunięcia</strong> - możesz żądać usunięcia danych w określonych przypadkach</li>
-<li><strong>Prawo ograniczenia przetwarzania</strong> - możesz ograniczyć przetwarzanie danych</li>
-<li><strong>Prawo przenoszenia danych</strong> - możesz otrzymać dane w formacie strukturalnym</li>
-<li><strong>Prawo sprzeciwu</strong> - możesz sprzeciwić się przetwarzaniu na potrzeby marketingu</li>
-<li><strong>Prawo cofnięcia zgody</strong> - możesz cofnąć zgodę w każdym czasie</li>
-<li><strong>Prawo wniesienia skargi</strong> - możesz złożyć skargę do organu nadzorczego (UODO)</li>
+<li>Dostępu do swoich danych osobowych</li>
+<li>Sprostowania nieprawidłowych danych</li>
+<li>Usunięcia danych (prawo do bycia zapomnianym)</li>
+<li>Ograniczenia przetwarzania</li>
+<li>Przenoszenia danych</li>
+<li>Wniesienia sprzeciwu</li>
+<li>Cofnięcia zgody</li>
 </ul>
 
-<h2>7. Odbiorcy danych</h2>
-<p>Dane osobowe mogą być przekazywane następującym kategoriom odbiorców:</p>
+<h2>7. Bezpieczeństwo danych</h2>
+<p>Stosujemy odpowiednie środki techniczne i organizacyjne, aby chronić dane osobowe przed:</p>
 <ul>
-<li><strong>Dostawcy usług IT</strong> - hosting, zarządzanie systemem</li>
-<li><strong>Firmy kurierskie</strong> - realizacja dostaw</li>
-<li><strong>Operatorzy płatności</strong> - obsługa transakcji (Stripe, PayPal)</li>
-<li><strong>Firmy księgowe</strong> - prowadzenie księgowości</li>
-<li><strong>Organy państwowe</strong> - gdy wynika to z przepisów prawa</li>
-<li><strong>Dostawcy usług marketingowych</strong> - po uzyskaniu zgody</li>
+<li>Nieuprawnionym dostępem</li>
+<li>Utratą danych</li>
+<li>Zniszczeniem danych</li>
+<li>Zmianą danych</li>
 </ul>
 
-<h2>8. Przekazywanie danych do państw trzecich</h2>
-<p>Niektóre dane mogą być przekazywane do państw trzecich (poza EOG), w szczególności:</p>
+<h2>8. Udostępnianie danych</h2>
+<p>Dane osobowe mogą być udostępniane:</p>
 <ul>
-<li><strong>Stany Zjednoczone</strong> - w przypadku korzystania z usług płatniczych (Stripe) na podstawie standardowych klauzul umownych</li>
-<li>Przekazywanie odbywa się wyłącznie do podmiotów zapewniających odpowiedni poziom ochrony danych</li>
+<li>Dostawcom usług płatniczych</li>
+<li>Firmom kurierskim</li>
+<li>Organom administracji publicznej (na żądanie)</li>
 </ul>
 
-<h2>9. Bezpieczeństwo danych</h2>
-<p>Stosujemy odpowiednie środki techniczne i organizacyjne zapewniające bezpieczeństwo przetwarzanych danych osobowych:</p>
+<h2>9. Pliki cookies</h2>
+<p>Używamy plików cookies w celu:</p>
 <ul>
-<li>Szyfrowanie danych podczas transmisji (SSL/TLS)</li>
-<li>Kontrola dostępu do danych osobowych</li>
-<li>Regularne kopie zapasowe</li>
-<li>Monitorowanie bezpieczeństwa systemów</li>
-<li>Szkolenia pracowników w zakresie ochrony danych</li>
+<li>Zapewnienia funkcjonalności sklepu</li>
+<li>Analizy ruchu na stronie</li>
+<li>Personalizacji treści</li>
 </ul>
 
-<h2>10. Pliki cookies i technologie śledzące</h2>
-<p>Serwis używa plików cookies w następujących celach:</p>
+<h2>10. Zmiany polityki prywatności</h2>
+<p>Zastrzegamy sobie prawo do zmiany niniejszej polityki prywatności. O wszelkich zmianach będziemy informować użytkowników poprzez:</p>
 <ul>
-<li><strong>Cookies niezbędne</strong> - zapewnienie prawidłowego funkcjonowania strony</li>
-<li><strong>Cookies analityczne</strong> - analiza ruchu i zachowania użytkowników</li>
-<li><strong>Cookies marketingowe</strong> - personalizacja reklam (po uzyskaniu zgody)</li>
-<li><strong>Cookies preferencji</strong> - zapamiętanie ustawień użytkownika</li>
-</ul>
-<p>Możesz zarządzać cookies poprzez ustawienia przeglądarki.</p>
-
-<h2>11. Zmiany polityki prywatności</h2>
-<p>Zastrzegamy sobie prawo do wprowadzania zmian w niniejszej Polityce Prywatności. O istotnych zmianach będziemy informować:</p>
-<ul>
-<li>Poprzez publikację nowej wersji na stronie internetowej</li>
-<li>Poprzez wysłanie powiadomienia e-mail (jeśli posiadamy Twój adres)</li>
-<li>Poprzez wyświetlenie informacji przy następnym logowaniu</li>
+<li>Powiadomienie na stronie internetowej</li>
+<li>Wiadomość e-mail</li>
 </ul>
 
-<h2>12. Podstawy prawne</h2>
-<p>Niniejsza polityka prywatności jest zgodna z:</p>
-<ul>
-<li>Rozporządzeniem Parlamentu Europejskiego i Rady (UE) 2016/679 (RODO)</li>
-<li>Ustawą z dnia 10 maja 2018 r. o ochronie danych osobowych</li>
-<li>Ustawą z dnia 16 lipca 2004 r. Prawo telekomunikacyjne</li>
-</ul>
+<h2>11. Kontakt</h2>
+<p>W sprawach związanych z ochroną danych osobowych można kontaktować się z nami:</p>
+<p><strong>Email:</strong> hello@dartshop.pl</p>
+<p><strong>Telefon:</strong> +48 123 456 789</p>
+<p><strong>Adres:</strong> ul. Przykładowa 123, 00-000 Warszawa</p>
 
-<h2>13. Kontakt w sprawach ochrony danych</h2>
-<p>W sprawach dotyczących ochrony danych osobowych można kontaktować się:</p>
-<ul>
-<li><strong>E-mail:</strong> hello@dartshop.pl</li>
-<li><strong>Telefon:</strong> +48 123 456 789</li>
-<li><strong>Adres korespondencyjny:</strong> DartShop, ul. Przykładowa 123, 00-001 Warszawa</li>
-</ul>
-
-<p><strong>Data ostatniej aktualizacji:</strong> ' . date('d.m.Y') . '</p>
-<p><strong>Data wejścia w życie:</strong> ' . date('d.m.Y') . '</p>
-        ';
+<p><strong>Data ostatniej aktualizacji:</strong> ' . date('d.m.Y') . '</p>';
     }
 }
