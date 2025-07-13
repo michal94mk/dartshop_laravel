@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 p-4 bg-white rounded-lg shadow-sm min-h-full">
+  <div class="space-y-6 bg-white min-h-full pr-6">
     <!-- Page Header -->
     <div class="px-6 py-4">
       <page-header
