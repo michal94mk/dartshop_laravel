@@ -158,12 +158,18 @@ class OrderController extends BaseAdminController
                 'items.*.product_id' => 'required|exists:products,id',
                 'items.*.quantity' => 'required|integer|min:1',
                 'items.*.price' => 'required|numeric|min:0',
+                'items.*.product_name' => 'nullable|string|max:255',
+                'items.*.total' => 'nullable|numeric|min:0',
                 'order_number' => 'nullable|string|max:50',
             ]);
 
             if ($validator->fails()) {
                 Log::warning('Order validation failed:', ['errors' => $validator->errors()->toArray()]);
-                return response()->json(['errors' => $validator->errors()], 422);
+                Log::warning('Request data:', $request->all());
+                return response()->json([
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
             }
 
             // Start transaction
@@ -276,11 +282,21 @@ class OrderController extends BaseAdminController
                 'payment_method' => 'required|string|max:100',
                 'shipping_method' => 'required|string|max:100',
                 'notes' => 'nullable|string',
+                'items' => 'nullable|array',
+                'items.*.product_id' => 'required_with:items|exists:products,id',
+                'items.*.quantity' => 'required_with:items|integer|min:1',
+                'items.*.price' => 'required_with:items|numeric|min:0',
+                'items.*.product_name' => 'nullable|string|max:255',
+                'items.*.total' => 'nullable|numeric|min:0',
             ]);
 
             if ($validator->fails()) {
                 Log::warning('Order update validation failed:', ['errors' => $validator->errors()->toArray()]);
-                return response()->json(['errors' => $validator->errors()], 422);
+                Log::warning('Request data:', $request->all());
+                return response()->json([
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
             }
 
             // Start transaction

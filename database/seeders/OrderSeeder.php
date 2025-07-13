@@ -75,6 +75,7 @@ class OrderSeeder extends Seeder
                 'address' => $addresses[array_rand($addresses)],
                 'city' => $cities[array_rand($cities)],
                 'postal_code' => $postalCodes[array_rand($postalCodes)],
+                'country' => 'Polska',
                 'notes' => rand(0, 1) ? 'Dodatkowe uwagi do zamówienia' : null,
                 'subtotal' => 0, // Will update after adding items
                 'shipping_cost' => $shippingCost,

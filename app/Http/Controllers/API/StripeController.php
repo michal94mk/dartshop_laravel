@@ -389,7 +389,7 @@ class StripeController extends Controller
                 'address' => $request->shipping['address'],
                 'city' => $request->shipping['city'],
                 'postal_code' => $request->shipping['postalCode'],
-                'country' => 'PL',
+                'country' => 'Polska',
                 'subtotal' => $subtotal,
                 'shipping_cost' => $shippingCost,
                 'discount' => $discount,
@@ -514,7 +514,7 @@ class StripeController extends Controller
                 'address' => $request->shipping['address'],
                 'city' => $request->shipping['city'],
                 'postal_code' => $request->shipping['postalCode'],
-                'country' => 'PL',
+                'country' => 'Polska',
                 'subtotal' => $subtotal,
                 'shipping_cost' => $shippingCost,
                 'discount' => $discount,
@@ -531,8 +531,8 @@ class StripeController extends Controller
                     'product_id' => $cartItem['product']->id,
                     'product_name' => $cartItem['product']->name,
                     'quantity' => $cartItem['quantity'],
-                    'price' => $cartItem['price'],
-                    'total' => $cartItem['total'],
+                    'product_price' => $cartItem['price'],
+                    'total_price' => $cartItem['total'],
                 ]);
             }
 
@@ -635,7 +635,7 @@ class StripeController extends Controller
                     'address' => $shippingData['address'],
                     'city' => $shippingData['city'],
                     'postal_code' => $shippingData['postalCode'],
-                    'country' => 'PL',
+                    'country' => 'Polska',
                     'subtotal' => (float) $subtotal,
                     'shipping_cost' => (float) $shippingCost,
                     'discount' => (float) $discount,
@@ -706,7 +706,7 @@ class StripeController extends Controller
                     'address' => $shippingData['address'],
                     'city' => $shippingData['city'],
                     'postal_code' => $shippingData['postalCode'],
-                    'country' => 'PL',
+                    'country' => 'Polska',
                     'subtotal' => (float) $subtotal,
                     'shipping_cost' => (float) $shippingCost,
                     'discount' => (float) $discount,
@@ -725,8 +725,8 @@ class StripeController extends Controller
                         'product_id' => $cartItem['product']->id,
                         'product_name' => $cartItem['product']->name,
                         'quantity' => $cartItem['quantity'],
-                        'price' => $cartItem['price'],
-                        'total' => $cartItem['total'],
+                        'product_price' => $cartItem['price'],
+                        'total_price' => $cartItem['total'],
                     ]);
                 }
             }

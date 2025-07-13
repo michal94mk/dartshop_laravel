@@ -5,7 +5,7 @@
       <page-header 
         title="Zamówienia"
         add-button-label="Dodaj"
-        @add="showCreateOrderModal = true"
+        @add="openCreateOrderModal"
       />
     </div>
 
@@ -358,11 +358,12 @@
     </admin-modal>
 
     <!-- Create/Edit Order Modal -->
-    <modal v-if="showCreateOrderModal || showEditModal" @close="closeEditModal">
-      <template #title>
-        {{ showEditModal ? 'Edytuj zamówienie' : 'Dodaj nowe zamówienie' }}
-      </template>
-      <template #content>
+    <admin-modal
+      :show="showCreateOrderModal || showEditModal"
+      :title="showEditModal ? 'Edytuj zamówienie' : 'Dodaj nowe zamówienie'"
+      size="4xl"
+      @close="closeEditModal"
+    >
         <form @submit.prevent="handleSubmit" class="space-y-4">
           <!-- Add validation errors display -->
           <div v-if="validationErrors.length > 0" class="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
@@ -573,52 +574,56 @@
             ></textarea>
           </div>
         </form>
-      </template>
+      
       <template #footer>
-        <button
-          type="button"
-          @click="closeEditModal"
-          class="mr-3 px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-500"
-        >
-          Anuluj
-        </button>
-        <button
-          type="button"
-          @click="handleSubmit"
-          class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700"
-        >
-          {{ showEditModal ? 'Zapisz zmiany' : 'Dodaj zamówienie' }}
-        </button>
+        <admin-button-group justify="end" spacing="sm">
+          <admin-button
+            @click="closeEditModal"
+            variant="secondary"
+            outline
+          >
+            Anuluj
+          </admin-button>
+          <admin-button
+            @click="handleSubmit"
+            variant="primary"
+          >
+            {{ showEditModal ? 'Zapisz zmiany' : 'Dodaj zamówienie' }}
+          </admin-button>
+        </admin-button-group>
       </template>
-    </modal>
+    </admin-modal>
 
     <!-- Delete Confirmation Modal -->
-    <modal v-if="showDeleteModal" @close="showDeleteModal = false">
-      <template #title>
-        Potwierdź usunięcie
-      </template>
-      <template #content>
-        <p class="text-sm text-gray-500">
-          Czy na pewno chcesz usunąć to zamówienie? Tej operacji nie można cofnąć.
-        </p>
-      </template>
+    <admin-modal
+      :show="showDeleteModal"
+      title="Potwierdź usunięcie"
+      size="md"
+      icon-variant="danger"
+      @close="showDeleteModal = false"
+    >
+      <p class="text-sm text-gray-500">
+        Czy na pewno chcesz usunąć to zamówienie? Tej operacji nie można cofnąć.
+      </p>
+      
       <template #footer>
-        <button
-          type="button"
-          @click="showDeleteModal = false"
-          class="mr-3 px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-500"
-        >
-          Anuluj
-        </button>
-        <button
-          type="button"
-          @click="deleteOrder"
-          class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700"
-        >
-          Usuń
-        </button>
+        <admin-button-group justify="end" spacing="sm">
+          <admin-button
+            @click="showDeleteModal = false"
+            variant="secondary"
+            outline
+          >
+            Anuluj
+          </admin-button>
+          <admin-button
+            @click="deleteOrder"
+            variant="danger"
+          >
+            Usuń
+          </admin-button>
+        </admin-button-group>
       </template>
-    </modal>
+    </admin-modal>
   </div>
 </template>
 
@@ -626,7 +631,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useAlertStore } from '../../stores/alertStore'
 import axios from 'axios'
-import Modal from '../../components/Modal.vue'
+
 import SearchFilters from '../../components/admin/SearchFilters.vue'
 import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
 import NoDataMessage from '../../components/admin/NoDataMessage.vue'
@@ -644,7 +649,6 @@ import ActionButtons from '../../components/admin/ActionButtons.vue'
 export default {
   name: 'AdminOrders',
   components: {
-    Modal,
     SearchFilters,
     LoadingSpinner,
     NoDataMessage,
@@ -1108,6 +1112,10 @@ export default {
       return stringValue
     }
 
+    const debugFormValue = (key, value) => {
+      console.log(`Form field ${key}:`, value, `(type: ${typeof value})`)
+    }
+
     const handleSubmit = async () => {
       try {
         // Reset validation errors at the beginning
@@ -1239,6 +1247,21 @@ export default {
           return
         }
 
+        // Ensure all items have valid product_id and quantity
+        for (let i = 0; i < editedOrder.value.items.length; i++) {
+          const item = editedOrder.value.items[i]
+          if (!item.product_id) {
+            alertStore.error(`Wybierz produkt dla pozycji ${i + 1}`)
+            validationErrors.value.push(`Produkt dla pozycji ${i + 1} jest wymagany`)
+            return
+          }
+          if (!item.quantity || item.quantity < 1) {
+            alertStore.error(`Ilość dla pozycji ${i + 1} musi być większa od 0`)
+            validationErrors.value.push(`Ilość dla pozycji ${i + 1} musi być większa od 0`)
+            return
+          }
+        }
+
         // Just before preparing orderData
         console.log('Form state before submission:', {
           user_id: editedOrder.value.user_id,
@@ -1303,6 +1326,14 @@ export default {
 
         // Use formattedOrderData instead of orderData
         console.log('Sending order data:', JSON.stringify(formattedOrderData))
+        
+        // Additional debugging for items array
+        if (formattedOrderData.items && formattedOrderData.items.length > 0) {
+          console.log('Items array structure:')
+          formattedOrderData.items.forEach((item, index) => {
+            console.log(`Item ${index}:`, item)
+          })
+        }
 
         // Submit the order
         if (showEditModal.value) {
