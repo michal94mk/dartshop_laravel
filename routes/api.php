@@ -201,7 +201,6 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/dashboard', [DashboardController::class, 'index']);
     
     // Image uploads
-    Route::post('/upload/image/about', [ImageUploadController::class, 'uploadAboutImage']);
     Route::post('/upload/image/tutorial', [ImageUploadController::class, 'uploadTutorialImage']);
     
     // Products management - custom routes must be defined BEFORE the resource route
@@ -253,7 +252,6 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     // About page management
     Route::get('/about', [AboutPageController::class, 'index']);
     Route::put('/about', [AboutPageController::class, 'update']);
-    Route::post('/about/upload-image', [AboutPageController::class, 'uploadImage']);
     
     // Newsletter management
     Route::get('/newsletter', [AdminNewsletterController::class, 'index']);

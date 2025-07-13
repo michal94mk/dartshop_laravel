@@ -99,66 +99,7 @@
               />
             </div>
             
-            <div>
-              <label for="image_upload" class="block text-sm font-medium text-gray-700">Obrazek strony</label>
-              <div class="mt-1 flex items-center space-x-4">
-                <div class="flex-shrink-0 h-40 w-40 bg-gray-100 rounded-md overflow-hidden">
-                  <img v-if="aboutUs.image_path" :src="getImageUrl(aboutUs.image_path)" alt="About page image" class="h-40 w-40 object-cover">
-                  <div v-else class="h-40 w-40 flex items-center justify-center text-gray-400">
-                    <svg class="h-12 w-12" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
-                    </svg>
-                  </div>
-                </div>
-                <div class="flex-1">
-                  <input
-                    type="file"
-                    id="image_upload"
-                    ref="fileInput"
-                    @change="handleImageUpload"
-                    accept="image/*"
-                    class="sr-only"
-                  />
-                  <div class="space-y-2">
-                    <label
-                      for="image_upload"
-                      class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
-                    >
-                      Wybierz plik
-                    </label>
-                    <p v-if="imageUploadError" class="text-sm text-red-500">{{ imageUploadError }}</p>
-                    <p v-if="uploadingImage" class="text-sm text-indigo-500">Trwa przesyłanie...</p>
-                    <p v-else-if="aboutUs.image_path" class="text-sm text-gray-500">
-                      <span class="truncate block max-w-xs">
-                        {{ aboutUs.image_path.split('/').pop() }}
-                      </span>
-                      <button 
-                        type="button" 
-                        @click="removeImage" 
-                        class="ml-2 mt-1 text-red-600 hover:text-red-800 text-xs font-medium"
-                      >
-                        Usuń
-                      </button>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Image Position Selector -->
-            <div v-if="aboutUs.image_path">
-              <label for="image_position" class="block text-sm font-medium text-gray-700">Pozycja obrazka</label>
-                  <select 
-                    id="image_position" 
-                v-model="aboutUs.image_position" 
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  >
-                    <option value="left">Po lewej stronie</option>
-                    <option value="right">Po prawej stronie</option>
-                    <option value="top">Na górze</option>
-                    <option value="bottom">Na dole</option>
-                  </select>
-            </div>
+
             
             <div class="flex justify-end space-x-3">
               <button 
@@ -193,54 +134,8 @@
         
         <!-- Preview Content -->
         <div class="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-          <!-- Left/Right Layout -->
-          <div v-if="aboutUs.image_position === 'left' || aboutUs.image_position === 'right'" 
-               class="flex flex-col md:flex-row" 
-               :class="{ 'md:flex-row-reverse': aboutUs.image_position === 'right' }">
-            
-            <!-- Image section -->
-            <div v-if="aboutUs.image_path" class="w-full md:w-2/5 lg:w-1/3 flex-shrink-0 mb-8 md:mb-0" 
-                 :class="{ 
-                   'md:mr-12 lg:mr-16': aboutUs.image_position === 'left', 
-                   'md:ml-12 lg:ml-16': aboutUs.image_position === 'right' 
-                 }">
-              <img 
-                :src="getImageUrl(aboutUs.image_path)" 
-                :alt="aboutUs.title"
-                class="w-full h-auto object-cover rounded-lg shadow-md"
-              >
-            </div>
-            
-            <!-- Content section -->
-            <div class="flex-1">
-              <h1 :class="[aboutUs.header_style || 'text-3xl font-bold text-gray-900', headerOptions.margin]">{{ aboutUs.title }}</h1>
-              <div :class="['break-words', headerOptions.contentLayout]" v-html="aboutUs.content"></div>
-            </div>
-          </div>
-          
-          <!-- Top/Bottom Layout -->
-          <div v-else class="space-y-6">
-            <!-- Image at the top -->
-            <div v-if="aboutUs.image_path && aboutUs.image_position === 'top'" class="mb-8">
-              <img 
-                :src="getImageUrl(aboutUs.image_path)" 
-                :alt="aboutUs.title"
-                class="w-full h-auto max-h-96 object-cover rounded-lg shadow-md"
-              >
-            </div>
-            
-            <h1 :class="[aboutUs.header_style || 'text-3xl font-bold text-gray-900', headerOptions.margin]">{{ aboutUs.title }}</h1>
-            <div :class="['break-words', headerOptions.contentLayout]" v-html="aboutUs.content"></div>
-            
-            <!-- Image at the bottom -->
-            <div v-if="aboutUs.image_path && aboutUs.image_position === 'bottom'" class="mt-10">
-              <img 
-                :src="getImageUrl(aboutUs.image_path)" 
-                :alt="aboutUs.title"
-                class="w-full h-auto max-h-96 object-cover rounded-lg shadow-md"
-              >
-            </div>
-          </div>
+          <h1 :class="[aboutUs.header_style || 'text-3xl font-bold text-gray-900', headerOptions.margin]">{{ aboutUs.title }}</h1>
+          <div :class="['break-words', headerOptions.contentLayout]" v-html="aboutUs.content"></div>
         </div>
       </div>
     </div>
@@ -266,15 +161,11 @@ export default {
     const aboutUs = ref({
       title: '',
       content: '',
-      image_path: null,
-      image_position: 'right',
       header_style: 'text-3xl font-bold text-gray-900'
     })
     const originalAboutUs = ref(null)
     const loading = ref(true)
     const saving = ref(false)
-    const uploadingImage = ref(false)
-    const imageUploadError = ref('')
     const alertStore = useAlertStore()
     const headerOptions = ref({
       margin: 'mb-6',
@@ -336,62 +227,7 @@ export default {
       alertStore.info('Zmiany zostały anulowane')
     }
     
-    // Handle image upload
-    const handleImageUpload = async (event) => {
-      const file = event.target.files[0]
-      if (!file) return
-      
-      const maxSize = 5 * 1024 * 1024 // 5MB
-      if (file.size > maxSize) {
-        imageUploadError.value = 'Plik jest zbyt duży. Maksymalny rozmiar to 5MB.'
-        return
-      }
-      
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-      if (!allowedTypes.includes(file.type)) {
-        imageUploadError.value = 'Nieprawidłowy format pliku. Dozwolone formaty: JPEG, PNG, GIF, WEBP.'
-        return
-      }
-      
-      uploadingImage.value = true
-      imageUploadError.value = ''
-      
-      const formData = new FormData()
-      formData.append('image', file)
-      
-      try {
-        const response = await axios.post('/api/admin/upload/image/about', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        })
-        
-        aboutUs.value.image_path = response.data.path
-      } catch (error) {
-        console.error('Error uploading image:', error)
-        imageUploadError.value = 'Nie udało się przesłać obrazka. Spróbuj ponownie.'
-      } finally {
-        uploadingImage.value = false
-      }
-    }
-    
-    // Remove image
-    const removeImage = () => {
-      aboutUs.value.image_path = null
-    }
-    
-    // Get the full URL for an image path
-    const getImageUrl = (path) => {
-      if (!path) return null
-      
-      // Check if it's already a full URL
-      if (path.startsWith('http')) {
-        return path
-      }
-      
-      // Otherwise, construct URL from storage path
-      return `/storage/${path}`
-    }
+
     
     onMounted(() => {
       fetchAboutPage()
@@ -401,13 +237,8 @@ export default {
       aboutUs,
       loading,
       saving,
-      uploadingImage,
-      imageUploadError,
       saveAboutPage,
       resetForm,
-      handleImageUpload,
-      removeImage,
-      getImageUrl,
       headerOptions
     }
   }

@@ -44,65 +44,9 @@
 
       <!-- Main Content Section -->
       <div class="py-16 px-4 sm:px-6 lg:px-8">
-        <!-- Image and Content Layout -->
-        <div v-if="aboutUs.image_position === 'left' || aboutUs.image_position === 'right'" 
-             class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center h-full">
-          
-          <!-- Image Section -->
-          <div v-if="aboutUs.image_path" 
-               class="relative h-full"
-               :class="{ 'lg:col-start-2': aboutUs.image_position === 'right' }">
-            <div class="relative overflow-hidden rounded-2xl shadow-2xl h-full">
-              <img 
-                :src="getImageUrl(aboutUs.image_path)" 
-                :alt="aboutUs.title"
-                class="w-full h-full object-cover"
-              >
-              <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-            </div>
-            <!-- Decorative elements -->
-            <div class="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-r from-purple-400 to-indigo-500 rounded-full opacity-20"></div>
-            <div class="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-r from-indigo-400 to-purple-500 rounded-full opacity-30"></div>
-          </div>
-          
-          <!-- Content Section -->
-          <div class="h-full" :class="{ 'lg:col-start-1 lg:row-start-1': aboutUs.image_position === 'right' }">
-            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 h-full">
-              <div class="prose prose-lg max-w-none h-full" v-html="aboutUs.content"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Top/Bottom Image Layout -->
-        <div v-else class="space-y-12">
-          <!-- Image at the top -->
-          <div v-if="aboutUs.image_path && aboutUs.image_position === 'top'" class="relative">
-            <div class="relative overflow-hidden rounded-2xl shadow-2xl">
-              <img 
-                :src="getImageUrl(aboutUs.image_path)" 
-                :alt="aboutUs.title"
-                class="w-full h-96 object-cover"
-              >
-              <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-            </div>
-          </div>
-          
-          <!-- Content -->
-          <div class="bg-white rounded-2xl shadow-xl p-8 lg:p-12 border border-gray-100">
-            <div class="prose prose-lg max-w-none" v-html="aboutUs.content"></div>
-          </div>
-          
-          <!-- Image at the bottom -->
-          <div v-if="aboutUs.image_path && aboutUs.image_position === 'bottom'" class="relative">
-            <div class="relative overflow-hidden rounded-2xl shadow-2xl">
-              <img 
-                :src="getImageUrl(aboutUs.image_path)" 
-                :alt="aboutUs.title"
-                class="w-full h-96 object-cover"
-              >
-              <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-            </div>
-          </div>
+        <!-- Content -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 lg:p-12 border border-gray-100">
+          <div class="prose prose-lg max-w-none" v-html="aboutUs.content"></div>
         </div>
       </div>
 
@@ -245,18 +189,7 @@ export default {
       }
     }
     
-    // Get the full URL for an image path
-    const getImageUrl = (path) => {
-      if (!path) return null
-      
-      // Check if it's already a full URL
-      if (path.startsWith('http')) {
-        return path
-      }
-      
-      // Otherwise, construct URL from storage path
-      return `/storage/${path}`
-    }
+
     
     onMounted(() => {
       fetchAboutUs()
@@ -264,8 +197,7 @@ export default {
     
     return {
       aboutUs,
-      loading,
-      getImageUrl
+      loading
     }
   }
 }

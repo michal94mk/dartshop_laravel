@@ -24,8 +24,6 @@ class AboutUs extends Model
     protected $fillable = [
         'title',
         'content',
-        'image_path',
-        'image_position',
         'header_style',
         'header_margin',
         'content_layout',

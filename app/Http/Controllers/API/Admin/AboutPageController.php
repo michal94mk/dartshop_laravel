@@ -65,8 +65,6 @@ class AboutPageController extends BaseAdminController
             'content' => 'required|string',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
-            'image_path' => 'nullable|string',
-            'image_position' => 'nullable|string|in:left,right,top,bottom',
             'header_style' => 'nullable|string',
             'header_margin' => 'nullable|string',
             'content_layout' => 'nullable|string',
@@ -82,8 +80,6 @@ class AboutPageController extends BaseAdminController
             'content',
             'meta_title',
             'meta_description',
-            'image_path',
-            'image_position',
             'header_style',
             'header_margin',
             'content_layout'
@@ -107,8 +103,6 @@ class AboutPageController extends BaseAdminController
             'content' => 'required|string',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
-            'image_path' => 'nullable|string',
-            'image_position' => 'nullable|string|in:left,right,top,bottom',
             'header_style' => 'nullable|string',
             'header_margin' => 'nullable|string',
             'content_layout' => 'nullable|string',
@@ -131,8 +125,6 @@ class AboutPageController extends BaseAdminController
             'content',
             'meta_title',
             'meta_description',
-            'image_path',
-            'image_position',
             'header_style',
             'header_margin',
             'content_layout'
@@ -157,8 +149,6 @@ class AboutPageController extends BaseAdminController
             'content' => 'required|string',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
-            'image_path' => 'nullable|string',
-            'image_position' => 'nullable|string|in:left,right,top,bottom',
             'header_style' => 'nullable|string',
             'header_margin' => 'nullable|string',
             'content_layout' => 'nullable|string',
@@ -176,8 +166,6 @@ class AboutPageController extends BaseAdminController
             'content',
             'meta_title',
             'meta_description',
-            'image_path',
-            'image_position',
             'header_style',
             'header_margin',
             'content_layout'
@@ -202,42 +190,5 @@ class AboutPageController extends BaseAdminController
         return response()->json(['message' => 'Strona usunięta pomyślnie']);
     }
     
-    /**
-     * Upload an image for the About page.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function uploadImage(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
 
-        if ($validator->fails()) {
-            return $this->validationError($validator->errors());
-        }
-
-        try {
-            $image = $request->file('image');
-            $fileName = 'about_' . time() . '_' . \Illuminate\Support\Str::random(10) . '.' . $image->getClientOriginalExtension();
-            
-            // Store the image in the public storage
-            $path = $image->storeAs('images/about', $fileName, 'public');
-            
-            // Generate the public URL
-            $url = asset('storage/' . $path);
-            
-            return response()->json([
-                'success' => true,
-                'path' => $path,
-                'url' => $url
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error uploading image: ' . $e->getMessage()
-            ], 500);
-        }
-    }
 } 

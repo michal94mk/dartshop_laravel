@@ -22,9 +22,7 @@ class AboutUsController extends Controller
         if (!$aboutUs) {
             return response()->json([
                 'title' => 'O naszym sklepie',
-                'content' => 'Informacje o nas nie są jeszcze dostępne.',
-                'image_path' => null,
-                'image_position' => 'right'
+                'content' => 'Informacje o nas nie są jeszcze dostępne.'
             ]);
         }
         
@@ -43,8 +41,6 @@ class AboutUsController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'image_path' => 'nullable|string',
-            'image_position' => 'required|in:left,right,top,bottom',
         ]);
         
         if ($validator->fails()) {
@@ -57,39 +53,11 @@ class AboutUsController extends Controller
         // Aktualizuj dane
         $aboutUs->title = $request->title;
         $aboutUs->content = $request->content;
-        $aboutUs->image_path = $request->image_path;
-        $aboutUs->image_position = $request->image_position;
         
         $aboutUs->save();
         
         return response()->json($aboutUs);
     }
     
-    /**
-     * Prześlij obrazek dla strony "O nas".
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function uploadImage(Request $request)
-    {
-        // Walidacja obrazka
-        $validator = Validator::make($request->all(), [
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-        ]);
-        
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-        
-        // Przetwarzanie i zapisywanie obrazka
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $path = $image->store('images/about', 'public');
-            
-            return response()->json(['path' => $path]);
-        }
-        
-        return response()->json(['error' => 'Nie udało się przesłać obrazka.'], 400);
-    }
+
 }
