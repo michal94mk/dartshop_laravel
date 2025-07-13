@@ -264,7 +264,7 @@
     <!-- Główna treść -->
     <div class="pt-16 lg:ml-64 h-screen overflow-hidden flex-1">
       <!-- Page Content -->
-      <main class="bg-gray-100 h-full overflow-y-auto pl-6 pr-0 w-full">
+      <main class="bg-gray-100 h-full overflow-y-auto lg:pl-6 pr-0 w-full">
         <router-view :key="$route.fullPath" />
       </main>
     </div>

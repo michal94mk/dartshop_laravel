@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 bg-white min-h-full pr-6">
+  <div class="space-y-6 bg-white min-h-full lg:pr-6">
     <!-- Page Header -->
     <div class="px-6 py-4">
       <page-header 
@@ -94,8 +94,8 @@
       </div>
 
       <!-- Policies Table -->
-      <div v-else class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
+                      <div v-else class="overflow-x-auto -mx-6 px-6" style="scrollbar-width: thin; scrollbar-color: #d1d5db #f3f4f6;">
+          <table class="min-w-full divide-y divide-gray-200 whitespace-nowrap">
           <thead class="bg-gray-50">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tytuł</th>
