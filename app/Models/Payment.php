@@ -26,14 +26,15 @@ class Payment extends Model
     protected $fillable = [
         'order_id',
         'user_id',
-        'payment_id',
         'payment_method',
+        'payment_status',
         'amount',
         'currency',
-        'status',
-        'transaction_data',
         'transaction_id',
-        'notes'
+        'payment_intent_id',
+        'payment_data',
+        'paid_at',
+        'failure_reason'
     ];
 
     /**
@@ -42,8 +43,9 @@ class Payment extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'status' => PaymentStatus::class,
-        'transaction_data' => 'json'
+        'payment_status' => PaymentStatus::class,
+        'payment_data' => 'json',
+        'paid_at' => 'datetime'
     ];
 
     /**

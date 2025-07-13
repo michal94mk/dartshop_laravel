@@ -282,9 +282,6 @@ class UserController extends BaseAdminController
             if ($user->cartItems()->count() > 0) {
                 $relations['cart_items'] = $user->cartItems()->count();
             }
-            if ($user->payments()->count() > 0) {
-                $relations['payments'] = $user->payments()->count();
-            }
             if ($user->favoriteProducts()->count() > 0) {
                 $relations['favorite_products'] = $user->favoriteProducts()->count();
             }
@@ -437,9 +434,12 @@ class UserController extends BaseAdminController
             $user->favoriteProducts()->detach();
             $user->cartItems()->delete();
             $user->reviews()->delete();
-            $user->payments()->delete();
             
             // For orders, we might want to keep them but anonymize the user
+            // But first, we need to delete order items
+            foreach ($user->orders as $order) {
+                $order->items()->delete();
+            }
             $user->orders()->update(['user_id' => null]);
             
             // Finally delete the user
