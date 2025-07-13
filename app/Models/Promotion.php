@@ -27,7 +27,11 @@ class Promotion extends Model
         'is_active',
         'code',
         'usage_limit',
-        'used_count'
+        'used_count',
+        'badge_text',
+        'badge_color',
+        'is_featured',
+        'display_order'
     ];
 
     /**
@@ -39,7 +43,9 @@ class Promotion extends Model
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
         'is_active' => 'boolean',
-        'discount_value' => 'decimal:2'
+        'discount_value' => 'decimal:2',
+        'is_featured' => 'boolean',
+        'display_order' => 'integer'
     ];
 
     /**
@@ -69,8 +75,7 @@ class Promotion extends Model
      */
     public function scopeFeatured($query)
     {
-        // Since we don't have is_featured field, return all active promotions
-        return $query->where('is_active', true);
+        return $query->where('is_featured', true);
     }
 
     /**
@@ -78,7 +83,15 @@ class Promotion extends Model
      */
     public function scopeOrdered($query)
     {
-        return $query->orderBy('created_at', 'desc');
+        return $query->orderBy('display_order', 'asc')->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Scope dla promocji z produktami
+     */
+    public function scopeWithProducts($query)
+    {
+        return $query->with(['products:id,name,price,image_url']);
     }
 
     /**
@@ -127,6 +140,14 @@ class Promotion extends Model
     public function getDiscountAmount(float $originalPrice): float
     {
         return $originalPrice - $this->calculateDiscountedPrice($originalPrice);
+    }
+
+    /**
+     * Alias dla calculateDiscountedPrice dla kompatybilności
+     */
+    public function calculatePromotionalPrice(float $originalPrice): float
+    {
+        return $this->calculateDiscountedPrice($originalPrice);
     }
 
     /**
@@ -197,37 +218,27 @@ class Promotion extends Model
         return $this->save();
     }
 
-    /**
-     * Get default display order.
-     */
-    public function getDisplayOrderAttribute()
-    {
-        return 0;
-    }
+
 
     /**
-     * Get default is_featured value.
-     */
-    public function getIsFeaturedAttribute()
-    {
-        return true; // All active promotions are considered featured
-    }
-
-    /**
-     * Get default badge text.
+     * Get badge text with fallback.
      */
     public function getBadgeTextAttribute()
     {
+        if (isset($this->attributes['badge_text']) && $this->attributes['badge_text']) {
+            return $this->attributes['badge_text'];
+        }
+        
         return $this->discount_type === 'percentage' 
             ? "-{$this->discount_value}%" 
             : "-{$this->discount_value} PLN";
     }
 
     /**
-     * Get default badge color.
+     * Get badge color with fallback.
      */
     public function getBadgeColorAttribute()
     {
-        return 'red';
+        return isset($this->attributes['badge_color']) ? $this->attributes['badge_color'] : '#ff0000';
     }
 }

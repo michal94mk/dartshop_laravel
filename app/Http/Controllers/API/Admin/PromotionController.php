@@ -158,14 +158,15 @@ class PromotionController extends BaseAdminController
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Promotion::with(['products:id,name,price,image'])
+        $query = Promotion::with(['products:id,name,price,image_url'])
                           ->ordered();
 
         // Filtrowanie
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%");
             });
         }
@@ -178,7 +179,17 @@ class PromotionController extends BaseAdminController
             $query->where('discount_type', $request->discount_type);
         }
 
+        if ($request->has('is_featured')) {
+            $query->where('is_featured', $request->boolean('is_featured'));
+        }
+
         $promotions = $query->paginate($request->get('per_page', 15));
+
+        // Dodaj informacje o liczbie produktów dla każdej promocji
+        $promotions->getCollection()->transform(function ($promotion) {
+            $promotion->products_count = $promotion->products->count();
+            return $promotion;
+        });
 
         return response()->json($promotions);
     }
@@ -188,7 +199,10 @@ class PromotionController extends BaseAdminController
      */
     public function show(Promotion $promotion): JsonResponse
     {
-        $promotion->load(['products:id,name,price,image']);
+        $promotion->load(['products:id,name,price,image_url']);
+        
+        // Dodaj informacje o liczbie produktów
+        $promotion->products_count = $promotion->products->count();
         
         return response()->json($promotion);
     }
@@ -208,6 +222,10 @@ class PromotionController extends BaseAdminController
             'ends_at' => 'nullable|date|after:starts_at',
             'is_active' => 'boolean',
             'code' => 'nullable|string|max:50|unique:promotions,code',
+            'badge_text' => 'nullable|string|max:50',
+            'badge_color' => 'nullable|string|max:7',
+            'is_featured' => 'boolean',
+            'display_order' => 'integer|min:0',
             'product_ids' => 'array',
             'product_ids.*' => 'exists:products,id'
         ]);
@@ -226,7 +244,10 @@ class PromotionController extends BaseAdminController
             $promotion->products()->sync($validated['product_ids']);
         }
 
-        $promotion->load('products');
+        $promotion->load('products:id,name,price,image_url');
+        
+        // Dodaj informacje o liczbie produktów
+        $promotion->products_count = $promotion->products->count();
 
         return response()->json([
             'message' => 'Promocja została utworzona pomyślnie',
@@ -249,6 +270,10 @@ class PromotionController extends BaseAdminController
             'ends_at' => 'nullable|date|after:starts_at',
             'is_active' => 'boolean',
             'code' => 'nullable|string|max:50|unique:promotions,code,' . $promotion->id,
+            'badge_text' => 'nullable|string|max:50',
+            'badge_color' => 'nullable|string|max:7',
+            'is_featured' => 'boolean',
+            'display_order' => 'integer|min:0',
             'product_ids' => 'array',
             'product_ids.*' => 'exists:products,id'
         ]);
@@ -267,7 +292,10 @@ class PromotionController extends BaseAdminController
             $promotion->products()->sync($validated['product_ids']);
         }
 
-        $promotion->load('products');
+        $promotion->load('products:id,name,price,image_url');
+        
+        // Dodaj informacje o liczbie produktów
+        $promotion->products_count = $promotion->products->count();
 
         return response()->json([
             'message' => 'Promocja została zaktualizowana pomyślnie',
@@ -302,9 +330,14 @@ class PromotionController extends BaseAdminController
 
         $promotion->products()->syncWithoutDetaching($validated['product_ids']);
 
+        $promotion->load('products:id,name,price,image_url');
+        
+        // Dodaj informacje o liczbie produktów
+        $promotion->products_count = $promotion->products->count();
+        
         return response()->json([
             'message' => 'Produkty zostały przypisane do promocji',
-            'promotion' => $promotion->load('products')
+            'promotion' => $promotion
         ]);
     }
 
@@ -322,9 +355,14 @@ class PromotionController extends BaseAdminController
 
         $promotion->products()->detach($validated['product_ids']);
 
+        $promotion->load('products:id,name,price,image_url');
+        
+        // Dodaj informacje o liczbie produktów
+        $promotion->products_count = $promotion->products->count();
+        
         return response()->json([
             'message' => 'Produkty zostały usunięte z promocji',
-            'promotion' => $promotion->load('products')
+            'promotion' => $promotion
         ]);
     }
 
@@ -336,7 +374,7 @@ class PromotionController extends BaseAdminController
         $search = $request->get('search', '');
         $excludePromotionId = $request->get('exclude_promotion_id');
 
-        $query = Product::with(['category:id,name', 'brand:id,name']);
+        $query = Product::with(['category:id,name', 'brand:id,name', 'promotions:id,title,name']);
 
         // Wyszukiwanie
         if ($search) {
@@ -349,13 +387,24 @@ class PromotionController extends BaseAdminController
         // Wykluczenie produktów już przypisanych do innych aktywnych promocji
         // (ale pozwalamy na produkty z edytowanej promocji)
         $query->whereDoesntHave('promotions', function ($q) use ($excludePromotionId) {
-            $q->active();
+            $q->where('is_active', true)
+              ->where('starts_at', '<=', now())
+              ->where(function ($subQ) {
+                  $subQ->whereNull('ends_at')
+                        ->orWhere('ends_at', '>=', now());
+              });
             if ($excludePromotionId) {
                 $q->where('promotions.id', '!=', $excludePromotionId);
             }
         });
 
         $products = $query->paginate($request->get('per_page', 20));
+
+        // Dodaj informacje o liczbie promocji dla każdego produktu
+        $products->getCollection()->transform(function ($product) {
+            $product->promotions_count = $product->promotions->count();
+            return $product;
+        });
 
         return response()->json($products);
     }
@@ -366,6 +415,11 @@ class PromotionController extends BaseAdminController
     public function toggleActive(Promotion $promotion): JsonResponse
     {
         $promotion->update(['is_active' => !$promotion->is_active]);
+        
+        $promotion->load('products:id,name,price,image_url');
+        
+        // Dodaj informacje o liczbie produktów
+        $promotion->products_count = $promotion->products->count();
 
         return response()->json([
             'message' => $promotion->is_active ? 'Promocja została aktywowana' : 'Promocja została dezaktywowana',
@@ -378,9 +432,15 @@ class PromotionController extends BaseAdminController
      */
     public function toggleFeatured(Promotion $promotion): JsonResponse
     {
-        // Since we don't have is_featured field, we'll just return success message
+        $promotion->update(['is_featured' => !$promotion->is_featured]);
+        
+        $promotion->load('products:id,name,price,image_url');
+        
+        // Dodaj informacje o liczbie produktów
+        $promotion->products_count = $promotion->products->count();
+
         return response()->json([
-            'message' => 'Funkcja wyróżniania promocji nie jest dostępna w aktualnej wersji',
+            'message' => $promotion->is_featured ? 'Promocja została wyróżniona' : 'Promocja została usunięta z wyróżnionych',
             'promotion' => $promotion
         ]);
     }
@@ -390,9 +450,19 @@ class PromotionController extends BaseAdminController
      */
     public function updateOrder(Request $request): JsonResponse
     {
-        // Since we don't have display_order field, we'll just return success message
+        $validated = $request->validate([
+            'promotions' => 'required|array',
+            'promotions.*.id' => 'required|exists:promotions,id',
+            'promotions.*.display_order' => 'required|integer|min:0'
+        ]);
+
+        foreach ($validated['promotions'] as $promotionData) {
+            Promotion::where('id', $promotionData['id'])
+                    ->update(['display_order' => $promotionData['display_order']]);
+        }
+
         return response()->json([
-            'message' => 'Funkcja zmiany kolejności promocji nie jest dostępna w aktualnej wersji'
+            'message' => 'Kolejność promocji została zaktualizowana'
         ]);
     }
 } 
