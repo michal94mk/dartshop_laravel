@@ -18,24 +18,32 @@
         
         <!-- Right side - Navigation options -->
         <div class="flex items-center space-x-1">
-          <router-link to="/" class="rounded-md px-3 py-2 text-sm font-medium text-indigo-200 hover:bg-indigo-700 hover:text-white transition-colors">
-            Strona główna
-          </router-link>
-          <router-link to="/profile" class="rounded-md px-3 py-2 text-sm font-medium text-indigo-200 hover:bg-indigo-700 hover:text-white transition-colors">
-            Profil
-          </router-link>
-          <button @click="logout" class="rounded-md px-3 py-2 text-sm font-medium text-indigo-200 hover:bg-indigo-700 hover:text-white transition-colors">
-            Wyloguj
-          </button>
+          <!-- Desktop navigation links -->
+          <div class="hidden sm:flex items-center space-x-1">
+            <router-link to="/" class="rounded-md px-3 py-2 text-sm font-medium text-indigo-200 hover:bg-indigo-700 hover:text-white transition-colors">
+              Strona główna
+            </router-link>
+            <router-link to="/profile" class="rounded-md px-3 py-2 text-sm font-medium text-indigo-200 hover:bg-indigo-700 hover:text-white transition-colors">
+              Profil
+            </router-link>
+            <button @click="logout" class="rounded-md px-3 py-2 text-sm font-medium text-indigo-200 hover:bg-indigo-700 hover:text-white transition-colors">
+              Wyloguj
+            </button>
+          </div>
           
-          <!-- Mobile menu button -->
+          <!-- Mobile menu button - always visible on mobile -->
           <button 
             @click="toggleSidebar" 
-            class="ml-4 rounded p-1 text-indigo-200 hover:bg-indigo-700 hover:text-white lg:hidden"
+            class="sm:hidden ml-2 rounded p-2 text-indigo-200 hover:bg-indigo-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
+          </button>
+          
+          <!-- Desktop logout button -->
+          <button @click="logout" class="hidden sm:block rounded-md px-3 py-2 text-sm font-medium text-indigo-200 hover:bg-indigo-700 hover:text-white transition-colors">
+            Wyloguj
           </button>
         </div>
       </div>
@@ -45,16 +53,16 @@
     <aside 
       class="fixed top-0 bottom-0 left-0 z-40 bg-indigo-800 shadow-lg transform transition-transform duration-300 lg:translate-x-0 flex flex-col h-screen"
       :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}"
-      style="width: 256px;"
+      style="width: 256px; max-width: 85vw; min-width: 280px;"
     >
       <!-- Sidebar header -->
-      <div class="flex h-16 items-center justify-between border-b border-indigo-700 px-6 flex-shrink-0 mt-16">
+      <div class="flex h-16 items-center justify-between border-b border-indigo-700 px-4 sm:px-6 flex-shrink-0 mt-16">
         <router-link to="/" class="text-xl font-bold text-white">
           <span>Dart</span><span class="text-indigo-200">Shop</span>
         </router-link>
         <button 
           @click="toggleSidebar" 
-          class="rounded p-1 text-indigo-200 hover:bg-indigo-700 hover:text-white lg:hidden"
+          class="rounded p-1 text-indigo-200 hover:bg-indigo-700 hover:text-white sm:hidden"
         >
           <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -64,14 +72,14 @@
 
       <!-- Sidebar navigation -->
       <div class="flex-1 py-4 overflow-y-auto">
-        <div class="space-y-1 px-3">
+        <div class="space-y-1 px-2 sm:px-3">
           <!-- Dashboard -->
           <router-link 
             to="/admin/dashboard"
-            class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
+            class="flex items-center rounded-md px-2 sm:px-3 py-2 text-sm font-medium transition-colors duration-150"
             :class="[$route.path === '/admin/dashboard' ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
           >
-            <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
+            <svg class="w-4 h-4 mr-2 sm:mr-3" fill="currentColor" viewBox="0 0 20 20">
               <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
             </svg>
             <span>Dashboard</span>
@@ -87,9 +95,9 @@
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/products') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
-              <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 2L3 7v11a1 1 0 001 1h12a1 1 0 001-1V7l-7-5z" clip-rule="evenodd"/>
-              </svg>
+                          <svg class="w-4 h-4 mr-2 sm:mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 2L3 7v11a1 1 0 001 1h12a1 1 0 001-1V7l-7-5z" clip-rule="evenodd"/>
+            </svg>
               <span>Produkty</span>
             </router-link>
             <router-link 
@@ -97,7 +105,7 @@
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/categories') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
-              <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <svg class="w-4 h-4 mr-2 sm:mr-3" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
               </svg>
               <span>Kategorie</span>
@@ -107,7 +115,7 @@
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/brands') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
-              <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <svg class="w-4 h-4 mr-2 sm:mr-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
               </svg>
               <span>Marki</span>
@@ -117,7 +125,7 @@
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/promotions') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
-              <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <svg class="w-4 h-4 mr-2 sm:mr-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"/>
               </svg>
               <span>Promocje</span>
@@ -249,14 +257,14 @@
     <!-- Sidebar overlay (tylko na mobile) -->
     <div 
       @click="toggleSidebar" 
-      class="fixed inset-0 z-30 bg-black bg-opacity-50 transition-opacity lg:hidden"
+      class="fixed inset-0 z-30 bg-black bg-opacity-50 transition-opacity sm:hidden"
       :class="{'opacity-100 pointer-events-auto': sidebarOpen, 'opacity-0 pointer-events-none': !sidebarOpen}"
     ></div>
 
     <!-- Główna treść -->
     <div class="pt-16 lg:ml-64 h-screen overflow-hidden">
       <!-- Page Content -->
-      <main class="p-4 bg-gray-100 h-full overflow-y-auto">
+      <main class="p-2 sm:p-4 bg-gray-100 h-full overflow-y-auto">
         <router-view :key="$route.fullPath" />
       </main>
     </div>
