@@ -3,7 +3,7 @@
     <!-- Page Header -->
     <div class="px-6 py-4">
       <page-header 
-        title="Zarządzanie poradnikami"
+        title="Poradniki"
         add-button-label="Dodaj"
         @add="showAddForm = true"
       />
