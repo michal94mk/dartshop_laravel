@@ -76,6 +76,7 @@
           <!-- Dashboard -->
           <router-link 
             to="/admin/dashboard"
+            @click="closeSidebar"
             class="flex items-center rounded-md px-2 sm:px-3 py-2 text-sm font-medium transition-colors duration-150"
             :class="[$route.path === '/admin/dashboard' ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
           >
@@ -92,6 +93,7 @@
             </div>
             <router-link 
               to="/admin/products"
+              @click="closeSidebar"
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/products') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
@@ -102,6 +104,7 @@
             </router-link>
             <router-link 
               to="/admin/categories"
+              @click="closeSidebar"
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/categories') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
@@ -112,6 +115,7 @@
             </router-link>
             <router-link 
               to="/admin/brands"
+              @click="closeSidebar"
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/brands') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
@@ -122,6 +126,7 @@
             </router-link>
             <router-link 
               to="/admin/promotions"
+              @click="closeSidebar"
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/promotions') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
@@ -139,6 +144,7 @@
             </div>
             <router-link 
               to="/admin/orders"
+              @click="closeSidebar"
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/orders') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
@@ -149,6 +155,7 @@
             </router-link>
             <router-link 
               to="/admin/users"
+              @click="closeSidebar"
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/users') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
@@ -159,6 +166,7 @@
             </router-link>
             <router-link 
               to="/admin/reviews"
+              @click="closeSidebar"
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/reviews') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
@@ -176,6 +184,7 @@
             </div>
             <router-link 
               to="/admin/tutorials"
+              @click="closeSidebar"
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/tutorials') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
@@ -186,6 +195,7 @@
             </router-link>
             <router-link 
               to="/admin/about"
+              @click="closeSidebar"
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/about') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
@@ -203,6 +213,7 @@
             </div>
             <router-link 
               to="/admin/contact-messages"
+              @click="closeSidebar"
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/contact-messages') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
@@ -214,6 +225,7 @@
             </router-link>
             <router-link 
               to="/admin/newsletter"
+              @click="closeSidebar"
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/newsletter') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
@@ -231,6 +243,7 @@
             </div>
             <router-link 
               to="/admin/privacy-policies"
+              @click="closeSidebar"
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/privacy-policies') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
@@ -241,6 +254,7 @@
             </router-link>
             <router-link 
               to="/admin/terms-of-service"
+              @click="closeSidebar"
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/terms-of-service') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
@@ -298,6 +312,11 @@ export default {
     // Toggle sidebar
     const toggleSidebar = () => {
       sidebarOpen.value = !sidebarOpen.value
+    }
+    
+    // Close sidebar (for mobile navigation)
+    const closeSidebar = () => {
+      sidebarOpen.value = false
     }
     
     // Page title
@@ -412,6 +431,7 @@ export default {
       userMenuOpen,
       sidebarOpen,
       toggleSidebar,
+      closeSidebar,
       toggleUserMenu,
       logout,
       alertStore,
