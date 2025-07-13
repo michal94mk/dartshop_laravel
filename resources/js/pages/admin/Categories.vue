@@ -373,7 +373,12 @@ export default {
         await categoryStore.refreshCategories()
         
       } catch (error) {
-        handleError(error)
+        console.error('Error saving category:', error)
+        if (error.response && error.response.data && error.response.data.message) {
+          alertStore.error(error.response.data.message)
+        } else {
+          alertStore.error('Wystąpił błąd podczas zapisywania kategorii.')
+        }
       } finally {
         submitting.value = false
       }
@@ -386,14 +391,19 @@ export default {
     
     const confirmDelete = async () => {
       try {
-        const response = await axios.delete(`/api/admin/categories/${categoryToDelete.value.id}`)
+        const response = await axios.delete(`/api/admin/categories/${categoryToDelete.value}`)
         showDeleteModal.value = false
         alertStore.success('Kategoria została usunięta')
         await fetchCategories()
         // Refresh categories in the store
         await categoryStore.refreshCategories()
       } catch (error) {
-        handleError(error)
+        console.error('Error deleting category:', error)
+        if (error.response && error.response.data && error.response.data.message) {
+          alertStore.error(error.response.data.message)
+        } else {
+          alertStore.error('Wystąpił błąd podczas usuwania kategorii.')
+        }
       }
     }
     
