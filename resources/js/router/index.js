@@ -430,6 +430,14 @@ router.beforeEach(async (to, from, next) => {
   
   // Special check: if logging out from admin panel, skip checks
   if (from.path && from.path.startsWith('/admin') && to.path === '/' && authStore.isLoading) {
+    console.log('Logging out from admin panel, allowing navigation');
+    next();
+    return;
+  }
+  
+  // Special check: if user is logging out and going to home page
+  if (authStore.isLoading && to.path === '/') {
+    console.log('User is logging out, allowing navigation to home');
     next();
     return;
   }

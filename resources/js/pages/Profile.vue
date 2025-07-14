@@ -743,6 +743,9 @@ export default {
         // Small delay to show message
         await new Promise(resolve => setTimeout(resolve, 100));
         
+        // Set loading state to prevent API calls during logout
+        authStore.isLoading = true;
+        
         const success = await authStore.logout();
         
         if (success) {
@@ -751,9 +754,12 @@ export default {
         }
       } catch (error) {
         console.error('Logout error:', error);
-        alertStore.error('Wystąpił błąd podczas wylogowywania.');
+        // Don't show error message during logout
+        router.push('/');
       } finally {
         isLoggingOut.value = false;
+        // Reset loading state
+        authStore.isLoading = false;
       }
     };
     

@@ -97,9 +97,9 @@
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               :class="[$route.path.includes('/admin/products') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
-                          <svg class="w-4 h-4 mr-2 sm:mr-3" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 2L3 7v11a1 1 0 001 1h12a1 1 0 001-1V7l-7-5z" clip-rule="evenodd"/>
-            </svg>
+              <svg class="w-4 h-4 mr-2 sm:mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 2L3 7v11a1 1 0 001 1h12a1 1 0 001-1V7l-7-5z" clip-rule="evenodd"/>
+              </svg>
               <span>Produkty</span>
             </router-link>
             <router-link 
@@ -204,25 +204,6 @@
               </svg>
               <span>O nas</span>
             </router-link>
-          </div>
-
-          <!-- Komunikacja -->
-          <div class="pt-3">
-            <div class="px-3 py-1">
-              <p class="text-xs font-semibold text-indigo-300 uppercase tracking-wider">Komunikacja</p>
-            </div>
-            <router-link 
-              to="/admin/contact-messages"
-              @click="closeSidebar"
-              class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
-              :class="[$route.path.includes('/admin/contact-messages') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
-            >
-              <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
-              </svg>
-              <span>Wiadomości</span>
-            </router-link>
             <router-link 
               to="/admin/newsletter"
               @click="closeSidebar"
@@ -230,17 +211,22 @@
               :class="[$route.path.includes('/admin/newsletter') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
               <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M2.94 6.412A2 2 0 002 8.108V16a2 2 0 002 2h12a2 2 0 002-2V8.108a2 2 0 00-.94-1.696l-6-3.75a2 2 0 00-2.12 0l-6 3.75zm2.615 2.423a1 1 0 10-1.11 1.664l5 3.333a1 1 0 001.11 0l5-3.333a1 1 0 00-1.11-1.664L10 12.798 5.555 8.835z" clip-rule="evenodd"/>
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
               </svg>
               <span>Newsletter</span>
             </router-link>
-          </div>
-
-          <!-- Ustawienia -->
-          <div class="pt-3 pb-4">
-            <div class="px-3 py-1">
-              <p class="text-xs font-semibold text-indigo-300 uppercase tracking-wider">Ustawienia</p>
-            </div>
+            <router-link 
+              to="/admin/contact-messages"
+              @click="closeSidebar"
+              class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
+              :class="[$route.path.includes('/admin/contact-messages') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
+            >
+              <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>
+              </svg>
+              <span>Wiadomości</span>
+            </router-link>
             <router-link 
               to="/admin/privacy-policies"
               @click="closeSidebar"
@@ -248,9 +234,9 @@
               :class="[$route.path.includes('/admin/privacy-policies') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white']"
             >
               <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
               </svg>
-              <span>Polityki Prywatności</span>
+              <span>Prywatność</span>
             </router-link>
             <router-link 
               to="/admin/terms-of-service"
@@ -261,7 +247,7 @@
               <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
               </svg>
-              <span>Regulaminy</span>
+              <span>Regulamin</span>
             </router-link>
           </div>
         </div>
@@ -282,9 +268,9 @@
         <router-view :key="$route.fullPath" />
       </main>
     </div>
-    
+
     <!-- Global Scroll to top button for Admin -->
-    <scroll-to-top :admin-mode="true" />
+    <scroll-to-top />
   </div>
 </template>
 
@@ -348,6 +334,11 @@ export default {
       return authStore.isAdmin;
     });
 
+    // Check if we should render admin layout
+    const shouldRenderAdminLayout = computed(() => {
+      return authStore.isLoggedIn && authStore.isAdmin && authStore.authInitialized;
+    });
+
     // Jeśli nie jesteśmy w widoku admina lub użytkownik nie jest adminem, przekieruj
     onMounted(() => {
       console.log('AdminLayout mounted, isAdminView:', isAdminView.value, 'isAdmin:', isAdmin.value);
@@ -403,6 +394,9 @@ export default {
         // Small delay to show message
         await new Promise(resolve => setTimeout(resolve, 100));
         
+        // Set loading state to prevent API calls during logout
+        authStore.isLoading = true;
+        
         // Czekaj na zakończenie procesu wylogowywania
         const success = await authStore.logout()
         
@@ -415,11 +409,14 @@ export default {
         }
       } catch (error) {
         console.error('Logout error:', error)
-        alertStore.error('Wystąpił błąd podczas wylogowywania.')
+        // Don't show error message during logout
         // Mimo błędu, spróbuj przekierować (logout może się powieść lokalnie)
         setTimeout(() => {
           router.push('/')
         }, 200)
+      } finally {
+        // Reset loading state
+        authStore.isLoading = false;
       }
     }
     
@@ -435,7 +432,8 @@ export default {
       toggleUserMenu,
       logout,
       alertStore,
-      pageTitle
+      pageTitle,
+      shouldRenderAdminLayout
     }
   }
 }

@@ -505,7 +505,7 @@
 </template>
 
 <script>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useAlertStore } from '../../stores/alertStore'
 import { useAuthStore } from '../../stores/authStore'
 import axios from 'axios'
@@ -520,6 +520,7 @@ import Pagination from '../../components/admin/Pagination.vue'
 import ActionButtons from '../../components/admin/ActionButtons.vue'
 import PageHeader from '../../components/admin/PageHeader.vue'
 import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
+import { useRoute } from 'vue-router'
 
 export default {
   name: 'AdminUsers',
@@ -539,6 +540,7 @@ export default {
   setup() {
     const alertStore = useAlertStore()
     const authStore = useAuthStore()
+    const route = useRoute()
     
 
 
@@ -650,6 +652,20 @@ export default {
         console.error('Error details:', error.response?.data)
         console.error('Status:', error.response?.status)
         console.error('Status text:', error.response?.statusText)
+        
+        // Don't show error if user is logging out or not on admin page
+        if (error.message === 'Unauthorized admin request blocked') {
+          console.log('Admin request blocked - user likely logging out or not authorized');
+          return;
+        }
+        
+        // Don't show error if we're not on admin page (user was redirected)
+        const currentPath = window.location.pathname;
+        if (!currentPath.startsWith('/admin')) {
+          console.log('Not on admin page, skipping error display');
+          return;
+        }
+        
         alertStore.error('Wystąpił błąd podczas pobierania użytkowników: ' + (error.response?.data?.message || error.message))
       } finally {
         loading.value = false
@@ -846,9 +862,41 @@ export default {
       return user.role === 'admin'
     }
 
+    // Watch for auth state changes (logout)
+    watch(() => authStore.isLoggedIn, (newValue) => {
+      console.log('Users: Auth state changed, isLoggedIn:', newValue)
+      if (!newValue) {
+        console.log('Users: User logged out, clearing data')
+        loading.value = false
+        // Clear data when user logs out
+        users.value = {
+          data: [],
+          current_page: 1,
+          last_page: 1,
+          per_page: 10,
+          total: 0
+        }
+      }
+    })
+    
+    // Watch for route changes to prevent data fetching when not on admin page
+    watch(() => route.path, (newPath) => {
+      console.log('Users: Route changed to:', newPath)
+      if (!newPath.startsWith('/admin')) {
+        console.log('Users: Not on admin page, stopping data fetch')
+        loading.value = false
+      }
+    })
+    
     // Lifecycle
-    onMounted(() => {
-      fetchUsers()
+    onMounted(async () => {
+      // Check if user is logged in and is admin before fetching data
+      if (!authStore.isLoggedIn || !authStore.isAdmin) {
+        console.log('User not logged in or not admin, skipping data fetch');
+        return;
+      }
+      
+      await fetchUsers()
       // Get current user ID from authenticated user
       currentUserId.value = authStore.user?.id || null
     })

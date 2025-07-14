@@ -409,6 +409,19 @@ export default {
         console.error('Error status:', error.response?.status)
         console.error('Error data:', error.response?.data)
         
+        // Don't show error if user is logging out or not on admin page
+        if (error.message === 'Unauthorized admin request blocked') {
+          console.log('Admin request blocked - user likely logging out or not authorized');
+          return;
+        }
+        
+        // Don't show error if we're not on admin page (user was redirected)
+        const currentPath = window.location.pathname;
+        if (!currentPath.startsWith('/admin')) {
+          console.log('Not on admin page, skipping error display');
+          return;
+        }
+        
         if (error.response?.status === 401) {
           alertStore.error('Brak autoryzacji. Zaloguj się ponownie.')
         } else if (error.response?.status === 403) {

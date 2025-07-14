@@ -178,7 +178,7 @@
 </template>
 
 <script>
-import { ref, onMounted, computed, reactive } from 'vue'
+import { ref, onMounted, computed, reactive, watch } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
 import DetailedErrorModal from '../../components/ui/DetailedErrorModal.vue'
@@ -192,6 +192,8 @@ import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
 import AdminButton from '../../components/admin/ui/AdminButton.vue'
 import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
 import ActionButtons from '../../components/admin/ActionButtons.vue'
+import { useAuthStore } from '../../stores/authStore'
+import { useRoute } from 'vue-router'
 
 export default {
   name: 'AdminBrands',
@@ -210,6 +212,8 @@ export default {
   },
   setup() {
     const alertStore = useAlertStore()
+    const authStore = useAuthStore()
+    const route = useRoute()
     const loading = ref(true)
     const brands = ref({
       data: [],
@@ -260,6 +264,20 @@ export default {
         brands.value = response.data
       } catch (error) {
         console.error('Error fetching brands:', error)
+        
+        // Don't show error if user is logging out or not on admin page
+        if (error.message === 'Unauthorized admin request blocked') {
+          console.log('Admin request blocked - user likely logging out or not authorized');
+          return;
+        }
+        
+        // Don't show error if we're not on admin page (user was redirected)
+        const currentPath = window.location.pathname;
+        if (!currentPath.startsWith('/admin')) {
+          console.log('Not on admin page, skipping error display');
+          return;
+        }
+        
         if (error.response && error.response.data && error.response.data.message) {
           alertStore.error(error.response.data.message)
         } else {
@@ -413,9 +431,43 @@ export default {
       fetchBrands()
     }
     
-    onMounted(() => {
-      fetchBrands()
+    onMounted(async () => {
+      // Check if user is logged in and is admin before fetching data
+      if (!authStore.isLoggedIn || !authStore.isAdmin) {
+        console.log('User not logged in or not admin, skipping data fetch');
+        return;
+      }
+      
+      await fetchBrands()
     })
+    
+    // Watch for auth state changes (logout)
+    watch(() => authStore.isLoggedIn, (newValue) => {
+      console.log('Brands: Auth state changed, isLoggedIn:', newValue)
+      if (!newValue) {
+        console.log('Brands: User logged out, clearing data')
+        loading.value = false
+        // Clear data when user logs out
+        brands.value = {
+          data: [],
+          current_page: 1,
+          last_page: 1,
+          per_page: 10,
+          total: 0
+        }
+      }
+    })
+    
+    // Watch for route changes to prevent data fetching when not on admin page
+    watch(() => route.path, (newPath) => {
+      console.log('Brands: Route changed to:', newPath)
+      if (!newPath.startsWith('/admin')) {
+        console.log('Brands: Not on admin page, stopping data fetch')
+        loading.value = false
+      }
+    })
+    
+    // Lifecycle
     
     return {
       loading,

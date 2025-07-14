@@ -633,11 +633,18 @@ export default {
 
     const logout = async () => {
       try {
+        // Set loading state to prevent API calls during logout
+        authStore.isLoading = true;
+        
         await authStore.logout()
         router.push('/')
       } catch (error) {
         console.error('Logout error:', error)
-        alertStore.addAlert('Błąd podczas wylogowywania', 'error')
+        // Don't show error message during logout
+        router.push('/')
+      } finally {
+        // Reset loading state
+        authStore.isLoading = false;
       }
     }
 

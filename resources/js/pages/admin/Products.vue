@@ -2,7 +2,7 @@
   <div class="space-y-6 bg-white min-h-full lg:pr-6">
     <!-- Page Header -->
     <div class="px-6 py-4">
-      <page-header
+      <page-header 
         title="Produkty"
       >
         <template #actions>
@@ -17,7 +17,7 @@
     </div>
 
     <!-- Filters -->
-    <search-filters
+    <search-filters 
       v-if="!loading"
       :filters="filters"
       :sort-options="sortOptions"
@@ -44,7 +44,7 @@
             </option>
           </select>
         </div>
-        
+
         <div class="w-full sm:w-auto">
           <label for="brand" class="block text-sm font-medium text-gray-700">Marka</label>
           <select
@@ -152,7 +152,7 @@
           </table>
         </div>
       </div>
-      
+
       <!-- Pagination -->
       <pagination 
         v-if="products.data && products.data.length > 0 && products.last_page > 1"
@@ -261,16 +261,16 @@
                   <div>
                     <label class="block text-sm font-medium text-gray-700">Zdjęcie produktu</label>
                     <div class="mt-1 flex items-center">
-                                              <span v-if="currentProduct.image_url && !isFileObject(currentProduct.image_url)" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
-                          <img 
-                            :src="getProductImageUrl(currentProduct.image_url, currentProduct.name, 48, 48)" 
-                            class="h-full w-full object-cover modal-product-image" 
-                            @error="(e) => handleImageError(e, currentProduct.name, 48, 48)" 
-                            :alt="currentProduct.name"
-                            loading="lazy"
-                            crossorigin="anonymous"
-                          />
-                        </span>
+                      <span v-if="currentProduct.image_url && !isFileObject(currentProduct.image_url)" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
+                        <img 
+                          :src="getProductImageUrl(currentProduct.image_url, currentProduct.name, 48, 48)" 
+                          class="h-full w-full object-cover modal-product-image" 
+                          @error="(e) => handleImageError(e, currentProduct.name, 48, 48)" 
+                          :alt="currentProduct.name"
+                          loading="lazy"
+                          crossorigin="anonymous"
+                        />
+                      </span>
                       <span v-else-if="currentProduct.image_url && isFileObject(currentProduct.image_url)" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
                         <img 
                           :src="getImagePreviewUrl(currentProduct.image_url)" 
@@ -290,14 +290,14 @@
                         accept="image/*"
                         @change="handleFileChange"
                       />
-                      <button
+                      <button 
                         type="button"
                         @click="triggerFileUpload"
                         class="ml-5 bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                       >
                         {{ currentProduct.image_url ? 'Zmień zdjęcie' : 'Dodaj zdjęcie' }}
                       </button>
-                      <button
+                      <button 
                         v-if="currentProduct.image_url"
                         type="button"
                         @click="removeImage"
@@ -312,13 +312,13 @@
             </div>
           </div>
           <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            <button
+            <button 
               type="submit"
               class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
             >
               {{ currentProduct.id ? 'Zapisz zmiany' : 'Dodaj produkt' }}
             </button>
-            <button
+            <button 
               type="button"
               @click="showModal = false"
               class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
@@ -383,7 +383,7 @@
               
               <div v-if="selectedProductForDetails" class="space-y-6">
                 <!-- Product Image -->
-                                <div class="flex justify-center">
+                <div class="flex justify-center">
                   <img 
                     :src="getProductImageUrl(selectedProductForDetails.image_url, selectedProductForDetails.name, 128, 128)" 
                     :alt="selectedProductForDetails.name"
@@ -499,6 +499,7 @@ import PageHeader from '../../components/admin/PageHeader.vue'
 import ActionButtons from '../../components/admin/ActionButtons.vue'
 import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
 import { getProductImageUrl, handleImageError } from '../../utils/imageHelpers'
+import { useRoute } from 'vue-router'
 
 export default {
   name: 'AdminProducts',
@@ -516,6 +517,7 @@ export default {
   setup() {
     const alertStore = useAlertStore()
     const authStore = useAuthStore()
+    const route = useRoute()
     const productImage = ref(null)
     
     // Simple settings for stock status calculation
@@ -637,6 +639,20 @@ export default {
       } catch (error) {
         console.error('Error fetching products:', error);
         console.error('Error details:', error.response?.data);
+        
+        // Don't show error if user is logging out or not on admin page
+        if (error.message === 'Unauthorized admin request blocked') {
+          console.log('Admin request blocked - user likely logging out or not authorized');
+          return;
+        }
+        
+        // Don't show error if we're not on admin page (user was redirected)
+        const currentPath = window.location.pathname;
+        if (!currentPath.startsWith('/admin')) {
+          console.log('Not on admin page, skipping error display');
+          return;
+        }
+        
         alertStore.error('Wystąpił błąd podczas pobierania produktów: ' + (error.response?.data?.message || error.message));
       } finally {
         loading.value = false;
@@ -836,12 +852,8 @@ export default {
         console.error('Error saving product:', error);
         console.error('Error details:', error.response?.data);
         
-        if (error.response?.data?.errors) {
-          // Display validation errors
-          const errors = Object.values(error.response.data.errors).flat();
-          errors.forEach(err => alertStore.error(err));
-        } else if (error.response?.data?.message) {
-          alertStore.error(error.response.data.message);
+        if (error.response?.data?.message) {
+          alertStore.error('Błąd podczas zapisywania produktu: ' + error.response.data.message);
         } else {
           alertStore.error('Wystąpił błąd podczas zapisywania produktu: ' + (error.message || 'Unknown error'));
         }
@@ -851,21 +863,8 @@ export default {
     }
     
     const deleteProduct = (product) => {
-      // Handle both ID and object from ActionButtons
-      let productId;
-      if (typeof product === 'object' && product !== null) {
-        productId = product.id;
-      } else {
-        productId = product;
-      }
-      
-      if (!productId) {
-        alertStore.error('Brak ID produktu do usunięcia');
-        return;
-      }
-      
-      productToDelete.value = productId;
-      showDeleteModal.value = true;
+      productToDelete.value = product
+      showDeleteModal.value = true
     }
     
     const confirmDelete = async () => {
@@ -924,10 +923,42 @@ export default {
       fetchProducts()
     })
     
+    // Watch for auth state changes (logout)
+    watch(() => authStore.isLoggedIn, (newValue) => {
+      console.log('Products: Auth state changed, isLoggedIn:', newValue)
+      if (!newValue) {
+        console.log('Products: User logged out, clearing data')
+        loading.value = false
+        // Clear data when user logs out
+        products.value = {
+          data: [],
+          current_page: 1,
+          last_page: 1,
+          per_page: 10,
+          total: 0
+        }
+      }
+    })
+    
+    // Watch for route changes to prevent data fetching when not on admin page
+    watch(() => route.path, (newPath) => {
+      console.log('Products: Route changed to:', newPath)
+      if (!newPath.startsWith('/admin')) {
+        console.log('Products: Not on admin page, stopping data fetch')
+        loading.value = false
+      }
+    })
+    
     // Lifecycle
-    onMounted(() => {
-      fetchFormData()
-      fetchProducts()
+    onMounted(async () => {
+      // Check if user is logged in and is admin before fetching data
+      if (!authStore.isLoggedIn || !authStore.isAdmin) {
+        console.log('User not logged in or not admin, skipping data fetch');
+        return;
+      }
+      
+      await fetchFormData()
+      await fetchProducts()
     })
 
     const showProductDetails = (product) => {

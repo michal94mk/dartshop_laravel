@@ -41,6 +41,26 @@ axios.interceptors.request.use(config => {
           isLoggedIn: globalAuthStore.isLoggedIn,
           isAdmin: globalAuthStore.isAdmin
         });
+        
+        // Check if we're in the process of logging out
+        if (globalAuthStore.isLoading) {
+          console.log('User is logging out, allowing request to complete');
+          return config;
+        }
+        
+        // Check if we're on a non-admin page (user was redirected)
+        const currentPath = window.location.pathname;
+        if (!currentPath.startsWith('/admin')) {
+          console.log('User is not on admin page, allowing request to complete');
+          return config;
+        }
+        
+        // Check if we're in the process of navigation (router is changing routes)
+        if (document.visibilityState === 'hidden' || document.hidden) {
+          console.log('Page is hidden, allowing request to complete');
+          return config;
+        }
+        
         return Promise.reject(new Error('Unauthorized admin request blocked'));
       }
     }

@@ -2,26 +2,53 @@
   <div class="space-y-6 bg-white min-h-full lg:pr-6">
     <!-- Page Header -->
     <div class="px-6 py-4">
-      <page-header 
-        title="Zamówienia"
-        add-button-label="Dodaj"
-        @add="openCreateOrderModal"
-      />
+      <div class="sm:flex sm:items-center">
+        <div class="sm:flex-auto">
+          <h1 class="text-2xl font-semibold text-gray-900">Zamówienia</h1>
+        </div>
+        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+          <button 
+            @click="openCreateOrderModal" 
+            type="button" 
+            class="px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors"
+          >
+            Dodaj
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Search and filters -->
-    <search-filters
-      v-if="!loading"
-      :filters="filters"
-      :sort-options="sortOptions"
-      :default-filters="defaultFilters"
-      search-label="Wyszukaj"
-      search-placeholder="Numer zamówienia, email klienta..."
-      @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
-      @filter-change="fetchOrders"
-      @reset-filters="resetFilters"
-    >
-      <template v-slot:filters>
+    <div v-if="!loading" class="mt-6 bg-white shadow px-4 py-5 sm:rounded-lg sm:px-6">
+      <!-- Search Input -->
+      <div class="mb-4">
+        <label for="search" class="block text-sm font-medium text-gray-700">Wyszukaj</label>
+        <div class="mt-1 flex rounded-md shadow-sm">
+          <input
+            type="text"
+            name="search"
+            id="search"
+            v-model="filters.search"
+            @keyup.enter="fetchOrders"
+            class="flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-l-md sm:text-sm border-gray-300"
+            placeholder="Numer zamówienia, email klienta..."
+          />
+          <button
+            type="button"
+            @click="fetchOrders"
+            class="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-500 text-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          >
+            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <span class="ml-1">Szukaj</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Other Filters and Sort Options -->
+      <div class="flex flex-wrap gap-4 items-end">
+        <!-- Custom Filters -->
         <div class="w-full sm:w-auto">
           <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
           <select
@@ -65,11 +92,58 @@
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           />
         </div>
-      </template>
-    </search-filters>
+        
+        <!-- Sort Field -->
+        <div class="w-full sm:w-auto">
+          <label for="sort" class="block text-sm font-medium text-gray-700">Sortuj</label>
+          <select
+            id="sort"
+            name="sort"
+            v-model="filters.sort_field"
+            @change="fetchOrders"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="created_at">Data utworzenia</option>
+            <option value="total">Kwota</option>
+            <option value="id">Numer zamówienia</option>
+          </select>
+        </div>
+        
+        <!-- Sort Direction -->
+        <div class="w-full sm:w-auto">
+          <label for="direction" class="block text-sm font-medium text-gray-700">Kierunek</label>
+          <select
+            id="direction"
+            name="direction"
+            v-model="filters.sort_direction"
+            @change="fetchOrders"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="desc">Malejąco</option>
+            <option value="asc">Rosnąco</option>
+          </select>
+        </div>
+        
+        <!-- Reset Filters Button -->
+        <div class="w-full sm:w-auto">
+          <button
+            type="button"
+            @click="resetFilters"
+            class="mt-1 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Resetuj filtry
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Loading indicator -->
-    <loading-spinner v-if="loading" />
+    <div v-if="loading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+    </div>
 
     <!-- Orders Custom Table -->
     <div v-if="!loading && orders.data && orders.data.length > 0" class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
@@ -147,14 +221,26 @@
               
               <!-- Actions Column -->
               <td class="px-3 py-4 text-right">
-                <action-buttons 
-                  :item="item" 
-                  :show-details="true"
-                  @details="openOrderDetails"
-                  @edit="editOrder" 
-                  @delete="confirmDelete"
-                  justify="end"
-                />
+                <div class="flex items-center justify-end space-x-2">
+                  <button 
+                    @click="openOrderDetails(item)"
+                    class="inline-flex items-center px-2 py-1 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
+                    Szczegóły
+                  </button>
+                  <button 
+                    @click="editOrder(item)"
+                    class="inline-flex items-center px-2 py-1 border border-yellow-300 rounded text-xs font-medium text-yellow-700 bg-white hover:bg-yellow-50"
+                  >
+                    Edytuj
+                  </button>
+                  <button 
+                    @click="confirmDelete(item)"
+                    class="inline-flex items-center px-2 py-1 border border-red-300 rounded text-xs font-medium text-red-700 bg-white hover:bg-red-50"
+                  >
+                    Usuń
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -163,15 +249,59 @@
     </div>
     
     <!-- No data message -->
-    <no-data-message v-else-if="!loading" message="Brak zamówień do wyświetlenia" />
+    <div v-else-if="!loading && (!orders.data || orders.data.length === 0)" class="bg-white shadow overflow-hidden sm:rounded-md p-6 text-center text-gray-500 mt-6">
+      Brak zamówień do wyświetlenia
+    </div>
     
     <!-- Pagination -->
-    <pagination 
-      v-if="!loading && orders.data && orders.data.length > 0" 
-      :pagination="orders" 
-      items-label="zamówień" 
-      @page-change="goToPage" 
-    />
+    <div v-if="!loading && orders.data && orders.data.length > 0 && orders.last_page > 1" class="mt-5 flex justify-between items-center p-6">
+      <div class="text-sm text-gray-700">
+        Pokazuje {{ orders.from || 0 }} do {{ orders.to || 0 }} z {{ orders.total || 0 }} zamówień
+      </div>
+      <div>
+        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+          <button
+            @click="goToPage(orders.current_page - 1)"
+            :disabled="orders.current_page === 1"
+            :class="[
+              orders.current_page === 1 ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50',
+              'relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500'
+            ]"
+          >
+            <span class="sr-only">Poprzednia</span>
+            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <button
+            v-for="page in paginationPages" 
+            :key="page"
+            @click="goToPage(page)"
+            :class="[
+              page === orders.current_page 
+                ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600' 
+                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
+              'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
+            ]"
+          >
+            {{ page }}
+          </button>
+          <button
+            @click="goToPage(orders.current_page + 1)"
+            :disabled="orders.current_page === orders.last_page"
+            :class="[
+              orders.current_page === orders.last_page ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50',
+              'relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500'
+            ]"
+          >
+            <span class="sr-only">Następna</span>
+            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </nav>
+      </div>
+    </div>
 
     <!-- Order details modal -->
     <admin-modal
@@ -630,7 +760,9 @@
 <script>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useAlertStore } from '../../stores/alertStore'
+import { useAuthStore } from '../../stores/authStore'
 import axios from 'axios'
+import { useRoute } from 'vue-router'
 
 import SearchFilters from '../../components/admin/SearchFilters.vue'
 import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
@@ -663,6 +795,8 @@ export default {
   },
   setup() {
     const alertStore = useAlertStore()
+    const authStore = useAuthStore()
+    const route = useRoute()
     
     // Data
     const loading = ref(true)
@@ -706,6 +840,31 @@ export default {
       }
       return variants[status] || 'gray'
     }
+    
+    // Computed pagination pages
+    const paginationPages = computed(() => {
+      if (!orders.value || !orders.value.last_page) return []
+      
+      const total = orders.value.last_page
+      const current = orders.value.current_page
+      const pages = []
+      
+      if (total <= 7) {
+        for (let i = 1; i <= total; i++) {
+          pages.push(i)
+        }
+      } else {
+        if (current <= 3) {
+          pages.push(1, 2, 3, 4, '...', total)
+        } else if (current >= total - 2) {
+          pages.push(1, '...', total - 3, total - 2, total - 1, total)
+        } else {
+          pages.push(1, '...', current - 1, current, current + 1, '...', total)
+        }
+      }
+      
+      return pages
+    })
     
 
     
@@ -761,6 +920,20 @@ export default {
         orders.value = response.data
       } catch (error) {
         console.error('Error fetching orders:', error)
+        
+        // Don't show error if user is logging out or not on admin page
+        if (error.message === 'Unauthorized admin request blocked') {
+          console.log('Admin request blocked - user likely logging out or not authorized');
+          return;
+        }
+        
+        // Don't show error if we're not on admin page (user was redirected)
+        const currentPath = window.location.pathname;
+        if (!currentPath.startsWith('/admin')) {
+          console.log('Not on admin page, skipping error display');
+          return;
+        }
+        
         alertStore.error('Nie udało się pobrać zamówień')
       } finally {
         loading.value = false
@@ -1466,11 +1639,42 @@ export default {
       fetchOrders()
     }
     
+    // Watch for auth state changes (logout)
+    watch(() => authStore.isLoggedIn, (newValue) => {
+      console.log('Orders: Auth state changed, isLoggedIn:', newValue)
+      if (!newValue) {
+        console.log('Orders: User logged out, clearing data')
+        loading.value = false
+        // Clear data when user logs out
+        orders.value = {
+          data: [],
+          current_page: 1,
+          last_page: 1,
+          per_page: 10,
+          total: 0
+        }
+      }
+    })
+    
+    // Watch for route changes to prevent data fetching when not on admin page
+    watch(() => route.path, (newPath) => {
+      console.log('Orders: Route changed to:', newPath)
+      if (!newPath.startsWith('/admin')) {
+        console.log('Orders: Not on admin page, stopping data fetch')
+        loading.value = false
+      }
+    })
+    
     // Lifecycle
-    onMounted(() => {
-      fetchOrders()
-      fetchProducts()
-      fetchUsers()
+    onMounted(async () => {
+      // Check if user is logged in and is admin before fetching data
+      if (!authStore.isLoggedIn || !authStore.isAdmin) {
+        console.log('User not logged in or not admin, skipping data fetch');
+        return;
+      }
+      
+      await fetchOrders()
+      await fetchProducts()
     })
     
     watch(() => filters.value.search, () => {
@@ -1501,6 +1705,7 @@ export default {
       editedOrder,
       orderToDelete,
       validationErrors,
+      paginationPages,
       fetchOrders,
       goToPage,
       openOrderDetails,

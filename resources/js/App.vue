@@ -78,6 +78,40 @@ export default {
       return 'DefaultLayout';
     });
 
+    // Watch for auth state changes to handle logout properly
+    watch(() => authStore.isLoggedIn, (newValue, oldValue) => {
+      console.log('App: Auth state changed, isLoggedIn:', newValue, 'was:', oldValue)
+      
+      // If user logged out and we're on admin page, force layout refresh
+      if (!newValue && oldValue && route.path.startsWith('/admin')) {
+        console.log('App: User logged out from admin, forcing layout refresh')
+        // Force a small delay to ensure proper state update
+        setTimeout(() => {
+          isReadyToShow.value = false
+          nextTick(() => {
+            isReadyToShow.value = true
+          })
+        }, 100)
+      }
+    })
+    
+    // Watch for route changes to handle admin to home transition
+    watch(() => route.path, (newPath, oldPath) => {
+      console.log('App: Route changed from', oldPath, 'to', newPath)
+      
+      // If navigating from admin to home, ensure proper layout switch
+      if (oldPath && oldPath.startsWith('/admin') && newPath === '/') {
+        console.log('App: Navigating from admin to home, ensuring proper layout')
+        // Force layout refresh
+        setTimeout(() => {
+          isReadyToShow.value = false
+          nextTick(() => {
+            isReadyToShow.value = true
+          })
+        }, 50)
+      }
+    })
+    
     // Simple initialization
     const initializeApp = async () => {
       try {

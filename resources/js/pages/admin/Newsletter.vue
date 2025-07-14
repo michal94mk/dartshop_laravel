@@ -200,7 +200,7 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, watch } from 'vue';
 import api from '../../services/api';
 import SearchFilters from '../../components/admin/SearchFilters.vue';
 import AdminTable from '../../components/admin/ui/AdminTable.vue';
@@ -210,6 +210,8 @@ import LoadingSpinner from '../../components/admin/LoadingSpinner.vue';
 import NoDataMessage from '../../components/admin/NoDataMessage.vue';
 import Pagination from '../../components/admin/Pagination.vue';
 import PageHeader from '../../components/admin/PageHeader.vue';
+import { useAuthStore } from '../../stores/authStore';
+import { useRoute } from 'vue-router';
 
 export default {
   name: 'AdminNewsletter',
@@ -300,6 +302,19 @@ export default {
           url: error.config?.url
         });
         
+        // Don't show error if user is logging out or not on admin page
+        if (error.message === 'Unauthorized admin request blocked') {
+          console.log('Admin request blocked - user likely logging out or not authorized');
+          return;
+        }
+        
+        // Don't show error if we're not on admin page (user was redirected)
+        const currentPath = window.location.pathname;
+        if (!currentPath.startsWith('/admin')) {
+          console.log('Not on admin page, skipping error display');
+          return;
+        }
+        
         // If unauthorized, try alternative approach
         if (error.response?.status === 401) {
           console.error('Unauthorized - user may not be logged in as admin');
@@ -377,9 +392,51 @@ export default {
       }
     };
 
-    onMounted(() => {
-      loadSubscriptions();
+    const authStore = useAuthStore();
+    const route = useRoute();
+
+    onMounted(async () => {
+      // Check if user is logged in and is admin before fetching data
+      if (!authStore.isLoggedIn || !authStore.isAdmin) {
+        console.log('User not logged in or not admin, skipping data fetch');
+        return;
+      }
+      
+      await loadSubscriptions()
     });
+
+    // Watch for auth state changes (logout)
+    watch(() => authStore.isLoggedIn, (newValue) => {
+      console.log('Newsletter: Auth state changed, isLoggedIn:', newValue)
+      if (!newValue) {
+        console.log('Newsletter: User logged out, clearing data')
+        loading.value = false
+        // Clear data when user logs out
+        subscriptions.value = []
+        pagination.value = {
+          current_page: 1,
+          last_page: 1,
+          per_page: 10,
+          total: 0
+        }
+        stats.value = {
+          total_subscriptions: 0,
+          verified_subscriptions: 0,
+          unverified_subscriptions: 0
+        }
+      }
+    })
+    
+    // Watch for route changes to prevent data fetching when not on admin page
+    watch(() => route.path, (newPath) => {
+      console.log('Newsletter: Route changed to:', newPath)
+      if (!newPath.startsWith('/admin')) {
+        console.log('Newsletter: Not on admin page, stopping data fetch')
+        loading.value = false
+      }
+    })
+    
+    // Lifecycle
 
     return {
       loading,
