@@ -122,6 +122,13 @@ class UserController extends BaseAdminController
                 'verified' => 'boolean',
             ]);
 
+            // Dodaj sprawdzenie niezweryfikowanego maila
+            $email = $request->input('email');
+            $user = \App\Models\User::where('email', $email)->first();
+            if ($user && !$user->hasVerifiedEmail()) {
+                return response()->json(['errors' => ['email' => ['Konto z tym adresem e-mail już istnieje, ale nie zostało zweryfikowane. Możesz ponownie wysłać link weryfikacyjny z poziomu panelu użytkownika.']]], 422);
+            }
+
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             }

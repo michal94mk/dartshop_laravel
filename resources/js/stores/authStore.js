@@ -303,7 +303,13 @@ export const useAuthStore = defineStore('auth', {
           const errors = error.response.data.errors;
           
           if (errors.email) {
-            this.errorMessage = 'Ten adres email jest już zarejestrowany w systemie.';
+            // Check if it's a custom message about unverified email
+            const emailError = Array.isArray(errors.email) ? errors.email[0] : errors.email;
+            if (emailError.includes('nie zostało zweryfikowane')) {
+              this.errorMessage = emailError;
+            } else {
+              this.errorMessage = 'Podany email już istnieje.';
+            }
           } else if (errors.password) {
             this.errorMessage = 'Hasło nie spełnia wymagań. Upewnij się, że ma co najmniej 8 znaków i jest poprawnie potwierdzone.';
           } else if (errors.privacy_policy_accepted) {

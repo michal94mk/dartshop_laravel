@@ -20,29 +20,7 @@
       <!-- Register Form Card -->
       <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
         <div class="px-8 py-8">
-          <!-- Error Alert -->
-          <transition 
-            name="alert-fade" 
-            enter-active-class="transition-all ease-out duration-500 transform"
-            enter-from-class="opacity-0 -translate-y-4 scale-95"
-            enter-to-class="opacity-100 translate-y-0 scale-100"
-            leave-active-class="transition-all ease-in duration-300 transform"
-            leave-from-class="opacity-100 translate-y-0 scale-100"
-            leave-to-class="opacity-0 -translate-y-2 scale-95"
-          >
-            <div v-if="authStore.hasError" class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-sm" role="alert">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                  </svg>
-                </div>
-                <div class="ml-3">
-                  <p class="font-medium">{{ authStore.errorMessage }}</p>
-                </div>
-              </div>
-            </div>
-          </transition>
+          <!-- Error Alert - removed since errors are now shown under specific fields -->
           
           <form @submit.prevent="handleRegister" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -54,6 +32,7 @@
                   v-model="firstName" 
                   required
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                  :class="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': authStore.hasError && authStore.errorMessage.includes('danych osobowych') }"
                   placeholder="Jan"
                 />
               </div>
@@ -66,6 +45,7 @@
                   v-model="lastName" 
                   required
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                  :class="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': authStore.hasError && authStore.errorMessage.includes('danych osobowych') }"
                   placeholder="Kowalski"
                 />
               </div>
@@ -79,6 +59,7 @@
                 v-model="name" 
                 required
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                :class="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': authStore.hasError && authStore.errorMessage.includes('danych osobowych') }"
                 placeholder="jan_kowalski"
               />
             </div>
@@ -91,8 +72,12 @@
                 v-model="email" 
                 required
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                :class="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': authStore.hasError && authStore.errorMessage.includes('email') }"
                 placeholder="twoj@email.com"
               />
+              <p v-if="authStore.hasError && authStore.errorMessage.includes('email')" class="mt-1 text-sm text-red-600">
+                {{ authStore.errorMessage }}
+              </p>
             </div>
             
             <div>
@@ -103,9 +88,13 @@
                 v-model="password" 
                 required
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                :class="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': authStore.hasError && authStore.errorMessage.includes('Hasło') }"
                 placeholder="Minimum 8 znaków"
               />
               <p class="mt-1 text-xs text-gray-500">Hasło musi zawierać co najmniej 8 znaków</p>
+              <p v-if="authStore.hasError && authStore.errorMessage.includes('Hasło')" class="mt-1 text-sm text-red-600">
+                {{ authStore.errorMessage }}
+              </p>
             </div>
             
             <div>
@@ -116,6 +105,7 @@
                 v-model="passwordConfirmation" 
                 required
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                :class="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': authStore.hasError && authStore.errorMessage.includes('Hasło') }"
                 placeholder="Powtórz hasło"
               />
             </div>
@@ -130,6 +120,7 @@
                     v-model="privacyPolicyAccepted" 
                     required
                     class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                    :class="{ 'border-red-500 focus:ring-red-500': authStore.hasError && authStore.errorMessage.includes('polityki prywatności') }"
                   />
                 </div>
                 <div class="ml-3 text-sm">
@@ -146,6 +137,9 @@
                   </label>
                 </div>
               </div>
+              <p v-if="authStore.hasError && authStore.errorMessage.includes('polityki prywatności')" class="mt-1 text-sm text-red-600">
+                {{ authStore.errorMessage }}
+              </p>
               
               <div class="flex items-start">
                 <div class="flex items-center h-5">

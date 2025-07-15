@@ -255,7 +255,9 @@
             v-model="currentUser.name"
             required
             class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+            :class="{ 'border-red-500': validationErrors.name }"
           />
+          <p v-if="validationErrors.name" class="mt-1 text-sm text-red-600">{{ validationErrors.name[0] }}</p>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -266,7 +268,9 @@
               id="first_name"
               v-model="currentUser.first_name"
               class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+              :class="{ 'border-red-500': validationErrors.first_name }"
             />
+            <p v-if="validationErrors.first_name" class="mt-1 text-sm text-red-600">{{ validationErrors.first_name[0] }}</p>
           </div>
           
           <div>
@@ -276,7 +280,9 @@
               id="last_name"
               v-model="currentUser.last_name"
               class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+              :class="{ 'border-red-500': validationErrors.last_name }"
             />
+            <p v-if="validationErrors.last_name" class="mt-1 text-sm text-red-600">{{ validationErrors.last_name[0] }}</p>
           </div>
         </div>
         
@@ -293,9 +299,11 @@
             :readonly="currentUser.is_google_user"
             :class="[
               'mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md',
-              currentUser.is_google_user ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''
+              currentUser.is_google_user ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : '',
+              validationErrors.email ? 'border-red-500' : ''
             ]"
           />
+          <p v-if="validationErrors.email" class="mt-1 text-sm text-red-600">{{ validationErrors.email[0] }}</p>
         </div>
         
         <div v-if="!currentUser.id">
@@ -307,7 +315,9 @@
             required
             minlength="8"
             class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+            :class="{ 'border-red-500': validationErrors.password }"
           />
+          <p v-if="validationErrors.password" class="mt-1 text-sm text-red-600">{{ validationErrors.password[0] }}</p>
         </div>
         
         <div v-if="currentUser.id && !currentUser.is_google_user">
@@ -318,7 +328,9 @@
             v-model="currentUser.password"
             minlength="8"
             class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+            :class="{ 'border-red-500': validationErrors.password }"
           />
+          <p v-if="validationErrors.password" class="mt-1 text-sm text-red-600">{{ validationErrors.password[0] }}</p>
         </div>
         
         <!-- Google OAuth User Notice -->
@@ -622,6 +634,9 @@ export default {
       password: ''
     })
     
+    // Add validation errors state
+    const validationErrors = ref({})
+    
     // Methods
     const fetchUsers = async () => {
       try {
@@ -679,6 +694,9 @@ export default {
     }
     
     const openModal = (user = null) => {
+      // Clear validation errors when opening modal
+      validationErrors.value = {}
+      
       if (user) {
         const isGoogleUser = !!user.is_google_user
         currentUser.value = {
@@ -713,6 +731,8 @@ export default {
     const saveUser = async () => {
       try {
         submitting.value = true
+        // Clear previous validation errors
+        validationErrors.value = {}
         
         const userData = {
           name: currentUser.value.name,
@@ -744,9 +764,10 @@ export default {
       } catch (error) {
         console.error('Error saving user:', error)
         if (error.response && error.response.data && error.response.data.errors) {
-          const errors = error.response.data.errors
-          const errorMessages = Object.values(errors).flat().join('\n')
-          alertStore.error('Błędy walidacji:\n' + errorMessages)
+          // Store validation errors for display in form
+          validationErrors.value = error.response.data.errors
+          
+          // Don't show alert for validation errors since they're displayed in form fields
         } else {
           alertStore.error('Wystąpił błąd podczas zapisywania użytkownika.')
         }
@@ -911,14 +932,15 @@ export default {
       showModal,
       showDeleteModal,
       showForceDeleteModal,
+      userToDelete,
       userRelations,
-      currentUser,
       activeTab,
-      submitting,
+      currentUser,
+      validationErrors,
       availableRoles,
       currentUserId,
+      submitting,
       fetchUsers,
-      goToPage,
       openModal,
       saveUser,
       deleteUser,
@@ -928,7 +950,8 @@ export default {
       resetFilters,
       getUserInitials,
       getDisplayName,
-      isUserAdmin
+      isUserAdmin,
+      goToPage
     }
   }
 }

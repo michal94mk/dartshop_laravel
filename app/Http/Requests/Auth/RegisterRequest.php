@@ -54,4 +54,17 @@ class RegisterRequest extends FormRequest
             'g-recaptcha-response.captcha' => 'Captcha verification failed. Please try again.',
         ];
     }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if ($validator->errors()->has('email')) {
+                $email = $this->input('email');
+                $user = \App\Models\User::where('email', $email)->first();
+                if ($user && !$user->hasVerifiedEmail()) {
+                    $validator->errors()->add('email', 'Konto z tym adresem e-mail już istnieje, ale nie zostało zweryfikowane. <a href=\"/api/email/verification-notification\">Kliknij tutaj, aby ponownie wysłać link weryfikacyjny</a>.');
+                }
+            }
+        });
+    }
 } 
