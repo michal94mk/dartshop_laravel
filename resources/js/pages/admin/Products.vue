@@ -871,7 +871,9 @@ export default {
       try {
         loading.value = true
         
-        const productId = productToDelete.value;
+        const productId = typeof productToDelete.value === 'object' 
+                        ? productToDelete.value.id 
+                        : productToDelete.value;
         
         if (!productId) {
           alertStore.error('Nie można usunąć produktu: brak ID.')
