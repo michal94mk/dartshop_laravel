@@ -35,6 +35,38 @@ class StripeController extends Controller
     }
 
     /**
+     * Sprawdź czy numer karty jest prawidłowy
+     */
+    private function validateCardNumber($cardNumber)
+    {
+        // Usuń spacje i myślniki
+        $cardNumber = preg_replace('/[\s\-]/', '', $cardNumber);
+        
+        // Sprawdź długość (13-19 cyfr)
+        if (!preg_match('/^[0-9]{13,19}$/', $cardNumber)) {
+            return false;
+        }
+        
+        // Algorytm Luhn (sprawdzenie sumy kontrolnej)
+        $sum = 0;
+        $length = strlen($cardNumber);
+        $parity = $length % 2;
+        
+        for ($i = 0; $i < $length; $i++) {
+            $digit = $cardNumber[$i];
+            if ($i % 2 == $parity) {
+                $digit *= 2;
+                if ($digit > 9) {
+                    $digit -= 9;
+                }
+            }
+            $sum += $digit;
+        }
+        
+        return ($sum % 10) == 0;
+    }
+
+    /**
      * Utworzenie Stripe Checkout Session dla zalogowanych użytkowników
      */
     public function createCheckoutSession(Request $request)
@@ -86,9 +118,15 @@ class StripeController extends Controller
                 ];
             }
 
+            // Przygotuj metody płatności
+            $paymentMethods = ['card', 'blik'];
+            if (config('services.stripe.p24.enabled', true)) {
+                $paymentMethods[] = 'p24';
+            }
+
             // Utwórz Checkout Session
             $session = Session::create([
-                'payment_method_types' => ['card', 'blik', 'p24'],
+                'payment_method_types' => $paymentMethods,
                 'line_items' => $lineItems,
                 'mode' => 'payment',
                 'success_url' => env('APP_FRONTEND_URL') . '/payment/success?session_id={CHECKOUT_SESSION_ID}',
@@ -101,6 +139,12 @@ class StripeController extends Controller
                 ],
                 'shipping_address_collection' => [
                     'allowed_countries' => ['PL'],
+                ],
+                // Dodatkowe ustawienia dla Przelewy24
+                'payment_method_options' => [
+                    'p24' => [
+                        'tos_shown_and_accepted' => true,
+                    ],
                 ],
             ]);
 
@@ -170,9 +214,15 @@ class StripeController extends Controller
                 ], 400);
             }
 
+            // Przygotuj metody płatności
+            $paymentMethods = ['card', 'blik'];
+            if (config('services.stripe.p24.enabled', true)) {
+                $paymentMethods[] = 'p24';
+            }
+
             // Utwórz Checkout Session
             $session = Session::create([
-                'payment_method_types' => ['card', 'blik', 'p24'],
+                'payment_method_types' => $paymentMethods,
                 'line_items' => $lineItems,
                 'mode' => 'payment',
                 'success_url' => env('APP_FRONTEND_URL') . '/payment/success?session_id={CHECKOUT_SESSION_ID}',
@@ -186,6 +236,12 @@ class StripeController extends Controller
                 ],
                 'shipping_address_collection' => [
                     'allowed_countries' => ['PL'],
+                ],
+                // Dodatkowe ustawienia dla Przelewy24
+                'payment_method_options' => [
+                    'p24' => [
+                        'tos_shown_and_accepted' => true,
+                    ],
                 ],
             ]);
 
@@ -226,11 +282,17 @@ class StripeController extends Controller
             // Konwertuj na grosze (Stripe wymaga kwoty w najmniejszej jednostce waluty)
             $amountInCents = (int) ($total * 100);
 
+            // Przygotuj metody płatności
+            $paymentMethods = ['card', 'blik'];
+            if (config('services.stripe.p24.enabled', true)) {
+                $paymentMethods[] = 'p24';
+            }
+
             // Utwórz Payment Intent
             $paymentIntent = PaymentIntent::create([
                 'amount' => $amountInCents,
                 'currency' => 'pln',
-                'payment_method_types' => ['card', 'blik', 'p24'],
+                'payment_method_types' => $paymentMethods,
                 'metadata' => [
                     'user_id' => $user->id,
                     'cart_items_count' => $cartItems->count()
@@ -288,11 +350,17 @@ class StripeController extends Controller
             // Konwertuj na grosze
             $amountInCents = (int) ($total * 100);
 
+            // Przygotuj metody płatności
+            $paymentMethods = ['card', 'blik'];
+            if (config('services.stripe.p24.enabled', true)) {
+                $paymentMethods[] = 'p24';
+            }
+
             // Utwórz Payment Intent
             $paymentIntent = PaymentIntent::create([
                 'amount' => $amountInCents,
                 'currency' => 'pln',
-                'payment_method_types' => ['card', 'blik', 'p24'],
+                'payment_method_types' => $paymentMethods,
                 'metadata' => [
                     'guest_order' => 'true',
                     'cart_items_count' => count($cartData)
@@ -549,6 +617,74 @@ class StripeController extends Controller
                 'message' => 'Błąd podczas przetwarzania zamówienia: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Sprawdź status płatności
+     */
+    public function checkPaymentStatus(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'payment_intent_id' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Nieprawidłowe dane',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $paymentIntent = PaymentIntent::retrieve($request->payment_intent_id);
+            
+            return response()->json([
+                'payment_intent_id' => $paymentIntent->id,
+                'status' => $paymentIntent->status,
+                'amount' => $paymentIntent->amount,
+                'currency' => $paymentIntent->currency,
+                'payment_method' => $paymentIntent->payment_method_types[0] ?? 'unknown',
+                'last_payment_error' => $paymentIntent->last_payment_error ?? null,
+                'created' => $paymentIntent->created,
+                'updated' => $paymentIntent->updated
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Błąd podczas sprawdzania statusu płatności: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Test walidacji numeru karty
+     */
+    public function testCardValidation(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'card_number' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Nieprawidłowe dane',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $cardNumber = $request->card_number;
+        $isValid = $this->validateCardNumber($cardNumber);
+
+        return response()->json([
+            'card_number' => $cardNumber,
+            'is_valid' => $isValid,
+            'message' => $isValid ? 'Numer karty jest prawidłowy' : 'Numer karty jest nieprawidłowy',
+            'test_cards' => [
+                'visa' => '4242424242424242',
+                'mastercard' => '5555555555554444',
+                'amex' => '378282246310005'
+            ]
+        ]);
     }
 
     /**

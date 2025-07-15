@@ -218,10 +218,11 @@
                       <svg class="w-4 h-4 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                       </svg>
-                      <div class="flex flex-col">
-                        <span class="text-sm font-medium text-gray-900">Płatność online</span>
-                        <span class="text-xs text-gray-500">Karta płatnicza, BLIK, Przelewy24</span>
-                      </div>
+                                        <div class="flex flex-col">
+                    <span class="text-sm font-medium text-gray-900">Płatność online</span>
+                    <span class="text-xs text-gray-500">Karta płatnicza, BLIK, Przelewy24</span>
+                    <span class="text-xs text-yellow-600 font-medium">🧪 Środowisko testowe - płatności symulowane</span>
+                  </div>
                     </div>
                   </div>
                   

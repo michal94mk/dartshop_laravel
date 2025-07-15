@@ -1,5 +1,5 @@
 <template>
-  <header class="bg-white shadow">
+  <header class="bg-white shadow-sm border-b border-gray-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-16">
         <!-- Logo -->
@@ -708,8 +708,8 @@ export default {
       formatPrice: (price) => {
         return Number(price).toFixed(2)
       },
-      getProductImageUrl,
-      handleImageError
+              getProductImageUrl,
+        handleImageError
     }
   }
 }

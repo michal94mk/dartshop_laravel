@@ -51,6 +51,14 @@ DartShop is a full-featured e-commerce platform built with Laravel and Vue.js, o
 - Composer
 - Git
 
+### Payment Testing
+This project uses **Stripe test environment** for safe payment demonstration. Test cards:
+- **Visa**: `4242424242424242` (CVV: `123`, Exp: `12/25`)
+- **Mastercard**: `5555555555554444` (CVV: `123`, Exp: `12/25`)
+- **American Express**: `378282246310005` (CVV: `1234`, Exp: `12/25`)
+
+**Note**: Przelewy24 and BLIK payments are simulated in test environment. In production, users would be redirected to actual payment providers.
+
 ### Installation
 
 1. **Clone the repository**
@@ -148,6 +156,15 @@ After seeding, you can log in with:
 - Email: `customer@dartshop.com`
 - Password: `password`
 
+## 💳 Payment Testing
+
+For testing payments, use these test cards:
+- **Visa**: `4242424242424242` (CVV: `123`, Exp: `12/25`)
+- **Mastercard**: `5555555555554444` (CVV: `123`, Exp: `12/25`)
+- **American Express**: `378282246310005` (CVV: `1234`, Exp: `12/25`)
+
+**Note**: Przelewy24 and BLIK payments are simulated in test environment. Wait 2-3 minutes for payment simulation to complete.
+
 ## 🗂️ Project Structure
 
 ```
@@ -208,6 +225,12 @@ dartshop/
    - Node.js for asset compilation
    - SSL certificate for HTTPS
 
+### Payment Integration
+- **Stripe Integration**: Full payment processing with cards, BLIK, and Przelewy24
+- **Webhook Handling**: Asynchronous payment confirmation
+- **Test Environment**: Safe demonstration with simulated payments
+- **Production Ready**: Switch to live keys for real transactions
+
 2. **Environment configuration**
    - Set `APP_ENV=production`
    - Set `APP_DEBUG=false`
@@ -250,7 +273,6 @@ If you encounter any issues or have questions:
 
 ## 🎯 Roadmap
 
-- [ ] Multi-language support
 - [ ] Advanced inventory management
 - [ ] Subscription products
 - [ ] Mobile app (React Native)

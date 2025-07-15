@@ -33,6 +33,7 @@ use App\Http\Controllers\Api\TutorialController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\GuestCheckoutController;
 use App\Http\Controllers\API\StripeController;
+use App\Http\Controllers\API\StripeWebhookController;
 use App\Http\Controllers\Api\NewsletterController;
 use App\Http\Controllers\API\PrivacyPolicyController;
 use App\Http\Controllers\API\TermsOfServiceController;
@@ -180,6 +181,9 @@ Route::prefix('guest-stripe')->group(function () {
 // Stripe webhook and success handling (public routes)
 Route::prefix('stripe')->group(function () {
     Route::post('/success', [StripeController::class, 'handleCheckoutSuccess']);
+    Route::post('/test-card', [StripeController::class, 'testCardValidation']);
+    Route::post('/check-status', [StripeController::class, 'checkPaymentStatus']);
+    Route::post('/webhook', [StripeWebhookController::class, 'handleWebhook']);
 });
 
 // Public order endpoint for success page

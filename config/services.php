@@ -38,6 +38,10 @@ return [
             'secret' => env('STRIPE_WEBHOOK_SECRET'),
             'tolerance' => env('STRIPE_WEBHOOK_TOLERANCE', 300),
         ],
+        'p24' => [
+            'enabled' => env('STRIPE_P24_ENABLED', true),
+            'country' => env('STRIPE_P24_COUNTRY', 'PL'),
+        ],
     ],
 
     'google' => [
