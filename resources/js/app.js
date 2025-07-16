@@ -212,26 +212,7 @@ app.use(Toast, {
   hideProgressBar: false,
   closeButton: "button",
   icon: false,
-  rtl: false,
-  toastDefaults: {
-    // Custom styling to match the app theme
-    success: {
-      timeout: 4000,
-      icon: false
-    },
-    error: {
-      timeout: 4000,
-      icon: false
-    },
-    warning: {
-      timeout: 4000,
-      icon: false
-    },
-    info: {
-      timeout: 3000,
-      icon: false
-    }
-  }
+  rtl: false
 });
 
 // Initialize stores

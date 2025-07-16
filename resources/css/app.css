@@ -86,6 +86,8 @@
   
   .Vue-Toastification__progress-bar {
     @apply bg-white/30;
+    height: 3px !important;
+    border-radius: 0 !important;
   }
   
   .Vue-Toastification__close-button {
@@ -237,6 +239,27 @@ body {
 .Vue-Toastification__container {
   top: 2rem !important;
   z-index: 9999 !important;
+}
+
+/* Fix for progress bar animation */
+.Vue-Toastification__progress-bar {
+  height: 3px !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-radius: 0 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.Vue-Toastification__toast {
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+/* Force progress bar to be visible */
+.Vue-Toastification__progress-bar {
+  width: 100% !important;
+  transition: width 0.1s linear !important;
 }
 
 /* Custom backdrop blur for toast */

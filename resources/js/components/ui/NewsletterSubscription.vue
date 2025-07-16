@@ -54,11 +54,19 @@
         </button>
       </form>
       
+      <!-- Local Alert -->
+      <div v-if="localAlert" class="mt-4 p-4 rounded-lg text-sm font-medium transition-all duration-300" :class="localAlert.class">
+        {{ localAlert.message }}
+      </div>
+      
       <!-- Privacy Notice -->
       <p class="mt-3 text-xs text-indigo-200 leading-relaxed">
         Zapisując się do newslettera akceptujesz naszą 
         <router-link to="/privacy" class="text-white hover:text-indigo-100 underline font-medium">politykę prywatności</router-link>. 
         Możesz się wypisać w każdej chwili.
+        <router-link to="/newsletter/unsubscribe" class="text-white hover:text-indigo-100 underline font-medium ml-1">
+          Wypisz się
+        </router-link>
       </p>
     </div>
   </div>
@@ -66,14 +74,9 @@
 
 <script>
 import { newsletterService } from '../../services/newsletterService';
-import { useToast } from "vue-toastification";
 
 export default {
   name: 'NewsletterSubscription',
-  setup() {
-    const toast = useToast();
-    return { toast };
-  },
   mounted() {
     console.log('NewsletterSubscription component mounted successfully!');
     console.log('Initial data:', this.$data);
@@ -82,7 +85,8 @@ export default {
   data() {
     return {
       email: '',
-      loading: false
+      loading: false,
+      localAlert: null
     };
   },
   computed: {
@@ -91,29 +95,21 @@ export default {
       return this.email ? emailRegex.test(this.email) : true;
     }
   },
-  methods: {
+    methods: {
     async subscribe() {
       console.log('Subscribe method called with email:', this.email);
       console.log('Email validation:', { isValidEmail: this.isValidEmail, email: this.email });
       
-      if (!this.email || !this.isValidEmail) {
-        this.toast.error('Proszę wprowadzić prawidłowy adres email', {
-          position: "top-center",
-          timeout: 4000,
-          closeOnClick: true,
-          pauseOnFocusLoss: true,
-          pauseOnHover: true,
-          draggable: true,
-          draggablePercent: 0.6,
-          showCloseButtonOnHover: false,
-          hideProgressBar: false,
-          closeButton: "button",
-          icon: true,
-          rtl: false
-        });
-        console.error('Email validation failed');
+            // Prevent multiple submissions
+      if (this.loading) {
         return;
       }
+      
+              if (!this.email || !this.isValidEmail) {
+          this.showLocalAlert('❌ Proszę wprowadzić prawidłowy adres email', 'error', 4000);
+          console.error('Email validation failed');
+          return;
+        }
       
       this.loading = true;
       
@@ -123,83 +119,39 @@ export default {
         console.log('Newsletter subscription response:', response);
         
         if (response.success) {
-          // Success toast with custom styling
-          this.toast.success(response.message, {
-            position: "top-center",
-            timeout: 6000,
-            closeOnClick: true,
-            pauseOnFocusLoss: true,
-            pauseOnHover: true,
-            draggable: true,
-            draggablePercent: 0.6,
-            showCloseButtonOnHover: false,
-            hideProgressBar: false,
-            closeButton: "button",
-            icon: "🎯",
-            rtl: false
-          });
+          // Success alert with same style as login alerts
+          console.log('Showing success alert with timeout:', 6000);
+          this.showLocalAlert(`🎯 ${response.message}`, 'success', 6000);
           
           this.email = '';
           
           // Additional celebration effect
           this.celebrateSuccess();
         } else {
-          this.toast.warning(response.message || 'Wystąpił błąd podczas zapisywania do newslettera', {
-            position: "top-center",
-            timeout: 5000,
-            closeOnClick: true,
-            pauseOnFocusLoss: true,
-            pauseOnHover: true,
-            draggable: true,
-            draggablePercent: 0.6,
-            showCloseButtonOnHover: false,
-            hideProgressBar: false,
-            closeButton: "button",
-            icon: "⚠️",
-            rtl: false
-          });
+          console.log('Showing warning alert with timeout:', 5000);
+          this.showLocalAlert(response.message || 'Wystąpił błąd podczas zapisywania do newslettera', 'warning', 5000);
         }
       } catch (error) {
         console.error('Newsletter subscription error:', error);
         
-        // Handle different types of errors
+                // Handle different types of errors
         if (error.response) {
           console.error('Error response:', error.response.data);
           if (error.response.status === 422 && error.response.data.errors) {
             const firstError = Object.values(error.response.data.errors)[0];
             const errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
-            this.toast.error(errorMessage, {
-              position: "top-center",
-              timeout: 5000,
-              icon: "❌"
-            });
+            this.showLocalAlert(`❌ ${errorMessage}`, 'error', 5000);
           } else if (error.response.data.message) {
-            this.toast.error(error.response.data.message, {
-              position: "top-center",
-              timeout: 5000,
-              icon: "❌"
-            });
+            this.showLocalAlert(`❌ ${error.response.data.message}`, 'error', 5000);
           } else {
-            this.toast.error('Wystąpił błąd podczas zapisywania do newslettera', {
-              position: "top-center",
-              timeout: 5000,
-              icon: "❌"
-            });
+            this.showLocalAlert('❌ Wystąpił błąd podczas zapisywania do newslettera', 'error', 5000);
           }
         } else if (error.request) {
           console.error('Network error:', error.request);
-          this.toast.error('Błąd połączenia. Sprawdź swoją internetową i spróbuj ponownie.', {
-            position: "top-center",
-            timeout: 5000,
-            icon: "🌐"
-          });
+          this.showLocalAlert('🌐 Błąd połączenia. Sprawdź swoją internetową i spróbuj ponownie.', 'error', 5000);
         } else {
           console.error('Error message:', error.message);
-          this.toast.error('Wystąpił nieoczekiwany błąd. Spróbuj ponownie.', {
-            position: "top-center",
-            timeout: 5000,
-            icon: "❌"
-          });
+          this.showLocalAlert('❌ Wystąpił nieoczekiwany błąd. Spróbuj ponownie.', 'error', 5000);
         }
       } finally {
         this.loading = false;
@@ -212,6 +164,31 @@ export default {
       setTimeout(() => {
         this.$el.style.transform = 'scale(1)';
       }, 300);
+    },
+    
+    showLocalAlert(message, type = 'success', timeout = 5000) {
+      // Clear any existing alert
+      this.localAlert = null;
+      
+      // Set alert classes based on type
+      const alertClasses = {
+        success: 'bg-green-50 border border-green-200 text-green-800 shadow-sm',
+        error: 'bg-red-50 border border-red-200 text-red-800 shadow-sm',
+        warning: 'bg-yellow-50 border border-yellow-200 text-yellow-800 shadow-sm'
+      };
+      
+      // Show new alert
+      this.localAlert = {
+        message,
+        class: alertClasses[type] || alertClasses.success
+      };
+      
+      // Auto-hide after timeout
+      if (timeout > 0) {
+        setTimeout(() => {
+          this.localAlert = null;
+        }, timeout);
+      }
     }
   }
 };

@@ -150,6 +150,9 @@
             <router-link to="/cookies" class="text-indigo-200 hover:text-white text-sm transition-colors duration-200">
               Cookies
             </router-link>
+            <router-link to="/newsletter/unsubscribe" class="text-indigo-200 hover:text-white text-sm transition-colors duration-200">
+              Wypisz się z newslettera
+            </router-link>
           </div>
         </div>
       </div>

@@ -105,17 +105,14 @@ class NewsletterController extends Controller
     /**
      * Verify email subscription
      */
-    public function verify(Request $request): JsonResponse
+    public function verify(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'token' => 'required|string'
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Nieprawidłowy token weryfikacyjny'
-            ], 422);
+            return redirect('/newsletter/verify?status=error');
         }
 
         $subscription = NewsletterSubscription::where('verification_token', $request->token)
@@ -123,10 +120,7 @@ class NewsletterController extends Controller
             ->first();
 
         if (!$subscription) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Nieprawidłowy lub wygasły token weryfikacyjny'
-            ], 404);
+            return redirect('/newsletter/verify?status=error');
         }
 
         $subscription->markAsVerified();
@@ -134,10 +128,8 @@ class NewsletterController extends Controller
         // Send welcome email
         Mail::to($subscription->email)->queue(new NewsletterWelcomeMail($subscription));
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Twój adres email został pomyślnie zweryfikowany! Dziękujemy za zapisanie się do newslettera.'
-        ]);
+        // Przekieruj na stronę z podziękowaniem
+        return redirect('/newsletter/verified');
     }
 
     /**

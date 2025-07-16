@@ -283,7 +283,7 @@
             </p>
             
             <p>
-                <a href="{{ url('/api/newsletter/unsubscribe?email=' . urlencode($subscription->email)) }}">Wypisz się z newslettera</a> |
+                <a href="{{ url('/newsletter/unsubscribe') }}">Wypisz się z newslettera</a> |
                 <a href="{{ url('/privacy') }}">Polityka prywatności</a> |
                 <a href="{{ url('/contact') }}">Kontakt</a>
             </p>

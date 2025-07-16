@@ -91,7 +91,7 @@
         <div class="footer">
             <p>Otrzymujesz ten email, ponieważ zapisałeś się do newslettera {{ $appName }}.</p>
             <p>
-                <a href="{{ config('app.url') }}/newsletter/unsubscribe?email={{ $subscription->email }}">Wypisz się z newslettera</a>
+                <a href="{{ config('app.url') }}/newsletter/unsubscribe">Wypisz się z newslettera</a>
             </p>
             <p>&copy; {{ date('Y') }} {{ $appName }}. Wszystkie prawa zastrzeżone.</p>
         </div>

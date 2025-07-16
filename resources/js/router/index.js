@@ -255,6 +255,33 @@ const routes = [
     }
   },
   {
+    path: '/newsletter/verified',
+    name: 'newsletter-verified',
+    component: () => import('../pages/NewsletterVerified.vue'),
+    meta: {
+      layout: 'default',
+      title: 'Newsletter zweryfikowany'
+    }
+  },
+  {
+    path: '/newsletter/verify',
+    name: 'newsletter-verify-error',
+    component: () => import('../pages/NewsletterVerify.vue'),
+    meta: {
+      layout: 'default',
+      title: 'Błąd weryfikacji newslettera'
+    }
+  },
+  {
+    path: '/newsletter/unsubscribe',
+    name: 'newsletter-unsubscribe',
+    component: () => import('../pages/NewsletterUnsubscribe.vue'),
+    meta: {
+      layout: 'default',
+      title: 'Wypisz się z newslettera'
+    }
+  },
+  {
     path: '/auth/google/callback',
     name: 'google-callback',
     component: GoogleCallback,
