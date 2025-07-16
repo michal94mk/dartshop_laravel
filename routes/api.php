@@ -126,6 +126,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Password Reset API
 Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
+Route::post('/validate-reset-token', [PasswordResetController::class, 'validateResetToken']);
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
 
 // Email Verification API - use web middleware for session sharing

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class PasswordResetController extends Controller
 {
@@ -34,6 +35,44 @@ class PasswordResetController extends Controller
 
         throw ValidationException::withMessages([
             'email' => [__($status)],
+        ]);
+    }
+
+    /**
+     * Walidacja tokenu resetowania hasła
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function validateResetToken(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string',
+            'email' => 'required|email',
+        ]);
+
+        // Sprawdź czy token istnieje i nie wygasł w nowej tabeli
+        $resetRecord = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->where('created_at', '>', now()->subMinutes(60))
+            ->first();
+
+        if (!$resetRecord) {
+            return response()->json([
+                'message' => 'Token jest nieprawidłowy lub wygasł.'
+            ], 422);
+        }
+
+        // Sprawdź czy token się zgadza (w nowej tabeli token jest hashowany)
+        if (!Hash::check($request->token, $resetRecord->token)) {
+            return response()->json([
+                'message' => 'Token jest nieprawidłowy lub wygasł.'
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => 'Token jest prawidłowy.',
+            'email' => $request->email
         ]);
     }
 

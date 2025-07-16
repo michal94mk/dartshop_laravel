@@ -31,7 +31,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Password reset tokens table
+        // Password reset tokens table (Laravel 10+)
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
