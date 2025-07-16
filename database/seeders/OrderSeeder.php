@@ -75,15 +75,12 @@ class OrderSeeder extends Seeder
                 'address' => $addresses[array_rand($addresses)],
                 'city' => $cities[array_rand($cities)],
                 'postal_code' => $postalCodes[array_rand($postalCodes)],
-                'country' => 'Polska',
                 'notes' => rand(0, 1) ? 'Dodatkowe uwagi do zamówienia' : null,
                 'subtotal' => 0, // Will update after adding items
                 'shipping_cost' => $shippingCost,
                 'discount' => $discount,
                 'total' => 0, // Will update after adding items
                 'payment_method' => $paymentMethods[array_rand($paymentMethods)],
-                'payment_intent_id' => $status !== OrderStatus::Pending->value ? 'pi_' . Str::random(24) : null,
-                'stripe_session_id' => $status !== OrderStatus::Pending->value ? 'cs_' . Str::random(24) : null,
                 'created_at' => $orderDate,
                 'updated_at' => $orderDate
             ]);

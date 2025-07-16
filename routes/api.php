@@ -238,6 +238,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     
     // Reviews management
     Route::get('/reviews/form-data', [AdminReviewController::class, 'getFormData']);
+    Route::get('/reviews/featured-count', [AdminReviewController::class, 'getFeaturedCount']);
     Route::apiResource('/reviews', AdminReviewController::class);
     Route::post('/reviews/{review}/approve', [AdminReviewController::class, 'approve']);
     Route::post('/reviews/{review}/reject', [AdminReviewController::class, 'reject']);

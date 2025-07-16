@@ -93,6 +93,19 @@ class ReviewController extends BaseAdminController
         }
 
         try {
+            // Check featured limit if trying to create a featured review
+            if ($request->boolean('is_featured')) {
+                // Check if review is approved
+                if (!$request->boolean('is_approved', true)) {
+                    return $this->errorResponse('Recenzja musi być zatwierdzona, aby mogła być wyróżniona.', 422);
+                }
+                
+                $featuredCount = Review::approvedAndFeatured()->count();
+                if ($featuredCount >= 6) {
+                    return $this->errorResponse('Można wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji przed dodaniem nowego.', 422);
+                }
+            }
+            
             $review = Review::create($request->all());
             return response()->json($review, 201);
         } catch (\Exception $e) {
@@ -141,6 +154,20 @@ class ReviewController extends BaseAdminController
 
         try {
             $review = Review::findOrFail($id);
+            
+            // Check featured limit if trying to make a review featured
+            if ($request->has('is_featured') && $request->boolean('is_featured') && !$review->is_featured) {
+                // Check if review is approved
+                if (!$request->boolean('is_approved', $review->is_approved)) {
+                    return $this->errorResponse('Recenzja musi być zatwierdzona, aby mogła być wyróżniona.', 422);
+                }
+                
+                $featuredCount = Review::approvedAndFeatured()->count();
+                if ($featuredCount >= 6) {
+                    return $this->errorResponse('Można wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji przed dodaniem nowego.', 422);
+                }
+            }
+            
             $review->update($request->all());
             return response()->json($review);
         } catch (\Exception $e) {
@@ -211,9 +238,31 @@ class ReviewController extends BaseAdminController
     {
         try {
             $review = Review::findOrFail($id);
+            
+            // If trying to feature a review, check if we already have 6 featured reviews
+            if (!$review->is_featured) {
+                // Check if review is approved
+                if (!$review->is_approved) {
+                    return $this->errorResponse('Recenzja musi być zatwierdzona, aby mogła być wyróżniona.', 422);
+                }
+                
+                $featuredCount = Review::approvedAndFeatured()->count();
+                if ($featuredCount >= 6) {
+                    return $this->errorResponse('Można wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji przed dodaniem nowego.', 422);
+                }
+            }
+            
             $review->is_featured = !$review->is_featured;
             $review->save();
-            return response()->json($review);
+            
+            $message = $review->is_featured 
+                ? 'Recenzja została wyróżniona.' 
+                : 'Recenzja została usunięta z wyróżnionych.';
+                
+            return response()->json([
+                'review' => $review,
+                'message' => $message
+            ]);
         } catch (\Exception $e) {
             return $this->errorResponse('Error toggling featured status: ' . $e->getMessage(), 500);
         }
@@ -236,6 +285,25 @@ class ReviewController extends BaseAdminController
             ]);
         } catch (\Exception $e) {
             return $this->errorResponse('Error fetching form data: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Get featured reviews count.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getFeaturedCount()
+    {
+        try {
+            $featuredCount = Review::approvedAndFeatured()->count();
+            
+            return response()->json([
+                'featured_count' => $featuredCount,
+                'max_featured' => 6
+            ]);
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error fetching featured count: ' . $e->getMessage(), 500);
         }
     }
 } 

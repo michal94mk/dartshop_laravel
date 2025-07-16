@@ -38,6 +38,28 @@ class Review extends Model
     }
     
     /**
+     * Scope a query to only include featured reviews.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeFeatured(Builder $query): Builder
+    {
+        return $query->where('is_featured', true);
+    }
+    
+    /**
+     * Scope a query to only include approved and featured reviews.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeApprovedAndFeatured(Builder $query): Builder
+    {
+        return $query->where('is_approved', true)->where('is_featured', true);
+    }
+    
+    /**
      * Get the user that wrote the review.
      */
     public function user(): BelongsTo

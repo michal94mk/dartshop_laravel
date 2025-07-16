@@ -1,0 +1,254 @@
+<?php
+
+namespace Tests\Feature\Admin;
+
+use Tests\TestCase;
+use App\Models\User;
+use App\Models\Product;
+use App\Models\Review;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+class ReviewControllerTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected $admin;
+    protected $user;
+    protected $product;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        
+        // Create admin user
+        $this->admin = User::factory()->create([
+            'email' => 'admin@example.com',
+            'is_admin' => true
+        ]);
+        
+        // Create regular user
+        $this->user = User::factory()->create([
+            'email' => 'user@example.com',
+            'is_admin' => false
+        ]);
+        
+        // Create product
+        $this->product = Product::factory()->create([
+            'name' => 'Test Product',
+            'price' => 100.00
+        ]);
+    }
+
+    /** @test */
+    public function it_prevents_creating_more_than_6_featured_reviews()
+    {
+        // Create 6 approved featured reviews
+        for ($i = 0; $i < 6; $i++) {
+            Review::factory()->create([
+                'user_id' => $this->user->id,
+                'product_id' => $this->product->id,
+                'is_featured' => true,
+                'is_approved' => true
+            ]);
+        }
+
+        // Try to create a 7th featured review
+        $response = $this->actingAs($this->admin)
+            ->postJson('/api/admin/reviews', [
+                'user_id' => $this->user->id,
+                'product_id' => $this->product->id,
+                'rating' => 5,
+                'title' => 'Test Review',
+                'content' => 'Test content',
+                'is_approved' => true,
+                'is_featured' => true
+            ]);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'message' => 'Można wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji przed dodaniem nowego.'
+        ]);
+
+        // Verify only 6 featured reviews exist
+        $this->assertEquals(6, Review::where('is_featured', true)->count());
+    }
+
+    /** @test */
+    public function it_prevents_toggling_to_featured_when_limit_reached()
+    {
+        // Create 6 approved featured reviews
+        for ($i = 0; $i < 6; $i++) {
+            Review::factory()->create([
+                'user_id' => $this->user->id,
+                'product_id' => $this->product->id,
+                'is_featured' => true,
+                'is_approved' => true
+            ]);
+        }
+
+        // Create a non-featured review
+        $review = Review::factory()->create([
+            'user_id' => $this->user->id,
+            'product_id' => $this->product->id,
+            'is_featured' => false,
+            'is_approved' => true
+        ]);
+
+        // Try to toggle it to featured
+        $response = $this->actingAs($this->admin)
+            ->postJson("/api/admin/reviews/{$review->id}/toggle-featured");
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'message' => 'Można wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji przed dodaniem nowego.'
+        ]);
+
+        // Verify the review is still not featured
+        $this->assertFalse($review->fresh()->is_featured);
+    }
+
+    /** @test */
+    public function it_allows_toggling_featured_when_under_limit()
+    {
+        // Create 5 approved featured reviews
+        for ($i = 0; $i < 5; $i++) {
+            Review::factory()->create([
+                'user_id' => $this->user->id,
+                'product_id' => $this->product->id,
+                'is_featured' => true,
+                'is_approved' => true
+            ]);
+        }
+
+        // Create a non-featured review
+        $review = Review::factory()->create([
+            'user_id' => $this->user->id,
+            'product_id' => $this->product->id,
+            'is_featured' => false,
+            'is_approved' => true
+        ]);
+
+        // Try to toggle it to featured
+        $response = $this->actingAs($this->admin)
+            ->postJson("/api/admin/reviews/{$review->id}/toggle-featured");
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'message' => 'Recenzja została wyróżniona.'
+        ]);
+
+        // Verify the review is now featured
+        $this->assertTrue($review->fresh()->is_featured);
+    }
+
+    /** @test */
+    public function it_allows_removing_featured_status()
+    {
+        // Create a featured review
+        $review = Review::factory()->create([
+            'user_id' => $this->user->id,
+            'product_id' => $this->product->id,
+            'is_featured' => true,
+            'is_approved' => true
+        ]);
+
+        // Try to remove featured status
+        $response = $this->actingAs($this->admin)
+            ->postJson("/api/admin/reviews/{$review->id}/toggle-featured");
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'message' => 'Recenzja została usunięta z wyróżnionych.'
+        ]);
+
+        // Verify the review is no longer featured
+        $this->assertFalse($review->fresh()->is_featured);
+    }
+
+    /** @test */
+    public function it_prevents_updating_to_featured_when_limit_reached()
+    {
+        // Create 6 approved featured reviews
+        for ($i = 0; $i < 6; $i++) {
+            Review::factory()->create([
+                'user_id' => $this->user->id,
+                'product_id' => $this->product->id,
+                'is_featured' => true,
+                'is_approved' => true
+            ]);
+        }
+
+        // Create a non-featured review
+        $review = Review::factory()->create([
+            'user_id' => $this->user->id,
+            'product_id' => $this->product->id,
+            'is_featured' => false,
+            'is_approved' => true
+        ]);
+
+        // Try to update it to featured
+        $response = $this->actingAs($this->admin)
+            ->putJson("/api/admin/reviews/{$review->id}", [
+                'user_id' => $this->user->id,
+                'product_id' => $this->product->id,
+                'rating' => 5,
+                'title' => 'Updated Review',
+                'content' => 'Updated content',
+                'is_approved' => true,
+                'is_featured' => true
+            ]);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'message' => 'Można wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji przed dodaniem nowego.'
+        ]);
+
+        // Verify the review is still not featured
+        $this->assertFalse($review->fresh()->is_featured);
+    }
+
+    /** @test */
+    public function it_prevents_featuring_unapproved_review()
+    {
+        // Create an unapproved review
+        $review = Review::factory()->create([
+            'user_id' => $this->user->id,
+            'product_id' => $this->product->id,
+            'is_featured' => false,
+            'is_approved' => false
+        ]);
+
+        // Try to toggle it to featured
+        $response = $this->actingAs($this->admin)
+            ->postJson("/api/admin/reviews/{$review->id}/toggle-featured");
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'message' => 'Recenzja musi być zatwierdzona, aby mogła być wyróżniona.'
+        ]);
+
+        // Verify the review is still not featured
+        $this->assertFalse($review->fresh()->is_featured);
+    }
+
+    /** @test */
+    public function it_prevents_creating_featured_unapproved_review()
+    {
+        // Try to create a featured but unapproved review
+        $response = $this->actingAs($this->admin)
+            ->postJson('/api/admin/reviews', [
+                'user_id' => $this->user->id,
+                'product_id' => $this->product->id,
+                'rating' => 5,
+                'title' => 'Test Review',
+                'content' => 'Test content',
+                'is_approved' => false,
+                'is_featured' => true
+            ]);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'message' => 'Recenzja musi być zatwierdzona, aby mogła być wyróżniona.'
+        ]);
+    }
+} 

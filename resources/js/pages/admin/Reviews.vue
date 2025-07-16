@@ -9,6 +9,32 @@
       />
     </div>
     
+    <!-- Featured Reviews Counter -->
+    <div class="px-6 py-2">
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-blue-800">
+              Wyróżnione recenzje: {{ featuredReviewsCount }}/6
+            </h3>
+            <div class="mt-1 text-sm text-blue-700">
+              <span v-if="featuredReviewsCount < 6">
+                Można wyróżnić jeszcze {{ 6 - featuredReviewsCount }} recenzji
+              </span>
+              <span v-else class="text-orange-600 font-medium">
+                Osiągnięto maksymalną liczbę wyróżnionych recenzji
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <!-- Loading indicator -->
     <loading-spinner v-if="loading" />
     
@@ -799,6 +825,9 @@ export default {
           }
         }
         alertStore.success('Recenzja została zatwierdzona.')
+        
+        // Refresh featured count in case this affects featured reviews
+        await fetchFeaturedCount()
       } catch (error) {
         console.error('Error approving review:', error)
         alertStore.error('Wystąpił błąd podczas zatwierdzania recenzji.')
@@ -820,6 +849,9 @@ export default {
           }
         }
         alertStore.success('Recenzja została odrzucona.')
+        
+        // Refresh featured count in case this affects featured reviews
+        await fetchFeaturedCount()
       } catch (error) {
         console.error('Error rejecting review:', error)
         alertStore.error('Wystąpił błąd podczas odrzucania recenzji.')
@@ -957,7 +989,9 @@ export default {
     // Toggle featured status
     const toggleFeatured = async (review) => {
       try {
-        await axios.post(`/api/admin/reviews/${review.id}/toggle-featured`)
+        const response = await axios.post(`/api/admin/reviews/${review.id}/toggle-featured`)
+        
+        // Update the review in the local array
         const index = reviews.value.data.findIndex(r => r.id === review.id)
         if (index !== -1) {
           reviews.value.data[index].is_featured = !reviews.value.data[index].is_featured
@@ -967,10 +1001,25 @@ export default {
             selectedReview.value.is_featured = !selectedReview.value.is_featured
           }
         }
-        alertStore.success('Status wyróżnienia został zmieniony.')
+        
+        // Show success message from server response
+        if (response.data && response.data.message) {
+          alertStore.success(response.data.message)
+        } else {
+          alertStore.success('Status wyróżnienia został zmieniony.')
+        }
+        
+        // Refresh featured count
+        await fetchFeaturedCount()
       } catch (error) {
         console.error('Error toggling featured status:', error)
-        alertStore.error('Wystąpił błąd podczas zmieniania statusu wyróżnienia.')
+        
+        // Handle specific error messages from server
+        if (error.response && error.response.data && error.response.data.message) {
+          alertStore.error(error.response.data.message)
+        } else {
+          alertStore.error('Wystąpił błąd podczas zmieniania statusu wyróżnienia.')
+        }
       }
     }
 
@@ -1195,6 +1244,7 @@ export default {
         
         closeAddEditModal()
         fetchReviews()
+        fetchFeaturedCount()
       } catch (error) {
         console.error('Error saving review:', error)
         
@@ -1258,6 +1308,7 @@ export default {
         alertStore.success('Recenzja została usunięta.')
         showDeleteModal.value = false
         fetchReviews()
+        fetchFeaturedCount()
       } catch (error) {
         console.error('Error deleting review:', error)
         alertStore.error('Wystąpił błąd podczas usuwania recenzji.')
@@ -1277,8 +1328,22 @@ export default {
       fetchReviews()
     }
     
+    // Featured reviews count
+    const featuredReviewsCount = ref(0)
+    
+    // Fetch featured reviews count
+    const fetchFeaturedCount = async () => {
+      try {
+        const response = await axios.get('/api/admin/reviews/featured-count')
+        featuredReviewsCount.value = response.data.featured_count
+      } catch (error) {
+        console.error('Error fetching featured count:', error)
+      }
+    }
+    
     onMounted(() => {
       fetchReviews()
+      fetchFeaturedCount()
     })
     
     return {
@@ -1324,7 +1389,9 @@ export default {
       selectedProduct,
       showProductDetails,
       getProductImageUrl,
-      handleImageError
+      handleImageError,
+      featuredReviewsCount,
+      fetchFeaturedCount
     }
   }
 }
