@@ -3,7 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\QueuedResetPasswordNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -29,9 +29,9 @@ class PasswordResetTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->postJson('/api/forgot-password', ['email' => $user->email]);
-        
         $response->assertOk();
-        Notification::assertSentTo($user, ResetPassword::class);
+        $response->assertJson(['message' => 'We have emailed your password reset link!']);
+        Notification::assertSentTo($user, QueuedResetPasswordNotification::class);
     }
 
     public function test_reset_password_validation_works(): void
@@ -54,20 +54,21 @@ class PasswordResetTest extends TestCase
 
         $user = User::factory()->create();
 
-        $this->postJson('/api/forgot-password', ['email' => $user->email]);
+        $response = $this->postJson('/api/forgot-password', ['email' => $user->email]);
+        $response->assertOk();
 
-        Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
-            $response = $this->postJson('/api/reset-password', [
-                'token' => $notification->token,
-                'email' => $user->email,
-                'password' => 'newpassword123',
-                'password_confirmation' => 'newpassword123',
-            ]);
+        Notification::assertSentTo($user, QueuedResetPasswordNotification::class);
 
-            $response->assertOk();
-            $response->assertJsonStructure(['message']);
+        $notification = Notification::sent($user, QueuedResetPasswordNotification::class)->first();
+        
+        $response = $this->postJson('/api/reset-password', [
+            'token' => $notification->token,
+            'email' => $user->email,
+            'password' => 'newpassword123',
+            'password_confirmation' => 'newpassword123',
+        ]);
 
-            return true;
-        });
+        $response->assertOk();
+        $response->assertJsonStructure(['message']);
     }
 }

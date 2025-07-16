@@ -43,7 +43,7 @@ class EmailVerificationTest extends TestCase
 
         Event::assertDispatched(Verified::class);
         $this->assertTrue($user->fresh()->hasVerifiedEmail());
-        $response->assertOk();
+        $response->assertRedirect();
     }
 
     public function test_can_resend_verification_email(): void
