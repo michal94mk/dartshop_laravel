@@ -15,6 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('content');
+            $table->string('meta_title')->nullable();
+            $table->text('meta_description')->nullable();
+            $table->string('header_style')->nullable();
+            $table->string('header_margin')->nullable();
+            $table->string('content_layout')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

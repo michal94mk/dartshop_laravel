@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('content');
             $table->string('video_url')->nullable();
+            $table->string('image_url')->nullable();
             $table->integer('order')->default(0);
             $table->boolean('is_published')->default(false);
             $table->timestamps();

@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('terms_of_service', function (Blueprint $table) {
             $table->id();
+            $table->string('title')->nullable();
+            $table->string('version', 20)->nullable();
+            $table->date('effective_date')->nullable();
             $table->text('content');
             $table->boolean('is_active')->default(true);
             $table->timestamps();

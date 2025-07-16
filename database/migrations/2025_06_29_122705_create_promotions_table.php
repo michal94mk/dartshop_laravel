@@ -16,6 +16,10 @@ return new class extends Migration
             $table->string('title');
             $table->string('name');
             $table->text('description')->nullable();
+            $table->string('badge_text')->nullable();
+            $table->string('badge_color', 7)->default('#ff0000');
+            $table->boolean('is_featured')->default(false);
+            $table->integer('display_order')->default(0);
             $table->string('discount_type'); // percentage, fixed
             $table->decimal('discount_value', 10, 2);
             $table->string('code')->unique()->nullable();
