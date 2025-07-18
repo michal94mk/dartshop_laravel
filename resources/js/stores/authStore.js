@@ -231,9 +231,9 @@ export const useAuthStore = defineStore('auth', {
           const errors = error.response.data.errors;
           
           if (errors.email) {
-            this.errorMessage = 'Nieprawidłowy email lub hasło.';
+            this.errorMessage = 'Nieprawidłowy adres email lub hasło.';
           } else if (errors.password) {
-            this.errorMessage = 'Nieprawidłowy email lub hasło.';
+            this.errorMessage = 'Nieprawidłowy adres email lub hasło.';
           } else {
             // Fallback for other validation errors
             const firstError = Object.values(errors)[0];
@@ -308,12 +308,12 @@ export const useAuthStore = defineStore('auth', {
             if (emailError.includes('nie zostało zweryfikowane')) {
               this.errorMessage = emailError;
             } else {
-              this.errorMessage = 'Podany email już istnieje.';
+              this.errorMessage = 'Podany adres email już istnieje.';
             }
           } else if (errors.password) {
             this.errorMessage = 'Hasło nie spełnia wymagań. Upewnij się, że ma co najmniej 8 znaków i jest poprawnie potwierdzone.';
-          } else if (errors.privacy_policy_accepted) {
-            this.errorMessage = 'Akceptacja polityki prywatności jest wymagana.';
+          } else if (errors.terms) {
+            this.errorMessage = 'Musisz zaakceptować regulamin.';
           } else if (errors.name || errors.first_name || errors.last_name) {
             this.errorMessage = 'Sprawdź poprawność wprowadzonych danych osobowych.';
           } else {

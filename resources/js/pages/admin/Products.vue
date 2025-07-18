@@ -198,8 +198,14 @@
                       id="name"
                       v-model="currentProduct.name"
                       required
-                      class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                      :class="[
+                        'mt-1 block w-full shadow-sm sm:text-sm rounded-md',
+                        formErrors.name 
+                          ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                          : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                      ]"
                     />
+                    <p v-if="formErrors.name" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.name) ? formErrors.name[0] : formErrors.name }}</p>
                   </div>
                   
                   <div>
@@ -209,8 +215,14 @@
                       v-model="currentProduct.description"
                       required
                       rows="3"
-                      class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                      :class="[
+                        'mt-1 block w-full shadow-sm sm:text-sm rounded-md',
+                        formErrors.description 
+                          ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                          : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                      ]"
                     ></textarea>
+                    <p v-if="formErrors.description" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.description) ? formErrors.description[0] : formErrors.description }}</p>
                   </div>
                   
                   <div class="grid grid-cols-2 gap-4">
@@ -223,8 +235,14 @@
                         required
                         min="0"
                         step="0.01"
-                        class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        :class="[
+                          'mt-1 block w-full shadow-sm sm:text-sm rounded-md',
+                          formErrors.price 
+                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                            : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                        ]"
                       />
+                      <p v-if="formErrors.price" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.price) ? formErrors.price[0] : formErrors.price }}</p>
                     </div>
                   </div>
                   
@@ -235,12 +253,18 @@
                         id="category_id"
                         v-model="currentProduct.category_id"
                         required
-                        class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        :class="[
+                          'mt-1 block w-full bg-white rounded-md shadow-sm py-2 px-3 focus:outline-none sm:text-sm',
+                          formErrors.category_id 
+                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                            : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                        ]"
                       >
                         <option v-for="category in categories" :key="category.id" :value="category.id">
                           {{ category.name }}
                         </option>
                       </select>
+                      <p v-if="formErrors.category_id" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.category_id) ? formErrors.category_id[0] : formErrors.category_id }}</p>
                     </div>
                     
                     <div>
@@ -249,12 +273,18 @@
                         id="brand_id"
                         v-model="currentProduct.brand_id"
                         required
-                        class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        :class="[
+                          'mt-1 block w-full bg-white rounded-md shadow-sm py-2 px-3 focus:outline-none sm:text-sm',
+                          formErrors.brand_id 
+                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                            : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                        ]"
                       >
                         <option v-for="brand in brands" :key="brand.id" :value="brand.id">
                           {{ brand.name }}
                         </option>
                       </select>
+                      <p v-if="formErrors.brand_id" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.brand_id) ? formErrors.brand_id[0] : formErrors.brand_id }}</p>
                     </div>
                   </div>
                   
@@ -577,6 +607,9 @@ export default {
       image_url: null
     })
     
+    // Form validation errors
+    const formErrors = ref({})
+    
 
     
     // File input ref
@@ -763,12 +796,15 @@ export default {
         }
       }
       
+      formErrors.value = {}
       showModal.value = true
     }
     
     const saveProduct = async () => {
       try {
         loading.value = true
+        // Clear previous errors
+        formErrors.value = {}
         
         // Check if we're dealing with a file upload
         const hasFileUpload = isFileObject(currentProduct.value.image_url);
@@ -852,7 +888,14 @@ export default {
         console.error('Error saving product:', error);
         console.error('Error details:', error.response?.data);
         
-        if (error.response?.data?.message) {
+        if (error.response && error.response.status === 422) {
+          // Validation errors
+          if (error.response.data.errors) {
+            formErrors.value = error.response.data.errors
+          } else if (error.response.data.message) {
+            alertStore.error(error.response.data.message)
+          }
+        } else if (error.response?.data?.message) {
           alertStore.error('Błąd podczas zapisywania produktu: ' + error.response.data.message);
         } else {
           alertStore.error('Wystąpił błąd podczas zapisywania produktu: ' + (error.message || 'Unknown error'));
@@ -983,6 +1026,7 @@ export default {
       showProductDetailsModal,
       selectedProductForDetails,
       currentProduct,
+      formErrors,
       settings,
       submitting,
       productImage,

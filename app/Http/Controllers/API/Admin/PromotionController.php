@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
+use App\Http\Requests\Admin\PromotionRequest;
 
 class PromotionController extends BaseAdminController
 {
@@ -210,32 +211,9 @@ class PromotionController extends BaseAdminController
     /**
      * Utwórz nową promocję
      */
-    public function store(Request $request): JsonResponse
+    public function store(PromotionRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'discount_type' => 'required|in:percentage,fixed',
-            'discount_value' => 'required|numeric|min:0',
-            'starts_at' => 'required|date',
-            'ends_at' => 'nullable|date|after:starts_at',
-            'is_active' => 'boolean',
-            'code' => 'nullable|string|max:50|unique:promotions,code',
-            'badge_text' => 'nullable|string|max:50',
-            'badge_color' => 'nullable|string|max:7',
-            'is_featured' => 'boolean',
-            'display_order' => 'integer|min:0',
-            'product_ids' => 'array',
-            'product_ids.*' => 'exists:products,id'
-        ]);
-
-        // Walidacja dodatkowa dla discount_value
-        if ($validated['discount_type'] === 'percentage' && $validated['discount_value'] > 100) {
-            return response()->json([
-                'message' => 'Rabat procentowy nie może być większy niż 100%'
-            ], 422);
-        }
+        $validated = $request->validated();
 
         $promotion = Promotion::create($validated);
 
@@ -258,32 +236,9 @@ class PromotionController extends BaseAdminController
     /**
      * Zaktualizuj promocję
      */
-    public function update(Request $request, Promotion $promotion): JsonResponse
+    public function update(PromotionRequest $request, Promotion $promotion): JsonResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'discount_type' => 'required|in:percentage,fixed',
-            'discount_value' => 'required|numeric|min:0',
-            'starts_at' => 'required|date',
-            'ends_at' => 'nullable|date|after:starts_at',
-            'is_active' => 'boolean',
-            'code' => 'nullable|string|max:50|unique:promotions,code,' . $promotion->id,
-            'badge_text' => 'nullable|string|max:50',
-            'badge_color' => 'nullable|string|max:7',
-            'is_featured' => 'boolean',
-            'display_order' => 'integer|min:0',
-            'product_ids' => 'array',
-            'product_ids.*' => 'exists:products,id'
-        ]);
-
-        // Walidacja dodatkowa dla discount_value
-        if ($validated['discount_type'] === 'percentage' && $validated['discount_value'] > 100) {
-            return response()->json([
-                'message' => 'Rabat procentowy nie może być większy niż 100%'
-            ], 422);
-        }
+        $validated = $request->validated();
 
         $promotion->update($validated);
 

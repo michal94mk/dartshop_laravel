@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\PrivacyPolicyRequest;
 use App\Models\PrivacyPolicy;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -24,23 +25,9 @@ class PrivacyPolicyController extends Controller
     /**
      * Store a newly created privacy policy.
      */
-    public function store(Request $request)
+    public function store(PrivacyPolicyRequest $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'version' => 'required|string|max:20',
-            'effective_date' => 'required|date',
-            'is_active' => 'boolean'
-        ]);
-
-        $policy = PrivacyPolicy::create([
-            'title' => $request->title,
-            'content' => $request->content,
-            'version' => $request->version,
-            'effective_date' => $request->effective_date,
-            'is_active' => $request->is_active ?? false,
-        ]);
+        $policy = PrivacyPolicy::create($request->validated());
 
         // If this policy is set as active, deactivate others
         if ($policy->is_active) {
@@ -66,23 +53,9 @@ class PrivacyPolicyController extends Controller
     /**
      * Update the specified privacy policy.
      */
-    public function update(Request $request, PrivacyPolicy $privacyPolicy)
+    public function update(PrivacyPolicyRequest $request, PrivacyPolicy $privacyPolicy)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'version' => 'required|string|max:20',
-            'effective_date' => 'required|date',
-            'is_active' => 'boolean'
-        ]);
-
-        $privacyPolicy->update([
-            'title' => $request->title,
-            'content' => $request->content,
-            'version' => $request->version,
-            'effective_date' => $request->effective_date,
-            'is_active' => $request->is_active ?? false,
-        ]);
+        $privacyPolicy->update($request->validated());
 
         // If this policy is set as active, deactivate others
         if ($privacyPolicy->is_active) {

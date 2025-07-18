@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\AboutUs;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\AboutUsRequest;
 
 class AboutUsController extends Controller
 {
@@ -32,27 +33,16 @@ class AboutUsController extends Controller
     /**
      * Aktualizuj informacje o stronie "O nas".
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\AboutUsRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request)
+    public function update(AboutUsRequest $request)
     {
-        // Walidacja danych wejściowych
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-        ]);
-        
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-        
         // Znajdź lub utwórz rekord "O nas"
         $aboutUs = AboutUs::firstOrNew();
         
         // Aktualizuj dane
-        $aboutUs->title = $request->title;
-        $aboutUs->content = $request->content;
+        $aboutUs->fill($request->validated());
         
         $aboutUs->save();
         

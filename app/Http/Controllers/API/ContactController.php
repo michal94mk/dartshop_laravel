@@ -8,37 +8,19 @@ use App\Mail\ContactMessageNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\Frontend\ContactRequest;
 
 class ContactController extends Controller
 {
     /**
      * Store a new contact message.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Frontend\ContactRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ContactRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'subject' => 'required|string|max:255',
-            'message' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $contactMessage = ContactMessage::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'subject' => $request->subject,
-            'message' => $request->message,
-        ]);
+        $contactMessage = ContactMessage::create($request->validated());
 
         // Send notification to admin
         $adminEmail = config('mail.admin_email', config('mail.from.address'));

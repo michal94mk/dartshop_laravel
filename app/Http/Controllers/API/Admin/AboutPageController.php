@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AboutUs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\Admin\AboutPageRequest;
 
 class AboutPageController extends BaseAdminController
 {
@@ -55,35 +56,13 @@ class AboutPageController extends BaseAdminController
     /**
      * Create a new about page.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\AboutPageRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function create(Request $request)
+    public function create(AboutPageRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'meta_title' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string',
-            'header_style' => 'nullable|string',
-            'header_margin' => 'nullable|string',
-            'content_layout' => 'nullable|string',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationError($validator->errors());
-        }
-
         $aboutPage = new AboutUs();
-        $aboutPage->fill($request->only([
-            'title',
-            'content',
-            'meta_title',
-            'meta_description',
-            'header_style',
-            'header_margin',
-            'content_layout'
-        ]));
+        $aboutPage->fill($request->validated());
         
         $aboutPage->save();
         
@@ -93,25 +72,11 @@ class AboutPageController extends BaseAdminController
     /**
      * Update the first about page data.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\AboutPageRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request)
+    public function update(AboutPageRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'meta_title' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string',
-            'header_style' => 'nullable|string',
-            'header_margin' => 'nullable|string',
-            'content_layout' => 'nullable|string',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationError($validator->errors());
-        }
-
         // Get the first about page record or create a new one if none exists
         $aboutPage = AboutUs::first();
         
@@ -120,15 +85,7 @@ class AboutPageController extends BaseAdminController
         }
         
         // Update the about page data with only the fields that are in the fillable array
-        $aboutPage->fill($request->only([
-            'title',
-            'content',
-            'meta_title',
-            'meta_description',
-            'header_style',
-            'header_margin',
-            'content_layout'
-        ]));
+        $aboutPage->fill($request->validated());
         
         $aboutPage->save();
         
@@ -138,38 +95,16 @@ class AboutPageController extends BaseAdminController
     /**
      * Update the specified about page by ID.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\AboutPageRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function updateById(Request $request, $id)
+    public function updateById(AboutPageRequest $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'meta_title' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string',
-            'header_style' => 'nullable|string',
-            'header_margin' => 'nullable|string',
-            'content_layout' => 'nullable|string',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationError($validator->errors());
-        }
-
         $aboutPage = AboutUs::findOrFail($id);
         
         // Update the about page data with only the fields that are in the fillable array
-        $aboutPage->fill($request->only([
-            'title',
-            'content',
-            'meta_title',
-            'meta_description',
-            'header_style',
-            'header_margin',
-            'content_layout'
-        ]));
+        $aboutPage->fill($request->validated());
         
         $aboutPage->save();
         

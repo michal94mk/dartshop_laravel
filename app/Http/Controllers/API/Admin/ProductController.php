@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use App\Http\Requests\Admin\ProductRequest;
 
 class ProductController extends BaseAdminController
 {
@@ -119,10 +120,10 @@ class ProductController extends BaseAdminController
     /**
      * Store a newly created product in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\ProductRequest  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
         Log::info('ProductController@store called with data:', $request->except('image'));
         if ($request->hasFile('image')) {
@@ -133,30 +134,10 @@ class ProductController extends BaseAdminController
             ]);
         }
         
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'price' => 'required|numeric|min:0',
-            'category_id' => 'required|exists:categories,id',
-            'brand_id' => 'required|exists:brands,id',
-            'image' => 'nullable|image|max:2048', // 2MB max
-            'weight' => 'nullable|numeric|min:0',
-            'is_active' => 'nullable|boolean',
-        ]);
-
-        if ($validator->fails()) {
-            Log::warning('ProductController@store validation failed:', $validator->errors()->toArray());
-            return $this->errorResponse(
-                'Validation error',
-                422,
-                $validator->errors()
-            );
-        }
-
         try {
             DB::beginTransaction();
             
-            $productData = $request->except('image');
+            $productData = $request->validated();
             Log::info('Creating product with data:', $productData);
             
             // Handle the image upload
@@ -223,11 +204,11 @@ class ProductController extends BaseAdminController
     /**
      * Update the specified product in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\ProductRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(ProductRequest $request, $id)
     {
         try {
             Log::info('ProductController@update called for ID: ' . $id . ' with data:', $request->except('image'));
@@ -235,29 +216,9 @@ class ProductController extends BaseAdminController
             $product = Product::findOrFail($id);
             Log::info('Found product to update:', ['id' => $product->id, 'name' => $product->name]);
             
-            $validator = Validator::make($request->all(), [
-                'name' => 'sometimes|required|string|max:255',
-                'description' => 'sometimes|required|string',
-                'price' => 'sometimes|required|numeric|min:0',
-                'category_id' => 'sometimes|required|exists:categories,id',
-                'brand_id' => 'sometimes|required|exists:brands,id',
-                'image' => 'nullable|image|max:2048', // 2MB max
-                'weight' => 'nullable|numeric|min:0',
-                'is_active' => 'nullable|boolean',
-            ]);
-
-            if ($validator->fails()) {
-                Log::warning('ProductController@update validation failed:', $validator->errors()->toArray());
-                return $this->errorResponse(
-                    'Validation error',
-                    422,
-                    $validator->errors()
-                );
-            }
-            
             DB::beginTransaction();
             
-            $productData = $request->except(['_method', 'image']);
+            $productData = $request->validated();
             
             // Handle the image upload
             if ($request->hasFile('image') && $request->file('image')->isValid()) {

@@ -6,6 +6,7 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
+use App\Http\Requests\Admin\CategoryRequest;
 
 class CategoryController extends BaseAdminController
 {
@@ -79,23 +80,13 @@ class CategoryController extends BaseAdminController
     /**
      * Store a newly created category in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\CategoryRequest  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(CategoryRequest $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255|unique:categories,name'
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 422);
-            }
-
-            $category = Category::create([
-                'name' => $request->name
-            ]);
+            $category = Category::create($request->validated());
 
             // Clear all categories cache
             $this->clearCategoriesCache();
@@ -125,26 +116,16 @@ class CategoryController extends BaseAdminController
     /**
      * Update the specified category in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\CategoryRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(CategoryRequest $request, $id)
     {
         try {
             $category = Category::findOrFail($id);
 
-            $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255|unique:categories,name,' . $id
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 422);
-            }
-
-            $category->update([
-                'name' => $request->name
-            ]);
+            $category->update($request->validated());
 
             // Clear all categories cache
             $this->clearCategoriesCache();

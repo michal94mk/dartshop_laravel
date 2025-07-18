@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\TutorialRequest;
 use App\Models\Tutorial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -88,36 +89,19 @@ class TutorialController extends BaseAdminController
     /**
      * Store a newly created tutorial in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\TutorialRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(TutorialRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:tutorials',
-            'content' => 'required|string',
-            'image_url' => 'nullable|string',
-            'order' => 'nullable|integer',
-            'status' => 'required|string|in:draft,published'
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationError($validator->errors());
-        }
-
         // Generate slug if not provided
         $slug = $request->slug ?: Str::slug($request->title);
 
         // Transform the input data to match the database schema
-        $tutorialData = [
-            'title' => $request->title,
-            'slug' => $slug,
-            'content' => $request->content,
-            'image_url' => $request->image_url,
-            'order' => $request->order ?? 0,
-            'is_published' => $request->status === 'published'
-        ];
+        $tutorialData = $request->validated();
+        $tutorialData['slug'] = $slug;
+        $tutorialData['order'] = $request->order ?? 0;
+        $tutorialData['is_published'] = $request->status === 'published';
 
         $tutorial = Tutorial::create($tutorialData);
         
@@ -169,26 +153,13 @@ class TutorialController extends BaseAdminController
     /**
      * Update the specified tutorial in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\TutorialRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(TutorialRequest $request, $id)
     {
         $tutorial = Tutorial::findOrFail($id);
-
-        $validator = Validator::make($request->all(), [
-            'title' => 'sometimes|string|max:255',
-            'slug' => 'sometimes|string|max:255|unique:tutorials,slug,' . $tutorial->id,
-            'content' => 'sometimes|string',
-            'image_url' => 'nullable|string',
-            'order' => 'nullable|integer',
-            'status' => 'sometimes|string|in:draft,published'
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationError($validator->errors());
-        }
 
         // Generate slug if title is changed but slug is not provided
         $slug = $request->slug;
@@ -197,26 +168,10 @@ class TutorialController extends BaseAdminController
         }
 
         // Transform the input data to match the database schema
-        $updateData = [];
-        
-        if ($request->has('title')) {
-            $updateData['title'] = $request->title;
-        }
+        $updateData = $request->validated();
         
         if ($slug) {
             $updateData['slug'] = $slug;
-        }
-        
-        if ($request->has('content')) {
-            $updateData['content'] = $request->content;
-        }
-        
-        if ($request->has('image_url')) {
-            $updateData['image_url'] = $request->image_url;
-        }
-        
-        if ($request->has('order')) {
-            $updateData['order'] = $request->order;
         }
         
         if ($request->has('status')) {

@@ -5,7 +5,7 @@
       <page-header 
         title="Marki"
         add-button-label="Dodaj"
-        @add="showAddForm = true"
+        @add="openAddForm"
       />
     </div>
     
@@ -104,9 +104,15 @@
             type="text" 
             id="name" 
             v-model="form.name" 
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            :class="[
+              'mt-1 block w-full rounded-md shadow-sm sm:text-sm',
+              formErrors.name 
+                ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+            ]"
             required
           >
+          <p v-if="formErrors.name" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.name) ? formErrors.name[0] : formErrors.name }}</p>
         </div>
       </form>
       
@@ -167,13 +173,7 @@
       </template>
     </admin-modal>
     
-    <!-- Detailed Error Modal -->
-    <detailed-error-modal
-      :show="showErrorModal"
-      :message="errorMessage"
-      title="Nie można usunąć marki"
-      @close="showErrorModal = false"
-    />
+
   </div>
 </template>
 
@@ -181,7 +181,7 @@
 import { ref, onMounted, computed, reactive, watch } from 'vue'
 import axios from 'axios'
 import { useAlertStore } from '../../stores/alertStore'
-import DetailedErrorModal from '../../components/ui/DetailedErrorModal.vue'
+
 import SearchFilters from '../../components/admin/SearchFilters.vue'
 import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
 import NoDataMessage from '../../components/admin/NoDataMessage.vue'
@@ -198,7 +198,6 @@ import { useRoute } from 'vue-router'
 export default {
   name: 'AdminBrands',
   components: {
-    DetailedErrorModal,
     SearchFilters,
     LoadingSpinner,
     NoDataMessage,
@@ -229,9 +228,7 @@ export default {
     const showDeleteModal = ref(false)
     const brandToDelete = ref({})
     
-    // Error modal
-    const showErrorModal = ref(false)
-    const errorMessage = ref('')
+
     
     // Sort options for the filter component
     const sortOptions = [
@@ -255,6 +252,9 @@ export default {
     const form = ref({
       name: ''
     })
+    
+    // Form validation errors
+    const formErrors = ref({})
     
     // Fetch all brands with pagination and filters
     const fetchBrands = async () => {
@@ -301,16 +301,39 @@ export default {
       fetchBrands()
     }
     
+    // Open add form
+    const openAddForm = () => {
+      form.value = {
+        name: ''
+      }
+      formErrors.value = {}
+      showAddForm.value = true
+    }
+    
     // Add new brand
     const addBrand = async () => {
       try {
+        // Clear previous errors
+        formErrors.value = {}
+        
         await axios.post('/api/admin/brands', form.value)
         alertStore.success('Marka została dodana.')
         closeForm()
         fetchBrands() // Refresh the list
       } catch (error) {
         console.error('Error adding brand:', error)
-        alertStore.error('Wystąpił błąd podczas dodawania marki.')
+        if (error.response && error.response.status === 422) {
+          // Validation errors
+          if (error.response.data.errors) {
+            formErrors.value = error.response.data.errors
+          } else if (error.response.data.message) {
+            alertStore.error(error.response.data.message)
+          }
+        } else if (error.response && error.response.data && error.response.data.message) {
+          alertStore.error(error.response.data.message)
+        } else {
+          alertStore.error('Wystąpił błąd podczas dodawania marki.')
+        }
       }
     }
     
@@ -320,19 +343,34 @@ export default {
         id: brand.id,
         name: brand.name
       }
+      formErrors.value = {}
       showEditForm.value = true
     }
     
     // Update brand
     const updateBrand = async () => {
       try {
+        // Clear previous errors
+        formErrors.value = {}
+        
         await axios.put(`/api/admin/brands/${form.value.id}`, form.value)
         alertStore.success('Marka została zaktualizowana.')
         closeForm()
         fetchBrands() // Refresh the list
       } catch (error) {
         console.error('Error updating brand:', error)
-        alertStore.error('Wystąpił błąd podczas aktualizacji marki.')
+        if (error.response && error.response.status === 422) {
+          // Validation errors
+          if (error.response.data.errors) {
+            formErrors.value = error.response.data.errors
+          } else if (error.response.data.message) {
+            alertStore.error(error.response.data.message)
+          }
+        } else if (error.response && error.response.data && error.response.data.message) {
+          alertStore.error(error.response.data.message)
+        } else {
+          alertStore.error('Wystąpił błąd podczas aktualizacji marki.')
+        }
       }
     }
     
@@ -354,59 +392,18 @@ export default {
                       ? brandToDelete.value.id 
                       : brandToDelete.value;
         
-        console.log('Attempting to delete brand with ID:', brandId);
-        
         await axios.delete(`/api/admin/brands/${brandId}`)
         alertStore.success('Marka została usunięta.')
         showDeleteModal.value = false
         fetchBrands() // Refresh the list
       } catch (error) {
-        // Close the delete confirmation modal
         showDeleteModal.value = false
-        
         console.error('Error deleting brand:', error)
-        console.dir(error, { depth: null }) // Full error object dump
-        
-        if (error.response) {
-          console.group('Error Response Details:')
-          console.log('Status:', error.response.status)
-          console.log('Status Text:', error.response.statusText)
-          console.log('Full Response Data:', error.response.data)
-          console.log('Headers:', error.response.headers)
-          console.groupEnd()
-          
-          // Display detailed error in modal if appropriate
-          if (error.response.status === 422) {
-            // For database constraint errors
-            if (error.response.data.message) {
-              // Dokładnie przekazuj komunikat bez modyfikacji, tak jak w CategoryController
-              errorMessage.value = error.response.data.message
-              console.log('Error message content:', errorMessage.value)
-              console.log('Message contains newlines:', errorMessage.value.includes('\n'))
-              console.log('Message contains PHP_EOL:', errorMessage.value.includes('PHP_EOL'))
-            } else {
-              // If there's no message, stringify the entire response
-              errorMessage.value = JSON.stringify(error.response.data, null, 2)
-            }
-            showErrorModal.value = true
-          } else if (error.response.status === 404) {
-            alertStore.error('Nie znaleziono marki.')
-          } else {
-            // For any other error, also show detailed error
-            if (error.response.data && error.response.data.message) {
-              errorMessage.value = error.response.data.message
-              showErrorModal.value = true
-            } else {
-              alertStore.error('Wystąpił błąd podczas usuwania marki: ' + error.message)
-            }
-          }
+        if (error.response && error.response.data && error.response.data.message) {
+          alertStore.error(error.response.data.message)
         } else {
-          // Network error or something else
-          alertStore.error('Wystąpił błąd podczas komunikacji z serwerem.')
+          alertStore.error('Wystąpił błąd podczas usuwania marki.')
         }
-        
-        // Always refresh the brands list
-        fetchBrands()
       }
     }
     
@@ -415,6 +412,7 @@ export default {
       form.value = {
         name: ''
       }
+      formErrors.value = {}
       showAddForm.value = false
       showEditForm.value = false
     }
@@ -477,10 +475,12 @@ export default {
       showDeleteModal,
       brandToDelete,
       form,
+      formErrors,
       filters,
       defaultFilters,
       sortOptions,
       fetchBrands,
+      openAddForm,
       addBrand,
       editBrand,
       updateBrand,
@@ -490,8 +490,7 @@ export default {
       goToPage,
       formatDate,
       resetFilters,
-      showErrorModal,
-      errorMessage
+
     }
   }
 }

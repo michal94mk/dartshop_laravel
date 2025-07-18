@@ -1334,8 +1334,8 @@ export default {
 
         // Check if email is empty and user_id is not set, add required field indicator
         if (!editedOrder.value.user_id && (!editedOrder.value.email || !editedOrder.value.email.trim())) {
-          alertStore.error('Email jest wymagany')
-          validationErrors.value.push('Email jest wymagany')
+          alertStore.error('Adres email jest wymagany')
+          validationErrors.value.push('Adres email jest wymagany')
           return
         }
 
@@ -1344,14 +1344,14 @@ export default {
           editedOrder.value.email = editedOrder.value.email.trim()
         }
 
-        // Validate email format if not a registered user
-        if (!editedOrder.value.user_id) {
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-          if (!emailRegex.test(editedOrder.value.email)) {
-            alertStore.error('Wprowadź poprawny adres email')
-            validationErrors.value.push('Niepoprawny format adresu email')
-            return
-          }
+                  // Validate email format if not a registered user
+          if (!editedOrder.value.user_id) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            if (!emailRegex.test(editedOrder.value.email)) {
+              alertStore.error('Wprowadź prawidłowy adres email')
+              validationErrors.value.push('Nieprawidłowy format adresu email')
+              return
+            }
           
           // Additional validation for unregistered users
           if (!editedOrder.value.first_name || !editedOrder.value.last_name) {

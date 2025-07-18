@@ -6,6 +6,7 @@ use App\Models\Brand;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use App\Http\Requests\Admin\BrandRequest;
 
 class BrandController extends BaseAdminController
 {
@@ -59,23 +60,13 @@ class BrandController extends BaseAdminController
     /**
      * Store a newly created brand in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\BrandRequest  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(BrandRequest $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255|unique:brands,name',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 422);
-            }
-
-            $brand = Brand::create([
-                'name' => $request->name
-            ]);
+            $brand = Brand::create($request->validated());
 
             return $this->successResponse('Brand created successfully', $brand, 201);
         } catch (\Exception $e) {
@@ -102,26 +93,16 @@ class BrandController extends BaseAdminController
     /**
      * Update the specified brand in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\BrandRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(BrandRequest $request, $id)
     {
         try {
             $brand = Brand::findOrFail($id);
 
-            $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255|unique:brands,name,' . $id,
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 422);
-            }
-
-            $brand->update([
-                'name' => $request->name
-            ]);
+            $brand->update($request->validated());
 
             return $this->successResponse('Brand updated successfully', $brand);
         } catch (\Exception $e) {

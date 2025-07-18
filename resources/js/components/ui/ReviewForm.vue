@@ -225,7 +225,7 @@ export default {
         } else if (error.response?.data?.error) {
           errorMessage.value = error.response.data.error
         } else {
-          errorMessage.value = 'Wystąpił błąd podczas dodawania recenzji. Spróbuj ponownie.'
+          errorMessage.value = 'Wystąpił błąd podczas dodawania recenzji. Spróbuj ponownie.';
         }
       } finally {
         loading.value = false

@@ -72,10 +72,10 @@
                 v-model="email" 
                 required
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
-                :class="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': authStore.hasError && authStore.errorMessage.includes('email') }"
+                                  :class="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': authStore.hasError && authStore.errorMessage.includes('adres email') }"
                 placeholder="twoj@email.com"
               />
-              <p v-if="authStore.hasError && authStore.errorMessage.includes('email')" class="mt-1 text-sm text-red-600">
+              <p v-if="authStore.hasError && authStore.errorMessage.includes('adres email')" class="mt-1 text-sm text-red-600">
                 {{ authStore.errorMessage }}
               </p>
             </div>

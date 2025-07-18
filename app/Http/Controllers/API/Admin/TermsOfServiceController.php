@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\TermsOfServiceRequest;
 use App\Models\TermsOfService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -24,23 +25,9 @@ class TermsOfServiceController extends Controller
     /**
      * Store a newly created terms of service.
      */
-    public function store(Request $request)
+    public function store(TermsOfServiceRequest $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'version' => 'required|string|max:20',
-            'effective_date' => 'required|date',
-            'is_active' => 'boolean'
-        ]);
-
-        $terms = TermsOfService::create([
-            'title' => $request->title,
-            'content' => $request->content,
-            'version' => $request->version,
-            'effective_date' => $request->effective_date,
-            'is_active' => $request->is_active ?? false,
-        ]);
+        $terms = TermsOfService::create($request->validated());
 
         // If this terms is set as active, deactivate others
         if ($terms->is_active) {
@@ -66,23 +53,9 @@ class TermsOfServiceController extends Controller
     /**
      * Update the specified terms of service.
      */
-    public function update(Request $request, TermsOfService $termsOfService)
+    public function update(TermsOfServiceRequest $request, TermsOfService $termsOfService)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'version' => 'required|string|max:20',
-            'effective_date' => 'required|date',
-            'is_active' => 'boolean'
-        ]);
-
-        $termsOfService->update([
-            'title' => $request->title,
-            'content' => $request->content,
-            'version' => $request->version,
-            'effective_date' => $request->effective_date,
-            'is_active' => $request->is_active ?? false,
-        ]);
+        $termsOfService->update($request->validated());
 
         // If this terms is set as active, deactivate others
         if ($termsOfService->is_active) {

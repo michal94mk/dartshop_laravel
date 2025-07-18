@@ -148,7 +148,7 @@ export default {
           }
         } else if (error.request) {
           console.error('Network error:', error.request);
-          this.showLocalAlert('🌐 Błąd połączenia. Sprawdź swoją internetową i spróbuj ponownie.', 'error', 5000);
+          this.showLocalAlert('🌐 Błąd połączenia. Sprawdź swoje połączenie internetowe i spróbuj ponownie.', 'error', 5000);
         } else {
           console.error('Error message:', error.message);
           this.showLocalAlert('❌ Wystąpił nieoczekiwany błąd. Spróbuj ponownie.', 'error', 5000);

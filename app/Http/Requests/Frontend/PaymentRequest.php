@@ -72,12 +72,12 @@ class PaymentRequest extends FormRequest
     public function messages()
     {
         return [
-            'transaction_id.string' => 'Transaction ID must be a valid string',
-            'card_number.regex' => 'Card number format is invalid',
-            'expiration.regex' => 'Expiration date must be in format MM/YY',
-            'cvv.regex' => 'CVV code must be 3 or 4 digits',
-            'status.required' => 'Payment status is required',
-            'status.in' => 'Selected payment status is invalid',
+            'transaction_id.string' => 'Identyfikator transakcji musi być prawidłowym ciągiem znaków',
+            'card_number.regex' => 'Format numeru karty jest nieprawidłowy',
+            'expiration.regex' => 'Data ważności musi być w formacie MM/RR',
+            'cvv.regex' => 'Kod CVV musi mieć 3 lub 4 cyfry',
+            'status.required' => 'Status płatności jest wymagany',
+            'status.in' => 'Wybrany status płatności jest nieprawidłowy',
         ];
     }
 } 

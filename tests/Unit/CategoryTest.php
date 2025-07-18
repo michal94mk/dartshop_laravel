@@ -6,11 +6,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Models\Category;
+use App\Http\Requests\Admin\CategoryRequest;
 use Illuminate\Support\Facades\Validator;
 
 class CategoryTest extends TestCase
 {
-    //use RefreshDatabase;
+    use RefreshDatabase;
 
     public function testCategoryCanBeCreated()
     {
@@ -25,13 +26,43 @@ class CategoryTest extends TestCase
 
     public function testCategoryNameIsRequired()
     {
-        $category = Category::factory()->make(['name' => '']);
-
-        $validator = Validator::make($category->toArray(), Category::rules());
+        $request = new CategoryRequest();
+        $rules = $request->rules();
+        
+        $validator = Validator::make(['name' => ''], $rules);
 
         $this->assertFalse($validator->passes());
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('name', $validator->errors()->toArray());
+    }
+
+    public function testCategoryNameIsUnique()
+    {
+        $existingCategory = Category::factory()->create();
+        
+        $request = new CategoryRequest();
+        $rules = $request->rules();
+        
+        $validator = Validator::make(['name' => $existingCategory->name], $rules);
+
+        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+    }
+
+    public function testCategoryNameIsUniqueIgnoringItself()
+    {
+        $existingCategory = Category::factory()->create();
+        
+        // Simulate update request
+        $request = new CategoryRequest();
+        $request->merge(['category' => $existingCategory]);
+        $rules = $request->rules();
+        
+        $validator = Validator::make(['name' => $existingCategory->name], $rules);
+
+        $this->assertTrue($validator->passes());
+        $this->assertFalse($validator->fails());
     }
 
     public function testCategoryCanBeUpdated()

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CartRequest;
 use App\Models\CartItem;
 use App\Models\Product;
 use App\Services\CartService;
@@ -68,13 +69,10 @@ class CartController extends Controller
     /**
      * Store a new cart item.
      */
-    public function store(Request $request): JsonResponse
+    public function store(CartRequest $request): JsonResponse
     {
         try {
-            $validated = $request->validate([
-                'product_id' => 'required|exists:products,id',
-                'quantity' => 'required|integer|min:1',
-            ]);
+            $validated = $request->validated();
 
             $product = Product::findOrFail($validated['product_id']);
             $cartItem = $this->cartService->addToCart($product, $validated['quantity']);
@@ -94,12 +92,10 @@ class CartController extends Controller
     /**
      * Update the specified cart item.
      */
-    public function update(Request $request, $productId): JsonResponse
+    public function update(CartRequest $request, $productId): JsonResponse
     {
         try {
-            $validated = $request->validate([
-                'quantity' => 'required|integer|min:1',
-            ]);
+            $validated = $request->validated();
 
             $product = Product::findOrFail($productId);
             $cartItem = $this->cartService->updateQuantity($productId, $validated['quantity']);

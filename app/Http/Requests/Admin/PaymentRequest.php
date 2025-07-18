@@ -65,8 +65,8 @@ class PaymentRequest extends FormRequest
     public function messages()
     {
         return [
-            'status.required' => 'Payment status is required',
-            'status.in' => 'Selected payment status is invalid',
+            'status.required' => 'Status płatności jest wymagany',
+            'status.in' => 'Wybrany status płatności jest nieprawidłowy',
         ];
     }
 } 

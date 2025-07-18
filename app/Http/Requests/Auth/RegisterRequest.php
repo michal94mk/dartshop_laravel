@@ -24,12 +24,12 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'name' => ['required', 'string', 'max:255'],
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'terms' => ['required', 'accepted'],
+            'name' => 'required|string|max:255|min:2',
+            'first_name' => 'required|string|max:255|min:2',
+            'last_name' => 'required|string|max:255|min:2',
+            'email' => 'required|string|email:rfc,dns|max:255|unique:'.User::class,
+            'password' => 'required|confirmed|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/',
+            'terms' => 'required|accepted',
         ];
         
         // Commented out temporarily for testing
@@ -48,10 +48,47 @@ class RegisterRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'terms.required' => 'You must accept the Terms and Conditions.',
-            'terms.accepted' => 'You must accept the Terms and Conditions.',
-            'g-recaptcha-response.required' => 'Please verify that you are not a robot.',
-            'g-recaptcha-response.captcha' => 'Captcha verification failed. Please try again.',
+            'name.required' => 'Nazwa użytkownika jest wymagana.',
+            'name.string' => 'Nazwa użytkownika musi być tekstem.',
+            'name.min' => 'Nazwa użytkownika musi mieć co najmniej 2 znaki.',
+            'name.max' => 'Nazwa użytkownika nie może być dłuższa niż 255 znaków.',
+            'first_name.required' => 'Imię jest wymagane.',
+            'first_name.string' => 'Imię musi być tekstem.',
+            'first_name.min' => 'Imię musi mieć co najmniej 2 znaki.',
+            'first_name.max' => 'Imię nie może być dłuższe niż 255 znaków.',
+            'last_name.required' => 'Nazwisko jest wymagane.',
+            'last_name.string' => 'Nazwisko musi być tekstem.',
+            'last_name.min' => 'Nazwisko musi mieć co najmniej 2 znaki.',
+            'last_name.max' => 'Nazwisko nie może być dłuższe niż 255 znaków.',
+            'email.required' => 'Adres email jest wymagany.',
+            'email.string' => 'Adres email musi być tekstem.',
+            'email.email' => 'Adres email musi być prawidłowym adresem email.',
+            'email.max' => 'Adres email nie może być dłuższy niż 255 znaków.',
+            'email.unique' => 'Ten adres email jest już zajęty.',
+            'password.required' => 'Hasło jest wymagane.',
+            'password.confirmed' => 'Potwierdzenie hasła nie pasuje.',
+            'password.min' => 'Hasło musi mieć co najmniej 8 znaków.',
+            'password.regex' => 'Hasło musi zawierać co najmniej jedną małą literę, jedną wielką literę, jedną cyfrę i jeden znak specjalny.',
+            'terms.required' => 'Musisz zaakceptować regulamin.',
+            'terms.accepted' => 'Musisz zaakceptować regulamin.',
+            'g-recaptcha-response.required' => 'Potwierdź, że nie jesteś robotem.',
+            'g-recaptcha-response.captcha' => 'Weryfikacja captcha nie powiodła się. Spróbuj ponownie.',
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     */
+    public function attributes(): array
+    {
+        return [
+            'name' => 'nazwa użytkownika',
+            'first_name' => 'imię',
+            'last_name' => 'nazwisko',
+            'email' => 'adres email',
+            'password' => 'hasło',
+            'password_confirmation' => 'potwierdzenie hasła',
+            'terms' => 'regulamin',
         ];
     }
 

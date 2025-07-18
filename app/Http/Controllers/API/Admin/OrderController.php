@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\Admin\OrderRequest;
 
 class OrderController extends BaseAdminController
 {
@@ -128,50 +129,15 @@ class OrderController extends BaseAdminController
     /**
      * Store a newly created order in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\OrderRequest  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(OrderRequest $request)
     {
         try {
             // Log entire request for debugging
             Log::info('Order creation request data:', $request->all());
             
-            $validator = Validator::make($request->all(), [
-                'user_id' => 'nullable|exists:users,id',
-                'first_name' => 'required|string|max:255',
-                'last_name' => 'required|string|max:255',
-                'email' => 'required|email|max:255',
-                'phone' => 'nullable|string|max:20',
-                'address' => 'required|string|max:255',
-                'city' => 'required|string|max:100',
-                'postal_code' => 'required|string|max:20',
-                'country' => 'required|string|max:100',
-                'total' => 'required|numeric|min:0',
-                'status' => 'required|in:pending,processing,completed,shipped,delivered,cancelled,refunded',
-                'payment_status' => 'required|in:pending,completed,failed',
-                'payment_method' => 'required|string|max:100',
-                'shipping_method' => 'required|string|max:100',
-                'shipping_cost' => 'required|numeric|min:0',
-                'notes' => 'nullable|string',
-                'items' => 'required|array|min:1',
-                'items.*.product_id' => 'required|exists:products,id',
-                'items.*.quantity' => 'required|integer|min:1',
-                'items.*.price' => 'required|numeric|min:0',
-                'items.*.product_name' => 'nullable|string|max:255',
-                'items.*.total' => 'nullable|numeric|min:0',
-                'order_number' => 'nullable|string|max:50',
-            ]);
-
-            if ($validator->fails()) {
-                Log::warning('Order validation failed:', ['errors' => $validator->errors()->toArray()]);
-                Log::warning('Request data:', $request->all());
-                return response()->json([
-                    'message' => 'Validation failed',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-
             // Start transaction
             DB::beginTransaction();
 
@@ -180,26 +146,9 @@ class OrderController extends BaseAdminController
             Log::info('Generated order number: ' . $orderNumber);
 
             // Build the order data with explicit attributes
-            $orderData = [
-                'order_number' => $orderNumber,
-                'user_id' => $request->input('user_id'),
-                'first_name' => $request->input('first_name'),
-                'last_name' => $request->input('last_name'),
-                'email' => $request->input('email'),
-                'phone' => $request->input('phone'),
-                'address' => $request->input('address'),
-                'city' => $request->input('city'),
-                'postal_code' => $request->input('postal_code'),
-                'country' => $request->input('country', 'Polska'),
-                'total' => $request->input('total'),
-                'status' => $request->input('status', 'pending'),
-                'payment_status' => $request->input('payment_status', 'pending'),
-                'payment_method' => $request->input('payment_method'),
-                'shipping_method' => $request->input('shipping_method'),
-                'shipping_cost' => $request->input('shipping_cost'),
-                'notes' => $request->input('notes'),
-                'subtotal' => $request->input('subtotal', ($request->input('total') - $request->input('shipping_cost'))),
-            ];
+            $orderData = $request->validated();
+            $orderData['order_number'] = $orderNumber;
+            $orderData['subtotal'] = $request->input('subtotal', ($request->input('total') - $request->input('shipping_cost')));
             
             // Log orderData for debugging
             Log::info('Order data being created:', $orderData);
@@ -256,69 +205,22 @@ class OrderController extends BaseAdminController
     /**
      * Update the specified order in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\OrderRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(OrderRequest $request, $id)
     {
         try {
             $order = Order::findOrFail($id);
 
             Log::info('Order update request data:', $request->all());
             
-            $validator = Validator::make($request->all(), [
-                'user_id' => 'nullable|exists:users,id',
-                'first_name' => 'required|string|max:255',
-                'last_name' => 'required|string|max:255',
-                'email' => 'required|email|max:255',
-                'phone' => 'nullable|string|max:20',
-                'address' => 'required|string|max:255',
-                'city' => 'required|string|max:100',
-                'postal_code' => 'required|string|max:20',
-                'country' => 'required|string|max:100',
-                'status' => 'required|in:pending,processing,completed,shipped,delivered,cancelled,refunded',
-                'payment_status' => 'required|in:pending,completed,failed',
-                'payment_method' => 'required|string|max:100',
-                'shipping_method' => 'required|string|max:100',
-                'notes' => 'nullable|string',
-                'items' => 'nullable|array',
-                'items.*.product_id' => 'required_with:items|exists:products,id',
-                'items.*.quantity' => 'required_with:items|integer|min:1',
-                'items.*.price' => 'required_with:items|numeric|min:0',
-                'items.*.product_name' => 'nullable|string|max:255',
-                'items.*.total' => 'nullable|numeric|min:0',
-            ]);
-
-            if ($validator->fails()) {
-                Log::warning('Order update validation failed:', ['errors' => $validator->errors()->toArray()]);
-                Log::warning('Request data:', $request->all());
-                return response()->json([
-                    'message' => 'Validation failed',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-
             // Start transaction
             DB::beginTransaction();
             
             // Update order data
-            $orderData = [
-                'user_id' => $request->input('user_id'),
-                'first_name' => $request->input('first_name'),
-                'last_name' => $request->input('last_name'),
-                'email' => $request->input('email'),
-                'phone' => $request->input('phone'),
-                'address' => $request->input('address'),
-                'city' => $request->input('city'),
-                'postal_code' => $request->input('postal_code'),
-                'country' => $request->input('country', 'Polska'),
-                'status' => $request->input('status'),
-                'payment_status' => $request->input('payment_status'),
-                'payment_method' => $request->input('payment_method'),
-                'shipping_method' => $request->input('shipping_method'),
-                'notes' => $request->input('notes'),
-            ];
+            $orderData = $request->validated();
             
             // Log orderData for debugging
             Log::info('Order data being updated:', $orderData);

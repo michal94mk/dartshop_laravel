@@ -6,8 +6,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Models\Brand;
+use App\Http\Requests\Admin\BrandRequest;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class BrandTest extends TestCase
 {
@@ -26,9 +26,10 @@ class BrandTest extends TestCase
 
     public function testBrandNameIsRequired()
     {
-        $brand = Brand::factory()->make(['name' => '']);
-
-        $validator = Validator::make($brand->toArray(), Brand::rules());
+        $request = new BrandRequest();
+        $rules = $request->rules();
+        
+        $validator = Validator::make(['name' => ''], $rules);
 
         $this->assertFalse($validator->passes());
         $this->assertTrue($validator->fails());
@@ -38,9 +39,11 @@ class BrandTest extends TestCase
     public function testBrandNameIsUnique()
     {
         $existingBrand = Brand::factory()->create();
-        $newBrand = Brand::factory()->make(['name' => $existingBrand->name]);
-
-        $validator = Validator::make($newBrand->toArray(), Brand::rules());
+        
+        $request = new BrandRequest();
+        $rules = $request->rules();
+        
+        $validator = Validator::make(['name' => $existingBrand->name], $rules);
 
         $this->assertFalse($validator->passes());
         $this->assertTrue($validator->fails());
@@ -50,9 +53,13 @@ class BrandTest extends TestCase
     public function testBrandNameIsUniqueIgnoringItself()
     {
         $existingBrand = Brand::factory()->create();
-        $newBrand = Brand::factory()->make(['name' => $existingBrand->name]);
-
-        $validator = Validator::make($newBrand->toArray(), Brand::rules($existingBrand->id));
+        
+        // Simulate update request
+        $request = new BrandRequest();
+        $request->merge(['brand' => $existingBrand]);
+        $rules = $request->rules();
+        
+        $validator = Validator::make(['name' => $existingBrand->name], $rules);
 
         $this->assertTrue($validator->passes());
         $this->assertFalse($validator->fails());
@@ -62,7 +69,9 @@ class BrandTest extends TestCase
     {
         $brand = Brand::factory()->create();
 
-        $brand->update(['name' => 'Updated Brand']);
+        $brand->update([
+            'name' => 'Updated Brand',
+        ]);
 
         $this->assertEquals('Updated Brand', $brand->fresh()->name);
     }

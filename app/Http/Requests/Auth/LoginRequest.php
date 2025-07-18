@@ -27,8 +27,34 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
+            'email' => ['required', 'string', 'email:rfc,dns'],
+            'password' => ['required', 'string', 'min:1'],
+        ];
+    }
+
+    /**
+     * Get custom error messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'Adres email jest wymagany.',
+            'email.string' => 'Adres email musi być tekstem.',
+            'email.email' => 'Adres email musi być prawidłowym adresem email.',
+            'password.required' => 'Hasło jest wymagane.',
+            'password.string' => 'Hasło musi być tekstem.',
+            'password.min' => 'Hasło musi mieć co najmniej 1 znak.',
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     */
+    public function attributes(): array
+    {
+        return [
+            'email' => 'adres email',
+            'password' => 'hasło',
         ];
     }
 

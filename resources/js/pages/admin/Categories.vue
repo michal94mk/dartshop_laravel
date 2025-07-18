@@ -123,9 +123,15 @@
           id="name"
           v-model="currentCategory.name"
           required
-          class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+          :class="[
+            'mt-1 block w-full shadow-sm sm:text-sm rounded-md',
+            formErrors.name 
+              ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+              : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+          ]"
           placeholder="Np. Lotki, Tarcze, Akcesoria"
         />
+        <p v-if="formErrors.name" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.name) ? formErrors.name[0] : formErrors.name }}</p>
       </div>
     </form>
     
@@ -285,6 +291,9 @@ export default {
       name: ''
     })
     
+    // Form validation errors
+    const formErrors = ref({})
+    
     // Detailed Error Modal
     const showErrorModal = ref(false)
     const errorMessage = ref('')
@@ -367,12 +376,16 @@ export default {
           name: ''
         }
       }
+      formErrors.value = {}
       showModal.value = true
     }
     
     const saveCategory = async () => {
       try {
         submitting.value = true
+        // Clear previous errors
+        formErrors.value = {}
+        
         const url = currentCategory.value.id 
           ? `/api/admin/categories/${currentCategory.value.id}`
           : '/api/admin/categories'
@@ -391,7 +404,14 @@ export default {
         
       } catch (error) {
         console.error('Error saving category:', error)
-        if (error.response && error.response.data && error.response.data.message) {
+        if (error.response && error.response.status === 422) {
+          // Validation errors
+          if (error.response.data.errors) {
+            formErrors.value = error.response.data.errors
+          } else if (error.response.data.message) {
+            alertStore.error(error.response.data.message)
+          }
+        } else if (error.response && error.response.data && error.response.data.message) {
           alertStore.error(error.response.data.message)
         } else {
           alertStore.error('Wystąpił błąd podczas zapisywania kategorii.')
@@ -480,6 +500,7 @@ export default {
       showDeleteModal,
       currentCategory,
       categoryToDelete,
+      formErrors,
       submitting,
       paginationPages,
       fetchCategories,

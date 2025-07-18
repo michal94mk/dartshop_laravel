@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use App\Http\Requests\Admin\UserUpdateRequest;
 
 class UserController extends BaseAdminController
 {
@@ -168,57 +169,28 @@ class UserController extends BaseAdminController
     /**
      * Update the specified user in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\UserUpdateRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(UserUpdateRequest $request, $id)
     {
         try {
             $user = User::findOrFail($id);
             
-            // Build validation rules based on user type
-            $rules = [
-                'name' => 'required|string|max:255',
-                'first_name' => 'required|string|max:255',
-                'last_name' => 'required|string|max:255',
-                'password' => 'nullable|string|min:8',
-                'role' => 'required|in:admin,user',
-                'verified' => 'boolean',
-            ];
-            
-            // Only require email validation for non-Google OAuth users
-            if (empty($user->google_id)) {
-                $rules['email'] = [
-                    'required',
-                    'string',
-                    'email',
-                    'max:255',
-                    Rule::unique('users')->ignore($id),
-                ];
-            }
-
-            $validator = Validator::make($request->all(), $rules);
-
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 422);
-            }
-
-            $userData = [
-                'name' => $request->name,
-                'first_name' => $request->first_name,
-                'last_name' => $request->last_name,
-                'is_admin' => $request->role === 'admin',
-            ];
+            $userData = $request->validated();
+            $userData['is_admin'] = $request->role === 'admin';
             
             // Only allow email changes for non-Google OAuth users
-            if (empty($user->google_id) && $request->has('email')) {
-                $userData['email'] = $request->email;
+            if (!empty($user->google_id)) {
+                unset($userData['email']);
             }
 
             // Only update password if provided and user is not Google OAuth user
             if ($request->filled('password') && empty($user->google_id)) {
                 $userData['password'] = Hash::make($request->password);
+            } else {
+                unset($userData['password']);
             }
 
             // Update email verification status (only for non-Google OAuth users)
