@@ -98,7 +98,7 @@ class GuestCheckoutController extends Controller
                     // Utwórz zamówienie
                     $order = Order::create([
                         'user_id' => null, // Zamówienie gościa
-                        'order_number' => $this->generateOrderNumber(),
+                        'order_number' => Order::generateOrderNumber(),
                         'status' => OrderStatus::Pending,
                         'payment_status' => PaymentStatus::Pending,
                         'first_name' => $shippingData['first_name'],
@@ -174,14 +174,5 @@ class GuestCheckoutController extends Controller
         }
     }
 
-    /**
-     * Generate unique order number
-     */
-    private function generateOrderNumber(): string
-    {
-        $prefix = 'G'; // G dla zamówień gości
-        $timestamp = now()->format('ymdHis');
-        $random = str_pad(random_int(0, 999), 3, '0', STR_PAD_LEFT);
-        return $prefix . $timestamp . $random;
-    }
+
 } 

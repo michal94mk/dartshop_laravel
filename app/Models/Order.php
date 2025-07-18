@@ -74,10 +74,12 @@ class Order extends Model
     {
         parent::boot();
 
-        // Auto-generate order number when creating a new order
+        // Auto-generate order number when creating a new order if not set
         static::creating(function ($order) {
-            // Always generate a new order number - don't rely on empty check
-            $order->order_number = self::generateOrderNumber();
+            // Only generate if order_number is not already set
+            if (empty($order->order_number)) {
+                $order->order_number = self::generateOrderNumber();
+            }
             
             // Log the order creation for debugging
             Log::info('Order creating event: ', [

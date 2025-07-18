@@ -13,6 +13,7 @@ enum PaymentStatus: string
     case Pending = 'pending';
     case Processing = 'processing';
     case Completed = 'completed';
+    case Paid = 'paid';
     case Failed = 'failed';
     case Refunded = 'refunded';
 }

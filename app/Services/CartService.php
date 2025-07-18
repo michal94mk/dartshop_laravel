@@ -39,7 +39,7 @@ class CartService
     /**
      * Get cart items for guest user
      */
-    private function getGuestCartItems()
+    public function getGuestCartItems()
     {
         $cart = Session::get('cart', []);
         $productIds = collect($cart)->pluck('product_id');

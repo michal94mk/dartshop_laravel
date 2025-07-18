@@ -9,6 +9,7 @@ use App\Services\CartService;
 use App\Services\ReservationService;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use App\Http\Requests\Frontend\OrderRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -110,7 +111,7 @@ class CheckoutController extends Controller
                     // Utwórz zamówienie
                     $order = Order::create([
                         'user_id' => Auth::id(),
-                        'order_number' => $this->generateOrderNumber(),
+                        'order_number' => Order::generateOrderNumber(),
                         'status' => OrderStatus::Pending,
                         'payment_status' => PaymentStatus::Pending,
                         'first_name' => $shippingData['first_name'],
@@ -199,11 +200,5 @@ class CheckoutController extends Controller
         ]);
     }
 
-    /**
-     * Generate a unique order number.
-     */
-    private function generateOrderNumber(): string
-    {
-        return 'ZAM-' . strtoupper(Str::random(8));
-    }
+
 } 
