@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Log;
+use App\Models\Traits\BelongsToUser;
 
 /**
  * Order model representing customer orders in the e-commerce system.
@@ -19,7 +20,7 @@ use Illuminate\Support\Facades\Log;
  */
 class Order extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToUser;
 
     /**
      * The attributes that are mass assignable.
@@ -90,16 +91,6 @@ class Order extends Model
                 'last_name' => $order->last_name
             ]);
         });
-    }
-
-    /**
-     * Get the user that owns the order.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 
     /**

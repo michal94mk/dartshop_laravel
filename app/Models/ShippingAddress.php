@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\BelongsToUser;
 
 class ShippingAddress extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToUser;
 
     /**
      * The attributes that are mass assignable.
@@ -34,12 +35,4 @@ class ShippingAddress extends Model
     protected $casts = [
         'is_default' => 'boolean',
     ];
-
-    /**
-     * Get the user that owns the shipping address.
-     */
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
 } 

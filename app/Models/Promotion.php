@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Carbon\Carbon;
+use App\Models\Traits\HasActiveStatus;
 
 class Promotion extends Model
 {
-    use HasFactory;
+    use HasFactory, HasActiveStatus;
 
     /**
      * The attributes that are mass assignable.
@@ -58,7 +59,8 @@ class Promotion extends Model
     }
 
     /**
-     * Scope dla aktywnych promocji
+     * Scope dla aktywnych promocji (enhanced version from trait)
+     * Overrides the basic active scope to include date validation
      */
     public function scopeActive($query)
     {
@@ -95,7 +97,8 @@ class Promotion extends Model
     }
 
     /**
-     * Sprawdza czy promocja jest aktywna
+     * Sprawdza czy promocja jest aktywna (enhanced version)
+     * Overrides the basic isActive method to include date validation
      */
     public function isActive(): bool
     {
@@ -198,7 +201,6 @@ class Promotion extends Model
     }
     
 
-
     /**
      * Increment the usage count
      *
@@ -209,8 +211,6 @@ class Promotion extends Model
         $this->used_count += 1;
         return $this->save();
     }
-
-
 
     /**
      * Get badge text with fallback.

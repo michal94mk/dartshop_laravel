@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\Traits\HasActiveStatus;
+use App\Models\Traits\HasPromotions;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, HasActiveStatus, HasPromotions;
 
     protected $fillable = [
         'name',
@@ -55,66 +57,6 @@ class Product extends Model
     {
         return $this->belongsToMany(User::class, 'user_favorite_products')
             ->withTimestamps();
-    }
-
-    /**
-     * Relacja many-to-many z promocjami
-     */
-    public function promotions(): BelongsToMany
-    {
-        return $this->belongsToMany(Promotion::class, 'product_promotions')
-                    ->withTimestamps();
-    }
-
-    /**
-     * Zwraca aktywne promocje dla produktu
-     */
-    public function activePromotions(): BelongsToMany
-    {
-        return $this->promotions()->active();
-    }
-
-    /**
-     * Sprawdza czy produkt ma aktywną promocję
-     */
-    public function hasActivePromotion(): bool
-    {
-        return $this->activePromotions()->exists();
-    }
-
-    /**
-     * Zwraca najlepszą aktywną promocję (największy rabat)
-     */
-    public function getBestActivePromotion(): ?Promotion
-    {
-        return $this->activePromotions()
-                    ->get()
-                    ->sortByDesc(function ($promotion) {
-                        return $promotion->getDiscountAmount($this->price);
-                    })
-                    ->first();
-    }
-
-    /**
-     * Zwraca cenę po rabacie (jeśli jest aktywna promocja)
-     */
-    public function getPromotionalPrice(): float
-    {
-        $bestPromotion = $this->getBestActivePromotion();
-        
-        if (!$bestPromotion) {
-            return $this->price;
-        }
-        
-        return $bestPromotion->calculateDiscountedPrice($this->price);
-    }
-
-    /**
-     * Zwraca kwotę oszczędności
-     */
-    public function getSavingsAmount(): float
-    {
-        return $this->price - $this->getPromotionalPrice();
     }
 
     /**

@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\Traits\BelongsToUser;
+use App\Models\Traits\HasApprovalStatus;
 
 class Review extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToUser, HasApprovalStatus;
     
     /**
      * The attributes that are mass assignable.
@@ -25,17 +27,6 @@ class Review extends Model
         'is_approved',
         'is_featured'
     ];
-    
-    /**
-     * Scope a query to only include approved reviews.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function scopeApproved(Builder $query): Builder
-    {
-        return $query->where('is_approved', true);
-    }
     
     /**
      * Scope a query to only include featured reviews.
@@ -57,14 +48,6 @@ class Review extends Model
     public function scopeApprovedAndFeatured(Builder $query): Builder
     {
         return $query->where('is_approved', true)->where('is_featured', true);
-    }
-    
-    /**
-     * Get the user that wrote the review.
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
     
     /**

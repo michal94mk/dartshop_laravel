@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use App\Models\Traits\HasSlug;
 
 class Tutorial extends Model
 {
-    use HasFactory;
+    use HasFactory, HasSlug;
 
     /**
      * The attributes that are mass assignable.
@@ -37,26 +38,6 @@ class Tutorial extends Model
     ];
 
     /**
-     * Boot function from Laravel.
-     */
-    protected static function boot()
-    {
-        parent::boot();
-        
-        static::creating(function ($tutorial) {
-            if (empty($tutorial->slug)) {
-                $tutorial->slug = Str::slug($tutorial->title);
-            }
-        });
-        
-        static::updating(function ($tutorial) {
-            if (empty($tutorial->slug)) {
-                $tutorial->slug = Str::slug($tutorial->title);
-            }
-        });
-    }
-
-    /**
      * Scope a query to only include published tutorials.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
@@ -65,16 +46,6 @@ class Tutorial extends Model
     public function scopePublished($query)
     {
         return $query->where('is_published', true);
-    }
-
-    /**
-     * Get the route key for the model.
-     *
-     * @return string
-     */
-    public function getRouteKeyName()
-    {
-        return 'slug';
     }
 
     /**
@@ -136,5 +107,13 @@ class Tutorial extends Model
     public function user()
     {
         return (object) ['name' => 'DartShop Admin'];
+    }
+
+    /**
+     * Get the source value for slug generation (required by HasSlug trait).
+     */
+    public function getSlugSource(): string
+    {
+        return $this->title;
     }
 }
