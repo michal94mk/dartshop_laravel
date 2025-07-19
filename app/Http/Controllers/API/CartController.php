@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CartRequest;
 use App\Models\CartItem;
 use App\Models\Product;
 use App\Services\CartService;
@@ -69,10 +68,13 @@ class CartController extends Controller
     /**
      * Store a new cart item.
      */
-    public function store(CartRequest $request): JsonResponse
+    public function store(Request $request): JsonResponse
     {
         try {
-            $validated = $request->validated();
+            $validated = $request->validate([
+                'product_id' => 'required|exists:products,id',
+                'quantity' => 'required|integer|min:1',
+            ]);
 
             $product = Product::findOrFail($validated['product_id']);
             $cartItem = $this->cartService->addToCart($product, $validated['quantity']);
@@ -92,21 +94,23 @@ class CartController extends Controller
     /**
      * Update the specified cart item.
      */
-    public function update(CartRequest $request, $productId): JsonResponse
+    public function update(Request $request, CartItem $cartItem): JsonResponse
     {
         try {
-            $validated = $request->validated();
+            $validated = $request->validate([
+                'quantity' => 'required|integer|min:1',
+            ]);
 
-            $product = Product::findOrFail($productId);
-            $cartItem = $this->cartService->updateQuantity($productId, $validated['quantity']);
-
-            if (!$cartItem) {
-                return response()->json(['message' => 'Cart item not found'], 404);
+            // Check if cart item belongs to current user
+            if ($cartItem->user_id !== Auth::id()) {
+                return response()->json(['message' => 'Unauthorized'], 403);
             }
+
+            $cartItem->update(['quantity' => $validated['quantity']]);
 
             return response()->json([
                 'message' => 'Cart item updated successfully',
-                'cart_item' => $cartItem,
+                'cart_item' => $cartItem->fresh(),
             ]);
         } catch (\Exception $e) {
             Log::error('Error updating cart item: ' . $e->getMessage());
@@ -117,14 +121,15 @@ class CartController extends Controller
     /**
      * Remove the specified cart item.
      */
-    public function destroy($productId): JsonResponse
+    public function destroy(CartItem $cartItem): JsonResponse
     {
         try {
-            $result = $this->cartService->removeFromCart($productId);
-
-            if (!$result) {
-                return response()->json(['message' => 'Cart item not found'], 404);
+            // Check if cart item belongs to current user
+            if ($cartItem->user_id !== Auth::id()) {
+                return response()->json(['message' => 'Unauthorized'], 403);
             }
+
+            $cartItem->delete();
 
             return response()->json([
                 'message' => 'Item removed from cart successfully',

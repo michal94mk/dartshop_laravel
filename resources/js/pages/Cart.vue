@@ -139,23 +139,16 @@
                   <button 
                     @click="decreaseQuantity(item)" 
                     class="text-gray-500 hover:text-indigo-600 focus:outline-none disabled:opacity-50 p-2 rounded-lg hover:bg-indigo-50 transition-all duration-200"
-                    :disabled="isUpdatingItem(item.product_id) || item.quantity <= 1"
+                    :disabled="item.quantity <= 1"
                   >
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
                     </svg>
                   </button>
-                  <span v-if="isUpdatingItem(item.product_id)" class="mx-3 w-12 text-center text-sm font-semibold text-gray-700">
-                    <svg class="animate-spin h-5 w-5 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  </span>
-                  <span v-else class="mx-3 w-12 text-center text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg py-2">{{ item.quantity }}</span>
+                  <span class="mx-3 w-12 text-center text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg py-2">{{ item.quantity }}</span>
                   <button 
                     @click="increaseQuantity(item)" 
                     class="text-gray-500 hover:text-indigo-600 focus:outline-none disabled:opacity-50 p-2 rounded-lg hover:bg-indigo-50 transition-all duration-200"
-                    :disabled="isUpdatingItem(item.product_id)"
                   >
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -286,7 +279,8 @@ export default {
     
     async increaseQuantity(item) {
       try {
-        await this.cartStore.updateCartItem(item.product_id, item.quantity + 1);
+        const productId = item.product_id;
+        await this.cartStore.updateCartItem(productId, item.quantity + 1);
       } catch (error) {
         console.error('Error increasing quantity:', error);
       }
@@ -296,7 +290,8 @@ export default {
       if (item.quantity <= 1) return;
       
       try {
-        await this.cartStore.updateCartItem(item.product_id, item.quantity - 1);
+        const productId = item.product_id;
+        await this.cartStore.updateCartItem(productId, item.quantity - 1);
       } catch (error) {
         console.error('Error decreasing quantity:', error);
       }
@@ -310,12 +305,8 @@ export default {
       }
     },
     
-    isUpdatingItem(productId) {
-      return false;
-    },
-    
     isRemovingItem(productId) {
-      return false;
+      return this.cartStore.isLoadingProduct(productId);
     },
     
     clearCart() {

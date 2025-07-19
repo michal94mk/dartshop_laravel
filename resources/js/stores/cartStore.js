@@ -207,7 +207,7 @@ export const useCartStore = defineStore('cart', {
           return response.data;
         } else {
           // Dla gościa: obsługa w localStorage
-          const existingItemIndex = this.items.findIndex(item => item.product.id === productId);
+          const existingItemIndex = this.items.findIndex(item => item.product_id === productId);
           
           if (existingItemIndex !== -1) {
             // Product already exists in cart, increase quantity
@@ -262,16 +262,19 @@ export const useCartStore = defineStore('cart', {
       
       try {
         if (authStore.isLoggedIn) {
-          // For logged in users: use API
-          await axios.put(`/api/cart/${productId}`, {
+          // For logged in users: find CartItem by product_id and use its ID for API call
+          const item = this.items.find(item => item.product_id === productId);
+          if (!item) {
+            throw new Error('Cart item not found');
+          }
+          
+          // Use CartItem ID for API call
+          await axios.put(`/api/cart/${item.id}`, {
             quantity: quantity
           });
           
-          // Update local state directly
-          const itemIndex = this.items.findIndex(item => item.product_id === productId);
-          if (itemIndex !== -1) {
-            this.items[itemIndex].quantity = quantity;
-          }
+          // Refresh cart after updating
+          await this.fetchCart();
         } else {
           // For guests: handle in localStorage
           const existingItemIndex = this.items.findIndex(item => item.product_id === productId);
@@ -294,17 +297,30 @@ export const useCartStore = defineStore('cart', {
     async removeFromCart(productId) {
       const authStore = useAuthStore();
       
+      // Check if product is already being removed to prevent duplicates
+      if (this.loadingProductIds.includes(productId)) {
+        return;
+      }
+      
+      // Add to loading products
+      this.loadingProductIds.push(productId);
+      
       try {
         if (authStore.isLoggedIn) {
-          // For logged in users: use API
-          await axios.delete(`/api/cart/${productId}`);
-        }
-        
-        // Update local state for both logged in and guest users
-        this.items = this.items.filter(item => item.product_id !== productId);
-        
-        // Save to localStorage for guests
-        if (!authStore.isLoggedIn) {
+          // For logged in users: find CartItem by product_id and use its ID for API call
+          const item = this.items.find(item => item.product_id === productId);
+          if (!item) {
+            throw new Error('Cart item not found');
+          }
+          
+          // Use CartItem ID for API call
+          await axios.delete(`/api/cart/${item.id}`);
+          
+          // Refresh cart after removing
+          await this.fetchCart();
+        } else {
+          // For guests: handle in localStorage
+          this.items = this.items.filter(item => item.product_id !== productId);
           this.saveToLocalStorage();
         }
         
@@ -314,6 +330,9 @@ export const useCartStore = defineStore('cart', {
         this.hasError = true;
         this.errorMessage = 'Failed to remove item from cart';
         throw error;
+      } finally {
+        // Always remove from loading products, regardless of success or error
+        this.loadingProductIds = this.loadingProductIds.filter(id => id !== productId);
       }
     },
     
