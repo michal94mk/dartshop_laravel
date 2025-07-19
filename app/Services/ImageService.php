@@ -2,68 +2,111 @@
 
 namespace App\Services;
 
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class ImageService
 {
     /**
-     * Upload an image to storage
-     *
-     * @param UploadedFile $image
-     * @param string $name Base name for the image
-     * @param string $folder Folder within storage/images
-     * @return string|null The path to the uploaded image, or null on failure
+     * Get properly formatted image URL for a product.
      */
-    public function uploadImage(UploadedFile $image, string $name, string $folder = ''): ?string
+    public function getProductImageUrl(?string $imageUrl, int $productId = null, string $productName = null): ?string
     {
-        if (!$image->isValid()) {
+        if (!$imageUrl) {
+            if ($productId && $productName) {
+                Log::debug('Product image is null', [
+                    'product_id' => $productId,
+                    'product_name' => $productName
+                ]);
+            }
             return null;
         }
         
-        $filename = Str::slug($name) . '-' . time() . '.' . $image->getClientOriginalExtension();
-        $path = trim("storage/images/{$folder}", '/');
-        
-        Log::info('Uploading image', [
-            'original_name' => $image->getClientOriginalName(),
-            'mime_type' => $image->getMimeType(),
-            'size' => $image->getSize(),
-            'destination' => $path . '/' . $filename
-        ]);
-        
-        try {
-            $image->move(public_path($path), $filename);
-            return $path . '/' . $filename;
-        } catch (\Exception $e) {
-            Log::error('Error uploading image', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+        if ($productId && $productName) {
+            Log::debug('Processing product image', [
+                'product_id' => $productId,
+                'product_name' => $productName,
+                'original_image_url' => $imageUrl
             ]);
-            return null;
-        }
-    }
-    
-    /**
-     * Delete an image from storage
-     *
-     * @param string|null $imagePath
-     * @return bool
-     */
-    public function deleteImage(?string $imagePath): bool
-    {
-        if (!$imagePath) {
-            return false;
         }
         
-        $fullPath = public_path($imagePath);
-        
-        if (file_exists($fullPath)) {
-            @unlink($fullPath);
-            return true;
+        // Jeśli to pełny URL (http/https)
+        if (str_starts_with($imageUrl, 'http://') || str_starts_with($imageUrl, 'https://')) {
+            return $imageUrl;
         }
         
-        return false;
+        // Normalizuj separatory ścieżek
+        $path = str_replace('\\', '/', $imageUrl);
+        
+        // Usuń ewentualne początkowe slashe
+        $path = ltrim($path, '/');
+        
+        // Jeśli ścieżka zaczyna się od storage/
+        if (str_starts_with($path, 'storage/')) {
+            $path = substr($path, 8); // usuń 'storage/'
+        }
+        
+        // Jeśli ścieżka zaczyna się od products/ lub jest samą nazwą pliku
+        if (str_starts_with($path, 'products/') || !str_contains($path, '/')) {
+            // Sprawdź czy plik istnieje w storage/app/public/products
+            $storagePath = str_starts_with($path, 'products/') ? $path : 'products/' . $path;
+            
+            if ($productId) {
+                Log::debug('Checking storage path', [
+                    'product_id' => $productId,
+                    'storage_path' => $storagePath,
+                    'full_path' => Storage::disk('public')->path($storagePath),
+                    'exists' => Storage::disk('public')->exists($storagePath)
+                ]);
+            }
+            
+            if (Storage::disk('public')->exists($storagePath)) {
+                $url = url('storage/' . $storagePath);
+                if ($productId) {
+                    Log::debug('Found file in storage', [
+                        'product_id' => $productId,
+                        'storage_path' => $storagePath,
+                        'url' => $url
+                    ]);
+                }
+                return $url;
+            }
+        }
+        
+        // Sprawdź czy plik istnieje w public/img
+        $imgPath = 'img/' . basename($path);
+        $publicPath = public_path($imgPath);
+        
+        if ($productId) {
+            Log::debug('Checking public path', [
+                'product_id' => $productId,
+                'img_path' => $imgPath,
+                'public_path' => $publicPath,
+                'exists' => file_exists($publicPath)
+            ]);
+        }
+        
+        if (file_exists($publicPath)) {
+            $url = url($imgPath);
+            if ($productId) {
+                Log::debug('Found file in public/img', [
+                    'product_id' => $productId,
+                    'img_path' => $imgPath,
+                    'url' => $url
+                ]);
+            }
+            return $url;
+        }
+        
+        // Jeśli nie znaleziono pliku, zwróć ścieżkę do storage/products
+        $fallbackUrl = url('storage/products/' . basename($path));
+        if ($productId) {
+            Log::debug('Using fallback URL', [
+                'product_id' => $productId,
+                'fallback_url' => $fallbackUrl,
+                'original_path' => $path
+            ]);
+        }
+        return $fallbackUrl;
     }
 } 

@@ -143,14 +143,6 @@ class Promotion extends Model
     }
 
     /**
-     * Alias dla calculateDiscountedPrice dla kompatybilności
-     */
-    public function calculatePromotionalPrice(float $originalPrice): float
-    {
-        return $this->calculateDiscountedPrice($originalPrice);
-    }
-
-    /**
      * Check if the promotion is currently valid (active and within date range)
      *
      * @return bool

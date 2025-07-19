@@ -25,7 +25,7 @@ class ProductRequest extends FormRequest
             'name' => 'required|string|min:3|max:255',
             'description' => 'nullable|string|min:10|max:2000',
             'price' => 'required|numeric|min:0.01',
-            'image' => 'nullable|image|max:2048MB',
+            'image' => 'nullable|image|max:2048',
             'is_featured' => 'boolean',
             'is_active' => 'boolean',
             'brand_id' => 'required|exists:brands,id',

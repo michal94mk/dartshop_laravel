@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -18,7 +17,6 @@ class Product extends Model
         'description',
         'price',
         'image_url',
-        'image', // Alias for backwards compatibility
         'is_featured',
         'is_active',
         'brand_id',
@@ -120,16 +118,13 @@ class Product extends Model
     }
 
     /**
-     * Mutator to handle 'image' field and map it to 'image_url'
+     * Get properly formatted image URL using ImageService
      */
-    public function setImageAttribute($value)
-    {
-        $this->attributes['image_url'] = $value;
-    }
-
     public function getImageUrlAttribute(): ?string
     {
-        if (!$this->attributes['image_url']) {
+        $imageUrl = $this->attributes['image_url'] ?? null;
+        
+        if (!$imageUrl) {
             \Illuminate\Support\Facades\Log::debug('Product image is null', [
                 'product_id' => $this->id,
                 'product_name' => $this->name
@@ -140,16 +135,16 @@ class Product extends Model
         \Illuminate\Support\Facades\Log::debug('Processing product image', [
             'product_id' => $this->id,
             'product_name' => $this->name,
-            'original_image_url' => $this->attributes['image_url']
+            'original_image_url' => $imageUrl
         ]);
         
         // Jeśli to pełny URL (http/https)
-        if (str_starts_with($this->attributes['image_url'], 'http://') || str_starts_with($this->attributes['image_url'], 'https://')) {
-            return $this->attributes['image_url'];
+        if (str_starts_with($imageUrl, 'http://') || str_starts_with($imageUrl, 'https://')) {
+            return $imageUrl;
         }
         
         // Normalizuj separatory ścieżek
-        $path = str_replace('\\', '/', $this->attributes['image_url']);
+        $path = str_replace('\\', '/', $imageUrl);
         
         // Usuń ewentualne początkowe slashe
         $path = ltrim($path, '/');
@@ -167,11 +162,11 @@ class Product extends Model
             \Illuminate\Support\Facades\Log::debug('Checking storage path', [
                 'product_id' => $this->id,
                 'storage_path' => $storagePath,
-                'full_path' => Storage::disk('public')->path($storagePath),
-                'exists' => Storage::disk('public')->exists($storagePath)
+                'full_path' => \Illuminate\Support\Facades\Storage::disk('public')->path($storagePath),
+                'exists' => \Illuminate\Support\Facades\Storage::disk('public')->exists($storagePath)
             ]);
             
-            if (Storage::disk('public')->exists($storagePath)) {
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($storagePath)) {
                 $url = url('storage/' . $storagePath);
                 \Illuminate\Support\Facades\Log::debug('Found file in storage', [
                     'product_id' => $this->id,

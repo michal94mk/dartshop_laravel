@@ -130,59 +130,11 @@ class Tutorial extends Model
     }
 
     /**
-     * Get default category.
-     */
-    public function getCategoryAttribute()
-    {
-        return 'Darts';
-    }
-
-    /**
-     * Get default difficulty.
-     */
-    public function getDifficultyAttribute()
-    {
-        return 'Początkujący';
-    }
-
-    /**
-     * Get published date (use created_at since we don't have published_at).
-     */
-    public function getPublishedAtAttribute()
-    {
-        return $this->created_at;
-    }
-
-    /**
-     * Get meta title (use title if not set).
-     */
-    public function getMetaTitleAttribute()
-    {
-        return $this->title;
-    }
-
-    /**
-     * Get meta description (use excerpt).
-     */
-    public function getMetaDescriptionAttribute()
-    {
-        return $this->excerpt;
-    }
-
-    /**
-     * Get views count (default to 0 since we don't track views yet).
-     */
-    public function getViewsAttribute()
-    {
-        return 0;
-    }
-
-    /**
-     * Get the user that authored the tutorial (return default admin user).
+     * Get the user that authored the tutorial.
+     * Since we don't have user_id in the table, return a default admin user object.
      */
     public function user()
     {
-        // Since we don't have user_id in table, return a default admin user
         return (object) ['name' => 'DartShop Admin'];
     }
 }
