@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\Admin\ReviewRequest;
 
 class ReviewController extends BaseAdminController
 {
@@ -73,30 +74,18 @@ class ReviewController extends BaseAdminController
     /**
      * Store a newly created review in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\ReviewRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ReviewRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'product_id' => 'required|exists:products,id',
-            'user_id' => 'required|exists:users,id',
-            'rating' => 'required|integer|min:1|max:5',
-            'title' => 'required|string|max:255',
-            'content' => 'required|string|max:1000',
-            'is_approved' => 'boolean',
-            'is_featured' => 'boolean',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationError($validator->errors());
-        }
+        $validated = $request->validated();
 
         try {
             // Check featured limit if trying to create a featured review
-            if ($request->boolean('is_featured')) {
+            if (isset($validated['is_featured']) && $validated['is_featured']) {
                 // Check if review is approved
-                if (!$request->boolean('is_approved', true)) {
+                if (!($validated['is_approved'] ?? true)) {
                     return $this->errorResponse('Recenzja musi być zatwierdzona, aby mogła być wyróżniona.', 422);
                 }
                 
@@ -106,7 +95,7 @@ class ReviewController extends BaseAdminController
                 }
             }
             
-            $review = Review::create($request->all());
+            $review = Review::create($validated);
             return response()->json($review, 201);
         } catch (\Exception $e) {
             return $this->errorResponse('Error creating review: ' . $e->getMessage(), 500);
@@ -132,33 +121,21 @@ class ReviewController extends BaseAdminController
     /**
      * Update the specified review in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Admin\ReviewRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(ReviewRequest $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'product_id' => 'sometimes|exists:products,id',
-            'user_id' => 'sometimes|exists:users,id',
-            'rating' => 'sometimes|integer|min:1|max:5',
-            'title' => 'sometimes|string|max:255',
-            'content' => 'sometimes|string|max:1000',
-            'is_approved' => 'sometimes|boolean',
-            'is_featured' => 'sometimes|boolean',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationError($validator->errors());
-        }
+        $validated = $request->validated();
 
         try {
             $review = Review::findOrFail($id);
             
             // Check featured limit if trying to make a review featured
-            if ($request->has('is_featured') && $request->boolean('is_featured') && !$review->is_featured) {
+            if (isset($validated['is_featured']) && $validated['is_featured'] && !$review->is_featured) {
                 // Check if review is approved
-                if (!$request->boolean('is_approved', $review->is_approved)) {
+                if (!($validated['is_approved'] ?? $review->is_approved)) {
                     return $this->errorResponse('Recenzja musi być zatwierdzona, aby mogła być wyróżniona.', 422);
                 }
                 
@@ -168,7 +145,7 @@ class ReviewController extends BaseAdminController
                 }
             }
             
-            $review->update($request->all());
+            $review->update($validated);
             return response()->json($review);
         } catch (\Exception $e) {
             return $this->errorResponse('Error updating review: ' . $e->getMessage(), 500);

@@ -5,6 +5,12 @@ namespace App\Http\Requests\Admin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Category validation request
+ * 
+ * Handles validation rules for category management.
+ * Used by Admin\CategoryController for creating and updating categories.
+ */
 class CategoryRequest extends FormRequest
 {
     /**
@@ -12,7 +18,7 @@ class CategoryRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization is handled by middleware
+        return true;
     }
 
     /**

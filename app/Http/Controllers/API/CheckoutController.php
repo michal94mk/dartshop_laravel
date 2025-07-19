@@ -9,7 +9,7 @@ use App\Services\CartService;
 use App\Services\ReservationService;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
-use App\Http\Requests\Frontend\OrderRequest;
+use App\Http\Requests\Frontend\CheckoutRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -32,7 +32,7 @@ class CheckoutController extends Controller
     /**
      * Create a new order
      */
-    public function store(Request $request)
+    public function store(CheckoutRequest $request)
     {
         try {
             Log::info('Rozpoczęcie procesu checkoutu', [
@@ -40,19 +40,8 @@ class CheckoutController extends Controller
                 'request_data' => $request->all()
             ]);
 
-            // Walidacja danych
-            $validated = $request->validate([
-                'shipping_address.first_name' => 'required|string|max:255',
-                'shipping_address.last_name' => 'required|string|max:255',
-                'shipping_address.email' => 'required|email|max:255',
-                'shipping_address.street' => 'required|string|max:255',
-                'shipping_address.city' => 'required|string|max:255',
-                'shipping_address.postal_code' => 'required|string|max:10|regex:/^[0-9]{2}-[0-9]{3}$/',
-                'shipping_address.phone' => 'nullable|string|max:20',
-                'payment_method' => 'required|string|in:stripe,cod',
-                'shipping_method' => 'required|string|in:courier,inpost,pickup,express',
-                'notes' => 'nullable|string'
-            ]);
+            // Get validated data
+            $validated = $request->validated();
 
             Log::info('Walidacja danych przeszła pomyślnie', [
                 'validated_data' => $validated

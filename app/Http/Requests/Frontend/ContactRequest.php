@@ -4,6 +4,12 @@ namespace App\Http\Requests\Frontend;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Contact form validation request
+ * 
+ * Handles validation rules for contact form submissions.
+ * Used by ContactController for processing contact messages.
+ */
 class ContactRequest extends FormRequest
 {
     /**
@@ -11,7 +17,7 @@ class ContactRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Any user can submit the contact form
+        return true;
     }
 
     /**

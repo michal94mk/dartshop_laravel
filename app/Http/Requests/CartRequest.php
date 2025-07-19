@@ -4,6 +4,12 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Cart validation request
+ * 
+ * Handles validation rules for cart operations.
+ * Used by CartController for adding and updating cart items.
+ */
 class CartRequest extends FormRequest
 {
     /**
@@ -11,7 +17,7 @@ class CartRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Any authenticated user can manage cart
+        return true;
     }
 
     /**

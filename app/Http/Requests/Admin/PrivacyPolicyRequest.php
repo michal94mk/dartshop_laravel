@@ -4,6 +4,12 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Privacy policy validation request
+ * 
+ * Handles validation rules for privacy policy management.
+ * Used by Admin\PrivacyPolicyController for creating and updating privacy policies.
+ */
 class PrivacyPolicyRequest extends FormRequest
 {
     /**
@@ -11,7 +17,7 @@ class PrivacyPolicyRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization is handled by middleware
+        return true;
     }
 
     /**

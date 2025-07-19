@@ -4,6 +4,12 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Product validation request
+ * 
+ * Handles validation rules for product management in admin panel.
+ * Used by Admin\ProductController for creating and updating products.
+ */
 class ProductRequest extends FormRequest
 {
     /**
@@ -11,7 +17,7 @@ class ProductRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization is handled by middleware
+        return true;
     }
 
     /**

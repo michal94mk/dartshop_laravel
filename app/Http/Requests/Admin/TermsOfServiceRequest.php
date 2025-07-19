@@ -4,6 +4,12 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Terms of service validation request
+ * 
+ * Handles validation rules for terms of service management.
+ * Used by Admin\TermsOfServiceController for creating and updating terms.
+ */
 class TermsOfServiceRequest extends FormRequest
 {
     /**
@@ -11,7 +17,7 @@ class TermsOfServiceRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization is handled by middleware
+        return true;
     }
 
     /**

@@ -5,6 +5,12 @@ namespace App\Http\Requests\Admin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Tutorial validation request
+ * 
+ * Handles validation rules for tutorial management.
+ * Used by Admin\TutorialController for creating and updating tutorials.
+ */
 class TutorialRequest extends FormRequest
 {
     /**
@@ -12,7 +18,7 @@ class TutorialRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization is handled by middleware
+        return true;
     }
 
     /**

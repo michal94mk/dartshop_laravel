@@ -6,6 +6,12 @@ use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules;
 
+/**
+ * User registration validation request
+ * 
+ * Handles validation rules for new user registration.
+ * Includes strong password requirements and captcha validation.
+ */
 class RegisterRequest extends FormRequest
 {
     /**
@@ -23,7 +29,7 @@ class RegisterRequest extends FormRequest
      */
     public function rules(): array
     {
-        $rules = [
+        return [
             'name' => 'required|string|max:255|min:2',
             'first_name' => 'required|string|max:255|min:2',
             'last_name' => 'required|string|max:255|min:2',
@@ -31,13 +37,6 @@ class RegisterRequest extends FormRequest
             'password' => 'required|confirmed|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/',
             'terms' => 'required|accepted',
         ];
-        
-        // Commented out temporarily for testing
-        // if (app()->environment('production')) {
-        //     $rules['g-recaptcha-response'] = ['required', 'captcha'];
-        // }
-        
-        return $rules;
     }
 
     /**

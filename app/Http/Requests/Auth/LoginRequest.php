@@ -9,6 +9,12 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Login validation request
+ * 
+ * Handles validation rules for user authentication.
+ * Includes rate limiting and account lockout functionality.
+ */
 class LoginRequest extends FormRequest
 {
     /**

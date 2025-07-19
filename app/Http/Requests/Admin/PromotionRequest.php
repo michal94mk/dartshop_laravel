@@ -5,6 +5,12 @@ namespace App\Http\Requests\Admin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Promotion validation request
+ * 
+ * Handles validation rules for promotion management.
+ * Used by Admin\PromotionController for creating and updating promotions.
+ */
 class PromotionRequest extends FormRequest
 {
     /**
@@ -12,7 +18,7 @@ class PromotionRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization is handled by middleware
+        return true;
     }
 
     /**

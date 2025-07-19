@@ -6,6 +6,12 @@ use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * User update validation request
+ * 
+ * Handles validation rules for user profile management in admin panel.
+ * Used by Admin\UserController for updating user information.
+ */
 class UserUpdateRequest extends FormRequest
 {
     /**
@@ -13,7 +19,7 @@ class UserUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization is handled by middleware
+        return true;
     }
 
     /**

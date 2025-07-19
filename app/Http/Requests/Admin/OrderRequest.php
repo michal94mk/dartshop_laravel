@@ -19,9 +19,8 @@ class OrderRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
-        // Authorization is handled by middleware
         return true;
     }
 

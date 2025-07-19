@@ -4,6 +4,12 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * About page validation request
+ * 
+ * Handles validation rules for about page content management.
+ * Used by Admin\AboutPageController for updating about page content.
+ */
 class AboutPageRequest extends FormRequest
 {
     /**
@@ -11,7 +17,7 @@ class AboutPageRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization is handled by middleware
+        return true;
     }
 
     /**

@@ -5,6 +5,12 @@ namespace App\Http\Requests\Admin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Brand validation request
+ * 
+ * Handles validation rules for brand management.
+ * Used by Admin\BrandController for creating and updating brands.
+ */
 class BrandRequest extends FormRequest
 {
     /**
@@ -12,7 +18,7 @@ class BrandRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization is handled by middleware
+        return true;
     }
 
     /**

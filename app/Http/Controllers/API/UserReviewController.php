@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Http\Requests\Frontend\UserReviewRequest;
 use App\Models\Review;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
@@ -106,11 +107,11 @@ class UserReviewController extends Controller
     /**
      * Store a new review for a product
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\Frontend\UserReviewRequest  $request
      * @param  int  $productId
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request, $productId): JsonResponse
+    public function store(UserReviewRequest $request, $productId): JsonResponse
     {
         try {
             $user = Auth::user();
@@ -123,33 +124,15 @@ class UserReviewController extends Controller
                 ], 422);
             }
 
-            $validator = Validator::make($request->all(), [
-                'rating' => 'required|integer|min:1|max:5',
-                'title' => 'required|string|max:255',
-                'content' => 'required|string|max:1000'
-            ], [
-                'rating.required' => 'Ocena jest wymagana',
-                'rating.min' => 'Ocena musi być między 1 a 5',
-                'rating.max' => 'Ocena musi być między 1 a 5',
-                'title.required' => 'Tytuł recenzji jest wymagany',
-                'title.max' => 'Tytuł może mieć maksymalnie 255 znaków',
-                'content.required' => 'Treść recenzji jest wymagana',
-                'content.max' => 'Treść może mieć maksymalnie 1000 znaków'
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'error' => 'Błędy walidacji',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
+            // Get validated data
+            $validated = $request->validated();
 
             $review = Review::create([
                 'user_id' => $user->id,
                 'product_id' => $productId,
-                'rating' => $request->rating,
-                'title' => $request->title,
-                'content' => $request->content,
+                'rating' => $validated['rating'],
+                'title' => $validated['title'],
+                'content' => $validated['content'],
                 'is_approved' => false, // Admin approval required
                 'is_featured' => false
             ]);
