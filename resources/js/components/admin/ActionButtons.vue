@@ -14,7 +14,7 @@
     <!-- Edit button -->
     <admin-button 
       v-if="showEdit"
-      @click="$emit('edit', item)"
+      @click="handleEdit"
       variant="warning"
       size="sm"
       :title="editLabel"
@@ -105,6 +105,12 @@ export default {
       // Emit the entire object, like other events do
       console.log('ActionButtons: Emitting delete with item:', this.item);
       this.$emit('delete', this.item);
+    },
+    handleEdit() {
+      // Emit the entire object, like other events do
+      console.log('ActionButtons: Emitting edit with item:', this.item);
+      console.log('Item ID:', this.item?.id, 'Type:', typeof this.item?.id);
+      this.$emit('edit', this.item);
     }
   }
 }

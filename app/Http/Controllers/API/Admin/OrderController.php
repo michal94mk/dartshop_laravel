@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\Admin\OrderRequest;
 
 class OrderController extends BaseAdminController
@@ -195,8 +196,12 @@ class OrderController extends BaseAdminController
     public function show($id)
     {
         try {
+            $id = (int) $id;
             $order = Order::with(['user', 'items.product'])->findOrFail($id);
             return response()->json($order);
+        } catch (ModelNotFoundException $e) {
+            Log::error('Order not found for show:', ['id' => $id, 'error' => $e->getMessage()]);
+            return $this->errorResponse('Zamówienie o ID ' . $id . ' nie zostało znalezione', 404);
         } catch (\Exception $e) {
             return $this->errorResponse('Error fetching order: ' . $e->getMessage(), 404);
         }
@@ -212,6 +217,10 @@ class OrderController extends BaseAdminController
     public function update(OrderRequest $request, $id)
     {
         try {
+            // Ensure ID is an integer
+            $id = (int) $id;
+            Log::info('Order update called with ID:', ['id' => $id, 'type' => gettype($id)]);
+            
             $order = Order::findOrFail($id);
 
             Log::info('Order update request data:', $request->all());
@@ -261,6 +270,9 @@ class OrderController extends BaseAdminController
             Log::info('Order update successful. Transaction committed.');
 
             return $this->successResponse('Order updated successfully', $order);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('Order not found for update:', ['id' => $id, 'error' => $e->getMessage()]);
+            return $this->errorResponse('Zamówienie o ID ' . $id . ' nie zostało znalezione', 404);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error updating order: ' . $e->getMessage(), [
@@ -282,6 +294,7 @@ class OrderController extends BaseAdminController
     public function updateStatus(Request $request, $id)
     {
         try {
+            $id = (int) $id;
             $order = Order::findOrFail($id);
 
             $validator = Validator::make($request->all(), [
@@ -309,6 +322,9 @@ class OrderController extends BaseAdminController
             }
 
             return $this->successResponse('Order status updated successfully', $order);
+        } catch (ModelNotFoundException $e) {
+            Log::error('Order not found for status update:', ['id' => $id, 'error' => $e->getMessage()]);
+            return $this->errorResponse('Zamówienie o ID ' . $id . ' nie zostało znalezione', 404);
         } catch (\Exception $e) {
             return $this->errorResponse('Error updating order status: ' . $e->getMessage(), 500);
         }
@@ -323,6 +339,7 @@ class OrderController extends BaseAdminController
     public function destroy($id)
     {
         try {
+            $id = (int) $id;
             $order = Order::findOrFail($id);
             
             // Start transaction
@@ -337,6 +354,9 @@ class OrderController extends BaseAdminController
             DB::commit();
 
             return $this->successResponse('Order deleted successfully');
+        } catch (ModelNotFoundException $e) {
+            Log::error('Order not found for delete:', ['id' => $id, 'error' => $e->getMessage()]);
+            return $this->errorResponse('Zamówienie o ID ' . $id . ' nie zostało znalezione', 404);
         } catch (\Exception $e) {
             DB::rollBack();
             return $this->errorResponse('Error deleting order: ' . $e->getMessage(), 500);

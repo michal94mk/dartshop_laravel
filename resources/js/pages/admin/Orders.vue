@@ -221,26 +221,16 @@
               
               <!-- Actions Column -->
               <td class="px-3 py-4 text-right">
-                <div class="flex items-center justify-end space-x-2">
-                  <button 
-                    @click="openOrderDetails(item)"
-                    class="inline-flex items-center px-2 py-1 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50"
-                  >
-                    Szczegóły
-                  </button>
-                  <button 
-                    @click="editOrder(item)"
-                    class="inline-flex items-center px-2 py-1 border border-yellow-300 rounded text-xs font-medium text-yellow-700 bg-white hover:bg-yellow-50"
-                  >
-                    Edytuj
-                  </button>
-                  <button 
-                    @click="confirmDelete(item)"
-                    class="inline-flex items-center px-2 py-1 border border-red-300 rounded text-xs font-medium text-red-700 bg-white hover:bg-red-50"
-                  >
-                    Usuń
-                  </button>
-                </div>
+                <action-buttons 
+                  :item="item" 
+                  @edit="editOrder" 
+                  @delete="confirmDelete"
+                  @details="openOrderDetails"
+                  :show-details="true"
+                  :show-edit="true"
+                  :show-delete="true"
+                  justify="end"
+                />
               </td>
             </tr>
           </tbody>
@@ -355,17 +345,17 @@
             </template>
             
             <template #cell-price="{ item }">
-              {{ item.price }} PLN
+              {{ formatPrice(item.price || 0) }}
             </template>
             
             <template #cell-total="{ item }">
-              {{ (item.price * item.quantity).toFixed(2) }} PLN
+              {{ formatPrice((item.price || 0) * (item.quantity || 0)) }}
             </template>
           </admin-table>
           
           <div class="mt-4 flex justify-end">
             <div class="text-lg font-bold">
-              Suma: {{ selectedOrder.total }} PLN
+              Suma: {{ formatPrice(selectedOrder.total || 0) }}
             </div>
           </div>
         </div>
@@ -381,12 +371,12 @@
           <div>
             <h4 class="text-sm font-medium text-gray-500 mb-2">Metoda płatności</h4>
             <div class="text-sm text-gray-900">
-              {{ selectedOrder.payment_method || 'Nieznana' }}
+              {{ translatePaymentMethod(selectedOrder.payment_method) || 'Nieznana' }}
             </div>
             
             <h4 class="text-sm font-medium text-gray-500 mb-2 mt-4">Metoda dostawy</h4>
             <div class="text-sm text-gray-900">
-              {{ selectedOrder.shipping_method || 'Nieznana' }}
+              {{ translateShippingMethod(selectedOrder.shipping_method) || 'Nieznana' }}
               <span v-if="selectedOrder.shipping_cost" class="ml-2 text-sm text-gray-500">({{ selectedOrder.shipping_cost }} PLN)</span>
             </div>
           </div>
@@ -537,8 +527,14 @@
                   type="text"
                   v-model="editedOrder.first_name"
                   required
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  :class="[
+                    'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                    formErrors.first_name 
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                      : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                  ]"
                 />
+                <p v-if="formErrors.first_name" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.first_name) ? formErrors.first_name[0] : formErrors.first_name }}</p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700">Nazwisko <span class="text-red-500">*</span></label>
@@ -546,8 +542,14 @@
                   type="text"
                   v-model="editedOrder.last_name"
                   required
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  :class="[
+                    'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                    formErrors.last_name 
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                      : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                  ]"
                 />
+                <p v-if="formErrors.last_name" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.last_name) ? formErrors.last_name[0] : formErrors.last_name }}</p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700">Email <span class="text-red-500">*</span></label>
@@ -555,17 +557,29 @@
                   type="email"
                   v-model="editedOrder.email"
                   required
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  :class="[
+                    'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                    formErrors.email 
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                      : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                  ]"
                 />
-                <p class="text-xs text-gray-500">Format: nazwa@domena.pl</p>
+                <p v-if="formErrors.email" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.email) ? formErrors.email[0] : formErrors.email }}</p>
+                <p v-else class="text-xs text-gray-500">Format: nazwa@domena.pl</p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700">Telefon</label>
                 <input
                   type="text"
                   v-model="editedOrder.phone"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  :class="[
+                    'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                    formErrors.phone 
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                      : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                  ]"
                 />
+                <p v-if="formErrors.phone" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.phone) ? formErrors.phone[0] : formErrors.phone }}</p>
               </div>
             </div>
           </div>
@@ -577,8 +591,14 @@
               <input
                 type="text"
                 v-model="editedOrder.address"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                :class="[
+                  'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                  formErrors.address 
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                ]"
               />
+              <p v-if="formErrors.address" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.address) ? formErrors.address[0] : formErrors.address }}</p>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -586,16 +606,42 @@
                 <input
                   type="text"
                   v-model="editedOrder.postal_code"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  :class="[
+                    'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                    formErrors.postal_code 
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                      : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                  ]"
                 />
+                <p v-if="formErrors.postal_code" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.postal_code) ? formErrors.postal_code[0] : formErrors.postal_code }}</p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700">Miasto</label>
                 <input
                   type="text"
                   v-model="editedOrder.city"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  :class="[
+                    'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                    formErrors.city 
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                      : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                  ]"
                 />
+                <p v-if="formErrors.city" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.city) ? formErrors.city[0] : formErrors.city }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Kraj</label>
+                <input
+                  type="text"
+                  v-model="editedOrder.country"
+                  :class="[
+                    'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                    formErrors.country 
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                      : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                  ]"
+                />
+                <p v-if="formErrors.country" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.country) ? formErrors.country[0] : formErrors.country }}</p>
               </div>
             </div>
           </div>
@@ -643,7 +689,12 @@
               <label class="block text-sm font-medium text-gray-700">Status</label>
               <select
                 v-model="editedOrder.status"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                :class="[
+                  'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                  formErrors.status 
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                ]"
               >
                 <option value="pending">Oczekujące</option>
                 <option value="processing">W trakcie realizacji</option>
@@ -653,17 +704,24 @@
                 <option value="cancelled">Anulowane</option>
                 <option value="refunded">Zwrócone</option>
               </select>
+              <p v-if="formErrors.status" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.status) ? formErrors.status[0] : formErrors.status }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Metoda wysyłki</label>
               <select
                 v-model="editedOrder.shipping_method"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                :class="[
+                  'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                  formErrors.shipping_method 
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                ]"
               >
                 <option value="courier">Kurier</option>
                 <option value="inpost">InPost</option>
                 <option value="pickup">Odbiór osobisty</option>
               </select>
+              <p v-if="formErrors.shipping_method" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.shipping_method) ? formErrors.shipping_method[0] : formErrors.shipping_method }}</p>
             </div>
           </div>
 
@@ -673,24 +731,36 @@
               <label class="block text-sm font-medium text-gray-700">Metoda płatności</label>
               <select
                 v-model="editedOrder.payment_method"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                :class="[
+                  'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                  formErrors.payment_method 
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                ]"
               >
                 <option value="bank_transfer">Przelew bankowy</option>
                 <option value="cash_on_delivery">Płatność przy odbiorze</option>
                 <option value="online">Płatność online</option>
                 <option value="blik">BLIK</option>
               </select>
+              <p v-if="formErrors.payment_method" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.payment_method) ? formErrors.payment_method[0] : formErrors.payment_method }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Status płatności</label>
               <select
                 v-model="editedOrder.payment_status"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                :class="[
+                  'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                  formErrors.payment_status 
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                ]"
               >
                 <option value="pending">Oczekująca</option>
                 <option value="completed">Opłacone</option>
                 <option value="failed">Nieudana</option>
               </select>
+              <p v-if="formErrors.payment_status" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.payment_status) ? formErrors.payment_status[0] : formErrors.payment_status }}</p>
             </div>
           </div>
 
@@ -700,8 +770,14 @@
             <textarea
               v-model="editedOrder.notes"
               rows="3"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              :class="[
+                'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                formErrors.notes 
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+              ]"
             ></textarea>
+            <p v-if="formErrors.notes" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.notes) ? formErrors.notes[0] : formErrors.notes }}</p>
           </div>
         </form>
       
@@ -821,10 +897,10 @@ export default {
     
     // Order items table columns
     const orderItemsColumns = [
-      { key: 'product_name', label: 'Produkt' },
-      { key: 'price', label: 'Cena', align: 'right' },
-      { key: 'quantity', label: 'Ilość', align: 'center' },
-      { key: 'total', label: 'Suma', align: 'right' }
+      { key: 'product_name', label: 'Produkt', width: '40%' },
+      { key: 'price', label: 'Cena', align: 'right', width: '20%' },
+      { key: 'quantity', label: 'Ilość', align: 'center', width: '15%' },
+      { key: 'total', label: 'Suma', align: 'right', width: '25%' }
     ]
     
     // Status variant mapping for badges
@@ -910,6 +986,7 @@ export default {
     })
     const orderToDelete = ref(null)
     const validationErrors = ref([])
+    const formErrors = ref({})
     
     // Methods
     const fetchOrders = async () => {
@@ -1105,6 +1182,9 @@ export default {
     }
     
     const openEditModal = (order = null) => {
+      console.log('Opening edit modal for order:', order);
+      console.log('Order ID:', order?.id, 'Type:', typeof order?.id);
+      
       // Fetch products and users if not already loaded
       if (products.value.length === 0) {
         fetchProducts()
@@ -1129,12 +1209,34 @@ export default {
                 quantity: item.quantity
               }));
               
+              // Ensure all required fields are properly mapped for guest orders
               editedOrder.value = {
-                ...fullOrder,
+                id: parseInt(fullOrder.id) || null, // Ensure ID is a number
+                user_id: fullOrder.user_id || '',
+                first_name: fullOrder.first_name || '',
+                last_name: fullOrder.last_name || '',
+                email: fullOrder.email || '',
+                phone: fullOrder.phone || '',
+                address: fullOrder.address || '',
+                postal_code: fullOrder.postal_code || '',
+                city: fullOrder.city || '',
+                country: fullOrder.country || 'Polska',
+                status: fullOrder.status || 'pending',
+                payment_status: fullOrder.payment_status || 'pending',
+                payment_method: fullOrder.payment_method || 'bank_transfer',
+                shipping_method: fullOrder.shipping_method || 'courier',
+                shipping_cost: fullOrder.shipping_cost || 0,
+                total: fullOrder.total || 0,
+                notes: fullOrder.notes || '',
                 items: items
               };
               
-              showEditModal.value = true;
+              console.log('Mapped full order data for edit:', editedOrder.value);
+              
+              // Small delay to ensure data is properly set
+              setTimeout(() => {
+                showEditModal.value = true;
+              }, 100);
             })
             .catch(error => {
               console.error('Error fetching order details:', error);
@@ -1147,12 +1249,34 @@ export default {
             quantity: item.quantity
           }));
           
+          // Ensure all required fields are properly mapped for guest orders
           editedOrder.value = {
-            ...orderData,
+            id: parseInt(orderData.id) || null, // Ensure ID is a number
+            user_id: orderData.user_id || '',
+            first_name: orderData.first_name || '',
+            last_name: orderData.last_name || '',
+            email: orderData.email || '',
+            phone: orderData.phone || '',
+            address: orderData.address || '',
+            postal_code: orderData.postal_code || '',
+            city: orderData.city || '',
+            country: orderData.country || 'Polska',
+            status: orderData.status || 'pending',
+            payment_status: orderData.payment_status || 'pending',
+            payment_method: orderData.payment_method || 'bank_transfer',
+            shipping_method: orderData.shipping_method || 'courier',
+            shipping_cost: orderData.shipping_cost || 0,
+            total: orderData.total || 0,
+            notes: orderData.notes || '',
             items: items
           };
           
-          showEditModal.value = true;
+                      console.log('Mapped order data for edit:', editedOrder.value);
+            
+            // Small delay to ensure data is properly set
+            setTimeout(() => {
+              showEditModal.value = true;
+            }, 100);
         }
       } else {
         // Reset form for creating a new order
@@ -1182,7 +1306,9 @@ export default {
       showEditModal.value = false
       showCreateOrderModal.value = false
       validationErrors.value = []
+      formErrors.value = {}
       editedOrder.value = {
+        id: null, // Reset the order ID
         user_id: '',
         first_name: '',
         last_name: '',
@@ -1213,51 +1339,61 @@ export default {
     }
     
     // Add a watch on user_id to fetch user details when changed
-    watch(() => editedOrder.value.user_id, async (newUserId) => {
+    watch(() => editedOrder.value.user_id, async (newUserId, oldUserId) => {
+      // Skip if this is the initial setup (oldUserId is undefined)
+      if (oldUserId === undefined) {
+        return;
+      }
+      
       if (newUserId) {
         try {
           const response = await axios.get(`/api/admin/users/${newUserId}`)
           const userData = response.data
           
-          // Fill in email from user data - ensuring it's a valid string
-          editedOrder.value.email = userData.email || ''
-          
-          // Use first_name and last_name if available, otherwise parse name
-          if (userData.first_name && userData.last_name) {
-            editedOrder.value.first_name = userData.first_name
-            editedOrder.value.last_name = userData.last_name
-          } else if (userData.first_name) {
-            // If only first_name is available
-            editedOrder.value.first_name = userData.first_name
-            editedOrder.value.last_name = userData.last_name || ''
-          } else if (userData.name) {
-            // Parse from name field
-            const nameParts = userData.name.split(' ')
-            if (nameParts.length > 1) {
-              editedOrder.value.first_name = nameParts[0]
-              editedOrder.value.last_name = nameParts.slice(1).join(' ')
+          // Only fill in data if we're not editing an existing order
+          if (!showEditModal.value) {
+            // Fill in email from user data - ensuring it's a valid string
+            editedOrder.value.email = userData.email || ''
+            
+            // Use first_name and last_name if available, otherwise parse name
+            if (userData.first_name && userData.last_name) {
+              editedOrder.value.first_name = userData.first_name
+              editedOrder.value.last_name = userData.last_name
+            } else if (userData.first_name) {
+              // If only first_name is available
+              editedOrder.value.first_name = userData.first_name
+              editedOrder.value.last_name = userData.last_name || ''
+            } else if (userData.name) {
+              // Parse from name field
+              const nameParts = userData.name.split(' ')
+              if (nameParts.length > 1) {
+                editedOrder.value.first_name = nameParts[0]
+                editedOrder.value.last_name = nameParts.slice(1).join(' ')
+              } else {
+                editedOrder.value.first_name = userData.name
+                editedOrder.value.last_name = ''
+              }
             } else {
-              editedOrder.value.first_name = userData.name
+              // Fallback - clear fields if no name data available
+              editedOrder.value.first_name = ''
               editedOrder.value.last_name = ''
             }
-          } else {
-            // Fallback - clear fields if no name data available
-            editedOrder.value.first_name = ''
-            editedOrder.value.last_name = ''
           }
           
-          // Also prefill address data if available
-          if (userData.address) {
-            editedOrder.value.address = userData.address
-          }
-          if (userData.city) {
-            editedOrder.value.city = userData.city
-          }
-          if (userData.postal_code) {
-            editedOrder.value.postal_code = userData.postal_code
-          }
-          if (userData.phone) {
-            editedOrder.value.phone = userData.phone
+          // Also prefill address data if available (only when not editing)
+          if (!showEditModal.value) {
+            if (userData.address) {
+              editedOrder.value.address = userData.address
+            }
+            if (userData.city) {
+              editedOrder.value.city = userData.city
+            }
+            if (userData.postal_code) {
+              editedOrder.value.postal_code = userData.postal_code
+            }
+            if (userData.phone) {
+              editedOrder.value.phone = userData.phone
+            }
           }
           
           console.log('Loaded user data:', userData)
@@ -1266,14 +1402,16 @@ export default {
           alertStore.error('Nie udało się pobrać danych użytkownika')
         }
       } else {
-        // Clear form fields when no user is selected
-        editedOrder.value.email = ''
-        editedOrder.value.first_name = ''
-        editedOrder.value.last_name = ''
-        editedOrder.value.phone = ''
-        editedOrder.value.address = ''
-        editedOrder.value.city = ''
-        editedOrder.value.postal_code = ''
+        // Only clear form fields when no user is selected AND we're not editing an existing order
+        if (!showEditModal.value) {
+          editedOrder.value.email = ''
+          editedOrder.value.first_name = ''
+          editedOrder.value.last_name = ''
+          editedOrder.value.phone = ''
+          editedOrder.value.address = ''
+          editedOrder.value.city = ''
+          editedOrder.value.postal_code = ''
+        }
       }
     })
 
@@ -1293,6 +1431,7 @@ export default {
       try {
         // Reset validation errors at the beginning
         validationErrors.value = []
+        formErrors.value = {}
         
         // Special handling for edit case - fetch user details if needed
         if (showEditModal.value && editedOrder.value.user_id && (!editedOrder.value.email || !editedOrder.value.first_name)) {
@@ -1509,8 +1648,17 @@ export default {
         }
 
         // Submit the order
-        if (showEditModal.value) {
-          await axios.put(`/api/admin/orders/${editedOrder.value.id}`, formattedOrderData)
+        if (showEditModal.value && editedOrder.value.id) {
+          console.log('Updating order with ID:', editedOrder.value.id, 'Type:', typeof editedOrder.value.id)
+          
+          // Ensure ID is a number
+          const orderId = parseInt(editedOrder.value.id)
+          if (isNaN(orderId)) {
+            alertStore.error('Nieprawidłowe ID zamówienia')
+            return
+          }
+          
+          await axios.put(`/api/admin/orders/${orderId}`, formattedOrderData)
           alertStore.success('Zamówienie zostało zaktualizowane')
         } else {
           // Log the full request for debugging
@@ -1536,15 +1684,12 @@ export default {
         
         validationErrors.value = [] // Reset validation errors
         
-        if (error.response?.data?.errors) {
-          // Format validation errors
-          const errors = error.response.data.errors
-          console.log('Validation errors:', errors)
-          Object.entries(errors).forEach(([field, errorArray]) => {
-            validationErrors.value.push(...errorArray)
-            console.log(`Field ${field} errors:`, errorArray)
-          })
-          errorMessage += ': Sprawdź formularz'
+        if (error.response?.status === 422 && error.response?.data?.errors) {
+          // Store validation errors for individual field display
+          formErrors.value = error.response.data.errors
+          console.log('Validation errors:', error.response.data.errors)
+        } else if (error.response?.status === 404) {
+          errorMessage = 'Zamówienie nie zostało znalezione'
         } else if (error.response?.data?.message) {
           errorMessage += ': ' + error.response.data.message
         }
@@ -1559,6 +1704,15 @@ export default {
     }
     
     const editOrder = (order) => {
+      console.log('editOrder called with:', order);
+      console.log('Order ID in editOrder:', order?.id, 'Type:', typeof order?.id);
+      
+      if (!order || !order.id) {
+        console.error('No order or order ID provided to editOrder')
+        alertStore.error('Nie można edytować zamówienia - brak ID')
+        return
+      }
+      
       openEditModal(order)
     }
     
@@ -1634,6 +1788,25 @@ export default {
       return statusShortMap[status] || status
     }
     
+    const translatePaymentMethod = (method) => {
+      const methodMap = {
+        'bank_transfer': 'Przelew bankowy',
+        'cash_on_delivery': 'Płatność przy odbiorze',
+        'online': 'Płatność online',
+        'blik': 'BLIK'
+      }
+      return methodMap[method] || method
+    }
+    
+    const translateShippingMethod = (method) => {
+      const methodMap = {
+        'courier': 'Kurier',
+        'inpost': 'InPost',
+        'pickup': 'Odbiór osobisty'
+      }
+      return methodMap[method] || method
+    }
+    
     const resetFilters = () => {
       Object.assign(filters.value, defaultFilters)
       fetchOrders()
@@ -1705,6 +1878,7 @@ export default {
       editedOrder,
       orderToDelete,
       validationErrors,
+      formErrors,
       paginationPages,
       fetchOrders,
       goToPage,
@@ -1730,7 +1904,9 @@ export default {
       getCustomerInitials,
       formatShortDate,
       getStatusClasses,
-      getStatusShort
+      getStatusShort,
+      translatePaymentMethod,
+      translateShippingMethod
     }
   }
 }
