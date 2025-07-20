@@ -48,7 +48,7 @@ class ReviewsTableSeeder extends Seeder
                     'content' => 'Kupiliśmy tę tarczę do naszego klubu dartowego. Po miesiącu intensywnego użytkowania nie widać śladów zużycia. Druty nadal są idealne, kolory wyraźne. Inwestycja na lata!',
                     'rating' => 5,
                     'is_approved' => true,
-                    'is_featured' => true
+                    'is_featured' => false
                 ],
                 [
                     'title' => 'Bardzo dobra jakość',
@@ -73,7 +73,7 @@ class ReviewsTableSeeder extends Seeder
                     'content' => 'Grywam w darta od 15 lat i to są jedne z najlepszych lotek jakie miałem. Wolfram wysokiej jakości, precyzyjne wykonanie. Warto dopłacić za taką jakość.',
                     'rating' => 5,
                     'is_approved' => true,
-                    'is_featured' => true
+                    'is_featured' => false
                 ],
                 [
                     'title' => 'Świetny grip i kontrola',
@@ -109,7 +109,7 @@ class ReviewsTableSeeder extends Seeder
                     'content' => 'Używam tych piórek od miesiąca i jestem pod wrażeniem ich trwałości. Lot jest stabilny, a kształt idealnie pasuje do mojego stylu gry.',
                     'rating' => 5,
                     'is_approved' => true,
-                    'is_featured' => true
+                    'is_featured' => false
                 ],
                 [
                     'title' => 'Świetny stosunek jakości do ceny',
@@ -127,7 +127,7 @@ class ReviewsTableSeeder extends Seeder
                     'content' => 'Te shafty mają świetny system zapobiegający luzowaniu się podczas gry. Materiał jest bardzo wytrzymały, a połączenie z piórkami pewne.',
                     'rating' => 5,
                     'is_approved' => true,
-                    'is_featured' => true
+                    'is_featured' => false
                 ],
                 [
                     'title' => 'Wytrzymałe i lekkie',

@@ -764,6 +764,25 @@
             </div>
           </div>
 
+          <!-- Discount -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Rabat (PLN)</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              v-model="editedOrder.discount"
+              :class="[
+                'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                formErrors.discount 
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+              ]"
+              placeholder="0.00"
+            />
+            <p v-if="formErrors.discount" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.discount) ? formErrors.discount[0] : formErrors.discount }}</p>
+          </div>
+
           <!-- Notes -->
           <div>
             <label class="block text-sm font-medium text-gray-700">Uwagi</label>
@@ -1166,6 +1185,7 @@ export default {
         shipping_method: 'courier',
         payment_method: 'bank_transfer',
         payment_status: 'pending',
+        discount: 0,
         notes: '',
         status: 'pending'
       }
@@ -1226,6 +1246,7 @@ export default {
                 payment_method: fullOrder.payment_method || 'bank_transfer',
                 shipping_method: fullOrder.shipping_method || 'courier',
                 shipping_cost: fullOrder.shipping_cost || 0,
+                discount: fullOrder.discount || 0,
                 total: fullOrder.total || 0,
                 notes: fullOrder.notes || '',
                 items: items
@@ -1266,6 +1287,7 @@ export default {
             payment_method: orderData.payment_method || 'bank_transfer',
             shipping_method: orderData.shipping_method || 'courier',
             shipping_cost: orderData.shipping_cost || 0,
+            discount: orderData.discount || 0,
             total: orderData.total || 0,
             notes: orderData.notes || '',
             items: items
@@ -1294,6 +1316,7 @@ export default {
           shipping_method: 'courier',
           payment_method: 'bank_transfer',
           payment_status: 'pending',
+          discount: 0,
           notes: '',
           status: 'pending'
         };
@@ -1322,6 +1345,7 @@ export default {
         shipping_method: 'courier',
         payment_method: 'bank_transfer',
         payment_status: 'pending',
+        discount: 0,
         notes: '',
         status: 'pending'
       }
@@ -1536,8 +1560,9 @@ export default {
           })
         }
 
-        // Calculate total
-        const total = subtotal + shipping_cost
+        // Calculate total with discount
+        const discount = editedOrder.value.discount || 0
+        const total = Math.max(0, subtotal + shipping_cost - discount)
 
         // Ensure all required fields are present
         if (!editedOrder.value.user_id) {
@@ -1624,6 +1649,7 @@ export default {
           payment_method: ensureString(editedOrder.value.payment_method || 'bank_transfer'),
           shipping_method: ensureString(editedOrder.value.shipping_method || 'courier'),
           shipping_cost: shipping_cost,
+          discount: editedOrder.value.discount || 0,
           subtotal: subtotal,
           total: total,
           

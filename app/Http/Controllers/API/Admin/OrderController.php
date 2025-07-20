@@ -149,7 +149,7 @@ class OrderController extends BaseAdminController
             // Build the order data with explicit attributes
             $orderData = $request->validated();
             $orderData['order_number'] = $orderNumber;
-            $orderData['subtotal'] = $request->input('subtotal', ($request->input('total') - $request->input('shipping_cost')));
+            $orderData['subtotal'] = $request->input('subtotal', ($request->input('total') - $request->input('shipping_cost') + $request->input('discount', 0)));
             
             // Log orderData for debugging
             Log::info('Order data being created:', $orderData);
@@ -257,11 +257,13 @@ class OrderController extends BaseAdminController
                 if ($request->has('shipping_cost')) {
                     $subtotal = $order->items()->sum('total_price');
                     $shipping_cost = $request->input('shipping_cost');
+                    $discount = $request->input('discount', 0);
                     
                     $order->update([
                         'subtotal' => $subtotal,
                         'shipping_cost' => $shipping_cost,
-                        'total' => $subtotal + $shipping_cost,
+                        'discount' => $discount,
+                        'total' => max(0, $subtotal + $shipping_cost - $discount),
                     ]);
                 }
             }

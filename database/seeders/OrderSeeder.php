@@ -61,7 +61,7 @@ class OrderSeeder extends Seeder
             // Calculate totals
             $subtotal = 0;
             $shippingCost = rand(0, 20);
-            $discount = rand(0, 50);
+            $discount = 0; // Start with 0, will calculate based on subtotal
             
             // Create order
             $order = Order::create([
@@ -109,9 +109,19 @@ class OrderSeeder extends Seeder
             }
             
             // Update order with correct totals
+            // Calculate discount as a percentage of subtotal (0-20%)
+            $discount = rand(0, 20) > 15 ? round($subtotal * 0.1, 2) : 0; // 10% chance of 10% discount
             $total = $subtotal + $shippingCost - $discount;
+            
+            // Ensure total is never negative
+            if ($total < 0) {
+                $total = 0;
+                $discount = $subtotal + $shippingCost;
+            }
+            
             $order->update([
                 'subtotal' => $subtotal,
+                'discount' => $discount,
                 'total' => $total
             ]);
             
