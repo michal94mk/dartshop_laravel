@@ -8,6 +8,26 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Carbon\Carbon;
 use App\Models\Traits\HasActiveStatus;
 
+/**
+ * @OA\Schema(
+ *     schema="Promotion",
+ *     title="Promotion",
+ *     description="Product promotion model",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="title", type="string", example="Summer Sale"),
+ *     @OA\Property(property="description", type="string", example="Get 20% off on selected items"),
+ *     @OA\Property(property="discount_type", type="string", enum={"percentage", "fixed"}, example="percentage"),
+ *     @OA\Property(property="discount_value", type="number", format="float", example=20.0),
+ *     @OA\Property(property="start_date", type="string", format="date-time"),
+ *     @OA\Property(property="end_date", type="string", format="date-time"),
+ *     @OA\Property(property="is_active", type="boolean", example=true),
+ *     @OA\Property(property="badge_text", type="string", example="20% OFF"),
+ *     @OA\Property(property="badge_color", type="string", example="#ff0000"),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ */
+
 class Promotion extends Model
 {
     use HasFactory, HasActiveStatus;

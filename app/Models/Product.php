@@ -10,6 +10,32 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\Traits\HasActiveStatus;
 use App\Models\Traits\HasPromotions;
 
+/**
+ * @OA\Schema(
+ *     schema="Product",
+ *     title="Product",
+ *     description="Product model",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="name", type="string", example="Harrows Supergrip Ultra"),
+ *     @OA\Property(property="description", type="string", example="Professional dart flights"),
+ *     @OA\Property(property="price", type="number", format="float", example=29.99),
+ *     @OA\Property(property="image_url", type="string", nullable=true, example="https://example.com/image.jpg"),
+ *     @OA\Property(property="is_featured", type="boolean", example=false),
+ *     @OA\Property(property="is_active", type="boolean", example=true),
+ *     @OA\Property(property="brand_id", type="integer", example=1),
+ *     @OA\Property(property="category_id", type="integer", example=1),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time"),
+ *     @OA\Property(property="category", ref="#/components/schemas/Category"),
+ *     @OA\Property(property="brand", ref="#/components/schemas/Brand"),
+ *     @OA\Property(property="average_rating", type="number", format="float", example=4.5),
+ *     @OA\Property(property="reviews_count", type="integer", example=10),
+ *     @OA\Property(property="promotion_price", type="number", format="float", nullable=true, example=24.99),
+ *     @OA\Property(property="savings", type="number", format="float", example=5.00),
+ *     @OA\Property(property="promotion", ref="#/components/schemas/Promotion", nullable=true)
+ * )
+ */
+
 class Product extends Model
 {
     use HasFactory, HasActiveStatus, HasPromotions;

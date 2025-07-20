@@ -40,6 +40,7 @@ use App\Http\Controllers\API\TermsOfServiceController;
 use App\Http\Controllers\API\SocialAuthController;
 use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\Api\ShippingController;
+use App\Http\Controllers\Api\SwaggerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,6 +52,9 @@ use App\Http\Controllers\Api\ShippingController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+// Health check endpoint for Swagger
+Route::get('/health', [SwaggerController::class, 'health']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

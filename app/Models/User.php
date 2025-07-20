@@ -13,6 +13,33 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * @OA\Schema(
+ *     schema="User",
+ *     title="User",
+ *     description="User model",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="name", type="string", example="John Doe"),
+ *     @OA\Property(property="first_name", type="string", example="John"),
+ *     @OA\Property(property="last_name", type="string", example="Doe"),
+ *     @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+ *     @OA\Property(property="email_verified_at", type="string", format="date-time", nullable=true),
+ *     @OA\Property(property="is_admin", type="boolean", example=false),
+ *     @OA\Property(property="google_id", type="string", nullable=true, example="123456789"),
+ *     @OA\Property(property="avatar", type="string", nullable=true, example="https://example.com/avatar.jpg"),
+ *     @OA\Property(property="privacy_policy_accepted", type="boolean", example=true),
+ *     @OA\Property(property="privacy_policy_accepted_at", type="string", format="date-time", nullable=true),
+ *     @OA\Property(property="terms_of_service_accepted", type="boolean", example=true),
+ *     @OA\Property(property="terms_of_service_accepted_at", type="string", format="date-time", nullable=true),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time"),
+ *     @OA\Property(property="role", type="string", example="user"),
+ *     @OA\Property(property="full_name", type="string", example="John Doe"),
+ *     @OA\Property(property="display_name", type="string", example="John Doe"),
+ *     @OA\Property(property="is_google_user", type="boolean", example=false)
+ * )
+ */
+
 
 class User extends Authenticatable implements MustVerifyEmail
 {
