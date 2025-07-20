@@ -22,9 +22,15 @@
                 v-model="form.title"
                 type="text"
                 required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                :class="[
+                  'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                  formErrors.title 
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                ]"
                 placeholder="np. Wielka wyprzedaż"
               />
+              <p v-if="formErrors.title" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.title) ? formErrors.title[0] : formErrors.title }}</p>
             </div>
             
             <div>
@@ -34,9 +40,15 @@
                 v-model="form.name"
                 type="text"
                 required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                :class="[
+                  'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                  formErrors.name 
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                ]"
                 placeholder="np. summer_sale_2024"
               />
+              <p v-if="formErrors.name" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.name) ? formErrors.name[0] : formErrors.name }}</p>
             </div>
           </div>
           
@@ -46,9 +58,15 @@
               id="description"
               v-model="form.description"
               rows="3"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              :class="[
+                'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                formErrors.description 
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+              ]"
               placeholder="Opis promocji widoczny dla klientów"
             ></textarea>
+            <p v-if="formErrors.description" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.description) ? formErrors.description[0] : formErrors.description }}</p>
           </div>
         </div>
 
@@ -62,11 +80,17 @@
                 id="discount_type"
                 v-model="form.discount_type"
                 required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                :class="[
+                  'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                  formErrors.discount_type 
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                ]"
               >
                 <option value="percentage">Procentowy</option>
                 <option value="fixed">Kwotowy</option>
               </select>
+              <p v-if="formErrors.discount_type" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.discount_type) ? formErrors.discount_type[0] : formErrors.discount_type }}</p>
             </div>
             
             <div>
@@ -81,8 +105,14 @@
                 :max="form.discount_type === 'percentage' ? 100 : null"
                 step="0.01"
                 required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                :class="[
+                  'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                  formErrors.discount_value 
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                ]"
               />
+              <p v-if="formErrors.discount_value" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.discount_value) ? formErrors.discount_value[0] : formErrors.discount_value }}</p>
             </div>
             
 
@@ -100,8 +130,14 @@
                 v-model="form.starts_at"
                 type="datetime-local"
                 required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                :class="[
+                  'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                  formErrors.starts_at 
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                ]"
               />
+              <p v-if="formErrors.starts_at" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.starts_at) ? formErrors.starts_at[0] : formErrors.starts_at }}</p>
             </div>
             
             <div>
@@ -110,9 +146,15 @@
                 id="ends_at"
                 v-model="form.ends_at"
                 type="datetime-local"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                :class="[
+                  'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                  formErrors.ends_at 
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                ]"
               />
-              <p class="mt-1 text-xs text-gray-500">Pozostaw puste dla promocji bez daty końcowej</p>
+              <p v-if="formErrors.ends_at" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.ends_at) ? formErrors.ends_at[0] : formErrors.ends_at }}</p>
+              <p v-else class="mt-1 text-xs text-gray-500">Pozostaw puste dla promocji bez daty końcowej</p>
             </div>
           </div>
         </div>
@@ -128,9 +170,15 @@
                 v-model="form.badge_text"
                 type="text"
                 maxlength="50"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                :class="[
+                  'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                  formErrors.badge_text 
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                ]"
                 placeholder="np. PROMOCJA, NOWOŚĆ"
               />
+              <p v-if="formErrors.badge_text" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.badge_text) ? formErrors.badge_text[0] : formErrors.badge_text }}</p>
             </div>
             
             <div>
@@ -139,8 +187,14 @@
                 id="badge_color"
                 v-model="form.badge_color"
                 type="color"
-                class="mt-1 block w-full h-10 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                :class="[
+                  'mt-1 block w-full h-10 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
+                  formErrors.badge_color 
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                ]"
               />
+              <p v-if="formErrors.badge_color" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.badge_color) ? formErrors.badge_color[0] : formErrors.badge_color }}</p>
             </div>
             
             <div>
@@ -150,8 +204,14 @@
                 v-model.number="form.display_order"
                 type="number"
                 min="0"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                :class="[
+                  'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                  formErrors.display_order 
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                ]"
               />
+              <p v-if="formErrors.display_order" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.display_order) ? formErrors.display_order[0] : formErrors.display_order }}</p>
             </div>
           </div>
           
@@ -317,6 +377,7 @@ export default {
     const productSearch = ref('')
     const availableProducts = ref([])
     const selectedProducts = ref([])
+    const formErrors = ref({})
     
     const form = reactive({
       title: '',
@@ -409,6 +470,7 @@ export default {
 
     const savePromotion = async () => {
       submitting.value = true
+      formErrors.value = {} // Reset errors
       
       try {
         const url = isEditing.value 
@@ -428,9 +490,7 @@ export default {
         console.error('Błąd podczas zapisywania promocji:', error)
         
         if (error.response?.status === 422) {
-          const errors = error.response.data.errors || {}
-          const firstError = Object.values(errors)[0]?.[0] || error.response.data.message
-          alertStore.error(firstError)
+          formErrors.value = error.response.data.errors || {}
         } else {
           alertStore.error('Błąd podczas zapisywania promocji')
         }
@@ -454,6 +514,7 @@ export default {
       productSearch,
       availableProducts,
       selectedProducts,
+      formErrors,
       form,
       isEditing,
       loadAvailableProducts,
