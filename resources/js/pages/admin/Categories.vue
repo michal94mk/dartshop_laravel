@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 bg-white min-h-full lg:pr-6">
+  <div class="space-y-6 bg-white min-h-full">
     <!-- Page Header -->
     <div class="px-6 py-4">
       <page-header

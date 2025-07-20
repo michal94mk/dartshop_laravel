@@ -51,12 +51,11 @@
 
     <!-- Sidebar (przyklejony na desktop, wysuwalny na mobile) -->
     <aside 
-      class="fixed top-0 bottom-0 left-0 z-40 bg-indigo-800 shadow-lg transform transition-transform duration-300 lg:translate-x-0 flex flex-col h-screen"
+      class="fixed top-0 bottom-0 left-0 z-40 bg-indigo-800 shadow-lg transform transition-transform duration-300 lg:translate-x-0 flex flex-col min-h-screen w-64"
       :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}"
-      style="width: 256px; max-width: 85vw; min-width: 280px;"
     >
       <!-- Sidebar header -->
-      <div class="flex h-16 items-center justify-between border-b border-indigo-700 px-4 sm:px-6 flex-shrink-0 mt-16">
+      <div class="flex h-16 items-center justify-between border-b border-indigo-700 px-4 sm:px-6 flex-shrink-0">
         <router-link to="/" class="text-xl font-bold text-white">
           <span>Dart</span><span class="text-indigo-200">Shop</span>
         </router-link>
@@ -71,7 +70,7 @@
       </div>
 
       <!-- Sidebar navigation -->
-      <div class="flex-1 py-4 overflow-y-auto">
+      <div class="flex-1 py-4 overflow-y-auto max-h-[calc(100vh-4rem)]">
         <div class="space-y-1 px-2 sm:px-3">
           <!-- Dashboard -->
           <router-link 
@@ -262,9 +261,9 @@
     ></div>
 
     <!-- Główna treść -->
-    <div class="pt-16 lg:ml-64 h-screen overflow-hidden flex-1">
+    <div class="pt-16 lg:ml-64 h-screen bg-gray-100 overflow-y-auto">
       <!-- Page Content -->
-      <main class="bg-gray-100 h-full overflow-y-auto lg:pl-6 pr-0 w-full">
+      <main class="px-4 lg:pl-6 lg:pr-6">
         <router-view :key="$route.fullPath" />
       </main>
     </div>
