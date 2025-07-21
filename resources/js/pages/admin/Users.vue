@@ -453,7 +453,7 @@
           Anuluj
         </admin-button>
         <admin-button @click="confirmDelete" variant="danger">
-          Usuń użytkownika
+          Usuń
         </admin-button>
       </admin-button-group>
     </template>
