@@ -62,102 +62,75 @@
     </search-filters>
 
     <!-- Content -->
-    <div class="mt-6 bg-white shadow overflow-hidden sm:rounded-md">
-      <!-- Loading spinner -->
+    <div class="bg-white shadow rounded-lg">
       <loading-spinner v-if="loading" />
-
-      <ul v-else-if="promotions.length > 0" class="divide-y divide-gray-200">
-        <li v-for="promotion in promotions" :key="promotion.id" class="p-6">
-          <div class="flex items-center justify-between">
-            <div class="flex-1">
-              <div class="flex items-center">
-                <h3 class="text-lg font-medium text-gray-900">
-                  {{ promotion.title }}
-                </h3>
-                <span
-                  v-if="promotion.is_featured"
-                  class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
-                >
-                  ⭐ Wyróżniona
-                </span>
-                <span
-                  :class="[
-                    'ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                    promotion.is_active
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  ]"
-                >
-                  {{ promotion.is_active ? 'Aktywna' : 'Nieaktywna' }}
-                </span>
-              </div>
-              
-              <p class="mt-1 text-sm text-gray-600">{{ promotion.description }}</p>
-              
-              <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                <span>
-                  Rabat: {{ promotion.discount_value }}{{ promotion.discount_type === 'percentage' ? '%' : ' zł' }}
-                </span>
-                <span>
-                  Produkty: {{ promotion.products?.length || 0 }}
-                </span>
-                <span>
-                  Od: {{ formatDate(promotion.starts_at) }}
-                </span>
-                <span v-if="promotion.ends_at">
-                  Do: {{ formatDate(promotion.ends_at) }}
-                </span>
-              </div>
-
-              <!-- Produkty -->
-              <div v-if="promotion.products && promotion.products.length > 0" class="mt-3">
-                <div class="flex flex-wrap gap-2">
-                  <span
-                    v-for="product in promotion.products.slice(0, 3)"
-                    :key="product.id"
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                  >
-                    {{ product.name }}
-                  </span>
-                  <span
-                    v-if="promotion.products.length > 3"
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-                  >
-                    +{{ promotion.products.length - 3 }} więcej
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div class="flex items-center space-x-2">
-              <admin-button
-                @click="toggleActive(promotion)"
-                :variant="promotion.is_active ? 'danger' : 'success'"
-                size="sm"
-              >
-                {{ promotion.is_active ? 'Dezaktywuj' : 'Aktywuj' }}
-              </admin-button>
-              
-              <admin-button
-                @click="editPromotion(promotion)"
-                variant="warning"
-                size="sm"
-              >
-                Edytuj
-              </admin-button>
-              
-              <admin-button
-                @click="deletePromotion(promotion)"
-                variant="danger"
-                size="sm"
-              >
-                Usuń
-              </admin-button>
-            </div>
-          </div>
-        </li>
-      </ul>
-
+      <div v-if="!loading && promotions.length > 0" class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
+        <div class="overflow-x-auto -mx-6 px-6" style="scrollbar-width: thin; scrollbar-color: #d1d5db #f3f4f6;">
+          <table class="min-w-full divide-y divide-gray-200 whitespace-nowrap">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-56">Tytuł</th>
+                <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Typ rabatu</th>
+                <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Wartość</th>
+                <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Status</th>
+                <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Produkty</th>
+                <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Daty</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-36">Akcje</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="promotion in promotions" :key="promotion.id" class="hover:bg-gray-50">
+                <!-- Title -->
+                <td class="px-4 py-4">
+                  <div class="flex items-center">
+                    <div>
+                      <div class="text-sm font-medium text-gray-900">{{ promotion.title }}</div>
+                      <div class="text-xs text-gray-500 truncate max-w-[180px]" :title="promotion.description">{{ promotion.description }}</div>
+                      <span v-if="promotion.is_featured" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 ml-1">★ Wyróżniona</span>
+                    </div>
+                  </div>
+                </td>
+                <!-- Discount type -->
+                <td class="px-3 py-4 text-center">
+                  <span class="text-xs font-medium text-gray-700">{{ promotion.discount_type === 'percentage' ? 'Procentowy' : 'Kwotowy' }}</span>
+                </td>
+                <!-- Discount value -->
+                <td class="px-3 py-4 text-center">
+                  <span class="text-sm font-medium text-gray-900">{{ promotion.discount_value }}{{ promotion.discount_type === 'percentage' ? '%' : ' zł' }}</span>
+                </td>
+                <!-- Status -->
+                <td class="px-3 py-4 text-center">
+                  <span :class="promotion.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">{{ promotion.is_active ? 'Aktywna' : 'Nieaktywna' }}</span>
+                </td>
+                <!-- Products -->
+                <td class="px-3 py-4 text-center">
+                  <div class="flex flex-wrap gap-1 justify-center">
+                    <span v-for="product in promotion.products.slice(0, 2)" :key="product.id" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ product.name }}</span>
+                    <span v-if="promotion.products.length > 2" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">+{{ promotion.products.length - 2 }} więcej</span>
+                  </div>
+                </td>
+                <!-- Dates -->
+                <td class="px-3 py-4 text-center">
+                  <div class="flex flex-col items-center">
+                    <span class="text-xs text-gray-500">Od: {{ formatDate(promotion.starts_at) }}</span>
+                    <span v-if="promotion.ends_at" class="text-xs text-gray-500">Do: {{ formatDate(promotion.ends_at) }}</span>
+                  </div>
+                </td>
+                <!-- Actions -->
+                <td class="px-4 py-4 text-right">
+                  <div class="flex justify-end space-x-1">
+                    <admin-button @click="toggleActive(promotion)" :variant="promotion.is_active ? 'danger' : 'success'" size="sm">
+                      {{ promotion.is_active ? 'Dezaktywuj' : 'Aktywuj' }}
+                    </admin-button>
+                    <admin-button @click="editPromotion(promotion)" variant="warning" size="sm">Edytuj</admin-button>
+                    <admin-button @click="deletePromotion(promotion)" variant="danger" size="sm">Usuń</admin-button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
       <div v-else class="p-6 text-center">
         <p class="text-gray-500">Brak promocji do wyświetlenia</p>
       </div>
@@ -295,6 +268,7 @@ import AdminButton from '../../components/admin/ui/AdminButton.vue'
 import LoadingSpinner from '../../components/admin/LoadingSpinner.vue'
 import PageHeader from '../../components/admin/PageHeader.vue'
 import SearchFilters from '../../components/admin/SearchFilters.vue'
+import ActionButtons from '../../components/admin/ActionButtons.vue'
 
 export default {
   name: 'AdminPromotions',
@@ -308,7 +282,8 @@ export default {
     AdminButton,
     LoadingSpinner,
     PageHeader,
-    SearchFilters
+    SearchFilters,
+    ActionButtons
   },
   setup() {
     const alertStore = useAlertStore()
