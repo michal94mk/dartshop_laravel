@@ -167,30 +167,8 @@
         
         <!-- Cart summary -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <!-- Coupon code -->
-          <div class="lg:col-span-7">
-            <div class="bg-white shadow-xl rounded-2xl p-8 border border-gray-100">
-              <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center">
-                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-                </svg>
-                Kod promocyjny
-              </h3>
-              <div class="flex">
-                <input 
-                  type="text" 
-                  placeholder="Wpisz kod promocyjny" 
-                  class="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
-                >
-                <button class="px-6 py-3 rounded-r-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl">
-                  Zastosuj
-                </button>
-              </div>
-            </div>
-          </div>
-          
           <!-- Order summary -->
-          <div class="lg:col-span-5">
+          <div class="lg:col-span-12">
             <div class="bg-white shadow-xl rounded-2xl p-8 border border-gray-100">
               <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center">
                 <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,10 +191,10 @@
                 </div>
               </div>
               
-              <div class="mt-8 space-y-3">
+              <div class="mt-8 flex flex-col md:flex-row justify-center gap-4">
                 <router-link 
                   to="/checkout" 
-                  class="w-full inline-flex justify-center items-center px-6 py-4 border border-transparent shadow-lg text-base font-semibold rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 hover:shadow-xl transform hover:-translate-y-0.5"
+                  class="inline-flex justify-center items-center px-4 py-4 border border-transparent shadow-lg text-base font-semibold rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 hover:shadow-xl transform hover:-translate-y-0.5"
                 >
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
@@ -225,7 +203,7 @@
                 </router-link>
                 <router-link 
                   to="/products" 
-                  class="w-full inline-flex justify-center items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                  class="inline-flex justify-center items-center px-4 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
                 >
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"/>
