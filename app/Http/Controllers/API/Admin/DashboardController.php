@@ -2,65 +2,16 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use Illuminate\Http\Request;
-use App\Models\Product;
-use App\Models\User;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\Review;
-use Illuminate\Support\Facades\DB;
+use App\Models\User;
 use Carbon\Carbon;
-
-/**
- * @OA\Tag(
- *     name="Admin/Dashboard",
- *     description="API Endpoints for admin dashboard"
- * )
- */
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends BaseAdminController
 {
-    /**
-     * Get admin dashboard statistics
-     *
-     * @OA\Get(
-     *     path="/api/admin/dashboard",
-     *     summary="Get dashboard statistics",
-     *     description="Retrieve admin dashboard statistics and data",
-     *     tags={"Admin/Dashboard"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="counts", type="object",
-     *                 @OA\Property(property="products", type="integer", example=150),
-     *                 @OA\Property(property="users", type="integer", example=500),
-     *                 @OA\Property(property="orders", type="integer", example=75),
-     *                 @OA\Property(property="reviews", type="integer", example=200)
-     *             ),
-     *             @OA\Property(property="recent_orders", type="array", @OA\Items(ref="#/components/schemas/RecentOrder")),
-     *             @OA\Property(property="sales_data", type="array", @OA\Items(ref="#/components/schemas/SalesData")),
-     *             @OA\Property(property="top_products", type="array", @OA\Items(ref="#/components/schemas/TopProduct")),
-     *             @OA\Property(property="categories_data", type="array", @OA\Items(ref="#/components/schemas/CategoryData"))
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     ),
-     *     @OA\Response(
-     *         response=403,
-     *         description="Forbidden - Admin access required"
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Internal server error",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     )
-     * )
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function index()
     {
         try {
@@ -111,6 +62,13 @@ class DashboardController extends BaseAdminController
                 'categories_data' => $categoriesData,
             ]);
         } catch (\Exception $e) {
+            Log::error('Dashboard data fetch failed', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'admin_id' => auth()->id()
+            ]);
+            
             return $this->errorResponse('Error fetching dashboard data: ' . $e->getMessage(), 500);
         }
     }
@@ -122,40 +80,49 @@ class DashboardController extends BaseAdminController
      */
     private function getSalesData()
     {
-        $startDate = Carbon::now()->subDays(30);
-        $endDate = Carbon::now();
-        
-        $salesData = Order::where('created_at', '>=', $startDate)
-            ->where('created_at', '<=', $endDate)
-            ->select(
-                DB::raw('DATE(created_at) as date'),
-                DB::raw('SUM(total) as total_sales'),
-                DB::raw('COUNT(*) as order_count')
-            )
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-        
-        // Fill in missing dates with zero values
-        $dateRange = [];
-        for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
-            $formattedDate = $date->format('Y-m-d');
-            $dateRange[$formattedDate] = [
-                'date' => $formattedDate,
-                'total_sales' => 0,
-                'order_count' => 0
-            ];
+        try {
+            $startDate = Carbon::now()->subDays(30);
+            $endDate = Carbon::now();
+            
+            $salesData = Order::where('created_at', '>=', $startDate)
+                ->where('created_at', '<=', $endDate)
+                ->select(
+                    DB::raw('DATE(created_at) as date'),
+                    DB::raw('SUM(total) as total_sales'),
+                    DB::raw('COUNT(*) as order_count')
+                )
+                ->groupBy('date')
+                ->orderBy('date')
+                ->get();
+            
+            // Fill in missing dates with zero values
+            $dateRange = [];
+            for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+                $formattedDate = $date->format('Y-m-d');
+                $dateRange[$formattedDate] = [
+                    'date' => $formattedDate,
+                    'total_sales' => 0,
+                    'order_count' => 0
+                ];
+            }
+            
+            foreach ($salesData as $record) {
+                $dateRange[$record->date] = [
+                    'date' => $record->date,
+                    'total_sales' => (float)$record->total_sales,
+                    'order_count' => (int)$record->order_count
+                ];
+            }
+            
+            return array_values($dateRange);
+        } catch (\Exception $e) {
+            Log::error('Sales data fetch failed', [
+                'error' => $e->getMessage(),
+                'method' => __METHOD__
+            ]);
+            
+            return [];
         }
-        
-        foreach ($salesData as $record) {
-            $dateRange[$record->date] = [
-                'date' => $record->date,
-                'total_sales' => (float)$record->total_sales,
-                'order_count' => (int)$record->order_count
-            ];
-        }
-        
-        return array_values($dateRange);
     }
     
     /**
@@ -183,7 +150,13 @@ class DashboardController extends BaseAdminController
             
             return $topProducts;
         } catch (\Exception $e) {
-            // If there's an error (like missing tables), return empty array
+            // Log the error for debugging purposes
+            Log::error('Top products fetch failed', [
+                'error' => $e->getMessage(),
+                'method' => __METHOD__,
+                'admin_id' => auth()->id()
+            ]);
+            
             return [];
         }
     }
@@ -210,7 +183,13 @@ class DashboardController extends BaseAdminController
             
             return $categoriesData;
         } catch (\Exception $e) {
-            // If there's an error, return empty array
+            // Log the error for debugging purposes
+            Log::error('Categories data fetch failed', [
+                'error' => $e->getMessage(),
+                'method' => __METHOD__,
+                'admin_id' => auth()->id()
+            ]);
+            
             return [];
         }
     }

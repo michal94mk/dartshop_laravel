@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\TutorialRequest;
 use App\Models\Tutorial;
+use App\Http\Requests\Admin\TutorialRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 /**

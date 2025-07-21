@@ -3,77 +3,16 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Models\Brand;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log;
 use App\Http\Requests\Admin\BrandRequest;
-
-/**
- * @OA\Tag(
- *     name="Admin/Brands",
- *     description="API Endpoints for admin brand management"
- * )
- */
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class BrandController extends BaseAdminController
 {
     /**
-     * Display a listing of the brands.
+     * Get a paginated list of brands with optional filters.
      *
-     * @OA\Get(
-     *     path="/api/admin/brands",
-     *     summary="Get brands list (admin)",
-     *     description="Retrieve all brands with admin filters and pagination",
-     *     tags={"Admin/Brands"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="search",
-     *         in="query",
-     *         description="Search in brand name",
-     *         required=false,
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_field",
-     *         in="query",
-     *         description="Sort field (id, name, products_count, created_at, updated_at)",
-     *         required=false,
-     *         @OA\Schema(type="string", default="id")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_direction",
-     *         in="query",
-     *         description="Sort direction (asc, desc)",
-     *         required=false,
-     *         @OA\Schema(type="string", default="asc")
-     *     ),
-     *     @OA\Parameter(
-     *         name="per_page",
-     *         in="query",
-     *         description="Items per page",
-     *         required=false,
-     *         @OA\Schema(type="integer", default=10)
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Brand")),
-     *             @OA\Property(property="meta", ref="#/components/schemas/PaginationMeta"),
-     *             @OA\Property(property="links", ref="#/components/schemas/PaginationLinks")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     ),
-     *     @OA\Response(
-     *         response=403,
-     *         description="Forbidden - Admin access required"
-     *     )
-     * )
-     *
-     * @param  \Illuminate\Http\Request  $request
+     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
@@ -118,9 +57,9 @@ class BrandController extends BaseAdminController
     }
 
     /**
-     * Store a newly created brand in storage.
+     * Store a newly created brand.
      *
-     * @param  \App\Http\Requests\Admin\BrandRequest  $request
+     * @param BrandRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(BrandRequest $request)
@@ -137,7 +76,7 @@ class BrandController extends BaseAdminController
     /**
      * Display the specified brand.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
@@ -151,10 +90,10 @@ class BrandController extends BaseAdminController
     }
 
     /**
-     * Update the specified brand in storage.
+     * Update the specified brand.
      *
-     * @param  \App\Http\Requests\Admin\BrandRequest  $request
-     * @param  int  $id
+     * @param BrandRequest $request
+     * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function update(BrandRequest $request, $id)
@@ -171,9 +110,9 @@ class BrandController extends BaseAdminController
     }
 
     /**
-     * Remove the specified brand from storage.
+     * Remove the specified brand.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)

@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Models\AboutUs;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\Admin\AboutPageRequest;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @OA\Tag(
@@ -45,17 +43,26 @@ class AboutPageController extends BaseAdminController
      */
     public function index()
     {
-        // Get the first about page record or create a new one if none exists
-        $aboutPage = AboutUs::first();
-        
-        if (!$aboutPage) {
-            $aboutPage = new AboutUs();
-            $aboutPage->title = 'O nas';
-            $aboutPage->content = 'Dodaj treść strony O nas.';
-            $aboutPage->save();
+        try {
+            // Get the first about page record or create a new one if none exists
+            $aboutPage = AboutUs::first();
+            
+            if (!$aboutPage) {
+                $aboutPage = new AboutUs();
+                $aboutPage->title = 'O nas';
+                $aboutPage->content = 'Dodaj treść strony O nas.';
+                $aboutPage->save();
+            }
+            
+            return response()->json($aboutPage);
+        } catch (\Exception $e) {
+            Log::error('Failed to get about page data', [
+                'error' => $e->getMessage(),
+                'method' => __METHOD__
+            ]);
+            
+            return $this->errorResponse('Error fetching about page data: ' . $e->getMessage(), 500);
         }
-        
-        return response()->json($aboutPage);
     }
     
     /**
@@ -65,8 +72,17 @@ class AboutPageController extends BaseAdminController
      */
     public function all()
     {
-        $aboutPages = AboutUs::orderBy('created_at')->get();
-        return response()->json($aboutPages);
+        try {
+            $aboutPages = AboutUs::orderBy('created_at')->get();
+            return response()->json($aboutPages);
+        } catch (\Exception $e) {
+            Log::error('Failed to get all about pages', [
+                'error' => $e->getMessage(),
+                'method' => __METHOD__
+            ]);
+            
+            return $this->errorResponse('Error fetching about pages: ' . $e->getMessage(), 500);
+        }
     }
     
     /**
@@ -77,8 +93,18 @@ class AboutPageController extends BaseAdminController
      */
     public function show($id)
     {
-        $aboutPage = AboutUs::findOrFail($id);
-        return response()->json($aboutPage);
+        try {
+            $aboutPage = AboutUs::findOrFail($id);
+            return response()->json($aboutPage);
+        } catch (\Exception $e) {
+            Log::error('Failed to get about page', [
+                'error' => $e->getMessage(),
+                'id' => $id,
+                'method' => __METHOD__
+            ]);
+            
+            return $this->errorResponse('About page not found', 404);
+        }
     }
 
     /**
@@ -89,39 +115,56 @@ class AboutPageController extends BaseAdminController
      */
     public function create(AboutPageRequest $request)
     {
-        $aboutPage = new AboutUs();
-        $aboutPage->fill($request->validated());
-        
-        $aboutPage->save();
-        
-        return response()->json($aboutPage);
+        try {
+            $aboutPage = new AboutUs();
+            $aboutPage->fill($request->validated());
+            
+            $aboutPage->save();
+            
+            return response()->json($aboutPage);
+        } catch (\Exception $e) {
+            Log::error('Failed to create about page', [
+                'error' => $e->getMessage(),
+                'request_data' => $request->validated(),
+                'method' => __METHOD__
+            ]);
+            
+            return $this->errorResponse('Error creating about page: ' . $e->getMessage(), 500);
+        }
     }
 
     /**
-     * Update the first about page data.
+     * Update the first about page.
      *
      * @param  \App\Http\Requests\Admin\AboutPageRequest  $request
      * @return \Illuminate\Http\Response
      */
     public function update(AboutPageRequest $request)
     {
-        // Get the first about page record or create a new one if none exists
-        $aboutPage = AboutUs::first();
-        
-        if (!$aboutPage) {
-            $aboutPage = new AboutUs();
+        try {
+            $aboutPage = AboutUs::first();
+            
+            if (!$aboutPage) {
+                $aboutPage = new AboutUs();
+            }
+            
+            $aboutPage->fill($request->validated());
+            $aboutPage->save();
+            
+            return response()->json($aboutPage);
+        } catch (\Exception $e) {
+            Log::error('Failed to update about page', [
+                'error' => $e->getMessage(),
+                'request_data' => $request->validated(),
+                'method' => __METHOD__
+            ]);
+            
+            return $this->errorResponse('Error updating about page: ' . $e->getMessage(), 500);
         }
-        
-        // Update the about page data with only the fields that are in the fillable array
-        $aboutPage->fill($request->validated());
-        
-        $aboutPage->save();
-        
-        return response()->json($aboutPage);
     }
-    
+
     /**
-     * Update the specified about page by ID.
+     * Update the specified about page.
      *
      * @param  \App\Http\Requests\Admin\AboutPageRequest  $request
      * @param  int  $id
@@ -129,29 +172,45 @@ class AboutPageController extends BaseAdminController
      */
     public function updateById(AboutPageRequest $request, $id)
     {
-        $aboutPage = AboutUs::findOrFail($id);
-        
-        // Update the about page data with only the fields that are in the fillable array
-        $aboutPage->fill($request->validated());
-        
-        $aboutPage->save();
-        
-        return response()->json($aboutPage);
+        try {
+            $aboutPage = AboutUs::findOrFail($id);
+            $aboutPage->fill($request->validated());
+            $aboutPage->save();
+            
+            return response()->json($aboutPage);
+        } catch (\Exception $e) {
+            Log::error('Failed to update about page by ID', [
+                'error' => $e->getMessage(),
+                'id' => $id,
+                'request_data' => $request->validated(),
+                'method' => __METHOD__
+            ]);
+            
+            return $this->errorResponse('Error updating about page: ' . $e->getMessage(), 500);
+        }
     }
-    
+
     /**
-     * Remove the specified about page.
+     * Remove the specified about page from storage.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
-        $aboutPage = AboutUs::findOrFail($id);
-        $aboutPage->delete();
-        
-        return response()->json(['message' => 'Strona usunięta pomyślnie']);
+        try {
+            $aboutPage = AboutUs::findOrFail($id);
+            $aboutPage->delete();
+            
+            return response()->json(null, 204);
+        } catch (\Exception $e) {
+            Log::error('Failed to delete about page', [
+                'error' => $e->getMessage(),
+                'id' => $id,
+                'method' => __METHOD__
+            ]);
+            
+            return $this->errorResponse('Error deleting about page: ' . $e->getMessage(), 500);
+        }
     }
-    
-
 } 

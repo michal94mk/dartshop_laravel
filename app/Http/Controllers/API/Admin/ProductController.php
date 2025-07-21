@@ -2,18 +2,17 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Models\Product;
-use App\Models\Category;
 use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Product;
+use App\Http\Requests\Admin\ProductRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use App\Http\Requests\Admin\ProductRequest;
 
 /**
  * @OA\Tag(
@@ -40,17 +39,6 @@ class ProductController extends BaseAdminController
         foreach ($commonKeys as $key) {
             Cache::forget($key);
         }
-    }
-
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-        Log::info('Admin ProductController initialized');
     }
 
     /**

@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\Review;
 use App\Models\Product;
+use App\Models\Review;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\Admin\ReviewRequest;
 
 /**
@@ -167,12 +165,12 @@ class ReviewController extends BaseAdminController
             if (isset($validated['is_featured']) && $validated['is_featured']) {
                 // Check if review is approved
                 if (!($validated['is_approved'] ?? true)) {
-                    return $this->errorResponse('Recenzja musi być zatwierdzona, aby mogła być wyróżniona.', 422);
+                    return $this->errorResponse('Review must be approved to be featured.', 422);
                 }
                 
                 $featuredCount = Review::approvedAndFeatured()->count();
                 if ($featuredCount >= 6) {
-                    return $this->errorResponse('Można wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji przed dodaniem nowego.', 422);
+                    return $this->errorResponse('You can only feature a maximum of 6 reviews. Remove featured status from another review before adding a new one.', 422);
                 }
             }
             
@@ -217,12 +215,12 @@ class ReviewController extends BaseAdminController
             if (isset($validated['is_featured']) && $validated['is_featured'] && !$review->is_featured) {
                 // Check if review is approved
                 if (!($validated['is_approved'] ?? $review->is_approved)) {
-                    return $this->errorResponse('Recenzja musi być zatwierdzona, aby mogła być wyróżniona.', 422);
+                    return $this->errorResponse('Review must be approved to be featured.', 422);
                 }
                 
                 $featuredCount = Review::approvedAndFeatured()->count();
                 if ($featuredCount >= 6) {
-                    return $this->errorResponse('Można wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji przed dodaniem nowego.', 422);
+                    return $this->errorResponse('You can only feature a maximum of 6 reviews. Remove featured status from another review before adding a new one.', 422);
                 }
             }
             
@@ -301,12 +299,12 @@ class ReviewController extends BaseAdminController
             if (!$review->is_featured) {
                 // Check if review is approved
                 if (!$review->is_approved) {
-                    return $this->errorResponse('Recenzja musi być zatwierdzona, aby mogła być wyróżniona.', 422);
+                    return $this->errorResponse('Review must be approved to be featured.', 422);
                 }
                 
                 $featuredCount = Review::approvedAndFeatured()->count();
                 if ($featuredCount >= 6) {
-                    return $this->errorResponse('Można wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji przed dodaniem nowego.', 422);
+                    return $this->errorResponse('You can only feature a maximum of 6 reviews. Remove featured status from another review before adding a new one.', 422);
                 }
             }
             
@@ -314,8 +312,8 @@ class ReviewController extends BaseAdminController
             $review->save();
             
             $message = $review->is_featured 
-                ? 'Recenzja została wyróżniona.' 
-                : 'Recenzja została usunięta z wyróżnionych.';
+                ? 'Review has been featured.' 
+                : 'Review has been removed from featured.';
                 
             return response()->json([
                 'review' => $review,

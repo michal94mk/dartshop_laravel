@@ -1,18 +1,17 @@
 <?php
 
-namespace App\Http\Controllers\API\Admin;
+namespace App\Http\Controllers\Api\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\PrivacyPolicyRequest;
 use App\Models\PrivacyPolicy;
-use Illuminate\Http\Request;
+use App\Http\Requests\Admin\PrivacyPolicyRequest;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\Rule;
 
-class PrivacyPolicyController extends Controller
+class PrivacyPolicyController extends BaseAdminController
 {
     /**
-     * Display a listing of privacy policies.
+     * Get a list of privacy policies.
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
@@ -36,6 +35,9 @@ class PrivacyPolicyController extends Controller
 
     /**
      * Store a newly created privacy policy.
+     *
+     * @param PrivacyPolicyRequest $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(PrivacyPolicyRequest $request)
     {
@@ -66,6 +68,9 @@ class PrivacyPolicyController extends Controller
 
     /**
      * Display the specified privacy policy.
+     *
+     * @param PrivacyPolicy $privacyPolicy
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show(PrivacyPolicy $privacyPolicy)
     {
@@ -88,6 +93,10 @@ class PrivacyPolicyController extends Controller
 
     /**
      * Update the specified privacy policy.
+     *
+     * @param PrivacyPolicyRequest $request
+     * @param PrivacyPolicy $privacyPolicy
+     * @return \Illuminate\Http\JsonResponse
      */
     public function update(PrivacyPolicyRequest $request, PrivacyPolicy $privacyPolicy)
     {
@@ -119,6 +128,9 @@ class PrivacyPolicyController extends Controller
 
     /**
      * Remove the specified privacy policy.
+     *
+     * @param PrivacyPolicy $privacyPolicy
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(PrivacyPolicy $privacyPolicy)
     {
@@ -150,6 +162,9 @@ class PrivacyPolicyController extends Controller
 
     /**
      * Set the specified privacy policy as active.
+     *
+     * @param PrivacyPolicy $privacyPolicy
+     * @return \Illuminate\Http\JsonResponse
      */
     public function setActive(PrivacyPolicy $privacyPolicy)
     {
@@ -174,7 +189,9 @@ class PrivacyPolicyController extends Controller
     }
 
     /**
-     * Get users who haven't accepted privacy policy.
+     * Get users who have not accepted the privacy policy.
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function getUsersWithoutAcceptance()
     {
@@ -189,6 +206,8 @@ class PrivacyPolicyController extends Controller
 
     /**
      * Get privacy policy acceptance statistics.
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function getAcceptanceStats()
     {

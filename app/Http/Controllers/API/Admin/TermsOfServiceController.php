@@ -1,15 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\API\Admin;
+namespace App\Http\Controllers\Api\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\TermsOfServiceRequest;
 use App\Models\TermsOfService;
-use Illuminate\Http\Request;
+use App\Http\Requests\Admin\TermsOfServiceRequest;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\Rule;
 
-class TermsOfServiceController extends Controller
+class TermsOfServiceController extends BaseAdminController
 {
     /**
      * Display a listing of terms of service.
