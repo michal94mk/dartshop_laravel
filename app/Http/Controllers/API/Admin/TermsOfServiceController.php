@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\TermsOfServiceRequest;
 use App\Models\TermsOfService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class TermsOfServiceController extends Controller
@@ -15,11 +16,22 @@ class TermsOfServiceController extends Controller
      */
     public function index()
     {
-        $terms = TermsOfService::orderBy('created_at', 'desc')->get();
-        
-        return response()->json([
-            'terms_of_service' => $terms
-        ]);
+        try {
+            $terms = TermsOfService::orderBy('created_at', 'desc')->get();
+            
+            return response()->json([
+                'terms_of_service' => $terms
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to get terms of service', [
+                'error' => $e->getMessage(),
+                'method' => __METHOD__
+            ]);
+            
+            return response()->json([
+                'error' => 'Error fetching terms of service: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -27,17 +39,29 @@ class TermsOfServiceController extends Controller
      */
     public function store(TermsOfServiceRequest $request)
     {
-        $terms = TermsOfService::create($request->validated());
+        try {
+            $terms = TermsOfService::create($request->validated());
 
-        // If this terms is set as active, deactivate others
-        if ($terms->is_active) {
-            $terms->setAsActive();
+            // If this terms is set as active, deactivate others
+            if ($terms->is_active) {
+                $terms->setAsActive();
+            }
+
+            return response()->json([
+                'message' => 'Regulamin został utworzony',
+                'terms_of_service' => $terms
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error('Failed to create terms of service', [
+                'error' => $e->getMessage(),
+                'request_data' => $request->validated(),
+                'method' => __METHOD__
+            ]);
+            
+            return response()->json([
+                'error' => 'Error creating terms of service: ' . $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'message' => 'Regulamin został utworzony',
-            'terms_of_service' => $terms
-        ], 201);
     }
 
     /**
@@ -45,9 +69,21 @@ class TermsOfServiceController extends Controller
      */
     public function show(TermsOfService $termsOfService)
     {
-        return response()->json([
-            'terms_of_service' => $termsOfService
-        ]);
+        try {
+            return response()->json([
+                'terms_of_service' => $termsOfService
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to get terms of service', [
+                'error' => $e->getMessage(),
+                'terms_id' => $termsOfService->id ?? null,
+                'method' => __METHOD__
+            ]);
+            
+            return response()->json([
+                'error' => 'Error fetching terms of service: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -55,17 +91,30 @@ class TermsOfServiceController extends Controller
      */
     public function update(TermsOfServiceRequest $request, TermsOfService $termsOfService)
     {
-        $termsOfService->update($request->validated());
+        try {
+            $termsOfService->update($request->validated());
 
-        // If this terms is set as active, deactivate others
-        if ($termsOfService->is_active) {
-            $termsOfService->setAsActive();
+            // If this terms is set as active, deactivate others
+            if ($termsOfService->is_active) {
+                $termsOfService->setAsActive();
+            }
+
+            return response()->json([
+                'message' => 'Regulamin został zaktualizowany',
+                'terms_of_service' => $termsOfService
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to update terms of service', [
+                'error' => $e->getMessage(),
+                'terms_id' => $termsOfService->id,
+                'request_data' => $request->validated(),
+                'method' => __METHOD__
+            ]);
+            
+            return response()->json([
+                'error' => 'Error updating terms of service: ' . $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'message' => 'Regulamin został zaktualizowany',
-            'terms_of_service' => $termsOfService
-        ]);
     }
 
     /**
@@ -73,18 +122,30 @@ class TermsOfServiceController extends Controller
      */
     public function destroy(TermsOfService $termsOfService)
     {
-        // Don't allow deletion of active terms
-        if ($termsOfService->is_active) {
+        try {
+            // Don't allow deletion of active terms
+            if ($termsOfService->is_active) {
+                return response()->json([
+                    'message' => 'Nie można usunąć aktywnego regulaminu'
+                ], 422);
+            }
+
+            $termsOfService->delete();
+
             return response()->json([
-                'message' => 'Nie można usunąć aktywnego regulaminu'
-            ], 422);
+                'message' => 'Regulamin został usunięty'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to delete terms of service', [
+                'error' => $e->getMessage(),
+                'terms_id' => $termsOfService->id,
+                'method' => __METHOD__
+            ]);
+            
+            return response()->json([
+                'error' => 'Error deleting terms of service: ' . $e->getMessage()
+            ], 500);
         }
-
-        $termsOfService->delete();
-
-        return response()->json([
-            'message' => 'Regulamin został usunięty'
-        ]);
     }
 
     /**
@@ -92,12 +153,24 @@ class TermsOfServiceController extends Controller
      */
     public function setActive(TermsOfService $termsOfService)
     {
-        $termsOfService->setAsActive();
+        try {
+            $termsOfService->setAsActive();
 
-        return response()->json([
-            'message' => 'Regulamin został ustawiony jako aktywny',
-            'terms_of_service' => $termsOfService->fresh()
-        ]);
+            return response()->json([
+                'message' => 'Regulamin został ustawiony jako aktywny',
+                'terms_of_service' => $termsOfService->fresh()
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to set terms of service as active', [
+                'error' => $e->getMessage(),
+                'terms_id' => $termsOfService->id,
+                'method' => __METHOD__
+            ]);
+            
+            return response()->json([
+                'error' => 'Error setting terms of service as active: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

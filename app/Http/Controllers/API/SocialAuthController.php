@@ -224,11 +224,20 @@ class SocialAuthController extends Controller
 
     /**
      * Force SSL configuration for this request
+     * 
+     * This method disables SSL verification for local development only.
+     * In production, proper SSL certificates should be configured.
+     * 
+     * TODO: Remove this method when proper SSL certificates are configured
+     * - Configure proper SSL certificates for development
+     * - Use proper CA bundles instead of disabling verification
+     * - Consider using mkcert for local development
      */
     private function forceSSLConfiguration()
     {
         if (app()->environment('local')) {
-            // Set environment variables for this process
+            // Disable SSL verification for local development only
+            // This is a temporary solution and should be replaced with proper SSL configuration
             putenv("CURL_CA_BUNDLE=");
             putenv("GUZZLE_HTTP_VERIFY=false");
             ini_set('curl.cainfo', '');
@@ -252,7 +261,10 @@ class SocialAuthController extends Controller
                 ]);
             });
             
-            Log::info('SSL configuration forced for this request');
+            Log::info('SSL configuration forced for local development', [
+                'environment' => app()->environment(),
+                'method' => __METHOD__
+            ]);
         }
     }
 } 
