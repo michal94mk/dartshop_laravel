@@ -29,6 +29,24 @@ export default defineConfig({
         sourcemap: true,
         // Clear the output directory on each build
         emptyOutDir: true,
+        // Remove console.log in production
+        rollupOptions: {
+            output: {
+                // Remove console.log statements in production
+                plugins: process.env.NODE_ENV === 'production' ? [
+                    {
+                        name: 'remove-console',
+                        generateBundle(options, bundle) {
+                            Object.keys(bundle).forEach(id => {
+                                if (bundle[id].code) {
+                                    bundle[id].code = bundle[id].code.replace(/console\.log\([^)]*\);?/g, '');
+                                }
+                            });
+                        }
+                    }
+                ] : []
+            }
+        }
     },
     resolve: {
         alias: {

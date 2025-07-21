@@ -26,6 +26,20 @@ console.log('Axios defaults set:', {
   withCredentials: axios.defaults.withCredentials
 });
 
+// Global debug function
+window.debug = function(...args) {
+    if (process.env.NODE_ENV === 'development') {
+        console.log(...args);
+    }
+};
+
+// Override console.log for production
+if (process.env.NODE_ENV === 'production') {
+    console.log = function() {};
+    console.debug = function() {};
+    console.info = function() {};
+}
+
 // Global interceptor for Axios
 axios.interceptors.request.use(config => {
   console.log('Axios Request:', config);
