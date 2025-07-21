@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-PROJECT_DIR="/var/www/html/dartshop_laravel"
+PROJECT_DIR="/var/www/dartshop_laravel"
 BACKUP_DIR="/var/backups/dartshop"
 PHP_VERSION="8.2"
 NODE_VERSION="20"
@@ -151,8 +151,8 @@ restart_services() {
     # Restart PHP-FPM
     sudo systemctl restart php${PHP_VERSION}-fpm
     
-    # Restart Nginx
-    sudo systemctl restart nginx
+    # Restart Apache (instead of Nginx)
+    sudo systemctl restart apache2
     
     # Restart queue worker (if using supervisor)
     if command -v supervisorctl &> /dev/null; then
