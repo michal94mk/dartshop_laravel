@@ -7,25 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Carbon\Carbon;
 use App\Models\Traits\HasActiveStatus;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
- * @OA\Schema(
- *     schema="Promotion",
- *     title="Promotion",
- *     description="Product promotion model",
- *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="title", type="string", example="Summer Sale"),
- *     @OA\Property(property="description", type="string", example="Get 20% off on selected items"),
- *     @OA\Property(property="discount_type", type="string", enum={"percentage", "fixed"}, example="percentage"),
- *     @OA\Property(property="discount_value", type="number", format="float", example=20.0),
- *     @OA\Property(property="start_date", type="string", format="date-time"),
- *     @OA\Property(property="end_date", type="string", format="date-time"),
- *     @OA\Property(property="is_active", type="boolean", example=true),
- *     @OA\Property(property="badge_text", type="string", example="20% OFF"),
- *     @OA\Property(property="badge_color", type="string", example="#ff0000"),
- *     @OA\Property(property="created_at", type="string", format="date-time"),
- *     @OA\Property(property="updated_at", type="string", format="date-time")
- * )
+ *
  */
 
 class Promotion extends Model
@@ -70,7 +55,7 @@ class Promotion extends Model
     ];
 
     /**
-     * Relacja many-to-many z produktami
+     * Many-to-many relationship with products
      */
     public function products(): BelongsToMany
     {
@@ -79,10 +64,10 @@ class Promotion extends Model
     }
 
     /**
-     * Scope dla aktywnych promocji (enhanced version from trait)
+     * Scope for active promotions (enhanced version from trait)
      * Overrides the basic active scope to include date validation
      */
-    public function scopeActive($query)
+    public function scopeActive($query): Builder
     {
         return $query->where('is_active', true)
                     ->where('starts_at', '<=', now())
@@ -92,32 +77,23 @@ class Promotion extends Model
                     });
     }
 
-    /**
-     * Scope dla promocji wyróżnionych
-     */
-    public function scopeFeatured($query)
+    public function scopeFeatured($query): Builder
     {
         return $query->where('is_featured', true);
     }
 
-    /**
-     * Scope dla sortowania według kolejności wyświetlania
-     */
-    public function scopeOrdered($query)
+    public function scopeOrdered($query): Builder
     {
         return $query->orderBy('display_order', 'asc')->orderBy('created_at', 'desc');
     }
 
-    /**
-     * Scope dla promocji z produktami
-     */
-    public function scopeWithProducts($query)
+    public function scopeWithProducts($query): Builder
     {
         return $query->with(['products:id,name,price,image_url']);
     }
 
     /**
-     * Sprawdza czy promocja jest aktywna (enhanced version)
+     * Check if promotion is active (enhanced version)
      * Overrides the basic isActive method to include date validation
      */
     public function isActive(): bool
@@ -138,7 +114,7 @@ class Promotion extends Model
     }
 
     /**
-     * Oblicza cenę po rabacie
+     * Calculate price after discount
      */
     public function calculateDiscountedPrice(float $originalPrice): float
     {
@@ -158,7 +134,7 @@ class Promotion extends Model
     }
 
     /**
-     * Zwraca kwotę rabatu
+     * Return discount amount
      */
     public function getDiscountAmount(float $originalPrice): float
     {
@@ -200,10 +176,10 @@ class Promotion extends Model
     public function getStatusLabelAttribute(): string
     {
         if ($this->isValid()) {
-            return 'Aktywna';
+            return 'Active';
         }
         
-        return 'Nieaktywna';
+        return 'Inactive';
     }
 
     /**
@@ -232,10 +208,7 @@ class Promotion extends Model
         return $this->save();
     }
 
-    /**
-     * Get badge text with fallback.
-     */
-    public function getBadgeTextAttribute()
+    public function getBadgeTextAttribute(): string
     {
         if (isset($this->attributes['badge_text']) && $this->attributes['badge_text']) {
             return $this->attributes['badge_text'];
@@ -246,10 +219,7 @@ class Promotion extends Model
             : "-{$this->discount_value} PLN";
     }
 
-    /**
-     * Get badge color with fallback.
-     */
-    public function getBadgeColorAttribute()
+    public function getBadgeColorAttribute(): string
     {
         return isset($this->attributes['badge_color']) ? $this->attributes['badge_color'] : '#ff0000';
     }

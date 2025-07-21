@@ -5,11 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Builder;
+
+/**
+ *
+ */
 
 class ProductReservation extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'product_id',
         'user_id',
@@ -18,37 +28,30 @@ class ProductReservation extends Model
         'expires_at'
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
         'expires_at' => 'datetime'
     ];
 
-    /**
-     * Get the product that is reserved.
-     */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
-    /**
-     * Get the user who made the reservation.
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Scope a query to only include active reservations.
-     */
-    public function scopeActive($query)
+    public function scopeActive($query): Builder
     {
         return $query->where('expires_at', '>', now());
     }
 
-    /**
-     * Check if the reservation is expired.
-     */
     public function isExpired(): bool
     {
         return $this->expires_at->isPast();

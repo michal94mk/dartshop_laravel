@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Traits\BelongsToUser;
 
+/**
+ *
+ */
+
 class CartItem extends Model
 {
     use HasFactory, BelongsToUser;
@@ -22,9 +26,6 @@ class CartItem extends Model
         'quantity',
     ];
 
-    /**
-     * Get the product associated with this cart item.
-     */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

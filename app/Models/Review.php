@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Models\Traits\BelongsToUser;
 use App\Models\Traits\HasApprovalStatus;
 
+/**
+ *
+ */
+
 class Review extends Model
 {
     use HasFactory, BelongsToUser, HasApprovalStatus;
@@ -27,32 +31,28 @@ class Review extends Model
         'is_approved',
         'is_featured'
     ];
-    
+
     /**
-     * Scope a query to only include featured reviews.
+     * The attributes that should be cast.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @var array<string, string>
      */
+    protected $casts = [
+        'rating' => 'integer',
+        'is_approved' => 'boolean',
+        'is_featured' => 'boolean',
+    ];
+    
     public function scopeFeatured(Builder $query): Builder
     {
         return $query->where('is_featured', true);
     }
     
-    /**
-     * Scope a query to only include approved and featured reviews.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
     public function scopeApprovedAndFeatured(Builder $query): Builder
     {
         return $query->where('is_approved', true)->where('is_featured', true);
     }
     
-    /**
-     * Get the product that was reviewed.
-     */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

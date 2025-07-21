@@ -9,35 +9,12 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Notifications\QueuedEmailVerificationNotification;
+use App\Notifications\QueuedResetPasswordNotification;
 
 /**
- * @OA\Schema(
- *     schema="User",
- *     title="User",
- *     description="User model",
- *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="name", type="string", example="John Doe"),
- *     @OA\Property(property="first_name", type="string", example="John"),
- *     @OA\Property(property="last_name", type="string", example="Doe"),
- *     @OA\Property(property="email", type="string", format="email", example="user@example.com"),
- *     @OA\Property(property="email_verified_at", type="string", format="date-time", nullable=true),
- *     @OA\Property(property="is_admin", type="boolean", example=false),
- *     @OA\Property(property="google_id", type="string", nullable=true, example="123456789"),
- *     @OA\Property(property="avatar", type="string", nullable=true, example="https://example.com/avatar.jpg"),
- *     @OA\Property(property="privacy_policy_accepted", type="boolean", example=true),
- *     @OA\Property(property="privacy_policy_accepted_at", type="string", format="date-time", nullable=true),
- *     @OA\Property(property="terms_of_service_accepted", type="boolean", example=true),
- *     @OA\Property(property="terms_of_service_accepted_at", type="string", format="date-time", nullable=true),
- *     @OA\Property(property="created_at", type="string", format="date-time"),
- *     @OA\Property(property="updated_at", type="string", format="date-time"),
- *     @OA\Property(property="role", type="string", example="user"),
- *     @OA\Property(property="full_name", type="string", example="John Doe"),
- *     @OA\Property(property="display_name", type="string", example="John Doe"),
- *     @OA\Property(property="is_google_user", type="boolean", example=false)
- * )
+ *
  */
 
 
@@ -95,7 +72,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * The accessors to append to the model's array form.
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $appends = [
         'role',
@@ -104,59 +81,38 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_google_user',
     ];
     
-    /**
-     * Get the cart items associated with the user.
-     */
     public function cartItems(): HasMany
     {
         return $this->hasMany(CartItem::class);
     }
     
-    /**
-     * Get the reviews associated with the user.
-     */
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
     }
 
-    /**
-     * Get the orders associated with the user.
-     */
-    public function orders()
+    public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
     }
 
-    /**
-     * Get the payments associated with the user.
-     */
-    public function payments()
+    public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
     }
 
-    /**
-     * Get the favorite products of the user.
-     */
     public function favoriteProducts(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'user_favorite_products')
             ->withTimestamps();
     }
     
-    /**
-     * Get the shipping addresses associated with the user.
-     */
     public function shippingAddresses(): HasMany
     {
         return $this->hasMany(ShippingAddress::class);
     }
     
-    /**
-     * Get the user's full name.
-     */
-    public function getFullNameAttribute()
+    public function getFullNameAttribute(): string
     {
         if ($this->first_name && $this->last_name) {
             return "{$this->first_name} {$this->last_name}";
@@ -165,43 +121,28 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->name;
     }
     
-    /**
-     * Get the user's display name (full name if available, otherwise username).
-     */
-    public function getDisplayNameAttribute()
+    public function getDisplayNameAttribute(): string
     {
         return $this->getFullNameAttribute();
     }
     
-    /**
-     * Get the user's role based on is_admin field.
-     */
-    public function getRoleAttribute()
+    public function getRoleAttribute(): string
     {
         return $this->is_admin ? 'admin' : 'user';
     }
     
-    /**
-     * Check if the user is logged in via Google OAuth.
-     */
-    public function getIsGoogleUserAttribute()
+    public function getIsGoogleUserAttribute(): bool
     {
         return !empty($this->google_id);
     }
 
-    /**
-     * Send the email verification notification (queued).
-     */
-    public function sendEmailVerificationNotification()
+    public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new \App\Notifications\QueuedEmailVerificationNotification);
+        $this->notify(new QueuedEmailVerificationNotification);
     }
 
-    /**
-     * Send the password reset notification (queued).
-     */
-    public function sendPasswordResetNotification($token)
+    public function sendPasswordResetNotification($token): void
     {
-        $this->notify(new \App\Notifications\QueuedResetPasswordNotification($token));
+        $this->notify(new QueuedResetPasswordNotification($token));
     }
 }

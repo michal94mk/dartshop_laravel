@@ -9,37 +9,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\Traits\HasActiveStatus;
 use App\Models\Traits\HasPromotions;
+use Illuminate\Support\Facades\Storage;
 
 /**
- * @OA\Schema(
- *     schema="Product",
- *     title="Product",
- *     description="Product model",
- *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="name", type="string", example="Harrows Supergrip Ultra"),
- *     @OA\Property(property="description", type="string", example="Professional dart flights"),
- *     @OA\Property(property="price", type="number", format="float", example=29.99),
- *     @OA\Property(property="image_url", type="string", nullable=true, example="https://example.com/image.jpg"),
- *     @OA\Property(property="is_featured", type="boolean", example=false),
- *     @OA\Property(property="is_active", type="boolean", example=true),
- *     @OA\Property(property="brand_id", type="integer", example=1),
- *     @OA\Property(property="category_id", type="integer", example=1),
- *     @OA\Property(property="created_at", type="string", format="date-time"),
- *     @OA\Property(property="updated_at", type="string", format="date-time"),
- *     @OA\Property(property="category", ref="#/components/schemas/Category"),
- *     @OA\Property(property="brand", ref="#/components/schemas/Brand"),
- *     @OA\Property(property="average_rating", type="number", format="float", example=4.5),
- *     @OA\Property(property="reviews_count", type="integer", example=10),
- *     @OA\Property(property="promotion_price", type="number", format="float", nullable=true, example=24.99),
- *     @OA\Property(property="savings", type="number", format="float", example=5.00),
- *     @OA\Property(property="promotion", ref="#/components/schemas/Promotion", nullable=true)
- * )
+ *
  */
 
 class Product extends Model
 {
     use HasFactory, HasActiveStatus, HasPromotions;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'name',
         'description',
@@ -51,12 +35,22 @@ class Product extends Model
         'category_id'
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
         'price' => 'decimal:2',
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
     ];
     
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
     protected $appends = ['average_rating', 'reviews_count'];
 
     public function category(): BelongsTo
@@ -93,108 +87,60 @@ class Product extends Model
         $imageUrl = $this->attributes['image_url'] ?? null;
         
         if (!$imageUrl) {
-            \Illuminate\Support\Facades\Log::debug('Product image is null', [
-                'product_id' => $this->id,
-                'product_name' => $this->name
-            ]);
             return null;
         }
         
-        \Illuminate\Support\Facades\Log::debug('Processing product image', [
-            'product_id' => $this->id,
-            'product_name' => $this->name,
-            'original_image_url' => $imageUrl
-        ]);
-        
-        // Jeśli to pełny URL (http/https)
+        // If it's a full URL (http/https)
         if (str_starts_with($imageUrl, 'http://') || str_starts_with($imageUrl, 'https://')) {
             return $imageUrl;
         }
         
-        // Normalizuj separatory ścieżek
+        // Normalize path separators
         $path = str_replace('\\', '/', $imageUrl);
         
-        // Usuń ewentualne początkowe slashe
+        // Remove any leading slashes
         $path = ltrim($path, '/');
         
-        // Jeśli ścieżka zaczyna się od storage/
+        // If path starts with storage/
         if (str_starts_with($path, 'storage/')) {
-            $path = substr($path, 8); // usuń 'storage/'
+            $path = substr($path, 8); // remove 'storage/'
         }
         
-        // Jeśli ścieżka zaczyna się od products/ lub jest samą nazwą pliku
+        // If path starts with products/ or is just a filename
         if (str_starts_with($path, 'products/') || !str_contains($path, '/')) {
-            // Sprawdź czy plik istnieje w storage/app/public/products
+            // Check if file exists in storage/app/public/products
             $storagePath = str_starts_with($path, 'products/') ? $path : 'products/' . $path;
             
-            \Illuminate\Support\Facades\Log::debug('Checking storage path', [
-                'product_id' => $this->id,
-                'storage_path' => $storagePath,
-                'full_path' => \Illuminate\Support\Facades\Storage::disk('public')->path($storagePath),
-                'exists' => \Illuminate\Support\Facades\Storage::disk('public')->exists($storagePath)
-            ]);
-            
-            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($storagePath)) {
+            if (Storage::disk('public')->exists($storagePath)) {
                 $url = url('storage/' . $storagePath);
-                \Illuminate\Support\Facades\Log::debug('Found file in storage', [
-                    'product_id' => $this->id,
-                    'storage_path' => $storagePath,
-                    'url' => $url
-                ]);
                 return $url;
             }
         }
         
-        // Sprawdź czy plik istnieje w public/img
+        // Check if file exists in public/img
         $imgPath = 'img/' . basename($path);
         $publicPath = public_path($imgPath);
         
-        \Illuminate\Support\Facades\Log::debug('Checking public path', [
-            'product_id' => $this->id,
-            'img_path' => $imgPath,
-            'public_path' => $publicPath,
-            'exists' => file_exists($publicPath)
-        ]);
-        
         if (file_exists($publicPath)) {
             $url = url($imgPath);
-            \Illuminate\Support\Facades\Log::debug('Found file in public/img', [
-                'product_id' => $this->id,
-                'img_path' => $imgPath,
-                'url' => $url
-            ]);
             return $url;
         }
         
-        // Jeśli nie znaleziono pliku, zwróć ścieżkę do storage/products
+        // If file not found, return path to storage/products
         $fallbackUrl = url('storage/products/' . basename($path));
-        \Illuminate\Support\Facades\Log::debug('Using fallback URL', [
-            'product_id' => $this->id,
-            'fallback_url' => $fallbackUrl,
-            'original_path' => $path
-        ]);
         return $fallbackUrl;
     }
 
-    /**
-     * Get approved reviews for this product
-     */
     public function approvedReviews(): HasMany
     {
         return $this->reviews()->where('is_approved', true);
     }
 
-    /**
-     * Get average rating for this product
-     */
     public function getAverageRatingAttribute(): float
     {
         return round($this->approvedReviews()->avg('rating') ?? 0, 1);
     }
 
-    /**
-     * Get total number of approved reviews
-     */
     public function getReviewsCountAttribute(): int
     {
         return $this->approvedReviews()->count();

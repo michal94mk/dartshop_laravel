@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Traits\BelongsToUser;
 
+/**
+ *
+ */
+
 class ShippingAddress extends Model
 {
     use HasFactory, BelongsToUser;

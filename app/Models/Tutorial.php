@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use App\Models\Traits\HasSlug;
+use Illuminate\Database\Eloquent\Builder;
+
+/**
+ *
+ */
 
 class Tutorial extends Model
 {
@@ -37,29 +42,17 @@ class Tutorial extends Model
         'updated_at' => 'datetime'
     ];
 
-    /**
-     * Scope a query to only include published tutorials.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function scopePublished($query)
+    public function scopePublished($query): Builder
     {
         return $query->where('is_published', true);
     }
 
-    /**
-     * Get excerpt from content (first 150 characters).
-     */
-    public function getExcerptAttribute()
+    public function getExcerptAttribute(): string
     {
         return Str::limit(strip_tags($this->content), 150);
     }
 
-    /**
-     * Get featured image URL for tutorials.
-     */
-    public function getFeaturedImageUrlAttribute()
+    public function getFeaturedImageUrlAttribute(): string
     {
         if ($this->image_url) {
             // Check if it's already a full URL
@@ -78,10 +71,7 @@ class Tutorial extends Model
         return asset('img/tutorials/dart-basics-beginners.jpg');
     }
 
-    /**
-     * Get thumbnail image URL for tutorials.
-     */
-    public function getThumbnailImageUrlAttribute()
+    public function getThumbnailImageUrlAttribute(): string
     {
         if ($this->image_url) {
             // Check if it's already a full URL
@@ -100,11 +90,7 @@ class Tutorial extends Model
         return asset('img/tutorials/dart-basics-beginners.jpg');
     }
 
-    /**
-     * Get the user that authored the tutorial.
-     * Since we don't have user_id in the table, return a default admin user object.
-     */
-    public function user()
+    public function user(): object
     {
         return (object) ['name' => 'DartShop Admin'];
     }

@@ -4012,41 +4012,6 @@
                 }
             }
         },
-        "/api/health": {
-            "get": {
-                "tags": [
-                    "System"
-                ],
-                "summary": "Health check endpoint",
-                "operationId": "1cdb246a0cc7a61b4444b09dfd4954bb",
-                "responses": {
-                    "200": {
-                        "description": "API is healthy",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "ok"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "API is running"
-                                        },
-                                        "timestamp": {
-                                            "type": "string",
-                                            "example": "2024-01-01T00:00:00Z"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/terms-of-service": {
             "get": {
                 "tags": [
@@ -4368,34 +4333,1008 @@
     },
     "components": {
         "schemas": {
-            "ErrorResponse": {
-                "title": "Error Response",
-                "description": "Standard error response",
+            "Product": {
+                "title": "Product",
+                "description": "Product model",
                 "properties": {
-                    "error": {
-                        "type": "string",
-                        "example": "Error message"
+                    "id": {
+                        "type": "integer",
+                        "example": 1
                     },
-                    "message": {
+                    "name": {
                         "type": "string",
-                        "example": "Detailed error description"
+                        "example": "Harrows Supergrip Ultra"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Professional dart flights"
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 29.99
+                    },
+                    "image_url": {
+                        "type": "string",
+                        "example": "https://example.com/image.jpg",
+                        "nullable": true
+                    },
+                    "is_featured": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "brand_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "category_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "category": {
+                        "$ref": "#/components/schemas/Category"
+                    },
+                    "brand": {
+                        "$ref": "#/components/schemas/Brand"
+                    },
+                    "average_rating": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 4.5
+                    },
+                    "reviews_count": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "promotion_price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 24.99,
+                        "nullable": true
+                    },
+                    "savings": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 5
+                    },
+                    "promotion": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Promotion"
+                            }
+                        ],
+                        "nullable": true
                     }
                 },
                 "type": "object"
             },
-            "SuccessResponse": {
-                "title": "Success Response",
-                "description": "Standard success response",
+            "Order": {
+                "title": "Order",
+                "description": "Order model representing customer orders in the e-commerce system",
                 "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "order_number": {
+                        "type": "string",
+                        "example": "ZAM-000001"
+                    },
                     "status": {
                         "type": "string",
-                        "example": "ok"
+                        "enum": [
+                            "pending",
+                            "confirmed",
+                            "shipped",
+                            "delivered",
+                            "cancelled"
+                        ],
+                        "example": "pending"
+                    },
+                    "payment_status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "completed",
+                            "failed"
+                        ],
+                        "example": "pending"
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "example": "John"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "example": "Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "john@example.com"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "+48123456789"
+                    },
+                    "address": {
+                        "type": "string",
+                        "example": "ul. Przykładowa 1"
+                    },
+                    "city": {
+                        "type": "string",
+                        "example": "Warszawa"
+                    },
+                    "postal_code": {
+                        "type": "string",
+                        "example": "00-001"
+                    },
+                    "country": {
+                        "type": "string",
+                        "example": "Poland"
+                    },
+                    "subtotal": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 49.99
+                    },
+                    "shipping_cost": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 9.99
+                    },
+                    "discount": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 0
+                    },
+                    "total": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 59.98
+                    },
+                    "payment_method": {
+                        "type": "string",
+                        "example": "stripe"
+                    },
+                    "shipping_method": {
+                        "type": "string",
+                        "example": "standard"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    "items": {
+                        "$ref": "#/components/schemas/OrderItem"
+                    },
+                    "payment": {
+                        "$ref": "#/components/schemas/Payment"
+                    },
+                    "full_name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "full_address": {
+                        "type": "string",
+                        "example": "ul. Przykładowa 1, 00-001 Warszawa, Poland"
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "title": "User",
+                "description": "User model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "example": "John"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "example": "Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "user@example.com"
+                    },
+                    "email_verified_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "is_admin": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "google_id": {
+                        "type": "string",
+                        "example": "123456789",
+                        "nullable": true
+                    },
+                    "avatar": {
+                        "type": "string",
+                        "example": "https://example.com/avatar.jpg",
+                        "nullable": true
+                    },
+                    "privacy_policy_accepted": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "privacy_policy_accepted_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "terms_of_service_accepted": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "terms_of_service_accepted_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "role": {
+                        "type": "string",
+                        "example": "user"
+                    },
+                    "full_name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "is_google_user": {
+                        "type": "boolean",
+                        "example": false
+                    }
+                },
+                "type": "object"
+            },
+            "Category": {
+                "title": "Category",
+                "description": "Product category model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Dart Flights"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Brand": {
+                "title": "Brand",
+                "description": "Product brand model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Harrows"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "OrderItem": {
+                "title": "OrderItem",
+                "description": "Order item model representing individual items within an order",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "order_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "product_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "product_name": {
+                        "type": "string",
+                        "example": "Harrows Supergrip Ultra"
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "product_price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 29.99
+                    },
+                    "total_price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 59.98
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "order": {
+                        "$ref": "#/components/schemas/Order"
+                    },
+                    "product": {
+                        "$ref": "#/components/schemas/Product"
+                    }
+                },
+                "type": "object"
+            },
+            "Payment": {
+                "title": "Payment",
+                "description": "Payment model representing payment transactions in the e-commerce system",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "order_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "payment_method": {
+                        "type": "string",
+                        "example": "stripe"
+                    },
+                    "payment_status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "completed",
+                            "failed"
+                        ],
+                        "example": "completed"
+                    },
+                    "amount": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 59.98
+                    },
+                    "currency": {
+                        "type": "string",
+                        "example": "PLN"
+                    },
+                    "transaction_id": {
+                        "type": "string",
+                        "example": "txn_123456789"
+                    },
+                    "payment_intent_id": {
+                        "type": "string",
+                        "example": "pi_123456789"
+                    },
+                    "payment_data": {
+                        "type": "object",
+                        "example": {
+                            "stripe_session_id": "cs_123456789"
+                        }
+                    },
+                    "paid_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "failure_reason": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "order": {
+                        "$ref": "#/components/schemas/Order"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    }
+                },
+                "type": "object"
+            },
+            "CartItem": {
+                "title": "CartItem",
+                "description": "Shopping cart item model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "product_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "product": {
+                        "$ref": "#/components/schemas/Product"
+                    }
+                },
+                "type": "object"
+            },
+            "ShippingAddress": {
+                "title": "ShippingAddress",
+                "description": "Shipping address model for user delivery information",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "address": {
+                        "type": "string",
+                        "example": "ul. Przykładowa 1"
+                    },
+                    "city": {
+                        "type": "string",
+                        "example": "Warszawa"
+                    },
+                    "state": {
+                        "type": "string",
+                        "example": "Mazowieckie"
+                    },
+                    "postal_code": {
+                        "type": "string",
+                        "example": "00-001"
+                    },
+                    "country": {
+                        "type": "string",
+                        "example": "Poland"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "+48123456789"
+                    },
+                    "is_default": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    }
+                },
+                "type": "object"
+            },
+            "Review": {
+                "title": "Review",
+                "description": "Product review model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "product_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "rating": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Great product!"
+                    },
+                    "content": {
+                        "type": "string",
+                        "example": "This is an excellent product."
+                    },
+                    "is_approved": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "is_featured": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    "product": {
+                        "$ref": "#/components/schemas/Product"
+                    }
+                },
+                "type": "object"
+            },
+            "Promotion": {
+                "title": "Promotion",
+                "description": "Product promotion model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Summer Sale"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Get 20% off on selected items"
+                    },
+                    "discount_type": {
+                        "type": "string",
+                        "enum": [
+                            "percentage",
+                            "fixed"
+                        ],
+                        "example": "percentage"
+                    },
+                    "discount_value": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 20
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "badge_text": {
+                        "type": "string",
+                        "example": "20% OFF"
+                    },
+                    "badge_color": {
+                        "type": "string",
+                        "example": "#ff0000"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ProductReservation": {
+                "title": "ProductReservation",
+                "description": "Product reservation model for temporary product holds",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "product_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "session_id": {
+                        "type": "string",
+                        "example": "session_123456789"
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "expires_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "product": {
+                        "$ref": "#/components/schemas/Product"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    }
+                },
+                "type": "object"
+            },
+            "ContactMessage": {
+                "title": "ContactMessage",
+                "description": "Contact form message model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "john@example.com"
+                    },
+                    "subject": {
+                        "type": "string",
+                        "example": "Question about products"
                     },
                     "message": {
                         "type": "string",
-                        "example": "Operation completed successfully"
+                        "example": "I have a question about your products."
                     },
-                    "timestamp": {
+                    "is_read": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "read_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status_label": {
+                        "type": "string",
+                        "example": "Nieprzeczytana"
+                    },
+                    "status_color": {
+                        "type": "string",
+                        "example": "yellow"
+                    }
+                },
+                "type": "object"
+            },
+            "AboutUs": {
+                "title": "AboutUs",
+                "description": "About us page content model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "O nas"
+                    },
+                    "content": {
+                        "type": "string",
+                        "example": "Treść strony O nas..."
+                    },
+                    "header_style": {
+                        "type": "string",
+                        "example": "default"
+                    },
+                    "header_margin": {
+                        "type": "string",
+                        "example": "normal"
+                    },
+                    "content_layout": {
+                        "type": "string",
+                        "example": "single-column"
+                    },
+                    "meta_title": {
+                        "type": "string",
+                        "example": "O nas - DartShop"
+                    },
+                    "meta_description": {
+                        "type": "string",
+                        "example": "Poznaj naszą historię i misję"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "PrivacyPolicy": {
+                "title": "PrivacyPolicy",
+                "description": "Privacy policy content model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Polityka Prywatności"
+                    },
+                    "content": {
+                        "type": "string",
+                        "example": "Treść polityki prywatności..."
+                    },
+                    "version": {
+                        "type": "string",
+                        "example": "1.0"
+                    },
+                    "effective_date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2024-01-01"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "TermsOfService": {
+                "title": "TermsOfService",
+                "description": "Terms of service content model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Regulamin"
+                    },
+                    "content": {
+                        "type": "string",
+                        "example": "Treść regulaminu..."
+                    },
+                    "version": {
+                        "type": "string",
+                        "example": "1.0"
+                    },
+                    "effective_date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2024-01-01"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Tutorial": {
+                "title": "Tutorial",
+                "description": "Tutorial model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Podstawy rzucania lotkami"
+                    },
+                    "slug": {
+                        "type": "string",
+                        "example": "podstawy-rzucania-lotek"
+                    },
+                    "content": {
+                        "type": "string",
+                        "example": "Treść tutoriala..."
+                    },
+                    "image_url": {
+                        "type": "string",
+                        "example": "img/tutorials/dart-basics-beginners.jpg"
+                    },
+                    "order": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "is_published": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "excerpt": {
+                        "type": "string",
+                        "example": "Krótki opis tutoriala..."
+                    },
+                    "featured_image_url": {
+                        "type": "string",
+                        "example": "http://example.com/img/tutorials/dart-basics-beginners.jpg"
+                    },
+                    "thumbnail_image_url": {
+                        "type": "string",
+                        "example": "http://example.com/img/tutorials/dart-basics-beginners.jpg"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "NewsletterSubscription": {
+                "title": "NewsletterSubscription",
+                "description": "Newsletter subscription model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "john@example.com"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "active",
+                            "unsubscribed"
+                        ],
+                        "example": "active"
+                    },
+                    "verification_token": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "verified_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "unsubscribed_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
                         "type": "string",
                         "format": "date-time"
                     }
@@ -4429,44 +5368,6 @@
                     "total": {
                         "type": "integer",
                         "example": 60
-                    },
-                    "cache_hit": {
-                        "type": "boolean",
-                        "example": false
-                    },
-                    "cache_key": {
-                        "type": "string",
-                        "example": "products_list_abc123..."
-                    },
-                    "filters_available": {
-                        "properties": {
-                            "categories": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/Category"
-                                }
-                            },
-                            "brands": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/Brand"
-                                }
-                            },
-                            "price_range": {
-                                "properties": {
-                                    "min": {
-                                        "type": "number",
-                                        "example": 10
-                                    },
-                                    "max": {
-                                        "type": "number",
-                                        "example": 500
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        },
-                        "type": "object"
                     }
                 },
                 "type": "object"
@@ -4491,472 +5392,6 @@
                     "next": {
                         "type": "string",
                         "example": "http://example.com/api/products?page=2"
-                    }
-                },
-                "type": "object"
-            },
-            "CategoryWithProducts": {
-                "title": "Category With Products",
-                "description": "Category with preview products",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "name": {
-                        "type": "string",
-                        "example": "Dart Flights"
-                    },
-                    "products_count": {
-                        "type": "integer",
-                        "example": 25
-                    },
-                    "is_active": {
-                        "type": "boolean",
-                        "example": true
-                    },
-                    "preview_products": {
-                        "type": "array",
-                        "items": {
-                            "properties": {
-                                "id": {
-                                    "type": "integer",
-                                    "example": 1
-                                },
-                                "name": {
-                                    "type": "string",
-                                    "example": "Harrows Supergrip Ultra"
-                                },
-                                "price": {
-                                    "type": "number",
-                                    "format": "float",
-                                    "example": 29.99
-                                },
-                                "image_url": {
-                                    "type": "string",
-                                    "example": "https://example.com/image.jpg",
-                                    "nullable": true
-                                }
-                            },
-                            "type": "object"
-                        }
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    }
-                },
-                "type": "object"
-            },
-            "CategoryDetail": {
-                "title": "Category Detail",
-                "description": "Detailed category information",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "name": {
-                        "type": "string",
-                        "example": "Dart Flights"
-                    },
-                    "products_count": {
-                        "type": "integer",
-                        "example": 25
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    }
-                },
-                "type": "object"
-            },
-            "CartItem": {
-                "title": "Cart Item",
-                "description": "Shopping cart item",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "user_id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "product_id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "quantity": {
-                        "type": "integer",
-                        "example": 2
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "product": {
-                        "$ref": "#/components/schemas/Product"
-                    }
-                },
-                "type": "object"
-            },
-            "Order": {
-                "title": "Order",
-                "description": "Order model",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "user_id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "order_number": {
-                        "type": "string",
-                        "example": "ORD-2024-001"
-                    },
-                    "status": {
-                        "type": "string",
-                        "example": "pending"
-                    },
-                    "total_amount": {
-                        "type": "number",
-                        "format": "float",
-                        "example": 299.99
-                    },
-                    "shipping_address": {
-                        "type": "string",
-                        "example": "123 Main St"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "items": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/OrderItem"
-                        }
-                    }
-                },
-                "type": "object"
-            },
-            "OrderItem": {
-                "title": "Order Item",
-                "description": "Order item model",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "order_id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "product_id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "quantity": {
-                        "type": "integer",
-                        "example": 2
-                    },
-                    "price": {
-                        "type": "number",
-                        "format": "float",
-                        "example": 29.99
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "product": {
-                        "$ref": "#/components/schemas/Product"
-                    }
-                },
-                "type": "object"
-            },
-            "Review": {
-                "title": "Review",
-                "description": "Product review model",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "user_id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "product_id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "title": {
-                        "type": "string",
-                        "example": "Great product!"
-                    },
-                    "content": {
-                        "type": "string",
-                        "example": "This is an excellent product..."
-                    },
-                    "rating": {
-                        "type": "integer",
-                        "example": 5
-                    },
-                    "is_approved": {
-                        "type": "boolean",
-                        "example": true
-                    },
-                    "is_featured": {
-                        "type": "boolean",
-                        "example": false
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "product": {
-                        "$ref": "#/components/schemas/Product"
-                    },
-                    "user": {
-                        "$ref": "#/components/schemas/User"
-                    }
-                },
-                "type": "object"
-            },
-            "ContactMessage": {
-                "title": "Contact Message",
-                "description": "Contact form message",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "name": {
-                        "type": "string",
-                        "example": "John Doe"
-                    },
-                    "email": {
-                        "type": "string",
-                        "format": "email",
-                        "example": "john@example.com"
-                    },
-                    "subject": {
-                        "type": "string",
-                        "example": "Question about products"
-                    },
-                    "message": {
-                        "type": "string",
-                        "example": "I have a question about..."
-                    },
-                    "status": {
-                        "type": "string",
-                        "example": "unread"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    }
-                },
-                "type": "object"
-            },
-            "Tutorial": {
-                "title": "Tutorial",
-                "description": "Tutorial model",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "title": {
-                        "type": "string",
-                        "example": "How to choose darts"
-                    },
-                    "slug": {
-                        "type": "string",
-                        "example": "how-to-choose-darts"
-                    },
-                    "excerpt": {
-                        "type": "string",
-                        "example": "Learn how to choose the right darts..."
-                    },
-                    "featured_image_url": {
-                        "type": "string",
-                        "example": "https://example.com/image.jpg",
-                        "nullable": true
-                    },
-                    "thumbnail_image_url": {
-                        "type": "string",
-                        "example": "https://example.com/thumb.jpg",
-                        "nullable": true
-                    },
-                    "category": {
-                        "type": "string",
-                        "example": "Beginner"
-                    },
-                    "difficulty": {
-                        "type": "string",
-                        "example": "Easy"
-                    },
-                    "published_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "author": {
-                        "type": "string",
-                        "example": "DartShop Admin"
-                    },
-                    "views": {
-                        "type": "integer",
-                        "example": 150
-                    },
-                    "order": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "is_published": {
-                        "type": "boolean",
-                        "example": true
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    }
-                },
-                "type": "object"
-            },
-            "TutorialDetail": {
-                "title": "Tutorial Detail",
-                "description": "Detailed tutorial information",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "title": {
-                        "type": "string",
-                        "example": "How to choose darts"
-                    },
-                    "slug": {
-                        "type": "string",
-                        "example": "how-to-choose-darts"
-                    },
-                    "content": {
-                        "type": "string",
-                        "example": "Full tutorial content..."
-                    },
-                    "excerpt": {
-                        "type": "string",
-                        "example": "Learn how to choose the right darts..."
-                    },
-                    "featured_image_url": {
-                        "type": "string",
-                        "example": "https://example.com/image.jpg",
-                        "nullable": true
-                    },
-                    "thumbnail_image_url": {
-                        "type": "string",
-                        "example": "https://example.com/thumb.jpg",
-                        "nullable": true
-                    },
-                    "category": {
-                        "type": "string",
-                        "example": "Beginner"
-                    },
-                    "difficulty": {
-                        "type": "string",
-                        "example": "Easy"
-                    },
-                    "published_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "author": {
-                        "type": "string",
-                        "example": "DartShop Admin"
-                    },
-                    "views": {
-                        "type": "integer",
-                        "example": 150
-                    },
-                    "meta_title": {
-                        "type": "string",
-                        "example": "How to Choose Darts - Complete Guide"
-                    },
-                    "meta_description": {
-                        "type": "string",
-                        "example": "Learn how to choose the perfect darts..."
-                    },
-                    "order": {
-                        "type": "integer",
-                        "example": 1
-                    }
-                },
-                "type": "object"
-            },
-            "AboutUs": {
-                "title": "About Us",
-                "description": "About us page information",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "title": {
-                        "type": "string",
-                        "example": "O naszym sklepie"
-                    },
-                    "content": {
-                        "type": "string",
-                        "example": "Jesteśmy specjalistycznym sklepem..."
-                    },
-                    "image_url": {
-                        "type": "string",
-                        "example": "https://example.com/about.jpg",
-                        "nullable": true
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
                     }
                 },
                 "type": "object"
@@ -5049,17 +5484,13 @@
             },
             "CategoryData": {
                 "title": "Category Data",
-                "description": "Category statistics for dashboard",
+                "description": "Category data for charts",
                 "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
-                    },
                     "name": {
                         "type": "string",
-                        "example": "Dart Flights"
+                        "example": "Lotki"
                     },
-                    "products_count": {
+                    "product_count": {
                         "type": "integer",
                         "example": 15
                     },
@@ -5071,37 +5502,43 @@
                 },
                 "type": "object"
             },
-            "NewsletterSubscription": {
-                "title": "Newsletter Subscription",
-                "description": "Newsletter subscription model",
+            "CategoryWithProducts": {
+                "title": "Category With Products",
+                "description": "Category with its products",
                 "properties": {
                     "id": {
                         "type": "integer",
                         "example": 1
                     },
-                    "email": {
+                    "name": {
                         "type": "string",
-                        "format": "email",
-                        "example": "user@example.com"
+                        "example": "Lotki"
                     },
-                    "status": {
+                    "slug": {
                         "type": "string",
-                        "enum": [
-                            "active",
-                            "pending",
-                            "unsubscribed"
-                        ],
-                        "example": "active"
+                        "example": "lotki"
                     },
-                    "verified_at": {
+                    "description": {
                         "type": "string",
-                        "format": "date-time",
-                        "nullable": true
+                        "example": "Opis kategorii lotki"
                     },
-                    "unsubscribed_at": {
+                    "image_url": {
                         "type": "string",
-                        "format": "date-time",
-                        "nullable": true
+                        "example": "img/categories/lotki.jpg"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "products_count": {
+                        "type": "integer",
+                        "example": 15
+                    },
+                    "products": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Product"
+                        }
                     },
                     "created_at": {
                         "type": "string",
@@ -5110,6 +5547,123 @@
                     "updated_at": {
                         "type": "string",
                         "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "CategoryDetail": {
+                "title": "Category Detail",
+                "description": "Detailed category information",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Lotki"
+                    },
+                    "slug": {
+                        "type": "string",
+                        "example": "lotki"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Opis kategorii lotki"
+                    },
+                    "image_url": {
+                        "type": "string",
+                        "example": "img/categories/lotki.jpg"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "products_count": {
+                        "type": "integer",
+                        "example": 15
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "TutorialDetail": {
+                "title": "Tutorial Detail",
+                "description": "Detailed tutorial information",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Podstawy rzucania lotkami"
+                    },
+                    "slug": {
+                        "type": "string",
+                        "example": "podstawy-rzucania-lotek"
+                    },
+                    "content": {
+                        "type": "string",
+                        "example": "Treść tutoriala..."
+                    },
+                    "image_url": {
+                        "type": "string",
+                        "example": "img/tutorials/dart-basics-beginners.jpg"
+                    },
+                    "order": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "is_published": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "excerpt": {
+                        "type": "string",
+                        "example": "Krótki opis tutoriala..."
+                    },
+                    "featured_image_url": {
+                        "type": "string",
+                        "example": "http://example.com/img/tutorials/dart-basics-beginners.jpg"
+                    },
+                    "thumbnail_image_url": {
+                        "type": "string",
+                        "example": "http://example.com/img/tutorials/dart-basics-beginners.jpg"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorResponse": {
+                "title": "Error Response",
+                "description": "Standard error response",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Error message"
+                    },
+                    "errors": {
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "status": {
+                        "type": "integer",
+                        "example": 400
                     }
                 },
                 "type": "object"
@@ -5129,288 +5683,137 @@
                                 "The field name field is required."
                             ]
                         }
+                    },
+                    "status": {
+                        "type": "integer",
+                        "example": 422
                     }
                 },
                 "type": "object"
             },
-            "Brand": {
-                "title": "Brand",
-                "description": "Product brand model",
+            "UnauthorizedError": {
+                "title": "Unauthorized Error",
+                "description": "Unauthorized error response",
                 "properties": {
-                    "id": {
+                    "message": {
+                        "type": "string",
+                        "example": "Unauthenticated."
+                    },
+                    "status": {
                         "type": "integer",
-                        "example": 1
-                    },
-                    "name": {
-                        "type": "string",
-                        "example": "Harrows"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
+                        "example": 401
                     }
                 },
                 "type": "object"
             },
-            "Category": {
-                "title": "Category",
-                "description": "Product category model",
+            "ForbiddenError": {
+                "title": "Forbidden Error",
+                "description": "Forbidden error response",
                 "properties": {
-                    "id": {
+                    "message": {
+                        "type": "string",
+                        "example": "Access denied."
+                    },
+                    "status": {
                         "type": "integer",
-                        "example": 1
-                    },
-                    "name": {
-                        "type": "string",
-                        "example": "Dart Flights"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
+                        "example": 403
                     }
                 },
                 "type": "object"
             },
-            "Product": {
-                "title": "Product",
-                "description": "Product model",
+            "NotFoundError": {
+                "title": "Not Found Error",
+                "description": "Not found error response",
                 "properties": {
-                    "id": {
+                    "message": {
+                        "type": "string",
+                        "example": "Resource not found."
+                    },
+                    "status": {
                         "type": "integer",
-                        "example": 1
-                    },
-                    "name": {
-                        "type": "string",
-                        "example": "Harrows Supergrip Ultra"
-                    },
-                    "description": {
-                        "type": "string",
-                        "example": "Professional dart flights"
-                    },
-                    "price": {
-                        "type": "number",
-                        "format": "float",
-                        "example": 29.99
-                    },
-                    "image_url": {
-                        "type": "string",
-                        "example": "https://example.com/image.jpg",
-                        "nullable": true
-                    },
-                    "is_featured": {
-                        "type": "boolean",
-                        "example": false
-                    },
-                    "is_active": {
-                        "type": "boolean",
-                        "example": true
-                    },
-                    "brand_id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "category_id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "category": {
-                        "$ref": "#/components/schemas/Category"
-                    },
-                    "brand": {
-                        "$ref": "#/components/schemas/Brand"
-                    },
-                    "average_rating": {
-                        "type": "number",
-                        "format": "float",
-                        "example": 4.5
-                    },
-                    "reviews_count": {
-                        "type": "integer",
-                        "example": 10
-                    },
-                    "promotion_price": {
-                        "type": "number",
-                        "format": "float",
-                        "example": 24.99,
-                        "nullable": true
-                    },
-                    "savings": {
-                        "type": "number",
-                        "format": "float",
-                        "example": 5
-                    },
-                    "promotion": {
-                        "oneOf": [
-                            {
-                                "$ref": "#/components/schemas/Promotion"
-                            }
-                        ],
-                        "nullable": true
+                        "example": 404
                     }
                 },
                 "type": "object"
             },
-            "Promotion": {
-                "title": "Promotion",
-                "description": "Product promotion model",
+            "ServerError": {
+                "title": "Server Error",
+                "description": "Server error response",
                 "properties": {
-                    "id": {
+                    "message": {
+                        "type": "string",
+                        "example": "Internal server error."
+                    },
+                    "status": {
                         "type": "integer",
-                        "example": 1
-                    },
-                    "title": {
-                        "type": "string",
-                        "example": "Summer Sale"
-                    },
-                    "description": {
-                        "type": "string",
-                        "example": "Get 20% off on selected items"
-                    },
-                    "discount_type": {
-                        "type": "string",
-                        "enum": [
-                            "percentage",
-                            "fixed"
-                        ],
-                        "example": "percentage"
-                    },
-                    "discount_value": {
-                        "type": "number",
-                        "format": "float",
-                        "example": 20
-                    },
-                    "start_date": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "end_date": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "is_active": {
-                        "type": "boolean",
-                        "example": true
-                    },
-                    "badge_text": {
-                        "type": "string",
-                        "example": "20% OFF"
-                    },
-                    "badge_color": {
-                        "type": "string",
-                        "example": "#ff0000"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
+                        "example": 500
                     }
                 },
                 "type": "object"
             },
-            "User": {
-                "title": "User",
-                "description": "User model",
+            "SuccessResponse": {
+                "title": "Success Response",
+                "description": "Standard success response",
                 "properties": {
-                    "id": {
+                    "message": {
+                        "type": "string",
+                        "example": "Operation successful"
+                    },
+                    "data": {
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "status": {
                         "type": "integer",
-                        "example": 1
+                        "example": 200
+                    }
+                },
+                "type": "object"
+            },
+            "DashboardStats": {
+                "title": "Dashboard Stats",
+                "description": "Dashboard statistics",
+                "properties": {
+                    "total_orders": {
+                        "type": "integer",
+                        "example": 150
                     },
-                    "name": {
-                        "type": "string",
-                        "example": "John Doe"
+                    "total_revenue": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 25000
                     },
-                    "first_name": {
-                        "type": "string",
-                        "example": "John"
+                    "total_products": {
+                        "type": "integer",
+                        "example": 45
                     },
-                    "last_name": {
-                        "type": "string",
-                        "example": "Doe"
+                    "total_users": {
+                        "type": "integer",
+                        "example": 120
                     },
-                    "email": {
-                        "type": "string",
-                        "format": "email",
-                        "example": "user@example.com"
+                    "recent_orders": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RecentOrder"
+                        }
                     },
-                    "email_verified_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
+                    "top_products": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TopProduct"
+                        }
                     },
-                    "is_admin": {
-                        "type": "boolean",
-                        "example": false
+                    "category_data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CategoryData"
+                        }
                     },
-                    "google_id": {
-                        "type": "string",
-                        "example": "123456789",
-                        "nullable": true
-                    },
-                    "avatar": {
-                        "type": "string",
-                        "example": "https://example.com/avatar.jpg",
-                        "nullable": true
-                    },
-                    "privacy_policy_accepted": {
-                        "type": "boolean",
-                        "example": true
-                    },
-                    "privacy_policy_accepted_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
-                    },
-                    "terms_of_service_accepted": {
-                        "type": "boolean",
-                        "example": true
-                    },
-                    "terms_of_service_accepted_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "role": {
-                        "type": "string",
-                        "example": "user"
-                    },
-                    "full_name": {
-                        "type": "string",
-                        "example": "John Doe"
-                    },
-                    "display_name": {
-                        "type": "string",
-                        "example": "John Doe"
-                    },
-                    "is_google_user": {
-                        "type": "boolean",
-                        "example": false
+                    "sales_data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SalesData"
+                        }
                     }
                 },
                 "type": "object"
@@ -5546,10 +5949,6 @@
             "description": "API Endpoints for Stripe webhook handling"
         },
         {
-            "name": "Orders",
-            "description": "API Endpoints for order management"
-        },
-        {
             "name": "Terms of Service",
             "description": "API Endpoints for terms of service management"
         },
@@ -5558,12 +5957,12 @@
             "description": "API Endpoints for tutorial management"
         },
         {
-            "name": "Reviews",
-            "description": "API Endpoints for review management"
+            "name": "Orders",
+            "description": "API Endpoints for order management"
         },
         {
-            "name": "System",
-            "description": "System"
+            "name": "Reviews",
+            "description": "API Endpoints for review management"
         }
     ]
 }

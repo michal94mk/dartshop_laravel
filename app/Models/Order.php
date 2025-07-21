@@ -5,19 +5,15 @@ namespace App\Models;
 use App\Enums\OrderStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Log;
 use App\Models\Traits\BelongsToUser;
 
 /**
- * Order model representing customer orders in the e-commerce system.
- * 
- * This model stores all order information including customer details,
- * shipping address, payment method, pricing details, and order status.
- * It is linked to order items, payments, and users.
+ *
  */
+
 class Order extends Model
 {
     use HasFactory, BelongsToUser;
@@ -66,11 +62,6 @@ class Order extends Model
         'total' => 'float',
     ];
     
-    /**
-     * The "booted" method of the model.
-     *
-     * @return void
-     */
     protected static function boot()
     {
         parent::boot();
@@ -93,21 +84,11 @@ class Order extends Model
         });
     }
 
-    /**
-     * Get the items for the order.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
 
-    /**
-     * Get the payment for the order.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class);
@@ -127,21 +108,11 @@ class Order extends Model
         return 'ZAM-' . str_pad($lastId + 1, 6, '0', STR_PAD_LEFT);
     }
 
-    /**
-     * Get the full name of the customer.
-     *
-     * @return string
-     */
     public function getFullNameAttribute(): string
     {
         return "{$this->first_name} {$this->last_name}";
     }
 
-    /**
-     * Get the full address of the customer.
-     *
-     * @return string
-     */
     public function getFullAddressAttribute(): string
     {
         return "{$this->address}, {$this->postal_code} {$this->city}, {$this->country}";

@@ -5,11 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Builder;
+
+/**
+ *
+ */
 
 class NewsletterSubscription extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'email',
         'status',
@@ -18,14 +28,16 @@ class NewsletterSubscription extends Model
         'unsubscribed_at'
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
         'verified_at' => 'datetime',
         'unsubscribed_at' => 'datetime',
     ];
 
-    /**
-     * Generate a verification token
-     */
     public function generateVerificationToken(): string
     {
         $token = Str::random(64);
@@ -35,9 +47,6 @@ class NewsletterSubscription extends Model
         return $token;
     }
 
-    /**
-     * Mark subscription as verified
-     */
     public function markAsVerified(): void
     {
         $this->status = 'active';
@@ -46,9 +55,6 @@ class NewsletterSubscription extends Model
         $this->save();
     }
 
-    /**
-     * Mark subscription as unsubscribed
-     */
     public function unsubscribe(): void
     {
         $this->status = 'unsubscribed';
@@ -56,34 +62,22 @@ class NewsletterSubscription extends Model
         $this->save();
     }
 
-    /**
-     * Check if subscription is active
-     */
     public function isActive(): bool
     {
         return $this->status === 'active';
     }
 
-    /**
-     * Check if subscription is pending verification
-     */
     public function isPending(): bool
     {
         return $this->status === 'pending';
     }
 
-    /**
-     * Scope for active subscriptions
-     */
-    public function scopeActive($query)
+    public function scopeActive($query): Builder
     {
         return $query->where('status', 'active');
     }
 
-    /**
-     * Scope for pending subscriptions
-     */
-    public function scopePending($query)
+    public function scopePending($query): Builder
     {
         return $query->where('status', 'pending');
     }

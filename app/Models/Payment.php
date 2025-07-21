@@ -9,12 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Traits\BelongsToUser;
 
 /**
- * Payment model representing payment transactions in the e-commerce system.
- * 
- * This model tracks payment information including method, amount, status,
- * and transaction details. It provides a record of all payment operations
- * and their current status associated with orders.
+ *
  */
+
 class Payment extends Model
 {
     use HasFactory, BelongsToUser;
@@ -49,11 +46,6 @@ class Payment extends Model
         'paid_at' => 'datetime'
     ];
 
-    /**
-     * Get the order associated with the payment.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);

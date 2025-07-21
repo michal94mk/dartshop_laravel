@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+
+/**
+ *
+ */
 
 class ContactMessage extends Model
 {
@@ -33,32 +38,17 @@ class ContactMessage extends Model
         'read_at' => 'datetime',
     ];
     
-    /**
-     * Get status label for display
-     *
-     * @return string
-     */
-    public function getStatusLabelAttribute()
+    public function getStatusLabelAttribute(): string
     {
         return $this->is_read ? 'Przeczytana' : 'Nieprzeczytana';
     }
     
-    /**
-     * Get status color class for display
-     *
-     * @return string
-     */
-    public function getStatusColorAttribute()
+    public function getStatusColorAttribute(): string
     {
         return $this->is_read ? 'green' : 'yellow';
     }
     
-    /**
-     * Mark message as read
-     *
-     * @return void
-     */
-    public function markAsRead()
+    public function markAsRead(): void
     {
         $this->update([
             'is_read' => true,
@@ -66,18 +56,12 @@ class ContactMessage extends Model
         ]);
     }
     
-    /**
-     * Scope for unread messages
-     */
-    public function scopeUnread($query)
+    public function scopeUnread($query): Builder
     {
         return $query->where('is_read', false);
     }
     
-    /**
-     * Scope for read messages
-     */
-    public function scopeRead($query)
+    public function scopeRead($query): Builder
     {
         return $query->where('is_read', true);
     }
