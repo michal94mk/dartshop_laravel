@@ -10,10 +10,45 @@ use App\Models\Order;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @OA\Tag(
+ *     name="Stripe Webhook",
+ *     description="API Endpoints for Stripe webhook handling"
+ * )
+ */
+
 class StripeWebhookController extends Controller
 {
     /**
      * Obsługa webhooków Stripe
+     *
+     * @OA\Post(
+     *     path="/api/stripe/webhook",
+     *     summary="Handle Stripe webhook",
+     *     description="Handle Stripe webhook events (payment_intent.succeeded, payment_intent.payment_failed, checkout.session.completed)",
+     *     tags={"Stripe Webhook"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="type", type="string", example="payment_intent.succeeded"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Webhook processed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid signature or webhook error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Invalid signature")
+     *         )
+     *     )
+     * )
      */
     public function handleWebhook(Request $request)
     {

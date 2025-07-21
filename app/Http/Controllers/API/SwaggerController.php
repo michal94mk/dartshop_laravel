@@ -105,6 +105,234 @@ use Illuminate\Http\Request;
  *     @OA\Property(property="prev", type="string", nullable=true, example=null),
  *     @OA\Property(property="next", type="string", example="http://example.com/api/products?page=2")
  * )
+ * 
+ * @OA\Schema(
+ *     schema="CategoryWithProducts",
+ *     title="Category With Products",
+ *     description="Category with preview products",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="name", type="string", example="Dart Flights"),
+ *     @OA\Property(property="products_count", type="integer", example=25),
+ *     @OA\Property(property="is_active", type="boolean", example=true),
+ *     @OA\Property(property="preview_products", type="array", @OA\Items(
+ *         @OA\Property(property="id", type="integer", example=1),
+ *         @OA\Property(property="name", type="string", example="Harrows Supergrip Ultra"),
+ *         @OA\Property(property="price", type="number", format="float", example=29.99),
+ *         @OA\Property(property="image_url", type="string", nullable=true, example="https://example.com/image.jpg")
+ *     )),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="CategoryDetail",
+ *     title="Category Detail",
+ *     description="Detailed category information",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="name", type="string", example="Dart Flights"),
+ *     @OA\Property(property="products_count", type="integer", example=25),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="CartItem",
+ *     title="Cart Item",
+ *     description="Shopping cart item",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="user_id", type="integer", example=1),
+ *     @OA\Property(property="product_id", type="integer", example=1),
+ *     @OA\Property(property="quantity", type="integer", example=2),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time"),
+ *     @OA\Property(property="product", ref="#/components/schemas/Product")
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="Order",
+ *     title="Order",
+ *     description="Order model",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="user_id", type="integer", example=1),
+ *     @OA\Property(property="order_number", type="string", example="ORD-2024-001"),
+ *     @OA\Property(property="status", type="string", example="pending"),
+ *     @OA\Property(property="total_amount", type="number", format="float", example=299.99),
+ *     @OA\Property(property="shipping_address", type="string", example="123 Main St"),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time"),
+ *     @OA\Property(property="items", type="array", @OA\Items(ref="#/components/schemas/OrderItem"))
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="OrderItem",
+ *     title="Order Item",
+ *     description="Order item model",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="order_id", type="integer", example=1),
+ *     @OA\Property(property="product_id", type="integer", example=1),
+ *     @OA\Property(property="quantity", type="integer", example=2),
+ *     @OA\Property(property="price", type="number", format="float", example=29.99),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time"),
+ *     @OA\Property(property="product", ref="#/components/schemas/Product")
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="Review",
+ *     title="Review",
+ *     description="Product review model",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="user_id", type="integer", example=1),
+ *     @OA\Property(property="product_id", type="integer", example=1),
+ *     @OA\Property(property="title", type="string", example="Great product!"),
+ *     @OA\Property(property="content", type="string", example="This is an excellent product..."),
+ *     @OA\Property(property="rating", type="integer", example=5),
+ *     @OA\Property(property="is_approved", type="boolean", example=true),
+ *     @OA\Property(property="is_featured", type="boolean", example=false),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time"),
+ *     @OA\Property(property="product", ref="#/components/schemas/Product"),
+ *     @OA\Property(property="user", ref="#/components/schemas/User")
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="ContactMessage",
+ *     title="Contact Message",
+ *     description="Contact form message",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="name", type="string", example="John Doe"),
+ *     @OA\Property(property="email", type="string", format="email", example="john@example.com"),
+ *     @OA\Property(property="subject", type="string", example="Question about products"),
+ *     @OA\Property(property="message", type="string", example="I have a question about..."),
+ *     @OA\Property(property="status", type="string", example="unread"),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="Tutorial",
+ *     title="Tutorial",
+ *     description="Tutorial model",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="title", type="string", example="How to choose darts"),
+ *     @OA\Property(property="slug", type="string", example="how-to-choose-darts"),
+ *     @OA\Property(property="excerpt", type="string", example="Learn how to choose the right darts..."),
+ *     @OA\Property(property="featured_image_url", type="string", nullable=true, example="https://example.com/image.jpg"),
+ *     @OA\Property(property="thumbnail_image_url", type="string", nullable=true, example="https://example.com/thumb.jpg"),
+ *     @OA\Property(property="category", type="string", example="Beginner"),
+ *     @OA\Property(property="difficulty", type="string", example="Easy"),
+ *     @OA\Property(property="published_at", type="string", format="date-time"),
+ *     @OA\Property(property="author", type="string", example="DartShop Admin"),
+ *     @OA\Property(property="views", type="integer", example=150),
+ *     @OA\Property(property="order", type="integer", example=1),
+ *     @OA\Property(property="is_published", type="boolean", example=true),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="TutorialDetail",
+ *     title="Tutorial Detail",
+ *     description="Detailed tutorial information",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="title", type="string", example="How to choose darts"),
+ *     @OA\Property(property="slug", type="string", example="how-to-choose-darts"),
+ *     @OA\Property(property="content", type="string", example="Full tutorial content..."),
+ *     @OA\Property(property="excerpt", type="string", example="Learn how to choose the right darts..."),
+ *     @OA\Property(property="featured_image_url", type="string", nullable=true, example="https://example.com/image.jpg"),
+ *     @OA\Property(property="thumbnail_image_url", type="string", nullable=true, example="https://example.com/thumb.jpg"),
+ *     @OA\Property(property="category", type="string", example="Beginner"),
+ *     @OA\Property(property="difficulty", type="string", example="Easy"),
+ *     @OA\Property(property="published_at", type="string", format="date-time"),
+ *     @OA\Property(property="author", type="string", example="DartShop Admin"),
+ *     @OA\Property(property="views", type="integer", example=150),
+ *     @OA\Property(property="meta_title", type="string", example="How to Choose Darts - Complete Guide"),
+ *     @OA\Property(property="meta_description", type="string", example="Learn how to choose the perfect darts..."),
+ *     @OA\Property(property="order", type="integer", example=1)
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="AboutUs",
+ *     title="About Us",
+ *     description="About us page information",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="title", type="string", example="O naszym sklepie"),
+ *     @OA\Property(property="content", type="string", example="Jesteśmy specjalistycznym sklepem..."),
+ *     @OA\Property(property="image_url", type="string", nullable=true, example="https://example.com/about.jpg"),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="RecentOrder",
+ *     title="Recent Order",
+ *     description="Recent order for dashboard",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="total", type="number", format="float", example=299.99),
+ *     @OA\Property(property="status", type="string", example="pending"),
+ *     @OA\Property(property="user", type="object", nullable=true,
+ *         @OA\Property(property="id", type="integer", example=1),
+ *         @OA\Property(property="name", type="string", example="John Doe"),
+ *         @OA\Property(property="email", type="string", example="john@example.com")
+ *     ),
+ *     @OA\Property(property="created_at", type="string", example="2024-01-15 10:30:00")
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="SalesData",
+ *     title="Sales Data",
+ *     description="Sales data for charts",
+ *     @OA\Property(property="date", type="string", example="2024-01-15"),
+ *     @OA\Property(property="total_sales", type="number", format="float", example=1500.00),
+ *     @OA\Property(property="order_count", type="integer", example=5)
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="TopProduct",
+ *     title="Top Product",
+ *     description="Top selling product",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="name", type="string", example="Harrows Supergrip Ultra"),
+ *     @OA\Property(property="total_sold", type="integer", example=25),
+ *     @OA\Property(property="total_revenue", type="number", format="float", example=749.75)
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="CategoryData",
+ *     title="Category Data",
+ *     description="Category statistics for dashboard",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="name", type="string", example="Dart Flights"),
+ *     @OA\Property(property="products_count", type="integer", example=15),
+ *     @OA\Property(property="total_sales", type="number", format="float", example=2500.00)
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="NewsletterSubscription",
+ *     title="Newsletter Subscription",
+ *     description="Newsletter subscription model",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+ *     @OA\Property(property="status", type="string", enum={"active", "pending", "unsubscribed"}, example="active"),
+ *     @OA\Property(property="verified_at", type="string", format="date-time", nullable=true),
+ *     @OA\Property(property="unsubscribed_at", type="string", format="date-time", nullable=true),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ * 
+
+ * 
+
+ * 
+ * @OA\Schema(
+ *     schema="ValidationError",
+ *     title="Validation Error",
+ *     description="Validation error response",
+ *     @OA\Property(property="message", type="string", example="The given data was invalid."),
+ *     @OA\Property(property="errors", type="object", example={
+ *         "field_name": {"The field name field is required."}
+ *     })
+ * )
  */
 class SwaggerController extends Controller
 {

@@ -8,10 +8,70 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\Admin\BrandRequest;
 
+/**
+ * @OA\Tag(
+ *     name="Admin/Brands",
+ *     description="API Endpoints for admin brand management"
+ * )
+ */
+
 class BrandController extends BaseAdminController
 {
     /**
      * Display a listing of the brands.
+     *
+     * @OA\Get(
+     *     path="/api/admin/brands",
+     *     summary="Get brands list (admin)",
+     *     description="Retrieve all brands with admin filters and pagination",
+     *     tags={"Admin/Brands"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Search in brand name",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_field",
+     *         in="query",
+     *         description="Sort field (id, name, products_count, created_at, updated_at)",
+     *         required=false,
+     *         @OA\Schema(type="string", default="id")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_direction",
+     *         in="query",
+     *         description="Sort direction (asc, desc)",
+     *         required=false,
+     *         @OA\Schema(type="string", default="asc")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Brand")),
+     *             @OA\Property(property="meta", ref="#/components/schemas/PaginationMeta"),
+     *             @OA\Property(property="links", ref="#/components/schemas/PaginationLinks")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Forbidden - Admin access required"
+     *     )
+     * )
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse

@@ -12,10 +12,47 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
 use App\Http\Requests\Admin\PromotionRequest;
 
+/**
+ * @OA\Tag(
+ *     name="Admin/Promotions",
+ *     description="API Endpoints for admin promotion management"
+ * )
+ */
+
 class PromotionController extends BaseAdminController
 {
     /**
      * Wyświetl listę promocji (publiczne API)
+     *
+     * @OA\Get(
+     *     path="/api/promotions",
+     *     summary="Get promotions list (public)",
+     *     description="Get active promotions with products",
+     *     tags={"Promotions"},
+     *     @OA\Parameter(
+     *         name="featured",
+     *         in="query",
+     *         description="Filter featured promotions only",
+     *         required=false,
+     *         @OA\Schema(type="boolean")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Promotion")),
+     *             @OA\Property(property="meta", ref="#/components/schemas/PaginationMeta"),
+     *             @OA\Property(property="links", ref="#/components/schemas/PaginationLinks")
+     *         )
+     *     )
+     * )
      */
     public function indexPublic(Request $request): JsonResponse
     {
@@ -53,6 +90,28 @@ class PromotionController extends BaseAdminController
 
     /**
      * Wyświetl wyróżnione promocje (publiczne API)
+     *
+     * @OA\Get(
+     *     path="/api/promotions/featured",
+     *     summary="Get featured promotions",
+     *     description="Get featured active promotions",
+     *     tags={"Promotions"},
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         description="Number of promotions to return",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=5)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Promotion")
+     *         )
+     *     )
+     * )
      */
     public function featured(Request $request): JsonResponse
     {
@@ -86,6 +145,30 @@ class PromotionController extends BaseAdminController
 
     /**
      * Pokaż szczegóły promocji (publiczne API)
+     *
+     * @OA\Get(
+     *     path="/api/promotions/{promotion}",
+     *     summary="Get promotion details",
+     *     description="Get promotion details with products",
+     *     tags={"Promotions"},
+     *     @OA\Parameter(
+     *         name="promotion",
+     *         in="path",
+     *         description="Promotion ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(ref="#/components/schemas/Promotion")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Promotion not found or not active",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
+     * )
      */
     public function showPublic(Promotion $promotion): JsonResponse
     {

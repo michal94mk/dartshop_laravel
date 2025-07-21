@@ -8,6 +8,13 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
 use App\Http\Requests\Admin\CategoryRequest;
 
+/**
+ * @OA\Tag(
+ *     name="Admin/Categories",
+ *     description="API Endpoints for admin category management"
+ * )
+ */
+
 class CategoryController extends BaseAdminController
 {
     /**
@@ -36,6 +43,59 @@ class CategoryController extends BaseAdminController
 
     /**
      * Display a listing of the categories.
+     *
+     * @OA\Get(
+     *     path="/api/admin/categories",
+     *     summary="Get categories list (admin)",
+     *     description="Retrieve all categories with admin filters and pagination",
+     *     tags={"Admin/Categories"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Search in category name",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_field",
+     *         in="query",
+     *         description="Sort field (id, name, products_count, created_at, updated_at)",
+     *         required=false,
+     *         @OA\Schema(type="string", default="created_at")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_direction",
+     *         in="query",
+     *         description="Sort direction (asc, desc)",
+     *         required=false,
+     *         @OA\Schema(type="string", default="desc")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Category")),
+     *             @OA\Property(property="meta", ref="#/components/schemas/PaginationMeta"),
+     *             @OA\Property(property="links", ref="#/components/schemas/PaginationLinks")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Forbidden - Admin access required"
+     *     )
+     * )
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse

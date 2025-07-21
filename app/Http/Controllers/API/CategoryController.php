@@ -10,10 +10,47 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * @OA\Tag(
+ *     name="Categories",
+ *     description="API Endpoints for category management"
+ * )
+ */
+
 class CategoryController extends Controller
 {
     /**
      * Display a listing of categories.
+     *
+     * @OA\Get(
+     *     path="/api/categories",
+     *     summary="Get list of categories",
+     *     description="Retrieve all categories with optional filtering",
+     *     tags={"Categories"},
+     *     @OA\Parameter(
+     *         name="with_products_only",
+     *         in="query",
+     *         description="Show only categories that have products",
+     *         required=false,
+     *         @OA\Schema(type="boolean")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/CategoryWithProducts")),
+     *             @OA\Property(property="meta", type="object",
+     *                 @OA\Property(property="total", type="integer", example=5),
+     *                 @OA\Property(property="cache_used", type="boolean", example=true)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
+     * )
      *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -93,6 +130,34 @@ class CategoryController extends Controller
     /**
      * Display the specified category.
      *
+     * @OA\Get(
+     *     path="/api/categories/{id}",
+     *     summary="Get category details",
+     *     description="Retrieve detailed information about a specific category",
+     *     tags={"Categories"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Category ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(ref="#/components/schemas/CategoryDetail")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Category not found"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
+     * )
+     *
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
@@ -143,6 +208,80 @@ class CategoryController extends Controller
 
     /**
      * Display products for the specified category.
+     *
+     * @OA\Get(
+     *     path="/api/categories/{id}/products",
+     *     summary="Get products in category",
+     *     description="Retrieve all products belonging to a specific category",
+     *     tags={"Categories"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Category ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Search products by name",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="price_min",
+     *         in="query",
+     *         description="Minimum price filter",
+     *         required=false,
+     *         @OA\Schema(type="number", format="float")
+     *     ),
+     *     @OA\Parameter(
+     *         name="price_max",
+     *         in="query",
+     *         description="Maximum price filter",
+     *         required=false,
+     *         @OA\Schema(type="number", format="float")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         description="Sort field (name, price, created_at)",
+     *         required=false,
+     *         @OA\Schema(type="string", default="created_at")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_direction",
+     *         in="query",
+     *         description="Sort direction (asc, desc)",
+     *         required=false,
+     *         @OA\Schema(type="string", default="desc")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Number of products per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=12)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Product")),
+     *             @OA\Property(property="meta", ref="#/components/schemas/PaginationMeta"),
+     *             @OA\Property(property="links", ref="#/components/schemas/PaginationLinks")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Category not found"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
+     * )
      *
      * @param  int  $id
      * @param  \Illuminate\Http\Request  $request
@@ -220,6 +359,31 @@ class CategoryController extends Controller
 
     /**
      * Get category statistics for dashboard/admin
+     *
+     * @OA\Get(
+     *     path="/api/categories/statistics",
+     *     summary="Get category statistics",
+     *     description="Retrieve statistics about categories for dashboard/admin",
+     *     tags={"Categories"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="total_categories", type="integer", example=10),
+     *             @OA\Property(property="categories_with_products", type="integer", example=8),
+     *             @OA\Property(property="top_categories", type="array", @OA\Items(
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Dart Flights"),
+     *                 @OA\Property(property="products_count", type="integer", example=25)
+     *             ))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
+     * )
      *
      * @return \Illuminate\Http\JsonResponse
      */

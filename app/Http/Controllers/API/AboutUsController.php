@@ -9,10 +9,29 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\AboutUsRequest;
 
+/**
+ * @OA\Tag(
+ *     name="About",
+ *     description="API Endpoints for about us page"
+ * )
+ */
+
 class AboutUsController extends Controller
 {
     /**
      * Pobierz informacje o stronie "O nas".
+     *
+     * @OA\Get(
+     *     path="/api/about",
+     *     summary="Get about us information",
+     *     description="Retrieve information about the company",
+     *     tags={"About"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(ref="#/components/schemas/AboutUs")
+     *     )
+     * )
      *
      * @return \Illuminate\Http\Response
      */

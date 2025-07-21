@@ -12,10 +12,52 @@ use Illuminate\Support\Facades\Log;
 use App\Mail\NewsletterVerificationMail;
 use App\Mail\NewsletterWelcomeMail;
 
+/**
+ * @OA\Tag(
+ *     name="Newsletter",
+ *     description="API Endpoints for newsletter management"
+ * )
+ */
+
 class NewsletterController extends Controller
 {
     /**
      * Subscribe to newsletter
+     *
+     * @OA\Post(
+     *     path="/api/newsletter/subscribe",
+     *     summary="Subscribe to newsletter",
+     *     description="Subscribe an email address to the newsletter",
+     *     tags={"Newsletter"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email"},
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Subscription successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Sprawdź swoją skrzynkę email i kliknij link weryfikacyjny")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=409,
+     *         description="Email already subscribed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Ten adres email jest już zapisany do newslettera")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
+     * )
      */
     public function subscribe(Request $request): JsonResponse
     {

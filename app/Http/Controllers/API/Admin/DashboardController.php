@@ -10,10 +10,54 @@ use App\Models\Review;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
+/**
+ * @OA\Tag(
+ *     name="Admin/Dashboard",
+ *     description="API Endpoints for admin dashboard"
+ * )
+ */
+
 class DashboardController extends BaseAdminController
 {
     /**
      * Get admin dashboard statistics
+     *
+     * @OA\Get(
+     *     path="/api/admin/dashboard",
+     *     summary="Get dashboard statistics",
+     *     description="Retrieve admin dashboard statistics and data",
+     *     tags={"Admin/Dashboard"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="counts", type="object",
+     *                 @OA\Property(property="products", type="integer", example=150),
+     *                 @OA\Property(property="users", type="integer", example=500),
+     *                 @OA\Property(property="orders", type="integer", example=75),
+     *                 @OA\Property(property="reviews", type="integer", example=200)
+     *             ),
+     *             @OA\Property(property="recent_orders", type="array", @OA\Items(ref="#/components/schemas/RecentOrder")),
+     *             @OA\Property(property="sales_data", type="array", @OA\Items(ref="#/components/schemas/SalesData")),
+     *             @OA\Property(property="top_products", type="array", @OA\Items(ref="#/components/schemas/TopProduct")),
+     *             @OA\Property(property="categories_data", type="array", @OA\Items(ref="#/components/schemas/CategoryData"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Forbidden - Admin access required"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
+     * )
      *
      * @return \Illuminate\Http\JsonResponse
      */

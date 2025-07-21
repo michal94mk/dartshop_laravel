@@ -10,10 +10,47 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
+/**
+ * @OA\Tag(
+ *     name="Email Verification",
+ *     description="API Endpoints for email verification"
+ * )
+ */
+
 class EmailVerificationController extends Controller
 {
     /**
      * Mark user's email as verified
+     *
+     * @OA\Get(
+     *     path="/api/email/verify/{id}/{hash}",
+     *     summary="Verify email address",
+     *     description="Verify user's email address using verification link",
+     *     tags={"Email Verification"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="User ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="hash",
+     *         in="path",
+     *         description="Email verification hash",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="Redirect to profile page with verification status",
+     *         @OA\Header(
+     *             header="Location",
+     *             description="Redirect URL",
+     *             @OA\Schema(type="string", example="/profile?verified=success")
+     *         )
+     *     )
+     * )
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
@@ -76,6 +113,30 @@ class EmailVerificationController extends Controller
 
     /**
      * Resend verification email
+     *
+     * @OA\Post(
+     *     path="/api/email/verification-notification",
+     *     summary="Send verification email",
+     *     description="Send email verification notification to user",
+     *     tags={"Email Verification"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Verification email sent successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Verification link sent!")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request - Google OAuth user or already verified",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized"
+     *     )
+     * )
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse

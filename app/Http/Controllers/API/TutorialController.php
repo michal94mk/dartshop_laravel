@@ -6,10 +6,32 @@ use App\Http\Controllers\Controller;
 use App\Models\Tutorial;
 use Illuminate\Http\Request;
 
+/**
+ * @OA\Tag(
+ *     name="Tutorials",
+ *     description="API Endpoints for tutorial management"
+ * )
+ */
+
 class TutorialController extends Controller
 {
     /**
      * Display a listing of published tutorials.
+     *
+     * @OA\Get(
+     *     path="/api/tutorials",
+     *     summary="Get tutorials list",
+     *     description="Retrieve all published tutorials",
+     *     tags={"Tutorials"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Tutorial")
+     *         )
+     *     )
+     * )
      *
      * @return \Illuminate\Http\Response
      */
@@ -44,6 +66,29 @@ class TutorialController extends Controller
 
     /**
      * Display the specified tutorial.
+     *
+     * @OA\Get(
+     *     path="/api/tutorials/{slug}",
+     *     summary="Get tutorial details",
+     *     description="Retrieve detailed information about a specific tutorial",
+     *     tags={"Tutorials"},
+     *     @OA\Parameter(
+     *         name="slug",
+     *         in="path",
+     *         description="Tutorial slug",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(ref="#/components/schemas/TutorialDetail")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Tutorial not found"
+     *     )
+     * )
      *
      * @param  string  $slug
      * @return \Illuminate\Http\Response
