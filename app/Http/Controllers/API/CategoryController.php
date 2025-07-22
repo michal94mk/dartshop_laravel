@@ -4,14 +4,20 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Category;
-use App\Models\Product;
+use App\Services\CategoryService;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
 {
+    protected $categoryService;
+    
+    public function __construct(CategoryService $categoryService)
+    {
+        $this->categoryService = $categoryService;
+    }
+
     /**
      * Display a listing of categories.
      *
@@ -25,55 +31,23 @@ class CategoryController extends Controller
         ]);
 
         try {
-            // Create cache key that includes all query parameters
-            $cacheKey = 'categories_list_' . md5(json_encode($request->all()));
+            $categories = $this->categoryService->getCategories($request);
             
-            $categories = Cache::remember($cacheKey, 300, function () use ($request) { // Reduced cache time to 5 minutes
-                $query = Category::withCount('products')->with(['products' => function($query) {
-                    $query->limit(3); // Load only first 3 products for preview
-                }]);
-
-                // Option to include only categories with products
-                if ($request->boolean('with_products_only')) {
-                    $query->withProducts();
-                }
-
-                // Apply sorting by name
-                $query->ordered();
-
-                return $query->get();
-            });
-
             // Transform data for better frontend consumption
             $categoriesData = $categories->map(function ($category) {
-                return [
-                    'id' => $category->id,
-                    'name' => $category->name,
-                    'products_count' => $category->products_count,
-                    'is_active' => true, // Add is_active field for frontend filtering
-                    'preview_products' => $category->products->map(function ($product) {
-                        return [
-                            'id' => $product->id,
-                            'name' => $product->name,
-                            'price' => $product->price,
-                            'image_url' => $product->image_url,
-                        ];
-                    }),
-                    'created_at' => $category->created_at,
-                    'updated_at' => $category->updated_at,
-                ];
+                return $this->categoryService->transformCategoryData($category);
             });
 
             Log::info('Categories fetched successfully', [
                 'count' => $categories->count(),
-                'cache_used' => Cache::has($cacheKey),
+                'cache_used' => Cache::has('categories_list_' . md5(json_encode($request->all()))),
             ]);
 
             return response()->json([
                 'data' => $categoriesData,
                 'meta' => [
                     'total' => $categories->count(),
-                    'cache_used' => Cache::has($cacheKey),
+                    'cache_used' => Cache::has('categories_list_' . md5(json_encode($request->all()))),
                 ],
             ]);
 
@@ -103,27 +77,12 @@ class CategoryController extends Controller
         ]);
 
         try {
-            $category = Category::withCount('products')
-                ->with(['products'])
-                ->findOrFail($id);
-
-            // Cache category details for 30 minutes
-            $cacheKey = 'category_detail_' . $category->id;
-            
-            $categoryData = Cache::remember($cacheKey, 1800, function () use ($category) {
-                return [
-                    'id' => $category->id,
-                    'name' => $category->name,
-                    'products_count' => $category->products_count,
-                    'created_at' => $category->created_at,
-                    'updated_at' => $category->updated_at,
-                ];
-            });
+            $categoryData = $this->categoryService->getCategory($id);
 
             Log::info('Category details fetched', [
-                'category_id' => $category->id,
-                'category_name' => $category->name,
-                'products_count' => $category->products_count,
+                'category_id' => $categoryData['id'],
+                'category_name' => $categoryData['name'],
+                'products_count' => $categoryData['products_count'],
             ]);
 
             return response()->json($categoryData);
@@ -156,50 +115,10 @@ class CategoryController extends Controller
         ]);
 
         try {
-            $category = Category::findOrFail($id);
-
-            // Build products query for this category
-            $query = Product::with(['category', 'brand', 'activePromotions'])
-                           ->where('category_id', $category->id);
-
-            // Apply additional filters
-            if ($request->has('brand_id')) {
-                $query->where('brand_id', $request->brand_id);
-            }
-
-            if ($request->has('search')) {
-                $search = $request->search;
-                $query->where(function($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('description', 'like', "%{$search}%");
-                });
-            }
-
-            // Apply sorting
-            $sortField = $request->sort_by ?? 'created_at';
-            $sortDirection = $request->sort_direction ?? 'desc';
-            
-            // Validate sort field
-            $allowedSortFields = ['created_at', 'name', 'price'];
-            if (!in_array($sortField, $allowedSortFields)) {
-                $sortField = 'created_at';
-            }
-            
-            if (!in_array(strtolower($sortDirection), ['asc', 'desc'])) {
-                $sortDirection = 'desc';
-            }
-            
-            $query->orderBy($sortField, $sortDirection);
-
-            // Paginate results
-            $perPage = (int)($request->per_page ?? 12);
-            $perPage = max(1, min($perPage, 50)); // Limit between 1 and 50
-            
-            $products = $query->paginate($perPage);
+            $products = $this->categoryService->getCategoryProducts($id, $request);
 
             Log::info('Category products fetched', [
-                'category_id' => $category->id,
-                'category_name' => $category->name,
+                'category_id' => $id,
                 'products_count' => $products->total(),
             ]);
 
@@ -226,24 +145,7 @@ class CategoryController extends Controller
     public function statistics()
     {
         try {
-            $stats = Cache::remember('categories_statistics', 1800, function () {
-                return [
-                    'total_categories' => Category::count(),
-                    'categories_with_products' => Category::withProducts()->count(),
-                    'top_categories' => Category::withCount('products')
-                        ->orderByDesc('products_count')
-                        ->take(5)
-                        ->get()
-                        ->map(function ($category) {
-                            return [
-                                'id' => $category->id,
-                                'name' => $category->name,
-                                'products_count' => $category->products_count,
-                            ];
-                        }),
-                ];
-            });
-
+            $stats = $this->categoryService->getStatistics();
             return response()->json($stats);
 
         } catch (Exception $e) {

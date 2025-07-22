@@ -4,23 +4,18 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Product;
+use App\Services\ProductService;
 use Exception;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Cache;
-use App\Models\Category;
 
 class ProductController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
+    protected $productService;
+
+    public function __construct(ProductService $productService)
     {
+        $this->productService = $productService;
         Log::info('ProductController initialized');
     }
     
@@ -37,144 +32,14 @@ class ProductController extends Controller
         ]);
         
         try {
-            // Create cache key based on query parameters
-            $cacheKey = 'products_list_' . md5(json_encode($request->all()));
-            
-            Log::info('Cache check', [
-                'cache_key' => $cacheKey,
-                'request_params' => $request->all(),
-                'cache_exists_before' => Cache::has($cacheKey)
-            ]);
-            
-            // Cache products for 30 minutes
-            $products = Cache::remember($cacheKey, 1800, function () use ($request, $cacheKey) {
-                Log::info('Cache MISS - executing query for key: ' . $cacheKey);
-                
-                // Create base query with promotions
-                $query = Product::with(['category', 'brand', 'activePromotions']);
-                
-                // Apply filters if any
-                if ($request->has('category_id')) {
-                    $query->where('category_id', $request->category_id);
-                }
-                
-                if ($request->has('brand_id')) {
-                    $query->where('brand_id', $request->brand_id);
-                }
-                
-                if ($request->has('search')) {
-                    $search = $request->search;
-                    $query->where(function($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
-                    });
-                }
-                
-                // Price range filtering - uwzględnia również ceny promocyjne
-                if ($request->has('price_min') && is_numeric($request->price_min)) {
-                    $priceMin = (float)$request->price_min;
-                    $query->where(function($q) use ($priceMin) {
-                        // Produkty gdzie oryginalna cena jest >= min
-                        $q->where('price', '>=', $priceMin)
-                          // LUB produkty z promocją gdzie cena promocyjna jest >= min
-                          ->orWhereHas('activePromotions', function($promotionQuery) use ($priceMin) {
-                              $promotionQuery->whereRaw('
-                                  CASE 
-                                      WHEN promotions.discount_type = "percentage" THEN 
-                                          products.price * (1 - (promotions.discount_value / 100))
-                                      WHEN promotions.discount_type = "fixed" THEN 
-                                          GREATEST(0, products.price - promotions.discount_value)
-                                      ELSE products.price
-                                  END >= ?
-                              ', [$priceMin]);
-                          });
-                    });
-                }
-                
-                if ($request->has('price_max') && is_numeric($request->price_max)) {
-                    $priceMax = (float)$request->price_max;
-                    $query->where(function($q) use ($priceMax) {
-                        // Produkty gdzie oryginalna cena jest <= max
-                        $q->where('price', '<=', $priceMax)
-                          // LUB produkty z promocją gdzie cena promocyjna jest <= max
-                          ->orWhereHas('activePromotions', function($promotionQuery) use ($priceMax) {
-                              $promotionQuery->whereRaw('
-                                  CASE 
-                                      WHEN promotions.discount_type = "percentage" THEN 
-                                          products.price * (1 - (promotions.discount_value / 100))
-                                      WHEN promotions.discount_type = "fixed" THEN 
-                                          GREATEST(0, products.price - promotions.discount_value)
-                                      ELSE products.price
-                                  END <= ?
-                              ', [$priceMax]);
-                          });
-                    });
-                }
-                
-                // Featured products filter
-                if ($request->boolean('featured_only')) {
-                    $columns = DB::getSchemaBuilder()->getColumnListing('products');
-                    if (in_array('is_featured', $columns)) {
-                        $query->where('is_featured', true);
-                    }
-                }
-                
-                // In stock filter
-                if ($request->boolean('in_stock_only')) {
-                    $columns = DB::getSchemaBuilder()->getColumnListing('products');
-                    if (in_array('stock', $columns)) {
-                        $query->where('stock', '>', 0);
-                    }
-                }
-                
-                // On promotion filter
-                if ($request->boolean('on_promotion_only')) {
-                    $query->whereHas('activePromotions');
-                }
-                
-                // Apply sorting
-                $sortField = $request->sort_by ?? 'created_at';
-                $sortDirection = $request->sort_direction ?? 'desc';
-                
-                // Validate sort field to prevent SQL injection
-                $allowedSortFields = ['created_at', 'name', 'price', 'updated_at'];
-                if (!in_array($sortField, $allowedSortFields)) {
-                    $sortField = 'created_at';
-                }
-                
-                if (!in_array(strtolower($sortDirection), ['asc', 'desc'])) {
-                    $sortDirection = 'desc';
-                }
-                
-                $query->orderBy($sortField, $sortDirection);
-                
-                // Pagination
-                $perPage = (int)($request->per_page ?? 12);
-                $perPage = max(1, min($perPage, 50)); // Limit between 1 and 50
-                
-                return $query->paginate($perPage);
-            });
+            $products = $this->productService->getProducts($request);
             
             // Add promotion information to each product
             $products->getCollection()->transform(function ($product) {
-                $bestPromotion = $product->getBestActivePromotion();
-                if ($bestPromotion) {
-                    $product->promotion_price = $product->getPromotionalPrice();
-                    $product->savings = $product->getSavingsAmount();
-                    $product->promotion = [
-                        'id' => $bestPromotion->id,
-                        'title' => $bestPromotion->title,
-                        'badge_text' => $bestPromotion->badge_text,
-                        'badge_color' => $bestPromotion->badge_color,
-                        'discount_type' => $bestPromotion->discount_type,
-                        'discount_value' => $bestPromotion->discount_value
-                    ];
-                } else {
-                    $product->promotion_price = $product->price;
-                    $product->savings = 0;
-                }
-                return $product;
+                return $this->productService->addPromotionInfo($product);
             });
             
+            $cacheKey = 'products_list_' . md5(json_encode($request->all()));
             $cacheUsed = Cache::has($cacheKey);
             
             Log::info('Products query successful', [
@@ -190,23 +55,12 @@ class ProductController extends Controller
                 ]))
             ]);
             
-            if ($cacheUsed) {
-                Log::info('Cache HIT for key: ' . $cacheKey);
-            }
-            
             // Add metadata to response
             $response = $products->toArray();
             $response['meta'] = array_merge($response['meta'] ?? [], [
                 'cache_hit' => $cacheUsed,
                 'cache_key' => substr($cacheKey, 0, 20) . '...', // Show first 20 chars for debugging
-                'filters_available' => [
-                    'categories' => Category::ordered()->get(['id', 'name']),
-                    'brands' => \App\Models\Brand::orderBy('name')->get(['id', 'name']),
-                    'price_range' => [
-                        'min' => Product::min('price'),
-                        'max' => Product::max('price'),
-                    ]
-                ]
+                'filters_available' => $this->productService->getFiltersMetadata()
             ]);
             
             return response()->json($response);
@@ -236,49 +90,8 @@ class ProductController extends Controller
             'product_id' => $id
         ]);
         
-        DB::enableQueryLog();
-        
         try {
-            // Sprawdź, czy istnieje model Review i czy zawiera metodę approved
-            $hasReviews = false;
-            try {
-                if (class_exists('App\\Models\\Review') && 
-                    Schema::hasTable('reviews') && 
-                    method_exists('App\\Models\\Review', 'scopeApproved')) {
-                    $hasReviews = true;
-                }
-            } catch (Exception $e) {
-                Log::warning('Error checking for Review model', [
-                    'error' => $e->getMessage()
-                ]);
-            }
-            
-            // Jeśli model Review istnieje, pobierz również recenzje
-            if ($hasReviews) {
-                $product = Product::with(['category', 'brand', 'activePromotions', 'reviews' => function($query) {
-                    $query->approved()->latest();
-                }])->findOrFail($id);
-            } else {
-                $product = Product::with(['category', 'brand', 'activePromotions'])->findOrFail($id);
-            }
-            
-            // Add promotion information
-            $bestPromotion = $product->getBestActivePromotion();
-            if ($bestPromotion) {
-                $product->promotion_price = $product->getPromotionalPrice();
-                $product->savings = $product->getSavingsAmount();
-                $product->promotion = [
-                    'id' => $bestPromotion->id,
-                    'title' => $bestPromotion->title,
-                    'badge_text' => $bestPromotion->badge_text,
-                    'badge_color' => $bestPromotion->badge_color,
-                    'discount_type' => $bestPromotion->discount_type,
-                    'discount_value' => $bestPromotion->discount_value
-                ];
-            } else {
-                $product->promotion_price = $product->price;
-                $product->savings = 0;
-            }
+            $product = $this->productService->getProduct($id);
             
             Log::info('Product detail response', [
                 'product_id' => $id,
@@ -286,18 +99,15 @@ class ProductController extends Controller
                 'product_columns' => array_keys($product->toArray()),
                 'has_category' => $product->category ? true : false,
                 'has_brand' => $product->brand ? true : false,
-                'has_reviews' => $hasReviews,
-                'query_log' => DB::getQueryLog()
+                'has_reviews' => $product->reviews !== null
             ]);
             
-            // Return product with a consistent format
             return response()->json($product);
         } catch (Exception $e) {
             Log::error('Error fetching product details', [
                 'id' => $id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'query_log' => DB::getQueryLog()
+                'trace' => $e->getTraceAsString()
             ]);
             
             return response()->json(['error' => 'Product not found'], 404);
@@ -313,83 +123,17 @@ class ProductController extends Controller
     {
         Log::info('ProductController@latest called');
         
-        DB::enableQueryLog();
-        
         try {
-            // Check if Review model exists
-            $hasReviews = false;
-            try {
-                if (class_exists('App\\Models\\Review') && 
-                    Schema::hasTable('reviews') && 
-                    method_exists('App\\Models\\Review', 'scopeApproved')) {
-                    $hasReviews = true;
-                }
-            } catch (Exception $e) {
-                Log::warning('Error checking for Review model in latest', [
-                    'error' => $e->getMessage()
-                ]);
-            }
-            
+            $products = $this->productService->getLatestProducts();
             $cacheKey = 'latest_products';
-            
-            Log::info('Latest products cache check', [
-                'cache_key' => $cacheKey,
-                'cache_exists_before' => Cache::has($cacheKey)
-            ]);
-            
-            // Cache latest products for 30 minutes (shorter cache for fresh content)
-            $products = Cache::remember($cacheKey, 1800, function () use ($hasReviews, $cacheKey) {
-                Log::info('Cache MISS for latest products - executing query for key: ' . $cacheKey);
-                // Get latest products sorted by creation date
-                $query = Product::with(['category', 'brand', 'activePromotions']);
-                
-                // Add reviews if available
-                if ($hasReviews) {
-                    $query->with(['reviews' => function($query) {
-                        $query->approved()->latest();
-                    }]);
-                }
-                
-                // Order by creation date (newest first) and take 9 products
-                $products = $query->latest('created_at')->take(9)->get();
-                
-                return $products;
-            });
-            
-            // Add promotion information to each product
-            $products->transform(function ($product) {
-                $bestPromotion = $product->getBestActivePromotion();
-                if ($bestPromotion) {
-                    $product->promotion_price = $product->getPromotionalPrice();
-                    $product->savings = $product->getSavingsAmount();
-                    $product->promotion = [
-                        'id' => $bestPromotion->id,
-                        'title' => $bestPromotion->title,
-                        'badge_text' => $bestPromotion->badge_text,
-                        'badge_color' => $bestPromotion->badge_color,
-                        'discount_type' => $bestPromotion->discount_type,
-                        'discount_value' => $bestPromotion->discount_value
-                    ];
-                } else {
-                    $product->promotion_price = $product->price;
-                    $product->savings = 0;
-                }
-                return $product;
-            });
-            
             $cacheUsed = Cache::has($cacheKey);
             
             Log::info('Latest products response', [
                 'count' => $products->count(),
                 'columns' => $products->count() > 0 ? array_keys($products->first()->toArray()) : [],
-                'query_log' => DB::getQueryLog(),
                 'cache_hit' => $cacheUsed,
                 'cache_key' => $cacheKey,
             ]);
-            
-            if ($cacheUsed) {
-                Log::info('Cache HIT for latest products key: ' . $cacheKey);
-            }
             
             return response()->json([
                 'data' => $products,
@@ -403,8 +147,7 @@ class ProductController extends Controller
         } catch (Exception $e) {
             Log::error('Error fetching latest products', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'query_log' => DB::getQueryLog()
+                'trace' => $e->getTraceAsString()
             ]);
             
             return response()->json([

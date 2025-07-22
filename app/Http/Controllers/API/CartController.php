@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CartItem;
 use App\Models\Product;
 use App\Services\CartService;
+use App\Services\PromotionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,10 +16,12 @@ use Illuminate\Validation\ValidationException;
 class CartController extends Controller
 {
     protected $cartService;
+    protected $promotionService;
     
-    public function __construct(CartService $cartService)
+    public function __construct(CartService $cartService, PromotionService $promotionService)
     {
         $this->cartService = $cartService;
+        $this->promotionService = $promotionService;
     }
 
     /**
@@ -31,23 +34,7 @@ class CartController extends Controller
             
             // Add promotion information to each cart item
             $cartItems->each(function ($item) {
-                $product = $item->product;
-                $bestPromotion = $product->getBestActivePromotion();
-                if ($bestPromotion) {
-                    $product->promotion_price = $product->getPromotionalPrice();
-                    $product->savings = $product->getSavingsAmount();
-                    $product->promotion = [
-                        'id' => $bestPromotion->id,
-                        'title' => $bestPromotion->title,
-                        'badge_text' => $bestPromotion->badge_text,
-                        'badge_color' => $bestPromotion->badge_color,
-                        'discount_type' => $bestPromotion->discount_type,
-                        'discount_value' => $bestPromotion->discount_value
-                    ];
-                } else {
-                    $product->promotion_price = $product->price;
-                    $product->savings = 0;
-                }
+                $this->promotionService->addPromotionInfo($item->product);
             });
             
             $subtotal = $cartItems->sum(function ($item) {
