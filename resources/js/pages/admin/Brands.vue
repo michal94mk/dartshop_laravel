@@ -261,7 +261,7 @@ export default {
       try {
         loading.value = true
         const response = await axios.get('/api/admin/brands', { params: filters })
-        brands.value = response.data
+        brands.value = response.data.data
       } catch (error) {
         console.error('Error fetching brands:', error)
         
@@ -316,8 +316,8 @@ export default {
         // Clear previous errors
         formErrors.value = {}
         
-        await axios.post('/api/admin/brands', form.value)
-        alertStore.success('Marka została dodana.')
+        const response = await axios.post('/api/admin/brands', form.value)
+        alertStore.success(response.data.message || 'Marka została dodana.')
         closeForm()
         fetchBrands() // Refresh the list
       } catch (error) {
@@ -353,8 +353,8 @@ export default {
         // Clear previous errors
         formErrors.value = {}
         
-        await axios.put(`/api/admin/brands/${form.value.id}`, form.value)
-        alertStore.success('Marka została zaktualizowana.')
+        const response = await axios.put(`/api/admin/brands/${form.value.id}`, form.value)
+        alertStore.success(response.data.message || 'Marka została zaktualizowana.')
         closeForm()
         fetchBrands() // Refresh the list
       } catch (error) {
@@ -392,8 +392,8 @@ export default {
                       ? brandToDelete.value.id 
                       : brandToDelete.value;
         
-        await axios.delete(`/api/admin/brands/${brandId}`)
-        alertStore.success('Marka została usunięta.')
+        const response = await axios.delete(`/api/admin/brands/${brandId}`)
+        alertStore.success(response.data.message || 'Marka została usunięta.')
         showDeleteModal.value = false
         fetchBrands() // Refresh the list
       } catch (error) {

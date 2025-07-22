@@ -18,18 +18,14 @@ class PrivacyPolicyController extends BaseAdminController
         try {
             $policies = PrivacyPolicy::orderBy('created_at', 'desc')->get();
             
-            return response()->json([
-                'privacy_policies' => $policies
-            ]);
+            return $this->successResponse('Polityki prywatności pobrane pomyślnie', $policies);
         } catch (\Exception $e) {
             Log::error('Failed to get privacy policies', [
                 'error' => $e->getMessage(),
                 'method' => __METHOD__
             ]);
             
-            return response()->json([
-                'error' => 'Error fetching privacy policies: ' . $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Błąd podczas pobierania polityk prywatności: ' . $e->getMessage(), 500);
         }
     }
 
@@ -49,10 +45,7 @@ class PrivacyPolicyController extends BaseAdminController
                 $policy->setAsActive();
             }
 
-            return response()->json([
-                'message' => 'Polityka prywatności została utworzona',
-                'privacy_policy' => $policy
-            ], 201);
+            return $this->successResponse('Polityka prywatności została utworzona', $policy);
         } catch (\Exception $e) {
             Log::error('Failed to create privacy policy', [
                 'error' => $e->getMessage(),
@@ -60,9 +53,7 @@ class PrivacyPolicyController extends BaseAdminController
                 'method' => __METHOD__
             ]);
             
-            return response()->json([
-                'error' => 'Error creating privacy policy: ' . $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Błąd podczas tworzenia polityki prywatności: ' . $e->getMessage(), 500);
         }
     }
 
@@ -75,9 +66,7 @@ class PrivacyPolicyController extends BaseAdminController
     public function show(PrivacyPolicy $privacyPolicy)
     {
         try {
-            return response()->json([
-                'privacy_policy' => $privacyPolicy
-            ]);
+            return $this->successResponse('Polityka prywatności pobrana pomyślnie', $privacyPolicy);
         } catch (\Exception $e) {
             Log::error('Failed to get privacy policy', [
                 'error' => $e->getMessage(),
@@ -85,9 +74,7 @@ class PrivacyPolicyController extends BaseAdminController
                 'method' => __METHOD__
             ]);
             
-            return response()->json([
-                'error' => 'Error fetching privacy policy: ' . $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Błąd podczas pobierania polityki prywatności: ' . $e->getMessage(), 500);
         }
     }
 
@@ -108,10 +95,7 @@ class PrivacyPolicyController extends BaseAdminController
                 $privacyPolicy->setAsActive();
             }
 
-            return response()->json([
-                'message' => 'Polityka prywatności została zaktualizowana',
-                'privacy_policy' => $privacyPolicy
-            ]);
+            return $this->successResponse('Polityka prywatności została zaktualizowana', $privacyPolicy);
         } catch (\Exception $e) {
             Log::error('Failed to update privacy policy', [
                 'error' => $e->getMessage(),
@@ -120,9 +104,7 @@ class PrivacyPolicyController extends BaseAdminController
                 'method' => __METHOD__
             ]);
             
-            return response()->json([
-                'error' => 'Error updating privacy policy: ' . $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Błąd podczas aktualizacji polityki prywatności: ' . $e->getMessage(), 500);
         }
     }
 
@@ -137,16 +119,12 @@ class PrivacyPolicyController extends BaseAdminController
         try {
             // Don't allow deletion of active policy
             if ($privacyPolicy->is_active) {
-                return response()->json([
-                    'message' => 'Nie można usunąć aktywnej polityki prywatności'
-                ], 422);
+                return $this->errorResponse('Nie można usunąć aktywnej polityki prywatności', 422);
             }
 
             $privacyPolicy->delete();
 
-            return response()->json([
-                'message' => 'Polityka prywatności została usunięta'
-            ]);
+            return $this->successResponse('Polityka prywatności została usunięta');
         } catch (\Exception $e) {
             Log::error('Failed to delete privacy policy', [
                 'error' => $e->getMessage(),
@@ -154,9 +132,7 @@ class PrivacyPolicyController extends BaseAdminController
                 'method' => __METHOD__
             ]);
             
-            return response()->json([
-                'error' => 'Error deleting privacy policy: ' . $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Błąd podczas usuwania polityki prywatności: ' . $e->getMessage(), 500);
         }
     }
 
@@ -171,10 +147,7 @@ class PrivacyPolicyController extends BaseAdminController
         try {
             $privacyPolicy->setAsActive();
 
-            return response()->json([
-                'message' => 'Polityka prywatności została ustawiona jako aktywna',
-                'privacy_policy' => $privacyPolicy->fresh()
-            ]);
+            return $this->successResponse('Polityka prywatności została ustawiona jako aktywna', $privacyPolicy->fresh());
         } catch (\Exception $e) {
             Log::error('Failed to set privacy policy as active', [
                 'error' => $e->getMessage(),
@@ -182,9 +155,7 @@ class PrivacyPolicyController extends BaseAdminController
                 'method' => __METHOD__
             ]);
             
-            return response()->json([
-                'error' => 'Error setting privacy policy as active: ' . $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Błąd podczas ustawiania polityki prywatności jako aktywnej: ' . $e->getMessage(), 500);
         }
     }
 

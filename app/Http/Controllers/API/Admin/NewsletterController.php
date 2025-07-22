@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Response;
  * )
  */
 
-class NewsletterController extends Controller
+class NewsletterController extends BaseAdminController
 {
     /**
      * Display a listing of newsletter subscriptions
@@ -153,7 +153,7 @@ class NewsletterController extends Controller
         $perPage = $request->get('per_page', 15);
         $subscriptions = $query->paginate($perPage);
 
-        return response()->json([
+        return $this->successResponse('Subskrybenci newslettera pobrani pomyślnie', [
             'data' => $subscriptions->items(),
             'pagination' => [
                 'current_page' => $subscriptions->currentPage(),
@@ -174,10 +174,7 @@ class NewsletterController extends Controller
     {
         $newsletter->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Subskrypcja została usunięta'
-        ]);
+        return $this->successResponse('Subskrypcja została usunięta');
     }
 
     /**

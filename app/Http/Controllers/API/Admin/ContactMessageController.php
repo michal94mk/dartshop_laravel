@@ -119,9 +119,9 @@ class ContactMessageController extends BaseAdminController
             $perPage = $this->getPerPage($request);
             $messages = $query->paginate($perPage);
             
-            return response()->json($messages);
+            return $this->successResponse('Wiadomości kontaktowe pobrane pomyślnie', $messages);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error fetching contact messages: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas pobierania wiadomości kontaktowych: ' . $e->getMessage(), 500);
         }
     }
 
@@ -134,7 +134,7 @@ class ContactMessageController extends BaseAdminController
     public function show($id)
     {
         $message = ContactMessage::findOrFail($id);
-        return response()->json($message);
+        return $this->successResponse('Wiadomość kontaktowa pobrana pomyślnie', $message);
     }
 
     /**
@@ -158,7 +158,7 @@ class ContactMessageController extends BaseAdminController
         $message->status = $request->status;
         $message->save();
 
-        return response()->json($message);
+        return $this->successResponse('Wiadomość została zaktualizowana', $message);
     }
 
     /**
@@ -200,7 +200,7 @@ class ContactMessageController extends BaseAdminController
         $message->notes = $request->notes;
         $message->save();
 
-        return response()->json($message);
+        return $this->successResponse('Wiadomość została zaktualizowana', $message);
     }
 
     /**
@@ -214,7 +214,7 @@ class ContactMessageController extends BaseAdminController
         $message = ContactMessage::findOrFail($id);
         $message->delete();
 
-        return response()->json(null, 204);
+        return $this->successResponse('Wiadomość została usunięta', null, 204);
     }
 
     /**
@@ -243,9 +243,9 @@ class ContactMessageController extends BaseAdminController
             $contactMessage->reply = $request->message;
             $contactMessage->save();
             
-            return response()->json(['success' => true, 'message' => 'Odpowiedź została wysłana']);
+            return $this->successResponse('Odpowiedź została wysłana');
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Błąd podczas wysyłania odpowiedzi: ' . $e->getMessage()], 500);
+            return $this->errorResponse('Błąd podczas wysyłania odpowiedzi: ' . $e->getMessage(), 500);
         }
     }
 } 

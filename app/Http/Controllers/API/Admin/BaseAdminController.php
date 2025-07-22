@@ -62,9 +62,27 @@ class BaseAdminController extends Controller
      */
     protected function successResponse($message, $data = [], $code = 200)
     {
+        // Jeśli komunikat jest po angielsku, zamień na polski (przykładowe tłumaczenia)
+        $translations = [
+            'created successfully' => 'został(a) utworzony(a) pomyślnie',
+            'updated successfully' => 'został(a) zaktualizowany(a) pomyślnie',
+            'deleted successfully' => 'został(a) usunięty(a) pomyślnie',
+            'fetched successfully' => 'pobrano pomyślnie',
+            'order updated successfully' => 'kolejność została zaktualizowana',
+            'approved successfully' => 'zatwierdzono pomyślnie',
+            'rejected successfully' => 'odrzucono pomyślnie',
+            'activated' => 'aktywowany(a)',
+            'deactivated' => 'dezaktywowany(a)',
+            'featured' => 'wyróżniony(a)',
+            'unfeatured' => 'usunięto z wyróżnionych',
+        ];
+        $msg = $message;
+        foreach ($translations as $en => $pl) {
+            $msg = preg_replace('/\b' . preg_quote($en, '/') . '\b/i', $pl, $msg);
+        }
         return response()->json([
             'success' => true,
-            'message' => $message,
+            'message' => $msg,
             'data' => $data,
         ], $code);
     }
@@ -81,11 +99,27 @@ class BaseAdminController extends Controller
     {
         // Log error for debugging
         \Illuminate\Support\Facades\Log::error('Admin API Error: ' . $message);
+        // Przykładowe tłumaczenia błędów
+        $translations = [
+            'not found' => 'nie znaleziono',
+            'error' => 'błąd',
+            'validation error' => 'błąd walidacji',
+            'forbidden' => 'brak uprawnień',
+            'unauthorized' => 'brak autoryzacji',
+            'cannot delete' => 'nie można usunąć',
+            'already exists' => 'już istnieje',
+            'must be approved' => 'musi być zatwierdzony(a)',
+            'maximum' => 'maksymalnie',
+        ];
+        $msg = $message;
+        foreach ($translations as $en => $pl) {
+            $msg = preg_replace('/\b' . preg_quote($en, '/') . '\b/i', $pl, $msg);
+        }
         
         // Create base response array
         $response = [
             'success' => false,
-            'message' => $message,
+            'message' => $msg,
         ];
         
         if (!empty($errors)) {

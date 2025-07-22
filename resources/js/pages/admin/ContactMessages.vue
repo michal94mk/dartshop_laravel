@@ -431,7 +431,7 @@ export default {
         console.log('Fetching messages with params:', params)
         
         const response = await axios.get('/api/admin/contact-messages', { params })
-        messages.value = response.data
+        messages.value = response.data.data
       } catch (error) {
         console.error('Error fetching contact messages:', error)
         alertStore.error('Wystąpił błąd podczas pobierania wiadomości.')
@@ -470,7 +470,7 @@ export default {
     // Update message status
     const updateStatus = async () => {
       try {
-        await axios.patch(`/api/admin/contact-messages/${selectedMessage.value.id}/status`, {
+        const response = await axios.patch(`/api/admin/contact-messages/${selectedMessage.value.id}/status`, {
           status: selectedMessage.value.status
         })
         
@@ -480,7 +480,7 @@ export default {
           messages.value.data[index].status = selectedMessage.value.status
         }
         
-        alertStore.success('Status wiadomości został zaktualizowany.')
+        alertStore.success(response.data.message || 'Status wiadomości został zaktualizowany.')
       } catch (error) {
         console.error('Error updating message status:', error)
         alertStore.error('Wystąpił błąd podczas aktualizacji statusu wiadomości.')
@@ -490,7 +490,7 @@ export default {
     // Save notes
     const saveNotes = async () => {
       try {
-        await axios.patch(`/api/admin/contact-messages/${selectedMessage.value.id}/notes`, {
+        const response = await axios.patch(`/api/admin/contact-messages/${selectedMessage.value.id}/notes`, {
           notes: selectedMessage.value.notes
         })
         
@@ -500,7 +500,7 @@ export default {
           messages.value.data[index].notes = selectedMessage.value.notes
         }
         
-        alertStore.success('Notatki zostały zapisane.')
+        alertStore.success(response.data.message || 'Notatki zostały zapisane.')
         closeDetails() // Close the modal after successful save
       } catch (error) {
         console.error('Error saving notes:', error)
@@ -519,7 +519,7 @@ export default {
         responseSending.value = true
         
         // Send the response email
-        await axios.post(`/api/admin/contact-messages/${selectedMessage.value.id}/respond`, {
+        const response = await axios.post(`/api/admin/contact-messages/${selectedMessage.value.id}/respond`, {
           subject: responseData.value.subject,
           message: responseData.value.message
         })
@@ -563,7 +563,7 @@ export default {
           }
         }
         
-        alertStore.success('Odpowiedź została wysłana.')
+        alertStore.success(response.data.message || 'Odpowiedź została wysłana.')
         closeDetails() // Close the modal after successful response
         
         // Reset response form
@@ -590,9 +590,9 @@ export default {
     // Delete message
     const deleteMessage = async () => {
       try {
-        await axios.delete(`/api/admin/contact-messages/${messageToDelete.value.id}`)
+        const response = await axios.delete(`/api/admin/contact-messages/${messageToDelete.value.id}`)
         messages.value.data = messages.value.data.filter(message => message.id !== messageToDelete.value.id)
-        alertStore.success('Wiadomość została usunięta.')
+        alertStore.success(response.data.message || 'Wiadomość została usunięta.')
         showDeleteModal.value = false
       } catch (error) {
         console.error('Error deleting message:', error)

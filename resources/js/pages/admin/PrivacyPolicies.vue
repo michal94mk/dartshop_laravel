@@ -356,7 +356,7 @@ export default {
         error.value = null
         
         const response = await axios.get('/api/admin/privacy-policies')
-        policies.value = response.data.privacy_policies || []
+        policies.value = response.data.data || []
       } catch (err) {
         error.value = 'Nie udało się załadować polityk prywatności'
         alertStore.error('Nie udało się załadować polityk prywatności')

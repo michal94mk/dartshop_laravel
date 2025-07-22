@@ -177,7 +177,7 @@ export default {
       try {
         loading.value = true
         const response = await axios.get('/api/admin/about')
-        aboutUs.value = response.data
+        aboutUs.value = response.data.data
         
         // Ustaw domyślne style jeśli nie zostały jeszcze ustawione
         if (!aboutUs.value.header_style) {
@@ -192,7 +192,7 @@ export default {
           headerOptions.value.contentLayout = aboutUs.value.content_layout
         }
         
-        originalAboutUs.value = JSON.parse(JSON.stringify(response.data))
+        originalAboutUs.value = JSON.parse(JSON.stringify(response.data.data))
       } catch (error) {
         console.error('Error fetching about page content:', error)
         alertStore.error('Nie udało się załadować danych strony')

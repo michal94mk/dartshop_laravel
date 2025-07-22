@@ -202,9 +202,9 @@ class OrderController extends BaseAdminController
             
             Log::info('OrderController@index success. Orders count: ' . $orders->count());
             
-            return response()->json($orders);
+            return $this->successResponse('Zamówienia pobrane pomyślnie', $orders);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error fetching orders: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas pobierania zamówień: ' . $e->getMessage(), 500);
         }
     }
 
@@ -256,7 +256,7 @@ class OrderController extends BaseAdminController
             DB::commit();
             Log::info('Order creation successful. Transaction committed.');
 
-            return $this->successResponse('Order created successfully', $order, 201);
+            return $this->successResponse('Zamówienie zostało utworzone', $order, 201);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error creating order: ' . $e->getMessage(), [
@@ -264,7 +264,7 @@ class OrderController extends BaseAdminController
                 'trace' => $e->getTraceAsString(),
                 'request' => $request->all()
             ]);
-            return $this->errorResponse('Error creating order: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas tworzenia zamówienia: ' . $e->getMessage(), 500);
         }
     }
 
@@ -279,12 +279,12 @@ class OrderController extends BaseAdminController
         try {
             $id = (int) $id;
             $order = Order::with(['user', 'items.product'])->findOrFail($id);
-            return response()->json($order);
+            return $this->successResponse('Zamówienie pobrane', $order);
         } catch (ModelNotFoundException $e) {
             Log::error('Order not found for show:', ['id' => $id, 'error' => $e->getMessage()]);
             return $this->errorResponse('Zamówienie o ID ' . $id . ' nie zostało znalezione', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error fetching order: ' . $e->getMessage(), 404);
+            return $this->errorResponse('Błąd podczas pobierania zamówienia: ' . $e->getMessage(), 404);
         }
     }
 
@@ -352,7 +352,7 @@ class OrderController extends BaseAdminController
             DB::commit();
             Log::info('Order update successful. Transaction committed.');
 
-            return $this->successResponse('Order updated successfully', $order);
+            return $this->successResponse('Zamówienie zostało zaktualizowane', $order);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::error('Order not found for update:', ['id' => $id, 'error' => $e->getMessage()]);
             return $this->errorResponse('Zamówienie o ID ' . $id . ' nie zostało znalezione', 404);
@@ -363,7 +363,7 @@ class OrderController extends BaseAdminController
                 'trace' => $e->getTraceAsString(),
                 'request' => $request->all()
             ]);
-            return $this->errorResponse('Error updating order: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas aktualizacji zamówienia: ' . $e->getMessage(), 500);
         }
     }
 
@@ -404,12 +404,12 @@ class OrderController extends BaseAdminController
                 ));
             }
 
-            return $this->successResponse('Order status updated successfully', $order);
+            return $this->successResponse('Status zamówienia został zaktualizowany', $order);
         } catch (ModelNotFoundException $e) {
             Log::error('Order not found for status update:', ['id' => $id, 'error' => $e->getMessage()]);
             return $this->errorResponse('Zamówienie o ID ' . $id . ' nie zostało znalezione', 404);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error updating order status: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas aktualizacji statusu zamówienia: ' . $e->getMessage(), 500);
         }
     }
 
@@ -436,13 +436,13 @@ class OrderController extends BaseAdminController
             
             DB::commit();
 
-            return $this->successResponse('Order deleted successfully');
+            return $this->successResponse('Zamówienie zostało usunięte');
         } catch (ModelNotFoundException $e) {
             Log::error('Order not found for delete:', ['id' => $id, 'error' => $e->getMessage()]);
             return $this->errorResponse('Zamówienie o ID ' . $id . ' nie zostało znalezione', 404);
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->errorResponse('Error deleting order: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas usuwania zamówienia: ' . $e->getMessage(), 500);
         }
     }
     

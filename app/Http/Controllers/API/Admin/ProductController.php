@@ -187,12 +187,12 @@ class ProductController extends BaseAdminController
             
             Log::info('Admin ProductController@index success. Product count: ' . $products->count());
             
-            return response()->json($products);
+            return $this->successResponse('Produkty pobrane pomyślnie', $products);
         } catch (\Exception $e) {
             Log::error('Admin ProductController@index error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
-            return $this->errorResponse('Error fetching products: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas pobierania produktów: ' . $e->getMessage(), 500);
         }
     }
 
@@ -247,17 +247,13 @@ class ProductController extends BaseAdminController
             // Load the product with its relationships and return
             $product = $product->fresh(['category', 'brand']);
             
-            return $this->successResponse(
-                'Product created successfully',
-                $product,
-                201
-            );
+            return $this->successResponse('Produkt został utworzony', $product, 201);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error creating product: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
-            return $this->errorResponse('Error creating product: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas tworzenia produktu: ' . $e->getMessage(), 500);
         }
     }
 
@@ -272,11 +268,9 @@ class ProductController extends BaseAdminController
         try {
             $product = Product::with(['category', 'brand'])->findOrFail($id);
             
-            return response()->json([
-                'data' => $product
-            ]);
+            return $this->successResponse('Produkt pobrany', $product);
         } catch (\Exception $e) {
-            return $this->errorResponse('Product not found', 404);
+            return $this->errorResponse('Produkt nie został znaleziony', 404);
         }
     }
 
@@ -334,16 +328,13 @@ class ProductController extends BaseAdminController
             // Load the product with its relationships and return
             $product = $product->fresh(['category', 'brand']);
             
-            return $this->successResponse(
-                'Product updated successfully',
-                $product
-            );
+            return $this->successResponse('Produkt został zaktualizowany', $product);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error updating product: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
-            return $this->errorResponse('Error updating product: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas aktualizacji produktu: ' . $e->getMessage(), 500);
         }
     }
 
@@ -412,7 +403,7 @@ class ProductController extends BaseAdminController
             // Clear categories cache since product count changed
             $this->clearCategoriesCache();
             
-            return $this->successResponse('Product deleted successfully');
+            return $this->successResponse('Produkt został usunięty');
         } catch (\Exception $e) {
             Log::error('Error deleting product: ' . $e->getMessage(), [
                 'id' => $id,
@@ -420,9 +411,9 @@ class ProductController extends BaseAdminController
             ]);
             
             if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
-                return $this->errorResponse('Product not found', 404);
+                return $this->errorResponse('Produkt nie został znaleziony', 404);
             }
-            return $this->errorResponse('Error deleting product: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas usuwania produktu: ' . $e->getMessage(), 500);
         }
     }
     
@@ -441,15 +432,12 @@ class ProductController extends BaseAdminController
             
             Log::info('ProductController@getFormData success. Categories: ' . $categories->count() . ', Brands: ' . $brands->count());
             
-            return response()->json([
-                'categories' => $categories,
-                'brands' => $brands
-            ]);
+            return $this->successResponse('Dane formularza pobrane pomyślnie', ['categories' => $categories, 'brands' => $brands]);
         } catch (\Exception $e) {
             Log::error('ProductController@getFormData error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
-            return $this->errorResponse('Error fetching form data: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas pobierania danych formularza: ' . $e->getMessage(), 500);
         }
     }
 } 

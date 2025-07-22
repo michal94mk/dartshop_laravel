@@ -287,9 +287,9 @@ export default {
         const response = await api.getAdminNewsletter(params);
         console.log('Newsletter API response:', response.data);
         
-        subscriptions.value = response.data.data || [];
-        Object.assign(pagination, response.data.pagination || {});
-        Object.assign(stats, response.data.stats || {});
+        subscriptions.value = response.data.data.data || [];
+        Object.assign(pagination, response.data.data.pagination || {});
+        Object.assign(stats, response.data.data.stats || {});
         
         console.log('Subscriptions loaded:', subscriptions.value.length);
         console.log('Stats:', stats);

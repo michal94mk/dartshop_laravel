@@ -356,7 +356,7 @@ export default {
         error.value = null
         
         const response = await axios.get('/api/admin/terms-of-service')
-        terms.value = response.data.terms_of_service || []
+        terms.value = response.data.data || response.data.terms_of_service || []
       } catch (err) {
         error.value = 'Nie udało się załadować regulaminów'
         alertStore.error('Nie udało się załadować regulaminów')
@@ -369,7 +369,7 @@ export default {
     const fetchStats = async () => {
       try {
         const response = await axios.get('/api/admin/terms-of-service/stats/acceptance')
-        stats.value = response.data
+        stats.value = response.data.data || response.data
       } catch (err) {
         console.error('Error fetching stats:', err)
       }
@@ -416,8 +416,8 @@ export default {
     
     const deleteTerm = async () => {
       try {
-        await axios.delete(`/api/admin/terms-of-service/${termToDelete.value.id}`)
-        alertStore.success('Regulamin został usunięty')
+        const response = await axios.delete(`/api/admin/terms-of-service/${termToDelete.value.id}`)
+        alertStore.success(response.data.message || 'Regulamin został usunięty')
         showDeleteModal.value = false
         termToDelete.value = null
         await fetchTerms()
@@ -433,11 +433,11 @@ export default {
         submitting.value = true
         
         if (showCreateModal.value) {
-          await axios.post('/api/admin/terms-of-service', form.value)
-          alertStore.success('Regulamin został utworzony')
+          const response = await axios.post('/api/admin/terms-of-service', form.value)
+          alertStore.success(response.data.message || 'Regulamin został utworzony')
         } else {
-          await axios.put(`/api/admin/terms-of-service/${editingTerm.value.id}`, form.value)
-          alertStore.success('Regulamin został zaktualizowany')
+          const response = await axios.put(`/api/admin/terms-of-service/${editingTerm.value.id}`, form.value)
+          alertStore.success(response.data.message || 'Regulamin został zaktualizowany')
         }
         
         closeModal()
@@ -453,8 +453,8 @@ export default {
     
     const setAsActive = async (term) => {
       try {
-        await axios.post(`/api/admin/terms-of-service/${term.id}/set-active`)
-        alertStore.success('Regulamin został ustawiony jako aktywny')
+        const response = await axios.post(`/api/admin/terms-of-service/${term.id}/set-active`)
+        alertStore.success(response.data.message || 'Regulamin został ustawiony jako aktywny')
         await fetchTerms()
       } catch (err) {
         alertStore.error('Nie udało się ustawić regulaminu jako aktywnego')

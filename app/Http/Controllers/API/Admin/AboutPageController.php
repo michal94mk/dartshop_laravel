@@ -54,14 +54,14 @@ class AboutPageController extends BaseAdminController
                 $aboutPage->save();
             }
             
-            return response()->json($aboutPage);
+            return $this->successResponse('Dane strony O nas pobrane pomyślnie', $aboutPage);
         } catch (\Exception $e) {
             Log::error('Failed to get about page data', [
                 'error' => $e->getMessage(),
                 'method' => __METHOD__
             ]);
             
-            return $this->errorResponse('Error fetching about page data: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas pobierania danych strony O nas: ' . $e->getMessage(), 500);
         }
     }
     
@@ -74,14 +74,14 @@ class AboutPageController extends BaseAdminController
     {
         try {
             $aboutPages = AboutUs::orderBy('created_at')->get();
-            return response()->json($aboutPages);
+            return $this->successResponse('Wszystkie strony O nas pobrane pomyślnie', $aboutPages);
         } catch (\Exception $e) {
             Log::error('Failed to get all about pages', [
                 'error' => $e->getMessage(),
                 'method' => __METHOD__
             ]);
             
-            return $this->errorResponse('Error fetching about pages: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas pobierania wszystkich stron O nas: ' . $e->getMessage(), 500);
         }
     }
     
@@ -95,7 +95,7 @@ class AboutPageController extends BaseAdminController
     {
         try {
             $aboutPage = AboutUs::findOrFail($id);
-            return response()->json($aboutPage);
+            return $this->successResponse('Strona O nas pobrana pomyślnie', $aboutPage);
         } catch (\Exception $e) {
             Log::error('Failed to get about page', [
                 'error' => $e->getMessage(),
@@ -103,7 +103,7 @@ class AboutPageController extends BaseAdminController
                 'method' => __METHOD__
             ]);
             
-            return $this->errorResponse('About page not found', 404);
+            return $this->errorResponse('Nie znaleziono strony O nas', 404);
         }
     }
 
@@ -121,7 +121,7 @@ class AboutPageController extends BaseAdminController
             
             $aboutPage->save();
             
-            return response()->json($aboutPage);
+            return $this->successResponse('Strona O nas została utworzona', $aboutPage, 201);
         } catch (\Exception $e) {
             Log::error('Failed to create about page', [
                 'error' => $e->getMessage(),
@@ -129,7 +129,7 @@ class AboutPageController extends BaseAdminController
                 'method' => __METHOD__
             ]);
             
-            return $this->errorResponse('Error creating about page: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas tworzenia strony O nas: ' . $e->getMessage(), 500);
         }
     }
 
@@ -151,7 +151,7 @@ class AboutPageController extends BaseAdminController
             $aboutPage->fill($request->validated());
             $aboutPage->save();
             
-            return response()->json($aboutPage);
+            return $this->successResponse('Strona O nas została zaktualizowana', $aboutPage);
         } catch (\Exception $e) {
             Log::error('Failed to update about page', [
                 'error' => $e->getMessage(),
@@ -159,7 +159,7 @@ class AboutPageController extends BaseAdminController
                 'method' => __METHOD__
             ]);
             
-            return $this->errorResponse('Error updating about page: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas aktualizacji strony O nas: ' . $e->getMessage(), 500);
         }
     }
 
@@ -177,7 +177,7 @@ class AboutPageController extends BaseAdminController
             $aboutPage->fill($request->validated());
             $aboutPage->save();
             
-            return response()->json($aboutPage);
+            return $this->successResponse('Strona O nas została zaktualizowana', $aboutPage);
         } catch (\Exception $e) {
             Log::error('Failed to update about page by ID', [
                 'error' => $e->getMessage(),
@@ -186,7 +186,7 @@ class AboutPageController extends BaseAdminController
                 'method' => __METHOD__
             ]);
             
-            return $this->errorResponse('Error updating about page: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas aktualizacji strony O nas: ' . $e->getMessage(), 500);
         }
     }
 
@@ -202,7 +202,7 @@ class AboutPageController extends BaseAdminController
             $aboutPage = AboutUs::findOrFail($id);
             $aboutPage->delete();
             
-            return response()->json(null, 204);
+            return $this->successResponse('Strona O nas została usunięta', null, 204);
         } catch (\Exception $e) {
             Log::error('Failed to delete about page', [
                 'error' => $e->getMessage(),
@@ -210,7 +210,7 @@ class AboutPageController extends BaseAdminController
                 'method' => __METHOD__
             ]);
             
-            return $this->errorResponse('Error deleting about page: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas usuwania strony O nas: ' . $e->getMessage(), 500);
         }
     }
 } 

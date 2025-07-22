@@ -16,18 +16,14 @@ class TermsOfServiceController extends BaseAdminController
         try {
             $terms = TermsOfService::orderBy('created_at', 'desc')->get();
             
-            return response()->json([
-                'terms_of_service' => $terms
-            ]);
+            return $this->successResponse('Regulamin pobrany', $terms);
         } catch (\Exception $e) {
             Log::error('Failed to get terms of service', [
                 'error' => $e->getMessage(),
                 'method' => __METHOD__
             ]);
             
-            return response()->json([
-                'error' => 'Error fetching terms of service: ' . $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Błąd podczas pobierania regulaminu: ' . $e->getMessage(), 500);
         }
     }
 
@@ -44,10 +40,7 @@ class TermsOfServiceController extends BaseAdminController
                 $terms->setAsActive();
             }
 
-            return response()->json([
-                'message' => 'Regulamin został utworzony',
-                'terms_of_service' => $terms
-            ], 201);
+            return $this->successResponse('Regulamin został utworzony', $terms, 201);
         } catch (\Exception $e) {
             Log::error('Failed to create terms of service', [
                 'error' => $e->getMessage(),
@@ -55,9 +48,7 @@ class TermsOfServiceController extends BaseAdminController
                 'method' => __METHOD__
             ]);
             
-            return response()->json([
-                'error' => 'Error creating terms of service: ' . $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Błąd podczas tworzenia regulaminu: ' . $e->getMessage(), 500);
         }
     }
 
@@ -67,9 +58,7 @@ class TermsOfServiceController extends BaseAdminController
     public function show(TermsOfService $termsOfService)
     {
         try {
-            return response()->json([
-                'terms_of_service' => $termsOfService
-            ]);
+            return $this->successResponse('Regulamin pobrany', $termsOfService);
         } catch (\Exception $e) {
             Log::error('Failed to get terms of service', [
                 'error' => $e->getMessage(),
@@ -77,9 +66,7 @@ class TermsOfServiceController extends BaseAdminController
                 'method' => __METHOD__
             ]);
             
-            return response()->json([
-                'error' => 'Error fetching terms of service: ' . $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Błąd podczas pobierania regulaminu: ' . $e->getMessage(), 500);
         }
     }
 
@@ -96,10 +83,7 @@ class TermsOfServiceController extends BaseAdminController
                 $termsOfService->setAsActive();
             }
 
-            return response()->json([
-                'message' => 'Regulamin został zaktualizowany',
-                'terms_of_service' => $termsOfService
-            ]);
+            return $this->successResponse('Regulamin został zaktualizowany', $termsOfService);
         } catch (\Exception $e) {
             Log::error('Failed to update terms of service', [
                 'error' => $e->getMessage(),
@@ -108,9 +92,7 @@ class TermsOfServiceController extends BaseAdminController
                 'method' => __METHOD__
             ]);
             
-            return response()->json([
-                'error' => 'Error updating terms of service: ' . $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Błąd podczas aktualizacji regulaminu: ' . $e->getMessage(), 500);
         }
     }
 
@@ -122,16 +104,12 @@ class TermsOfServiceController extends BaseAdminController
         try {
             // Don't allow deletion of active terms
             if ($termsOfService->is_active) {
-                return response()->json([
-                    'message' => 'Nie można usunąć aktywnego regulaminu'
-                ], 422);
+                return $this->errorResponse('Cannot delete active terms of service', 422);
             }
 
             $termsOfService->delete();
 
-            return response()->json([
-                'message' => 'Regulamin został usunięty'
-            ]);
+            return $this->successResponse('Regulamin został usunięty');
         } catch (\Exception $e) {
             Log::error('Failed to delete terms of service', [
                 'error' => $e->getMessage(),
@@ -139,9 +117,7 @@ class TermsOfServiceController extends BaseAdminController
                 'method' => __METHOD__
             ]);
             
-            return response()->json([
-                'error' => 'Error deleting terms of service: ' . $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Błąd podczas usuwania regulaminu: ' . $e->getMessage(), 500);
         }
     }
 
@@ -153,10 +129,7 @@ class TermsOfServiceController extends BaseAdminController
         try {
             $termsOfService->setAsActive();
 
-            return response()->json([
-                'message' => 'Regulamin został ustawiony jako aktywny',
-                'terms_of_service' => $termsOfService->fresh()
-            ]);
+            return $this->successResponse('Regulamin został ustawiony jako aktywny', $termsOfService->fresh());
         } catch (\Exception $e) {
             Log::error('Failed to set terms of service as active', [
                 'error' => $e->getMessage(),
@@ -164,9 +137,7 @@ class TermsOfServiceController extends BaseAdminController
                 'method' => __METHOD__
             ]);
             
-            return response()->json([
-                'error' => 'Error setting terms of service as active: ' . $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Błąd podczas ustawiania regulaminu jako aktywnego: ' . $e->getMessage(), 500);
         }
     }
 

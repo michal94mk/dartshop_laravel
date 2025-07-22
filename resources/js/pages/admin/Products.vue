@@ -670,19 +670,18 @@ export default {
         console.log('Auth state:', authStore.$state);
         
         const response = await axios.get('/api/admin/products', { params });
+        products.value = response.data.data || { data: [], current_page: 1, last_page: 1, per_page: 15, total: 0 };
         
         console.log('Products API response:', response.data);
-        // Log image URLs for debugging
-        if (response.data.data) {
-          console.log('Product image URLs:', response.data.data.map(p => ({
-            id: p.id,
-            name: p.name,
-            original_url: p.image_url,
-            processed_url: getProductImageUrl(p.image_url, p.name)
-          })));
-        }
-        
-        products.value = response.data;
+        // Usuń logowanie z .map, bo products.data nie jest tablicą na tym poziomie
+        // if (response.data.data) {
+        //   console.log('Product image URLs:', response.data.data.map(p => ({
+        //     id: p.id,
+        //     name: p.name,
+        //     original_url: p.image_url,
+        //     processed_url: getProductImageUrl(p.image_url, p.name)
+        //   })));
+        // }
       } catch (error) {
         console.error('Error fetching products:', error);
         console.error('Error details:', error.response?.data);
@@ -769,8 +768,8 @@ export default {
     const fetchFormData = async () => {
       try {
         const response = await axios.get('/api/admin/products/form-data')
-        categories.value = response.data.categories
-        brands.value = response.data.brands
+        categories.value = response.data.data.categories
+        brands.value = response.data.data.brands
       } catch (error) {
         console.error('Error fetching form data:', error)
         console.error('Error details:', error.response?.data)
@@ -890,9 +889,9 @@ export default {
         }
         
         if (currentProduct.value.id) {
-          alertStore.success('Produkt został zaktualizowany.');
+          alertStore.success(response.data.message || 'Produkt został zaktualizowany.');
         } else {
-          alertStore.success('Produkt został dodany.');
+          alertStore.success(response.data.message || 'Produkt został dodany.');
         }
         
         // Close modal and refresh products
@@ -941,7 +940,7 @@ export default {
         const response = await axios.delete(`/api/admin/products/${productId}`)
         
         // Show success message
-        alertStore.success('Produkt został usunięty.')
+        alertStore.success(response.data.message || 'Produkt został usunięty.')
         
         // Close modal and refresh data
         showDeleteModal.value = false

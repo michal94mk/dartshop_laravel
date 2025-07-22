@@ -334,7 +334,7 @@ export default {
         }
         
         const response = await axios.get('/api/admin/categories', { params })
-        categories.value = response.data
+        categories.value = response.data.data
       } catch (error) {
         console.error('Error fetching categories:', error);
         
@@ -397,7 +397,7 @@ export default {
         })
         
         showModal.value = false
-        alertStore.success(currentCategory.value.id ? 'Kategoria została zaktualizowana' : 'Kategoria została dodana')
+        alertStore.success(response.data.message || (currentCategory.value.id ? 'Kategoria została zaktualizowana' : 'Kategoria została dodana'))
         await fetchCategories()
         // Refresh categories in the store
         await categoryStore.refreshCategories()
@@ -430,7 +430,7 @@ export default {
       try {
         const response = await axios.delete(`/api/admin/categories/${categoryToDelete.value}`)
         showDeleteModal.value = false
-        alertStore.success('Kategoria została usunięta')
+        alertStore.success(response.data.message || 'Kategoria została usunięta')
         await fetchCategories()
         // Refresh categories in the store
         await categoryStore.refreshCategories()

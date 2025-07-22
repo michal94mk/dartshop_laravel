@@ -275,7 +275,7 @@ class PromotionController extends BaseAdminController
             return $promotion;
         });
 
-        return response()->json($promotions);
+        return $this->successResponse('Promocje pobrane pomyślnie', $promotions);
     }
 
     /**
@@ -284,11 +284,8 @@ class PromotionController extends BaseAdminController
     public function show(Promotion $promotion): JsonResponse
     {
         $promotion->load(['products:id,name,price,image_url']);
-        
-        // Dodaj informacje o liczbie produktów
         $promotion->products_count = $promotion->products->count();
-        
-        return response()->json($promotion);
+        return $this->successResponse('Promocja pobrana', $promotion);
     }
 
     /**
@@ -297,23 +294,13 @@ class PromotionController extends BaseAdminController
     public function store(PromotionRequest $request): JsonResponse
     {
         $validated = $request->validated();
-
         $promotion = Promotion::create($validated);
-
-        // Przypisz produkty jeśli zostały wybrane
         if (isset($validated['product_ids'])) {
             $promotion->products()->sync($validated['product_ids']);
         }
-
         $promotion->load('products:id,name,price,image_url');
-        
-        // Dodaj informacje o liczbie produktów
         $promotion->products_count = $promotion->products->count();
-
-        return response()->json([
-            'message' => 'Promocja została utworzona pomyślnie',
-            'promotion' => $promotion
-        ], 201);
+        return $this->successResponse('Promocja została utworzona', $promotion, 201);
     }
 
     /**
@@ -322,23 +309,13 @@ class PromotionController extends BaseAdminController
     public function update(PromotionRequest $request, Promotion $promotion): JsonResponse
     {
         $validated = $request->validated();
-
         $promotion->update($validated);
-
-        // Zaktualizuj przypisane produkty
         if (isset($validated['product_ids'])) {
             $promotion->products()->sync($validated['product_ids']);
         }
-
         $promotion->load('products:id,name,price,image_url');
-        
-        // Dodaj informacje o liczbie produktów
         $promotion->products_count = $promotion->products->count();
-
-        return response()->json([
-            'message' => 'Promocja została zaktualizowana pomyślnie',
-            'promotion' => $promotion
-        ]);
+        return $this->successResponse('Promocja została zaktualizowana', $promotion);
     }
 
     /**
@@ -346,12 +323,9 @@ class PromotionController extends BaseAdminController
      */
     public function destroy(Promotion $promotion): JsonResponse
     {
-        $promotion->products()->detach(); // Usuń powiązania z produktami
+        $promotion->products()->detach();
         $promotion->delete();
-
-        return response()->json([
-            'message' => 'Promocja została usunięta pomyślnie'
-        ]);
+        return $this->successResponse('Promocja została usunięta');
     }
 
     /**
@@ -360,23 +334,14 @@ class PromotionController extends BaseAdminController
     public function attachProducts(Request $request, $id): JsonResponse
     {
         $promotion = Promotion::findOrFail($id);
-        
         $validated = $request->validate([
             'product_ids' => 'required|array',
             'product_ids.*' => 'exists:products,id'
         ]);
-
         $promotion->products()->syncWithoutDetaching($validated['product_ids']);
-
         $promotion->load('products:id,name,price,image_url');
-        
-        // Dodaj informacje o liczbie produktów
         $promotion->products_count = $promotion->products->count();
-        
-        return response()->json([
-            'message' => 'Produkty zostały przypisane do promocji',
-            'promotion' => $promotion
-        ]);
+        return $this->successResponse('Produkty zostały przypisane do promocji', $promotion);
     }
 
     /**
@@ -385,23 +350,14 @@ class PromotionController extends BaseAdminController
     public function detachProducts(Request $request, $id): JsonResponse
     {
         $promotion = Promotion::findOrFail($id);
-        
         $validated = $request->validate([
             'product_ids' => 'required|array',
             'product_ids.*' => 'exists:products,id'
         ]);
-
         $promotion->products()->detach($validated['product_ids']);
-
         $promotion->load('products:id,name,price,image_url');
-        
-        // Dodaj informacje o liczbie produktów
         $promotion->products_count = $promotion->products->count();
-        
-        return response()->json([
-            'message' => 'Produkty zostały usunięte z promocji',
-            'promotion' => $promotion
-        ]);
+        return $this->successResponse('Produkty zostały usunięte z promocji', $promotion);
     }
 
     /**
@@ -453,16 +409,9 @@ class PromotionController extends BaseAdminController
     public function toggleActive(Promotion $promotion): JsonResponse
     {
         $promotion->update(['is_active' => !$promotion->is_active]);
-        
         $promotion->load('products:id,name,price,image_url');
-        
-        // Dodaj informacje o liczbie produktów
         $promotion->products_count = $promotion->products->count();
-
-        return response()->json([
-            'message' => $promotion->is_active ? 'Promocja została aktywowana' : 'Promocja została dezaktywowana',
-            'promotion' => $promotion
-        ]);
+        return $this->successResponse($promotion->is_active ? 'Promocja została aktywowana' : 'Promocja została dezaktywowana', $promotion);
     }
 
     /**
@@ -471,16 +420,9 @@ class PromotionController extends BaseAdminController
     public function toggleFeatured(Promotion $promotion): JsonResponse
     {
         $promotion->update(['is_featured' => !$promotion->is_featured]);
-        
         $promotion->load('products:id,name,price,image_url');
-        
-        // Dodaj informacje o liczbie produktów
         $promotion->products_count = $promotion->products->count();
-
-        return response()->json([
-            'message' => $promotion->is_featured ? 'Promocja została wyróżniona' : 'Promocja została usunięta z wyróżnionych',
-            'promotion' => $promotion
-        ]);
+        return $this->successResponse($promotion->is_featured ? 'Promocja została wyróżniona' : 'Promocja została usunięta z wyróżnionych', $promotion);
     }
 
     /**
@@ -493,14 +435,10 @@ class PromotionController extends BaseAdminController
             'promotions.*.id' => 'required|exists:promotions,id',
             'promotions.*.display_order' => 'required|integer|min:0'
         ]);
-
         foreach ($validated['promotions'] as $promotionData) {
             Promotion::where('id', $promotionData['id'])
                     ->update(['display_order' => $promotionData['display_order']]);
         }
-
-        return response()->json([
-            'message' => 'Kolejność promocji została zaktualizowana'
-        ]);
+        return $this->successResponse('Kolejność promocji została zaktualizowana');
     }
 } 

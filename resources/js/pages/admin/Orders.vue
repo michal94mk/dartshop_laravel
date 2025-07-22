@@ -1013,7 +1013,7 @@ export default {
         loading.value = true
         
         const response = await axios.get('/api/admin/orders', { params: filters.value })
-        orders.value = response.data
+        orders.value = response.data.data
       } catch (error) {
         console.error('Error fetching orders:', error)
         
@@ -1086,7 +1086,7 @@ export default {
         
         // Otherwise fetch the full order details first
         const response = await axios.get(`/api/admin/orders/${order.id}`)
-        selectedOrder.value = response.data
+        selectedOrder.value = response.data.data
         showDetailsModal.value = true
       } catch (error) {
         console.error('Error fetching order details:', error)
@@ -1126,7 +1126,7 @@ export default {
         }
         
         showStatusModal.value = false
-        alertStore.success('Status zamówienia został zaktualizowany')
+        alertStore.success(response.data.message || 'Status zamówienia został zaktualizowany')
       } catch (error) {
         console.error('Error updating order status:', error)
         console.error('Error response:', error.response?.data)
@@ -1221,7 +1221,7 @@ export default {
         if (!orderData.items || orderData.items.length === 0) {
           axios.get(`/api/admin/orders/${orderData.id}`)
             .then(response => {
-              const fullOrder = response.data;
+              const fullOrder = response.data.data;
               
               // Map items to the format expected by the form
               const items = fullOrder.items.map(item => ({
@@ -1685,7 +1685,7 @@ export default {
           }
           
           await axios.put(`/api/admin/orders/${orderId}`, formattedOrderData)
-          alertStore.success('Zamówienie zostało zaktualizowane')
+          alertStore.success(response.data.message || 'Zamówienie zostało zaktualizowane')
         } else {
           // Log the full request for debugging
           console.log('Submit URL: /api/admin/orders')
@@ -1698,7 +1698,7 @@ export default {
           
           const response = await axios.post('/api/admin/orders', formattedOrderData)
           console.log('Server response:', response.data)
-          alertStore.success('Zamówienie zostało utworzone')
+          alertStore.success(response.data.message || 'Zamówienie zostało utworzone')
         }
         
         // Close modal and refresh orders list
@@ -1749,7 +1749,7 @@ export default {
     const deleteOrder = async () => {
       try {
         await axios.delete(`/api/admin/orders/${orderToDelete.value.id}`)
-        alertStore.success('Zamówienie zostało usunięte')
+        alertStore.success(response.data.message || 'Zamówienie zostało usunięte')
         showDeleteModal.value = false
         orderToDelete.value = null
         fetchOrders()

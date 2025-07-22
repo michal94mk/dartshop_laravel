@@ -373,8 +373,7 @@ export default {
         console.log('Is logged in:', authStore.isLoggedIn)
         
         const response = await axios.get('/api/admin/dashboard', { params })
-        console.log('Dashboard API response:', response.data)
-        stats.value = response.data
+        stats.value = response.data.data
         
         // Add fallback data for testing if no real data exists
         if (!stats.value.sales_data || stats.value.sales_data.length === 0) {

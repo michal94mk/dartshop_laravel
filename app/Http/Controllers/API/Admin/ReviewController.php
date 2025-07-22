@@ -144,9 +144,9 @@ class ReviewController extends BaseAdminController
             $perPage = $this->getPerPage($request);
             $reviews = $query->paginate($perPage);
             
-            return response()->json($reviews);
+            return $this->successResponse('Recenzje pobrane pomyślnie', $reviews);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error fetching reviews: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas pobierania recenzji: ' . $e->getMessage(), 500);
         }
     }
 
@@ -165,19 +165,19 @@ class ReviewController extends BaseAdminController
             if (isset($validated['is_featured']) && $validated['is_featured']) {
                 // Check if review is approved
                 if (!($validated['is_approved'] ?? true)) {
-                    return $this->errorResponse('Review must be approved to be featured.', 422);
+                    return $this->errorResponse('Recenzja musi być zatwierdzona, aby ją wyróżnić.', 422);
                 }
                 
                 $featuredCount = Review::approvedAndFeatured()->count();
                 if ($featuredCount >= 6) {
-                    return $this->errorResponse('You can only feature a maximum of 6 reviews. Remove featured status from another review before adding a new one.', 422);
+                    return $this->errorResponse('Możesz wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji, aby dodać nową.', 422);
                 }
             }
             
             $review = Review::create($validated);
-            return response()->json($review, 201);
+            return $this->successResponse('Recenzja została utworzona', $review, 201);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error creating review: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas tworzenia recenzji: ' . $e->getMessage(), 500);
         }
     }
 
@@ -191,9 +191,9 @@ class ReviewController extends BaseAdminController
     {
         try {
             $review = Review::with(['product', 'user'])->findOrFail($id);
-            return response()->json($review);
+            return $this->successResponse('Recenzja pobrana', $review);
         } catch (\Exception $e) {
-            return $this->errorResponse('Review not found', 404);
+            return $this->errorResponse('Recenzja nie została znaleziona', 404);
         }
     }
 
@@ -215,19 +215,19 @@ class ReviewController extends BaseAdminController
             if (isset($validated['is_featured']) && $validated['is_featured'] && !$review->is_featured) {
                 // Check if review is approved
                 if (!($validated['is_approved'] ?? $review->is_approved)) {
-                    return $this->errorResponse('Review must be approved to be featured.', 422);
+                    return $this->errorResponse('Recenzja musi być zatwierdzona, aby ją wyróżnić.', 422);
                 }
                 
                 $featuredCount = Review::approvedAndFeatured()->count();
                 if ($featuredCount >= 6) {
-                    return $this->errorResponse('You can only feature a maximum of 6 reviews. Remove featured status from another review before adding a new one.', 422);
+                    return $this->errorResponse('Możesz wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji, aby dodać nową.', 422);
                 }
             }
             
             $review->update($validated);
-            return response()->json($review);
+            return $this->successResponse('Recenzja została zaktualizowana', $review);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error updating review: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas aktualizacji recenzji: ' . $e->getMessage(), 500);
         }
     }
 
@@ -242,9 +242,9 @@ class ReviewController extends BaseAdminController
         try {
             $review = Review::findOrFail($id);
             $review->delete();
-            return response()->json(null, 204);
+            return $this->successResponse('Recenzja została usunięta');
         } catch (\Exception $e) {
-            return $this->errorResponse('Error deleting review: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas usuwania recenzji: ' . $e->getMessage(), 500);
         }
     }
 
@@ -260,9 +260,9 @@ class ReviewController extends BaseAdminController
             $review = Review::findOrFail($id);
             $review->is_approved = true;
             $review->save();
-            return response()->json($review);
+            return $this->successResponse('Recenzja została zatwierdzona', $review);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error approving review: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas zatwierdzania recenzji: ' . $e->getMessage(), 500);
         }
     }
 
@@ -278,9 +278,9 @@ class ReviewController extends BaseAdminController
             $review = Review::findOrFail($id);
             $review->is_approved = false;
             $review->save();
-            return response()->json($review);
+            return $this->successResponse('Recenzja została odrzucona', $review);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error rejecting review: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas odrzucania recenzji: ' . $e->getMessage(), 500);
         }
     }
 
@@ -299,12 +299,12 @@ class ReviewController extends BaseAdminController
             if (!$review->is_featured) {
                 // Check if review is approved
                 if (!$review->is_approved) {
-                    return $this->errorResponse('Review must be approved to be featured.', 422);
+                    return $this->errorResponse('Recenzja musi być zatwierdzona, aby ją wyróżnić.', 422);
                 }
                 
                 $featuredCount = Review::approvedAndFeatured()->count();
                 if ($featuredCount >= 6) {
-                    return $this->errorResponse('You can only feature a maximum of 6 reviews. Remove featured status from another review before adding a new one.', 422);
+                    return $this->errorResponse('Możesz wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji, aby dodać nową.', 422);
                 }
             }
             
@@ -312,15 +312,15 @@ class ReviewController extends BaseAdminController
             $review->save();
             
             $message = $review->is_featured 
-                ? 'Review has been featured.' 
-                : 'Review has been removed from featured.';
+                ? 'Recenzja została wyróżniona.' 
+                : 'Recenzja została usunięta z wyróżnienia.';
                 
             return response()->json([
                 'review' => $review,
                 'message' => $message
             ]);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error toggling featured status: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas przełączania statusu wyróżnienia: ' . $e->getMessage(), 500);
         }
     }
 
@@ -340,7 +340,7 @@ class ReviewController extends BaseAdminController
                 'products' => $products
             ]);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error fetching form data: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas pobierania danych formularza: ' . $e->getMessage(), 500);
         }
     }
 
@@ -359,7 +359,7 @@ class ReviewController extends BaseAdminController
                 'max_featured' => 6
             ]);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error fetching featured count: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas pobierania liczby wyróżnionych: ' . $e->getMessage(), 500);
         }
     }
 } 

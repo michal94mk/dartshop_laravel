@@ -49,7 +49,7 @@ class DashboardController extends BaseAdminController
             // Get categories data
             $categoriesData = $this->getCategoriesData();
             
-            return response()->json([
+            return $this->successResponse('Dane do panelu administracyjnego pobrane pomyślnie', [
                 'counts' => [
                     'products' => $productCount,
                     'users' => $userCount,
@@ -69,7 +69,7 @@ class DashboardController extends BaseAdminController
                 'admin_id' => auth()->id()
             ]);
             
-            return $this->errorResponse('Error fetching dashboard data: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas pobierania danych do panelu administracyjnego: ' . $e->getMessage(), 500);
         }
     }
     

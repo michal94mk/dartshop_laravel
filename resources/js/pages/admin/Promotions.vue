@@ -362,14 +362,14 @@ export default {
 
         const response = await window.axios.get(`/api/admin/promotions?${params}`)
         
-        promotions.value = response.data.data
+        promotions.value = response.data.data.data || []
         Object.assign(pagination, {
-          current_page: response.data.current_page,
-          last_page: response.data.last_page,
-          per_page: response.data.per_page,
-          total: response.data.total,
-          from: response.data.from,
-          to: response.data.to
+          current_page: response.data.data.current_page,
+          last_page: response.data.data.last_page,
+          per_page: response.data.data.per_page,
+          total: response.data.data.total,
+          from: response.data.data.from,
+          to: response.data.data.to
         })
       } catch (error) {
         console.error('Błąd podczas pobierania promocji:', error)

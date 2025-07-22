@@ -131,9 +131,9 @@ class CategoryController extends BaseAdminController
             $perPage = $request->per_page ?? 10;
             $categories = $query->paginate($perPage);
             
-            return response()->json($categories);
+            return $this->successResponse('Kategorie pobrane pomyślnie', $categories);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error fetching categories: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas pobierania kategorii: ' . $e->getMessage(), 500);
         }
     }
 
@@ -151,9 +151,9 @@ class CategoryController extends BaseAdminController
             // Clear all categories cache
             $this->clearCategoriesCache();
 
-            return $this->successResponse('Category created successfully', $category, 201);
+            return $this->successResponse('Kategoria została utworzona', $category, 201);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error creating category: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas tworzenia kategorii: ' . $e->getMessage(), 500);
         }
     }
 
@@ -167,9 +167,9 @@ class CategoryController extends BaseAdminController
     {
         try {
             $category = Category::with('products')->findOrFail($id);
-            return response()->json($category);
+            return $this->successResponse('Kategoria pobrana pomyślnie', $category);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error fetching category: ' . $e->getMessage(), 404);
+            return $this->errorResponse('Błąd podczas pobierania kategorii: ' . $e->getMessage(), 404);
         }
     }
 
@@ -191,9 +191,9 @@ class CategoryController extends BaseAdminController
             $this->clearCategoriesCache();
             Cache::forget('category_detail_' . $id);
 
-            return $this->successResponse('Category updated successfully', $category);
+            return $this->successResponse('Kategoria została zaktualizowana', $category);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error updating category: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas aktualizacji kategorii: ' . $e->getMessage(), 500);
         }
     }
 
@@ -232,9 +232,9 @@ class CategoryController extends BaseAdminController
             $this->clearCategoriesCache();
             Cache::forget('category_detail_' . $id);
             
-            return $this->successResponse('Category deleted successfully');
+            return $this->successResponse('Kategoria została usunięta');
         } catch (\Exception $e) {
-            return $this->errorResponse('Error deleting category: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas usuwania kategorii: ' . $e->getMessage(), 500);
         }
     }
 } 

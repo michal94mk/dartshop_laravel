@@ -178,10 +178,10 @@ class UserController extends BaseAdminController
                 'current_page' => $users->currentPage()
             ]);
             
-            return response()->json($users);
+            return $this->successResponse('Użytkownicy pobrani pomyślnie', $users);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error in UserController@index: ' . $e->getMessage());
-            return $this->errorResponse('Error fetching users: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas pobierania użytkowników: ' . $e->getMessage(), 500);
         }
     }
 
@@ -225,9 +225,9 @@ class UserController extends BaseAdminController
                 'email_verified_at' => $request->verified ? now() : null,
             ]);
 
-            return $this->successResponse('User created successfully', $user, 201);
+            return $this->successResponse('Użytkownik został utworzony', $user, 201);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error creating user: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas tworzenia użytkownika: ' . $e->getMessage(), 500);
         }
     }
 
@@ -241,9 +241,9 @@ class UserController extends BaseAdminController
     {
         try {
             $user = User::with('orders')->findOrFail($id);
-            return response()->json($user);
+            return $this->successResponse('Użytkownik pobrany', $user);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error fetching user: ' . $e->getMessage(), 404);
+            return $this->errorResponse('Użytkownik nie został znaleziony', 404);
         }
     }
 
@@ -281,9 +281,9 @@ class UserController extends BaseAdminController
 
             $user->update($userData);
 
-            return $this->successResponse('User updated successfully', $user);
+            return $this->successResponse('Użytkownik został zaktualizowany', $user);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error updating user: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas aktualizacji użytkownika: ' . $e->getMessage(), 500);
         }
     }
 
@@ -316,7 +316,7 @@ class UserController extends BaseAdminController
                     'user_id' => $user->id,
                     'auth_user_id' => \Illuminate\Support\Facades\Auth::id()
                 ]);
-                return $this->errorResponse('You cannot delete yourself', 403);
+                return $this->errorResponse('Nie możesz usunąć samego siebie', 403);
             }
             
             // Prevent deleting the last admin user
@@ -327,7 +327,7 @@ class UserController extends BaseAdminController
                     'admin_count' => $adminCount
                 ]);
                 if ($adminCount <= 1) {
-                    return $this->errorResponse('Cannot delete the last admin user', 403);
+                    return $this->errorResponse('Nie możesz usunąć ostatniego użytkownika administratora', 403);
                 }
             }
             
@@ -362,7 +362,7 @@ class UserController extends BaseAdminController
                 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot delete user with existing data',
+                    'message' => 'Nie można usunąć użytkownika z istniejącymi danymi',
                     'relations' => $relations,
                     'relations_text' => implode(', ', $relationsList),
                     'user_info' => [
@@ -384,14 +384,14 @@ class UserController extends BaseAdminController
                 'delete_result' => $result
             ]);
 
-            return $this->successResponse('User deleted successfully');
+            return $this->successResponse('Użytkownik został usunięty');
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error in UserController@destroy', [
                 'user_id' => $id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return $this->errorResponse('Error deleting user: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas usuwania użytkownika: ' . $e->getMessage(), 500);
         }
     }
 
@@ -423,7 +423,7 @@ class UserController extends BaseAdminController
                     'user_id' => $user->id,
                     'google_id' => $user->google_id
                 ]);
-                return $this->errorResponse('Google OAuth users are automatically verified and cannot be manually verified', 400);
+                return $this->errorResponse('Użytkownicy Google OAuth są automatycznie weryfikowani i nie mogą być weryfikowani ręcznie', 400);
             }
             
             if ($user->email_verified_at) {
@@ -431,7 +431,7 @@ class UserController extends BaseAdminController
                     'user_id' => $user->id,
                     'verified_at' => $user->email_verified_at
                 ]);
-                return $this->errorResponse('User email is already verified', 400);
+                return $this->errorResponse('Adres e-mail użytkownika jest już weryfikowany', 400);
             }
             
             $result = $user->update(['email_verified_at' => now()]);
@@ -445,14 +445,14 @@ class UserController extends BaseAdminController
             // Refresh user from database to get latest data
             $user = $user->fresh();
 
-            return $this->successResponse('User email verified successfully', $user);
+            return $this->successResponse('Adres e-mail użytkownika został weryfikowany', $user);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error in UserController@verify', [
                 'user_id' => $id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return $this->errorResponse('Error verifying user: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas weryfikacji użytkownika: ' . $e->getMessage(), 500);
         }
     }
 
@@ -474,14 +474,14 @@ class UserController extends BaseAdminController
             
             // Prevent deleting the current authenticated user
             if ($user->id == \Illuminate\Support\Facades\Auth::id()) {
-                return $this->errorResponse('You cannot delete yourself', 403);
+                return $this->errorResponse('Nie możesz usunąć samego siebie', 403);
             }
             
             // Prevent deleting the last admin user
             if ($user->is_admin) {
                 $adminCount = User::where('is_admin', true)->count();
                 if ($adminCount <= 1) {
-                    return $this->errorResponse('Cannot delete the last admin user', 403);
+                    return $this->errorResponse('Nie możesz usunąć ostatniego użytkownika administratora', 403);
                 }
             }
             
@@ -510,14 +510,14 @@ class UserController extends BaseAdminController
                 'delete_result' => $result
             ]);
 
-            return $this->successResponse('User and all related data deleted successfully');
+            return $this->successResponse('Użytkownik i wszystkie powiązane dane zostały usunięte');
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error in UserController@forceDestroy', [
                 'user_id' => $id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return $this->errorResponse('Error force deleting user: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas wymuszania usunięcia użytkownika: ' . $e->getMessage(), 500);
         }
     }
 } 

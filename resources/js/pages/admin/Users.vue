@@ -661,7 +661,7 @@ export default {
         
         const response = await axios.get('/api/admin/users', { params })
         console.log('Users API response:', response.data)
-        users.value = response.data
+        users.value = response.data.data
       } catch (error) {
         console.error('Error fetching users:', error)
         console.error('Error details:', error.response?.data)
@@ -752,11 +752,11 @@ export default {
         }
         
         if (currentUser.value.id) {
-          await axios.put(`/api/admin/users/${currentUser.value.id}`, userData)
-          alertStore.success('Użytkownik został zaktualizowany.')
+          const response = await axios.put(`/api/admin/users/${currentUser.value.id}`, userData)
+          alertStore.success(response.data.message || 'Użytkownik został zaktualizowany.')
         } else {
-          await axios.post('/api/admin/users', userData)
-          alertStore.success('Użytkownik został dodany.')
+          const response = await axios.post('/api/admin/users', userData)
+          alertStore.success(response.data.message || 'Użytkownik został dodany.')
         }
         
         showModal.value = false
@@ -796,9 +796,7 @@ export default {
           : `/api/admin/users/${userId}`
         
         const response = await axios.delete(url)
-        console.log('Delete user response:', response.data)
-        
-        alertStore.success(forceDelete ? 'Użytkownik i wszystkie powiązane dane zostały usunięte.' : 'Użytkownik został usunięty.')
+        alertStore.success(response.data.message || (forceDelete ? 'Użytkownik i wszystkie powiązane dane zostały usunięte.' : 'Użytkownik został usunięty.'))
         showDeleteModal.value = false
         showForceDeleteModal.value = false
         await fetchUsers()
@@ -840,7 +838,7 @@ export default {
         console.log('Verifying user:', user.id, user.email)
         const response = await axios.post(`/api/admin/users/${user.id}/verify`)
         console.log('Verify user response:', response.data)
-        alertStore.success('Użytkownik został zweryfikowany.')
+        alertStore.success(response.data.message || 'Użytkownik został zweryfikowany.')
         await fetchUsers()
         console.log('Users refreshed after verification')
       } catch (error) {

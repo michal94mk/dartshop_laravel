@@ -145,9 +145,9 @@ class TutorialController extends BaseAdminController
                 ];
             });
             
-            return response()->json($tutorials);
+            return $this->successResponse('Poradniki pobrane pomyślnie', $tutorials);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error fetching tutorials: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas pobierania poradników: ' . $e->getMessage(), 500);
         }
     }
 
@@ -171,7 +171,7 @@ class TutorialController extends BaseAdminController
         $tutorial = Tutorial::create($tutorialData);
         
         // Return the transformed tutorial data
-        return response()->json([
+        return $this->successResponse('Poradnik został utworzony', [
             'id' => $tutorial->id,
             'title' => $tutorial->title,
             'slug' => $tutorial->slug,
@@ -198,7 +198,7 @@ class TutorialController extends BaseAdminController
     {
         $tutorial = Tutorial::findOrFail($id);
         
-        return response()->json([
+        return $this->successResponse('Poradnik pobrany', [
             'id' => $tutorial->id,
             'title' => $tutorial->title,
             'slug' => $tutorial->slug,
@@ -249,7 +249,7 @@ class TutorialController extends BaseAdminController
         $tutorial->refresh();
         
         // Return the transformed tutorial data
-        return response()->json([
+        return $this->successResponse('Poradnik został zaktualizowany', [
             'id' => $tutorial->id,
             'title' => $tutorial->title,
             'slug' => $tutorial->slug,
@@ -277,6 +277,6 @@ class TutorialController extends BaseAdminController
         $tutorial = Tutorial::findOrFail($id);
         $tutorial->delete();
 
-        return response()->json(null, 204);
+        return $this->successResponse('Poradnik został usunięty');
     }
 } 

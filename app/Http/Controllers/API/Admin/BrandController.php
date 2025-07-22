@@ -46,13 +46,13 @@ class BrandController extends BaseAdminController
             $perPage = $request->per_page ?? 10;
             $brands = $query->paginate($perPage);
             
-            return response()->json($brands);
+            return $this->successResponse('Marki pobrane pomyślnie', $brands);
         } catch (\Exception $e) {
             Log::error('Error fetching brands: ' . $e->getMessage(), [
                 'exception' => $e,
                 'request' => $request->all()
             ]);
-            return $this->errorResponse('Error fetching brands: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas pobierania marek: ' . $e->getMessage(), 500);
         }
     }
 
@@ -67,9 +67,9 @@ class BrandController extends BaseAdminController
         try {
             $brand = Brand::create($request->validated());
 
-            return $this->successResponse('Brand created successfully', $brand, 201);
+            return $this->successResponse('Marka została utworzona', $brand, 201);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error creating brand: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas tworzenia marki: ' . $e->getMessage(), 500);
         }
     }
 
@@ -83,9 +83,9 @@ class BrandController extends BaseAdminController
     {
         try {
             $brand = Brand::with('products')->findOrFail($id);
-            return response()->json($brand);
+            return $this->successResponse('Marka pobrana pomyślnie', $brand);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error fetching brand: ' . $e->getMessage(), 404);
+            return $this->errorResponse('Błąd podczas pobierania marki: ' . $e->getMessage(), 404);
         }
     }
 
@@ -103,9 +103,9 @@ class BrandController extends BaseAdminController
 
             $brand->update($request->validated());
 
-            return $this->successResponse('Brand updated successfully', $brand);
+            return $this->successResponse('Marka została zaktualizowana', $brand);
         } catch (\Exception $e) {
-            return $this->errorResponse('Error updating brand: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas aktualizacji marki: ' . $e->getMessage(), 500);
         }
     }
 
@@ -135,9 +135,9 @@ class BrandController extends BaseAdminController
             
             $brand->delete();
             
-            return $this->successResponse('Brand deleted successfully');
+            return $this->successResponse('Marka została usunięta');
         } catch (\Exception $e) {
-            return $this->errorResponse('Error deleting brand: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Błąd podczas usuwania marki: ' . $e->getMessage(), 500);
         }
     }
 } 

@@ -801,7 +801,7 @@ export default {
             sort_direction: filters.sort_direction
           }
         })
-        reviews.value = response.data
+        reviews.value = response.data.data
       } catch (error) {
         console.error('Error fetching reviews:', error)
         alertStore.error('Wystąpił błąd podczas pobierania recenzji.')
@@ -1237,10 +1237,7 @@ export default {
         
         console.log('API Response:', response.status, response.data)
         
-        alertStore.success(isEditing.value 
-          ? 'Recenzja została zaktualizowana.' 
-          : 'Nowa recenzja została dodana.'
-        )
+        alertStore.success(response.data.message || (isEditing.value ? 'Recenzja została zaktualizowana.' : 'Nowa recenzja została dodana.'))
         
         closeAddEditModal()
         fetchReviews()
@@ -1304,8 +1301,8 @@ export default {
     // Delete review
     const deleteReview = async () => {
       try {
-        await axios.delete(`/api/admin/reviews/${selectedReview.value.id}`)
-        alertStore.success('Recenzja została usunięta.')
+        const response = await axios.delete(`/api/admin/reviews/${selectedReview.value.id}`)
+        alertStore.success(response.data.message || 'Recenzja została usunięta.')
         showDeleteModal.value = false
         fetchReviews()
         fetchFeaturedCount()

@@ -97,16 +97,12 @@ class ImageUploadController extends BaseAdminController
             // Generate the public URL
             $url = asset('storage/' . $path);
             
-            return response()->json([
-                'success' => true,
+            return $this->successResponse('Obrazek został przesłany', [
                 'path' => $path,
                 'url' => $url
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error uploading image: ' . $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Błąd podczas przesyłania obrazka: ' . $e->getMessage(), 500);
         }
     }
 }
