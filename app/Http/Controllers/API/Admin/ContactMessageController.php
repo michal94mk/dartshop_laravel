@@ -224,17 +224,8 @@ class ContactMessageController extends BaseAdminController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function respond(Request $request, $id)
+    public function respond(ContactMessageRespondRequest $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'subject' => 'required|string|max:255',
-            'message' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationError($validator->errors());
-        }
-
         $contactMessage = ContactMessage::findOrFail($id);
         
         try {

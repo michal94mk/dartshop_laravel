@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use App\Http\Requests\Admin\UserUpdateRequest;
+use App\Http\Requests\Admin\UserStoreRequest;
 
 /**
  * @OA\Tag(
@@ -191,30 +192,9 @@ class UserController extends BaseAdminController
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(UserStoreRequest $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
-                'first_name' => 'required|string|max:255',
-                'last_name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users',
-                'password' => 'required|string|min:8',
-                'role' => 'required|in:admin,user',
-                'verified' => 'boolean',
-            ]);
-
-            // Dodaj sprawdzenie niezweryfikowanego maila
-            $email = $request->input('email');
-            $user = \App\Models\User::where('email', $email)->first();
-            if ($user && !$user->hasVerifiedEmail()) {
-                return response()->json(['errors' => ['email' => ['Konto z tym adresem e-mail już istnieje, ale nie zostało zweryfikowane. Możesz ponownie wysłać link weryfikacyjny z poziomu panelu użytkownika.']]], 422);
-            }
-
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 422);
-            }
-
             $user = User::create([
                 'name' => $request->name,
                 'first_name' => $request->first_name,
@@ -224,7 +204,6 @@ class UserController extends BaseAdminController
                 'is_admin' => $request->role === 'admin',
                 'email_verified_at' => $request->verified ? now() : null,
             ]);
-
             return $this->successResponse('Użytkownik został utworzony', $user, 201);
         } catch (\Exception $e) {
             return $this->errorResponse('Błąd podczas tworzenia użytkownika: ' . $e->getMessage(), 500);

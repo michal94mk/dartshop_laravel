@@ -77,16 +77,8 @@ class ImageUploadController extends BaseAdminController
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function uploadTutorialImage(Request $request)
+    public function uploadTutorialImage(TutorialImageUploadRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationError($validator->errors());
-        }
-
         try {
             $image = $request->file('image');
             $fileName = 'tutorial_' . time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();

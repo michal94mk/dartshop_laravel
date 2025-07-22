@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\Admin\OrderRequest;
+use App\Http\Requests\Admin\OrderStatusUpdateRequest;
 
 /**
  * @OA\Tag(
@@ -374,21 +375,11 @@ class OrderController extends BaseAdminController
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function updateStatus(Request $request, $id)
+    public function updateStatus(OrderStatusUpdateRequest $request, $id)
     {
         try {
             $id = (int) $id;
             $order = Order::findOrFail($id);
-
-            $validator = Validator::make($request->all(), [
-                'status' => 'required|in:pending,processing,completed,shipped,delivered,cancelled,refunded',
-                'note' => 'nullable|string',
-                'notify_customer' => 'nullable|boolean',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 422);
-            }
 
             $oldStatus = $order->status;
             $order->status = $request->status;
