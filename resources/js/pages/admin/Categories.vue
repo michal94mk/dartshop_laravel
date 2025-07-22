@@ -27,85 +27,75 @@
       @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
       @filter-change="fetchCategories"
       @reset-filters="resetFilters"
-    >
-      <template v-slot:filters>
-        <!-- No additional filters needed -->
-      </template>
-    </search-filters>
+    />
 
-    <!-- Content -->
-    <div class="bg-white shadow rounded-lg">
-      <!-- Loading indicator -->
-      <loading-spinner v-if="loading" />
-      
-      <!-- Categories Custom Table -->
-      <div v-if="!loading && categories.data && categories.data.length > 0" class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
-        <div class="overflow-x-auto -mx-6 px-6" style="scrollbar-width: thin; scrollbar-color: #d1d5db #f3f4f6;">
-          <table class="min-w-full divide-y divide-gray-200 whitespace-nowrap">
-            <thead class="bg-gray-50">
-              <tr>
-                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-80">
-                  Nazwa
-                </th>
-                <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                  Liczba produktów
-                </th>
-                <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
-                  Data utworzenia
-                </th>
-                <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
-                  Akcje
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="item in categories.data" :key="item.id" class="hover:bg-gray-50">
-                <!-- Name Column -->
-                <td class="px-4 py-4">
-                  <div class="text-sm font-medium text-gray-900">{{ item.name }}</div>
-                </td>
-                
-                <!-- Products Count Column -->
-                <td class="px-3 py-4 text-center">
-                  <admin-badge variant="secondary" size="xs">
-                    {{ item.products_count || 0 }}
-                  </admin-badge>
-                </td>
-                
-                <!-- Created At Column -->
-                <td class="px-3 py-4 text-center">
-                  <span class="text-xs text-gray-500">{{ formatDate(item.created_at) }}</span>
-                </td>
-                
-                <!-- Actions Column -->
-                <td class="px-4 py-4 text-right">
-                  <action-buttons 
-                    :item="item" 
-                    @edit="openModal" 
-                    @delete="deleteCategory"
-                    justify="end"
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+    <!-- Loading indicator -->
+    <loading-spinner v-if="loading" />
+    
+    <!-- Categories Custom Table -->
+    <div v-if="!loading && categories.data && categories.data.length > 0" class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
+      <div class="overflow-x-auto -mx-6 px-6" style="scrollbar-width: thin; scrollbar-color: #d1d5db #f3f4f6;">
+        <table class="min-w-full divide-y divide-gray-200 whitespace-nowrap">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-80">
+                Nazwa
+              </th>
+              <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                Liczba produktów
+              </th>
+              <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
+                Data utworzenia
+              </th>
+              <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
+                Akcje
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr v-for="item in categories.data" :key="item.id" class="hover:bg-gray-50">
+              <!-- Name Column -->
+              <td class="px-4 py-4">
+                <div class="text-sm font-medium text-gray-900">{{ item.name }}</div>
+              </td>
+              
+              <!-- Products Count Column -->
+              <td class="px-3 py-4 text-center">
+                <admin-badge variant="secondary" size="xs">
+                  {{ item.products_count || 0 }}
+                </admin-badge>
+              </td>
+              
+              <!-- Created At Column -->
+              <td class="px-3 py-4 text-center">
+                <span class="text-xs text-gray-500">{{ formatDate(item.created_at) }}</span>
+              </td>
+              
+              <!-- Actions Column -->
+              <td class="px-4 py-4 text-right">
+                <action-buttons 
+                  :item="item" 
+                  @edit="openModal" 
+                  @delete="deleteCategory"
+                  justify="end"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      
-      <!-- Pagination -->
-      <pagination 
-        v-if="categories.data && categories.data.length > 0 && categories.last_page > 1"
-        :pagination="categories" 
-        items-label="kategorii" 
-        @page-change="goToPage" 
-      />
-      
-      <!-- No data message -->
-      <no-data-message 
-        v-if="!loading && (!categories.data || categories.data.length === 0)" 
-        message="Brak kategorii do wyświetlenia" 
-      />
     </div>
+    
+    <!-- No data message -->
+    <no-data-message v-else-if="!loading" message="Brak kategorii do wyświetlenia" />
+    
+    <!-- Pagination -->
+    <pagination 
+      v-if="!loading && categories.data && categories.data.length > 0 && categories.last_page > 1"
+      :pagination="categories" 
+      items-label="kategorii" 
+      @page-change="goToPage" 
+    />
   </div>
 
   <!-- Category Modal -->
@@ -158,33 +148,34 @@
   <!-- Delete Confirmation Modal -->
   <admin-modal
     :show="showDeleteModal"
-    title="Usuń kategorię"
+    title="Potwierdź usunięcie"
     size="md"
     icon-variant="danger"
     @close="showDeleteModal = false"
   >
-    <div class="sm:flex sm:items-start">
-      <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
-      </div>
-      <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-        <div class="mt-2">
-          <p class="text-sm text-gray-500">
-            Czy na pewno chcesz usunąć tę kategorię? Ta operacja jest nieodwracalna.
-          </p>
-        </div>
-      </div>
+    <div class="text-center">
+      <p class="text-sm text-gray-500">
+        Czy na pewno chcesz usunąć kategorię "{{ categoryToDelete?.name }}"?
+        <span v-if="categoryToDelete?.products_count > 0" class="mt-2 block font-semibold text-red-600">
+          Uwaga: Ta kategoria jest przypisana do {{ categoryToDelete.products_count }} produktów.
+        </span>
+      </p>
     </div>
     
     <template #footer>
-      <admin-button-group justify="end" spacing="sm">
-        <admin-button @click="showDeleteModal = false" variant="secondary" outline>
+      <admin-button-group justify="center" spacing="sm">
+        <admin-button 
+          @click="showDeleteModal = false" 
+          variant="secondary"
+          outline
+        >
           Anuluj
         </admin-button>
-        <admin-button @click="confirmDelete" variant="danger">
-          Usuń kategorię
+        <admin-button 
+          @click="confirmDelete" 
+          variant="danger"
+        >
+          Usuń
         </admin-button>
       </admin-button-group>
     </template>
@@ -421,14 +412,14 @@ export default {
       }
     }
     
-    const deleteCategory = (id) => {
-      categoryToDelete.value = typeof id === 'object' && id.id ? id.id : id;
+    const deleteCategory = (category) => {
+      categoryToDelete.value = typeof category === 'object' ? category : categories.value.data.find(c => c.id === category);
       showDeleteModal.value = true;
     }
     
     const confirmDelete = async () => {
       try {
-        const response = await axios.delete(`/api/admin/categories/${categoryToDelete.value}`)
+        const response = await axios.delete(`/api/admin/categories/${categoryToDelete.value.id}`)
         showDeleteModal.value = false
         alertStore.success(response.data.message || 'Kategoria została usunięta')
         await fetchCategories()

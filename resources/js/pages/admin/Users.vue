@@ -429,30 +429,33 @@
   <!-- Delete confirmation modal -->
   <admin-modal
     :show="showDeleteModal"
-    title="Usuń użytkownika"
+    title="Potwierdź usunięcie"
+    size="md"
+    icon-variant="danger"
     @close="showDeleteModal = false"
   >
-    <div class="sm:flex sm:items-start">
-      <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
-      </div>
-      <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-        <div class="mt-2">
-          <p class="text-sm text-gray-500">
-            Czy na pewno chcesz usunąć tego użytkownika? Ta operacja jest nieodwracalna.
-          </p>
-        </div>
-      </div>
+    <div class="text-center">
+      <p class="text-sm text-gray-500">
+        Czy na pewno chcesz usunąć użytkownika "{{ userToDelete?.name }}"?
+        <span v-if="userToDelete?.orders_count > 0" class="mt-2 block font-semibold text-red-600">
+          Uwaga: Ten użytkownik ma {{ userToDelete.orders_count }} zamówień.
+        </span>
+      </p>
     </div>
     
     <template #footer>
-      <admin-button-group justify="end" spacing="sm">
-        <admin-button @click="showDeleteModal = false" variant="secondary" outline>
+      <admin-button-group justify="center" spacing="sm">
+        <admin-button 
+          @click="showDeleteModal = false" 
+          variant="secondary"
+          outline
+        >
           Anuluj
         </admin-button>
-        <admin-button @click="confirmDelete" variant="danger">
+        <admin-button 
+          @click="confirmDelete" 
+          variant="danger"
+        >
           Usuń
         </admin-button>
       </admin-button-group>
@@ -463,52 +466,50 @@
   <admin-modal
     :show="showForceDeleteModal"
     title="Wymuś usunięcie użytkownika"
+    size="md"
+    icon-variant="danger"
     @close="showForceDeleteModal = false"
   >
-    <div class="sm:flex sm:items-start">
-      <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
+    <div class="space-y-3">
+      <p class="text-sm text-gray-500">
+        Nie można usunąć użytkownika <strong>{{ userRelations?.user_info?.name }}</strong> ponieważ ma powiązane dane:
+      </p>
+      
+      <div class="bg-gray-50 rounded-lg p-3">
+        <p class="text-sm font-medium text-gray-700 mb-2">Powiązane dane:</p>
+        <p class="text-sm text-gray-600">{{ userRelations?.relations_text }}</p>
       </div>
-      <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-        <div class="mt-2">
-          <div v-if="userRelations" class="space-y-3">
-            <p class="text-sm text-gray-500">
-              Nie można usunąć użytkownika <strong>{{ userRelations.user_info?.name }}</strong> ponieważ ma powiązane dane:
-            </p>
-            
-            <div class="bg-gray-50 rounded-lg p-3">
-              <p class="text-sm font-medium text-gray-700 mb-2">Powiązane dane:</p>
-              <p class="text-sm text-gray-600">{{ userRelations.relations_text }}</p>
-            </div>
-            
-            <div class="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p class="text-sm text-red-700">
-                <strong>Uwaga:</strong> Wymuszone usunięcie spowoduje:
-              </p>
-              <ul class="text-sm text-red-600 mt-1 list-disc list-inside space-y-1">
-                <li>Usunięcie wszystkich recenzji użytkownika</li>
-                <li>Usunięcie koszyka i ulubionych produktów</li>
-                <li>Usunięcie adresów dostawy</li>
-                <li>Usunięcie informacji o płatnościach</li>
-                <li>Zachowanie zamówień (ale bez powiązania z użytkownikiem)</li>
-              </ul>
-              <p class="text-sm text-red-700 mt-2 font-medium">
-                Ta operacja jest nieodwracalna!
-              </p>
-            </div>
-          </div>
-        </div>
+      
+      <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+        <p class="text-sm text-red-700">
+          <strong>Uwaga:</strong> Wymuszone usunięcie spowoduje:
+        </p>
+        <ul class="text-sm text-red-600 mt-1 list-disc list-inside space-y-1">
+          <li>Usunięcie wszystkich recenzji użytkownika</li>
+          <li>Usunięcie koszyka i ulubionych produktów</li>
+          <li>Usunięcie adresów dostawy</li>
+          <li>Usunięcie informacji o płatnościach</li>
+          <li>Zachowanie zamówień (ale bez powiązania z użytkownikiem)</li>
+        </ul>
+        <p class="text-sm text-red-700 mt-2 font-medium">
+          Ta operacja jest nieodwracalna!
+        </p>
       </div>
     </div>
     
     <template #footer>
-      <admin-button-group justify="end" spacing="sm">
-        <admin-button @click="showForceDeleteModal = false" variant="secondary" outline>
+      <admin-button-group justify="center" spacing="sm">
+        <admin-button 
+          @click="showForceDeleteModal = false" 
+          variant="secondary"
+          outline
+        >
           Anuluj
         </admin-button>
-        <admin-button @click="confirmDelete(true)" variant="danger">
+        <admin-button 
+          @click="confirmDelete(true)" 
+          variant="danger"
+        >
           Wymuś usunięcie
         </admin-button>
       </admin-button-group>

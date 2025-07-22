@@ -97,6 +97,7 @@
               <tr v-for="item in products.data" :key="item.id" class="hover:bg-gray-50">
                 <!-- Product Column -->
                 <td class="px-4 py-4">
+                  {{ console.log('Product data:', item) }}
                   <div class="flex items-center">
                     <div class="h-10 w-10 flex-shrink-0">
                       <img 
@@ -364,41 +365,40 @@
   </div>
 
   <!-- Delete confirmation modal -->
-  <div v-if="showDeleteModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="flex items-center justify-center min-h-screen px-4 text-center sm:block sm:p-0">
-      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="showDeleteModal = false"></div>
-      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-          <div class="sm:flex sm:items-start">
-            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-              <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-              <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                Usuń produkt
-              </h3>
-              <div class="mt-2">
-                <p class="text-sm text-gray-500">
-                  Czy na pewno chcesz usunąć ten produkt? Ta operacja jest nieodwracalna.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-          <button @click="confirmDelete" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
-            Usuń produkt
-          </button>
-          <button @click="showDeleteModal = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-            Anuluj
-          </button>
-        </div>
-      </div>
+  <admin-modal
+    :show="showDeleteModal"
+    title="Potwierdź usunięcie"
+    size="md"
+    icon-variant="danger"
+    @close="showDeleteModal = false"
+  >
+    <div class="text-center">
+      <p class="text-sm text-gray-500">
+        Czy na pewno chcesz usunąć produkt "{{ productToDelete?.name }}"?
+        <span v-if="productToDelete?.orders_count > 0" class="mt-2 block font-semibold text-red-600">
+          Uwaga: Ten produkt występuje w {{ productToDelete.orders_count }} zamówieniach.
+        </span>
+      </p>
     </div>
-  </div>
+    
+    <template #footer>
+      <admin-button-group justify="center" spacing="sm">
+        <admin-button 
+          @click="showDeleteModal = false" 
+          variant="secondary"
+          outline
+        >
+          Anuluj
+        </admin-button>
+        <admin-button 
+          @click="confirmDelete" 
+          variant="danger"
+        >
+          Usuń
+        </admin-button>
+      </admin-button-group>
+    </template>
+  </admin-modal>
 
   <!-- Product Details Modal -->
   <div v-if="showProductDetailsModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -532,6 +532,7 @@ import ActionButtons from '../../components/admin/ActionButtons.vue'
 import AdminBadge from '../../components/admin/ui/AdminBadge.vue'
 import { getProductImageUrl, handleImageError } from '../../utils/imageHelpers'
 import { useRoute } from 'vue-router'
+import AdminModal from '../../components/admin/ui/AdminModal.vue'
 
 export default {
   name: 'AdminProducts',
@@ -544,7 +545,8 @@ export default {
     Pagination,
     PageHeader,
     ActionButtons,
-    AdminBadge
+    AdminBadge,
+    AdminModal
   },
   setup() {
     const alertStore = useAlertStore()
@@ -597,8 +599,13 @@ export default {
     const showModal = ref(false)
     const showDeleteModal = ref(false)
     const showProductDetailsModal = ref(false)
-    const selectedProductForDetails = ref(null)
     const productToDelete = ref(null)
+    const selectedProductForDetails = ref(null)
+    
+    // Form validation errors
+    const formErrors = ref({})
+    
+    // Current product being edited
     const currentProduct = ref({
       id: null,
       name: '',
@@ -608,11 +615,6 @@ export default {
       brand_id: '',
       image_url: null
     })
-    
-    // Form validation errors
-    const formErrors = ref({})
-    
-
     
     // File input ref
     const fileInput = ref(null)
@@ -919,7 +921,16 @@ export default {
     }
     
     const deleteProduct = (product) => {
-      productToDelete.value = product
+      console.log('deleteProduct called with:', product);
+      // If we got just an ID, find the full product object
+      if (typeof product === 'number' || typeof product === 'string') {
+        console.log('Finding product by ID:', product);
+        productToDelete.value = products.value.data.find(p => p.id === Number(product))
+      } else {
+        console.log('Using full product object');
+        productToDelete.value = product
+      }
+      console.log('productToDelete set to:', productToDelete.value);
       showDeleteModal.value = true
     }
     
@@ -927,17 +938,13 @@ export default {
       try {
         loading.value = true
         
-        const productId = typeof productToDelete.value === 'object' 
-                        ? productToDelete.value.id 
-                        : productToDelete.value;
-        
-        if (!productId) {
+        if (!productToDelete.value?.id) {
           alertStore.error('Nie można usunąć produktu: brak ID.')
           return
         }
         
         // Send delete request
-        const response = await axios.delete(`/api/admin/products/${productId}`)
+        const response = await axios.delete(`/api/admin/products/${productToDelete.value.id}`)
         
         // Show success message
         alertStore.success(response.data.message || 'Produkt został usunięty.')
@@ -1043,6 +1050,7 @@ export default {
       settings,
       submitting,
       productImage,
+      productToDelete,
       fetchProducts,
       debouncedFetchProducts,
       goToPage,

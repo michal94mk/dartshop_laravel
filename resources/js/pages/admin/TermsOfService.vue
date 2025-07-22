@@ -258,38 +258,40 @@
     </AdminModal>
 
     <!-- Delete Confirmation Modal -->
-    <AdminModal
+    <admin-modal
       :show="showDeleteModal"
-      title="Usuń regulamin"
+      title="Potwierdź usunięcie"
       size="md"
+      icon-variant="danger"
       @close="showDeleteModal = false"
     >
-      <div class="flex items-center">
-        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-          <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L5.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-          </svg>
-        </div>
-        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-          <div class="mt-2">
-            <p class="text-sm text-gray-500">
-              Czy na pewno chcesz usunąć regulamin "{{ termToDelete?.title }}"? Ta akcja jest nieodwracalna.
-            </p>
-          </div>
-        </div>
+      <div class="text-center">
+        <p class="text-sm text-gray-500">
+          Czy na pewno chcesz usunąć regulamin "{{ termToDelete?.title }}"?
+          <span v-if="termToDelete?.is_active" class="mt-2 block font-semibold text-red-600">
+            Uwaga: Ten regulamin jest aktualnie aktywny.
+          </span>
+        </p>
       </div>
-
+      
       <template #footer>
-        <AdminButtonGroup justify="end">
-          <AdminButton @click="showDeleteModal = false" variant="secondary" outline>
+        <admin-button-group justify="center" spacing="sm">
+          <admin-button 
+            @click="showDeleteModal = false" 
+            variant="secondary"
+            outline
+          >
             Anuluj
-          </AdminButton>
-          <AdminButton @click="deleteTerm" variant="danger">
+          </admin-button>
+          <admin-button 
+            @click="deleteTerm" 
+            variant="danger"
+          >
             Usuń
-          </AdminButton>
-        </AdminButtonGroup>
+          </admin-button>
+        </admin-button-group>
       </template>
-    </AdminModal>
+    </admin-modal>
   </div>
 </template>
 

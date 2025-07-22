@@ -89,61 +89,51 @@
         v-if="!loading"
         :filters="filters"
         :sort-options="sortOptions"
+        :default-filters="defaultFilters"
         search-label="Wyszukaj email"
         search-placeholder="Wpisz adres email..."
         @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
         @filter-change="loadSubscriptions"
+        @reset-filters="resetFilters"
       >
-      <template v-slot:filters>
-        <div class="w-full sm:w-auto">
-          <label for="status-filter" class="block text-sm font-medium text-gray-700">Status</label>
-          <select
-            id="status-filter"
-            v-model="filters.status"
-            @change="() => { filters.page = 1; loadSubscriptions(); }"
-            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">Wszystkie</option>
-            <option value="active">Aktywne</option>
-            <option value="pending">Oczekujące</option>
-            <option value="unsubscribed">Wypisane</option>
-          </select>
-        </div>
-
-        <div class="w-full sm:w-auto">
-          <label for="date-from" class="block text-sm font-medium text-gray-700">Data od</label>
-          <input
-            id="date-from"
-            v-model="filters.date_from"
-            @change="() => { filters.page = 1; loadSubscriptions(); }"
-            type="date"
-            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          />
-        </div>
-
-        <div class="w-full sm:w-auto">
-          <label for="date-to" class="block text-sm font-medium text-gray-700">Data do</label>
-          <input
-            id="date-to"
-            v-model="filters.date_to"
-            @change="() => { filters.page = 1; loadSubscriptions(); }"
-            type="date"
-            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          />
-        </div>
-
-        <div class="w-full flex justify-end">
-          <div class="flex items-end">
-            <button
-              @click="resetFilters"
-              type="button"
-              class="inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        <template v-slot:filters>
+          <div class="w-full sm:w-auto">
+            <label for="status-filter" class="block text-sm font-medium text-gray-700">Status</label>
+            <select
+              id="status-filter"
+              v-model="filters.status"
+              @change="() => { filters.page = 1; loadSubscriptions(); }"
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
             >
-              Resetuj filtry
-            </button>
+              <option value="">Wszystkie</option>
+              <option value="active">Aktywne</option>
+              <option value="pending">Oczekujące</option>
+              <option value="unsubscribed">Wypisane</option>
+            </select>
           </div>
-        </div>
-      </template>
+
+          <div class="w-full sm:w-auto">
+            <label for="date-from" class="block text-sm font-medium text-gray-700">Data od</label>
+            <input
+              id="date-from"
+              v-model="filters.date_from"
+              @change="() => { filters.page = 1; loadSubscriptions(); }"
+              type="date"
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            />
+          </div>
+
+          <div class="w-full sm:w-auto">
+            <label for="date-to" class="block text-sm font-medium text-gray-700">Data do</label>
+            <input
+              id="date-to"
+              v-model="filters.date_to"
+              @change="() => { filters.page = 1; loadSubscriptions(); }"
+              type="date"
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            />
+          </div>
+        </template>
       </search-filters>
     </div>
 
@@ -197,6 +187,42 @@
      <no-data-message v-if="!loading && subscriptions.length === 0" message="Brak subskrypcji newslettera" />
     </div>
   </div>
+
+  <!-- Delete Confirmation Modal -->
+  <admin-modal
+    :show="showDeleteModal"
+    title="Potwierdź usunięcie"
+    size="md"
+    icon-variant="danger"
+    @close="showDeleteModal = false"
+  >
+    <div class="text-center">
+      <p class="text-sm text-gray-500">
+        Czy na pewno chcesz usunąć subskrypcję "{{ subscriptionToDelete?.email }}"?
+        <span v-if="subscriptionToDelete?.status === 'active'" class="mt-2 block font-semibold text-red-600">
+          Uwaga: Ta subskrypcja jest aktywna.
+        </span>
+      </p>
+    </div>
+    
+    <template #footer>
+      <admin-button-group justify="center" spacing="sm">
+        <admin-button 
+          @click="showDeleteModal = false" 
+          variant="secondary"
+          outline
+        >
+          Anuluj
+        </admin-button>
+        <admin-button 
+          @click="confirmDelete" 
+          variant="danger"
+        >
+          Usuń
+        </admin-button>
+      </admin-button-group>
+    </template>
+  </admin-modal>
 </template>
 
 <script>
@@ -212,6 +238,7 @@ import Pagination from '../../components/admin/Pagination.vue';
 import PageHeader from '../../components/admin/PageHeader.vue';
 import { useAuthStore } from '../../stores/authStore';
 import { useRoute } from 'vue-router';
+import AdminModal from '../../components/admin/ui/AdminModal.vue';
 
 export default {
   name: 'AdminNewsletter',
@@ -223,7 +250,8 @@ export default {
     LoadingSpinner,
     NoDataMessage,
     Pagination,
-    PageHeader
+    PageHeader,
+    AdminModal
   },
   setup() {
     const loading = ref(false);
@@ -252,7 +280,8 @@ export default {
       { key: 'actions', label: 'Akcje', align: 'right', width: '90px' }
     ];
     
-    const filters = reactive({
+    // Default filters
+    const defaultFilters = {
       search: '',
       status: '',
       date_from: '',
@@ -260,7 +289,9 @@ export default {
       sort_field: 'created_at',
       sort_direction: 'desc',
       page: 1
-    });
+    };
+    
+    const filters = reactive({ ...defaultFilters });
     
     const pagination = reactive({
       current_page: 1,
@@ -378,13 +409,19 @@ export default {
       });
     };
 
-    const deleteSubscription = async (subscription) => {
-      if (!confirm(`Czy na pewno chcesz usunąć subskrypcję ${subscription.email}?`)) {
-        return;
-      }
+    // Modal state
+    const showDeleteModal = ref(false);
+    const subscriptionToDelete = ref(null);
 
+    const deleteSubscription = async (subscription) => {
+      subscriptionToDelete.value = subscription;
+      showDeleteModal.value = true;
+    };
+
+    const confirmDelete = async () => {
       try {
-        await api.deleteNewsletterSubscription(subscription.id);
+        await api.deleteNewsletterSubscription(subscriptionToDelete.value.id);
+        showDeleteModal.value = false;
         await loadSubscriptions(pagination.current_page);
       } catch (error) {
         console.error('Error deleting subscription:', error);
@@ -452,7 +489,10 @@ export default {
       getStatusBadgeClass,
       getStatusText,
       formatDate,
-      deleteSubscription
+      deleteSubscription,
+      showDeleteModal,
+      subscriptionToDelete,
+      confirmDelete
     };
   }
 };

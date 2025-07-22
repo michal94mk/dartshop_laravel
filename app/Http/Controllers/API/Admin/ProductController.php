@@ -52,7 +52,8 @@ class ProductController extends BaseAdminController
                 'is_admin' => Auth::user()?->is_admin ?? false
             ]);
             
-            $query = Product::with(['category', 'brand']);
+            $query = Product::with(['category', 'brand'])
+                ->withCount('orderItems as orders_count');
             
             // Apply active/inactive filter
             if ($request->has('is_active')) {
