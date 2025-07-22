@@ -94,11 +94,19 @@ export const useCartStore = defineStore('cart', {
           // If logged in, fetch cart from API
           this.fetchCart();
         } else {
-                      // For guest get from localStorage
+          // For guest get from localStorage
           const savedCart = localStorage.getItem('cart');
           if (savedCart) {
             try {
-              this.items = JSON.parse(savedCart);
+              const parsedCart = JSON.parse(savedCart);
+              // Validate cart data structure
+              if (Array.isArray(parsedCart)) {
+                this.items = parsedCart;
+              } else {
+                console.error('Invalid cart data structure in localStorage');
+                this.items = [];
+                localStorage.removeItem('cart'); // Remove invalid data
+              }
             } catch (e) {
               console.error('Error parsing cart from localStorage:', e);
               this.items = [];
@@ -109,11 +117,13 @@ export const useCartStore = defineStore('cart', {
             this.items = [];
           }
           this.isLoading = false;
+          this.hasError = false;
+          this.errorMessage = '';
         }
       } catch (error) {
         console.error('Failed to initialize cart:', error);
         this.hasError = true;
-                  this.errorMessage = 'Failed to initialize cart';
+        this.errorMessage = 'Failed to initialize cart';
         this.isLoading = false;
         
         // Fallback to empty cart

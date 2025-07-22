@@ -396,10 +396,43 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('auth_time');
       console.log('Local storage cleared');
       
-      // Reset cart state after logout
+      // Reset and reinitialize cart store
       const cartStore = useCartStore();
       cartStore.$reset();
-      console.log('Cart store reset');
+      await cartStore.initCart(); // Reinitialize cart for guest mode
+      console.log('Cart store reset and reinitialized');
+      
+      // Reset favorites store
+      const { useFavoriteStore } = await import('./favoriteStore');
+      const favoriteStore = useFavoriteStore();
+      favoriteStore.resetStore();
+      console.log('Favorites store reset');
+
+      // Reset product store
+      const { useProductStore } = await import('./productStore');
+      const productStore = useProductStore();
+      productStore.$reset();
+      console.log('Product store reset');
+
+      // Reset category store
+      const { useCategoryStore } = await import('./categoryStore');
+      const categoryStore = useCategoryStore();
+      categoryStore.$reset();
+      await categoryStore.fetchCategories(); // Categories are needed for guest users too
+      console.log('Category store reset and reinitialized');
+
+      // Reset wishlist store
+      const { useWishlistStore } = await import('./wishlistStore');
+      const wishlistStore = useWishlistStore();
+      wishlistStore.$reset();
+      console.log('Wishlist store reset');
+
+      // Reset review store
+      const { useReviewStore } = await import('./reviewStore');
+      const reviewStore = useReviewStore();
+      reviewStore.$reset();
+      await reviewStore.fetchLatestReviews(); // Reviews are needed for guest users too
+      console.log('Review store reset and reinitialized');
       
       // Clear all session-related cookies
       document.cookie.split(';').forEach(cookie => {

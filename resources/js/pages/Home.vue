@@ -359,7 +359,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useProductStore } from '../stores/productStore';
 import { useCartStore } from '../stores/cartStore';
 import { useFavoriteStore } from '../stores/favoriteStore';
@@ -370,6 +370,7 @@ import { getProductImageUrl, handleImageError } from '../utils/imageHelpers';
 import FavoriteButton from '../components/ui/FavoriteButton.vue';
 import StarRating from '../components/ui/StarRating.vue';
 import { useToast } from 'vue-toastification';
+import { useAuthStore } from '../stores/authStore';
 
 export default {
   name: 'HomePage',
@@ -389,6 +390,16 @@ export default {
     const toast = useToast();
     const alertStore = useAlertStore();
     const reviewStore = useReviewStore();
+    const authStore = useAuthStore();
+
+    // Watch for auth state changes
+    watch(() => authStore.isLoggedIn, async (newValue, oldValue) => {
+      if (newValue !== oldValue) {
+        console.log('Auth state changed in Home.vue, reloading data...');
+        await loadLatestProducts();
+        await loadLatestReviews();
+      }
+    });
     
     // Computed
     const categories = computed(() => {

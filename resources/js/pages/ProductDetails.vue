@@ -502,9 +502,17 @@ export default {
     })
 
     // Watch for auth state changes
-    watch(() => authStore.isLoggedIn, () => {
-      checkCanReview();
-    })
+    watch(() => authStore.isLoggedIn, async (newValue, oldValue) => {
+      if (newValue !== oldValue) {
+        console.log('Auth state changed in ProductDetails.vue, reloading data...');
+        const productId = route.params.id;
+        if (productId) {
+          await productStore.fetchProductById(productId);
+          await fetchReviews(); // Ensure reviews are also reloaded
+          await checkCanReview();
+        }
+      }
+    });
 
     return {
       product,

@@ -593,19 +593,19 @@
 </template>
 
 <script>
-import { computed, ref, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useProductStore } from '../stores/productStore';
 import { useCartStore } from '../stores/cartStore';
 import { useFavoriteStore } from '../stores/favoriteStore';
 import { useCategoryStore } from '../stores/categoryStore';
+import { useAuthStore } from '../stores/authStore';
+import { useAlertStore } from '../stores/alertStore';
 import FavoriteButton from '../components/ui/FavoriteButton.vue';
 import StarRating from '../components/ui/StarRating.vue';
-import { useToast } from 'vue-toastification';
-import { useAlertStore } from '../stores/alertStore';
+import { getProductImageUrl, handleImageError } from '../utils/imageHelpers';
 import axios from 'axios';
 import api from '../services/api';
-import { getProductImageUrl, handleImageError } from '../utils/imageHelpers';
 
 export default {
   name: 'ProductList',
@@ -620,8 +620,8 @@ export default {
     const cartStore = useCartStore();
     const favoriteStore = useFavoriteStore();
     const categoryStore = useCategoryStore();
-    const toast = useToast();
     const alertStore = useAlertStore();
+    const authStore = useAuthStore();
     const priceRange = ref([0, 1000]);
     const selectedCategory = ref(null);
     const cartSuccessMessages = ref({}); // Object to track success messages per product
@@ -672,6 +672,14 @@ export default {
         await categoryStore.fetchCategories()
       }
     )
+
+    // Watch for auth state changes
+    watch(() => authStore.isLoggedIn, async (newValue, oldValue) => {
+      if (newValue !== oldValue) {
+        console.log('Auth state changed in ProductList.vue, reloading data...');
+        await loadProducts();
+      }
+    });
 
     // Flag to prevent watcher from triggering during manual filter updates
     const isManualUpdate = ref(false);

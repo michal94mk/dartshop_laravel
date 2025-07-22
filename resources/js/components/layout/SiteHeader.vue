@@ -450,7 +450,7 @@ import { useAlertStore } from '../../stores/alertStore';
 import { useProductStore } from '../../stores/productStore';
 import { storeToRefs } from 'pinia';
 import { useRouter, useRoute } from 'vue-router';
-import { computed, ref, onMounted, watch, onUnmounted } from 'vue';
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
 import ProductSearch from '../ui/ProductSearch.vue';
 import { getProductImageUrl, handleImageError } from '../../utils/imageHelpers';
 import axios from 'axios';
@@ -522,6 +522,16 @@ export default {
         }
       }
     )
+
+    // Watch for auth state changes
+    watch(() => authStore.isLoggedIn, async (newValue, oldValue) => {
+      if (newValue !== oldValue) {
+        console.log('Auth state changed in SiteHeader.vue, reloading data...');
+        // Clear search results and reload if needed
+        mobileSearchResults.value = [];
+        mobileSearchQuery.value = '';
+      }
+    });
 
     // Mobile search functionality
     let searchTimeout = null
@@ -633,15 +643,29 @@ export default {
 
     const logout = async () => {
       try {
+        // Show logout message immediately
+        alertStore.success('👋 Do zobaczenia! Zostałeś pomyślnie wylogowany.', 5000);
+        
+        // Small delay to show message
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         // Set loading state to prevent API calls during logout
         authStore.isLoading = true;
         
-        await authStore.logout()
-        router.push('/')
+        const success = await authStore.logout()
+        
+        if (success) {
+          // Wait for state to update before redirecting
+          setTimeout(() => {
+            router.push('/')
+          }, 200)
+        }
       } catch (error) {
         console.error('Logout error:', error)
         // Don't show error message during logout
-        router.push('/')
+        setTimeout(() => {
+          router.push('/')
+        }, 200)
       } finally {
         // Reset loading state
         authStore.isLoading = false;
