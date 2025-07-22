@@ -39,6 +39,7 @@
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">Wszystkie kategorie</option>
+            <option value="null_category">Bez kategorii</option>
             <option v-for="category in categories" :key="category.id" :value="category.id">
               {{ category.name }}
             </option>
@@ -55,6 +56,7 @@
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">Wszystkie marki</option>
+            <option value="null_brand">Bez marki</option>
             <option v-for="brand in brands" :key="brand.id" :value="brand.id">
               {{ brand.name }}
             </option>
@@ -646,11 +648,23 @@ export default {
         const params = {
           page: filters.page,
           search: filters.search,
-          category_id: filters.category_id,
-          brand_id: filters.brand_id,
           sort_field: filters.sort_field,
           sort_direction: filters.sort_direction
         };
+        
+        // Handle category filter
+        if (filters.category_id === 'null_category') {
+          params.null_category = true;
+        } else if (filters.category_id) {
+          params.category_id = filters.category_id;
+        }
+        
+        // Handle brand filter
+        if (filters.brand_id === 'null_brand') {
+          params.null_brand = true;
+        } else if (filters.brand_id) {
+          params.brand_id = filters.brand_id;
+        }
         
         console.log('Fetching products with params:', params);
         console.log('Auth state:', authStore.$state);

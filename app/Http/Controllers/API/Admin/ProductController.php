@@ -155,9 +155,19 @@ class ProductController extends BaseAdminController
                 $query->where('category_id', $request->category_id);
             }
             
+            // Apply filter for products without category
+            if ($request->has('null_category') && $request->boolean('null_category')) {
+                $query->whereNull('category_id');
+            }
+            
             // Apply brand filter
             if ($request->has('brand_id') && !empty($request->brand_id)) {
                 $query->where('brand_id', $request->brand_id);
+            }
+            
+            // Apply filter for products without brand
+            if ($request->has('null_brand') && $request->boolean('null_brand')) {
+                $query->whereNull('brand_id');
             }
             
             // Apply sorting

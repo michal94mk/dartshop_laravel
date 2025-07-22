@@ -120,12 +120,17 @@ class BrandController extends BaseAdminController
         try {
             $brand = Brand::findOrFail($id);
             
-            // Check if brand has associated products
+            // Update all products with this brand to have null brand_id
             if ($brand->products()->count() > 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Nie można usunąć marki \"{$brand->name}\", ponieważ posiada przypisane produkty."
-                ], 422);
+                $affectedProductsCount = $brand->products()->count();
+                $brand->products()->update(['brand_id' => null]);
+                
+                $brand->delete();
+                
+                return $this->successResponse(
+                    "Marka \"{$brand->name}\" została usunięta. " .
+                    "{$affectedProductsCount} produktów zostało odłączonych od tej marki i może być teraz filtrowanych jako 'Bez marki'."
+                );
             }
             
             $brand->delete();

@@ -208,12 +208,22 @@ class CategoryController extends BaseAdminController
         try {
             $category = Category::findOrFail($id);
             
-            // Check if category has associated products
+            // Update all products with this category to have null category_id
             if ($category->products()->count() > 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Nie można usunąć kategorii \"{$category->name}\", ponieważ posiada przypisane produkty."
-                ], 422);
+                $affectedProductsCount = $category->products()->count();
+                $category->products()->update(['category_id' => null]);
+                
+                // Clear all categories cache since product relationships changed
+                $this->clearCategoriesCache();
+                
+                $category->delete();
+                
+                Cache::forget('category_detail_' . $id);
+                
+                return $this->successResponse(
+                    "Kategoria \"{$category->name}\" została usunięta. " .
+                    "{$affectedProductsCount} produktów zostało odłączonych od tej kategorii i może być teraz filtrowanych jako 'Bez kategorii'."
+                );
             }
             
             $category->delete();
