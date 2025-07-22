@@ -6,8 +6,17 @@
         :key="alert.id"
         :class="['alert', `alert-${alert.type}`]"
       >
-        <span class="alert-message">{{ alert.message }}</span>
-        <button class="alert-close" @click="alertStore.remove(alert.id)">×</button>
+        <div class="alert-content">
+          <div class="alert-icon" v-if="getAlertIcon(alert.type)">
+            <i :class="getAlertIcon(alert.type)"></i>
+          </div>
+          <span class="alert-message">{{ alert.message }}</span>
+        </div>
+        <button class="alert-close" @click="alertStore.remove(alert.id)">
+          <svg class="close-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
       </div>
     </transition-group>
   </div>
@@ -21,8 +30,24 @@ export default {
   setup() {
     const alertStore = useAlertStore();
     
+    const getAlertIcon = (type) => {
+      switch (type) {
+        case 'success':
+          return 'fas fa-check-circle';
+        case 'error':
+          return 'fas fa-exclamation-circle';
+        case 'warning':
+          return 'fas fa-exclamation-triangle';
+        case 'info':
+          return 'fas fa-info-circle';
+        default:
+          return null;
+      }
+    };
+    
     return {
-      alertStore
+      alertStore,
+      getAlertIcon
     };
   }
 }
@@ -36,56 +61,89 @@ export default {
   transform: translateX(-50%);
   z-index: 9999;
   max-width: 400px;
-  width: auto;
+  width: 400px;
   min-width: 320px;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .alert {
-  padding: 16px 20px;
+  pointer-events: auto;
+  padding: 16px;
   margin-bottom: 12px;
-  border-radius: 12px;
-  color: white;
+  border-radius: 8px;
+  background: white;
+  color: #374151;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08),
+              0 4px 8px rgba(0, 0, 0, 0.06);
+  border-left: 4px solid;
   font-weight: 500;
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.5;
+  width: 100%;
+}
+
+.alert-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-grow: 1;
+  margin-right: 12px;
+}
+
+.alert-icon {
+  flex-shrink: 0;
+  font-size: 18px;
 }
 
 .alert-success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-left-color: #10b981;
+}
+
+.alert-success .alert-icon {
+  color: #10b981;
 }
 
 .alert-error {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-left-color: #ef4444;
+}
+
+.alert-error .alert-icon {
+  color: #ef4444;
 }
 
 .alert-warning {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-left-color: #f59e0b;
+}
+
+.alert-warning .alert-icon {
+  color: #f59e0b;
 }
 
 .alert-info {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-left-color: #3b82f6;
+}
+
+.alert-info .alert-icon {
+  color: #3b82f6;
 }
 
 .alert-message {
-  flex-grow: 1;
-  margin-right: 12px;
   word-wrap: break-word;
+  color: #374151;
 }
 
 .alert-close {
   background: none;
   border: none;
-  color: white;
-  font-size: 18px;
+  color: #9ca3af;
   cursor: pointer;
   padding: 4px;
-  opacity: 0.8;
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -93,12 +151,18 @@ export default {
   width: 24px;
   height: 24px;
   transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin: -4px -4px 0 0;
+}
+
+.close-icon {
+  width: 16px;
+  height: 16px;
 }
 
 .alert-close:hover {
-  opacity: 1;
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.1);
+  background-color: #f3f4f6;
+  color: #4b5563;
 }
 
 /* Animacje */
@@ -109,12 +173,12 @@ export default {
 
 .alert-enter-from {
   opacity: 0;
-  transform: translateY(-30px) scale(0.9);
+  transform: translateY(-30px);
 }
 
 .alert-leave-to {
   opacity: 0;
-  transform: translateY(-30px) scale(0.9);
+  transform: translateY(-30px);
 }
 
 /* Responsive design */
@@ -126,11 +190,21 @@ export default {
     transform: none;
     max-width: none;
     min-width: auto;
+    width: auto;
   }
   
   .alert {
-    padding: 14px 16px;
+    padding: 12px;
     font-size: 13px;
+    width: 100%;
+  }
+  
+  .alert-content {
+    gap: 8px;
+  }
+  
+  .alert-icon {
+    font-size: 16px;
   }
 }
 </style> 

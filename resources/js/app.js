@@ -212,21 +212,24 @@ app.use(router);
 app.use(pinia);
 app.use(AdminUIComponents);
 app.use(Toast, {
-  transition: "Vue-Toastification__bounce",
+  transition: "Vue-Toastification__fade",
   maxToasts: 3,
   newestOnTop: true,
   position: "top-center",
   timeout: 4000,
-  closeOnClick: true,
+  closeOnClick: false,
   pauseOnFocusLoss: true,
   pauseOnHover: true,
   draggable: true,
   draggablePercent: 0.6,
   showCloseButtonOnHover: false,
-  hideProgressBar: false,
+  hideProgressBar: true,
   closeButton: "button",
-  icon: false,
-  rtl: false
+  icon: true,
+  rtl: false,
+  toastClassName: "custom-toast",
+  bodyClassName: ["custom-toast-body"],
+  containerClassName: "custom-toast-container"
 });
 
 // Initialize stores
