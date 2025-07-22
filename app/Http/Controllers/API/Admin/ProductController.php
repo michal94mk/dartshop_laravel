@@ -14,13 +14,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-/**
- * @OA\Tag(
- *     name="Admin/Products",
- *     description="API Endpoints for admin product management"
- * )
- */
-
 class ProductController extends BaseAdminController
 {
     /**
@@ -43,80 +36,6 @@ class ProductController extends BaseAdminController
 
     /**
      * Display a listing of the products.
-     *
-     * @OA\Get(
-     *     path="/api/admin/products",
-     *     summary="Get products list (admin)",
-     *     description="Retrieve all products with admin filters and pagination",
-     *     tags={"Admin/Products"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="is_active",
-     *         in="query",
-     *         description="Filter by active status",
-     *         required=false,
-     *         @OA\Schema(type="boolean")
-     *     ),
-     *     @OA\Parameter(
-     *         name="search",
-     *         in="query",
-     *         description="Search in name and description",
-     *         required=false,
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="category_id",
-     *         in="query",
-     *         description="Filter by category ID",
-     *         required=false,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Parameter(
-     *         name="brand_id",
-     *         in="query",
-     *         description="Filter by brand ID",
-     *         required=false,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_field",
-     *         in="query",
-     *         description="Sort field (name, price, created_at, updated_at)",
-     *         required=false,
-     *         @OA\Schema(type="string", default="created_at")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_direction",
-     *         in="query",
-     *         description="Sort direction (asc, desc)",
-     *         required=false,
-     *         @OA\Schema(type="string", default="desc")
-     *     ),
-     *     @OA\Parameter(
-     *         name="per_page",
-     *         in="query",
-     *         description="Items per page",
-     *         required=false,
-     *         @OA\Schema(type="integer", default=15)
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Product")),
-     *             @OA\Property(property="meta", ref="#/components/schemas/PaginationMeta"),
-     *             @OA\Property(property="links", ref="#/components/schemas/PaginationLinks")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     ),
-     *     @OA\Response(
-     *         response=403,
-     *         description="Forbidden - Admin access required"
-     *     )
-     * )
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse

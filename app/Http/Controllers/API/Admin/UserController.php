@@ -10,91 +10,10 @@ use Illuminate\Validation\Rule;
 use App\Http\Requests\Admin\UserUpdateRequest;
 use App\Http\Requests\Admin\UserStoreRequest;
 
-/**
- * @OA\Tag(
- *     name="Admin/Users",
- *     description="API Endpoints for admin user management"
- * )
- */
-
 class UserController extends BaseAdminController
 {
     /**
      * Display a listing of the users.
-     *
-     * @OA\Get(
-     *     path="/api/admin/users",
-     *     summary="Get users list (admin)",
-     *     description="Retrieve all users with admin filters and pagination",
-     *     tags={"Admin/Users"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="search",
-     *         in="query",
-     *         description="Search in name, first_name, last_name, email",
-     *         required=false,
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="role",
-     *         in="query",
-     *         description="Filter by role (admin, user)",
-     *         required=false,
-     *         @OA\Schema(type="string", enum={"admin", "user"})
-     *     ),
-     *     @OA\Parameter(
-     *         name="verified",
-     *         in="query",
-     *         description="Filter by verification status (0, 1)",
-     *         required=false,
-     *         @OA\Schema(type="integer", enum={0, 1})
-     *     ),
-     *     @OA\Parameter(
-     *         name="account_type",
-     *         in="query",
-     *         description="Filter by account type (google, local)",
-     *         required=false,
-     *         @OA\Schema(type="string", enum={"google", "local"})
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_field",
-     *         in="query",
-     *         description="Sort field (name, email, created_at, updated_at)",
-     *         required=false,
-     *         @OA\Schema(type="string", default="created_at")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_direction",
-     *         in="query",
-     *         description="Sort direction (asc, desc)",
-     *         required=false,
-     *         @OA\Schema(type="string", default="desc")
-     *     ),
-     *     @OA\Parameter(
-     *         name="per_page",
-     *         in="query",
-     *         description="Items per page",
-     *         required=false,
-     *         @OA\Schema(type="integer", default=15)
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/User")),
-     *             @OA\Property(property="meta", ref="#/components/schemas/PaginationMeta"),
-     *             @OA\Property(property="links", ref="#/components/schemas/PaginationLinks")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     ),
-     *     @OA\Response(
-     *         response=403,
-     *         description="Forbidden - Admin access required"
-     *     )
-     * )
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse

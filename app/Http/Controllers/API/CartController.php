@@ -12,13 +12,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
-/**
- * @OA\Tag(
- *     name="Cart",
- *     description="API Endpoints for shopping cart management"
- * )
- */
-
 class CartController extends Controller
 {
     protected $cartService;
@@ -30,32 +23,6 @@ class CartController extends Controller
 
     /**
      * Display the cart contents.
-     *
-     * @OA\Get(
-     *     path="/api/cart",
-     *     summary="Get cart contents",
-     *     description="Retrieve all items in the user's shopping cart",
-     *     tags={"Cart"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="items", type="array", @OA\Items(ref="#/components/schemas/CartItem")),
-     *             @OA\Property(property="subtotal", type="number", format="float", example=299.99),
-     *             @OA\Property(property="count", type="integer", example=5)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Internal server error",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     )
-     * )
      */
     public function index(): JsonResponse
     {
@@ -100,44 +67,6 @@ class CartController extends Controller
 
     /**
      * Store a new cart item.
-     *
-     * @OA\Post(
-     *     path="/api/cart",
-     *     summary="Add item to cart",
-     *     description="Add a product to the shopping cart",
-     *     tags={"Cart"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"product_id","quantity"},
-     *             @OA\Property(property="product_id", type="integer", example=1),
-     *             @OA\Property(property="quantity", type="integer", example=2)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Item added successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Product added to cart successfully"),
-     *             @OA\Property(property="cart_item", ref="#/components/schemas/CartItem")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Internal server error",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     )
-     * )
      */
     public function store(Request $request): JsonResponse
     {

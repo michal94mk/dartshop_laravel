@@ -12,91 +12,10 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\Admin\OrderRequest;
 use App\Http\Requests\Admin\OrderStatusUpdateRequest;
 
-/**
- * @OA\Tag(
- *     name="Admin/Orders",
- *     description="API Endpoints for admin order management"
- * )
- */
-
 class OrderController extends BaseAdminController
 {
     /**
      * Display a listing of the orders.
-     *
-     * @OA\Get(
-     *     path="/api/admin/orders",
-     *     summary="Get orders list (admin)",
-     *     description="Retrieve all orders with admin filters and pagination",
-     *     tags={"Admin/Orders"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="search",
-     *         in="query",
-     *         description="Search in order number, customer name, email, phone, city",
-     *         required=false,
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="status",
-     *         in="query",
-     *         description="Filter by order status",
-     *         required=false,
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="date_from",
-     *         in="query",
-     *         description="Filter orders from date (YYYY-MM-DD)",
-     *         required=false,
-     *         @OA\Schema(type="string", format="date")
-     *     ),
-     *     @OA\Parameter(
-     *         name="date_to",
-     *         in="query",
-     *         description="Filter orders to date (YYYY-MM-DD)",
-     *         required=false,
-     *         @OA\Schema(type="string", format="date")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_field",
-     *         in="query",
-     *         description="Sort field (id, created_at, total, status)",
-     *         required=false,
-     *         @OA\Schema(type="string", default="created_at")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_direction",
-     *         in="query",
-     *         description="Sort direction (asc, desc)",
-     *         required=false,
-     *         @OA\Schema(type="string", default="desc")
-     *     ),
-     *     @OA\Parameter(
-     *         name="per_page",
-     *         in="query",
-     *         description="Items per page",
-     *         required=false,
-     *         @OA\Schema(type="integer", default=15)
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Order")),
-     *             @OA\Property(property="meta", ref="#/components/schemas/PaginationMeta"),
-     *             @OA\Property(property="links", ref="#/components/schemas/PaginationLinks")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     ),
-     *     @OA\Response(
-     *         response=403,
-     *         description="Forbidden - Admin access required"
-     *     )
-     * )
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse

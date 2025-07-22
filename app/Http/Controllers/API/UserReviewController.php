@@ -11,36 +11,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\JsonResponse;
 
-/**
- * @OA\Tag(
- *     name="Reviews",
- *     description="API Endpoints for review management"
- * )
- */
-
 class UserReviewController extends Controller
 {
     /**
      * Get all reviews for the authenticated user
-     *
-     * @OA\Get(
-     *     path="/api/reviews/my-reviews",
-     *     summary="Get user reviews",
-     *     description="Retrieve all reviews for the authenticated user",
-     *     tags={"Reviews"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Review"))
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     )
-     * )
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -60,34 +34,6 @@ class UserReviewController extends Controller
     
     /**
      * Get a specific review for the authenticated user
-     *
-     * @OA\Get(
-     *     path="/api/reviews/my-reviews/{id}",
-     *     summary="Get specific review",
-     *     description="Retrieve a specific review for the authenticated user",
-     *     tags={"Reviews"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         description="Review ID",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/Review")
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Review not found"
-     *     )
-     * )
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response

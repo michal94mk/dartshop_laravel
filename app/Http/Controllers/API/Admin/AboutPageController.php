@@ -6,38 +6,10 @@ use App\Models\AboutUs;
 use App\Http\Requests\Admin\AboutPageRequest;
 use Illuminate\Support\Facades\Log;
 
-/**
- * @OA\Tag(
- *     name="Admin/About Page",
- *     description="API Endpoints for admin about page management"
- * )
- */
-
 class AboutPageController extends BaseAdminController
 {
     /**
      * Display the first about page data.
-     *
-     * @OA\Get(
-     *     path="/api/admin/about-page",
-     *     summary="Get about page data (admin)",
-     *     description="Get the first about page record or create default if none exists",
-     *     tags={"Admin/About Page"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/AboutUs")
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     ),
-     *     @OA\Response(
-     *         response=403,
-     *         description="Forbidden - Admin access required"
-     *     )
-     * )
      *
      * @return \Illuminate\Http\Response
      */

@@ -9,45 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
-/**
- * @OA\Tag(
- *     name="Favorites",
- *     description="API Endpoints for favorite products management"
- * )
- */
-
 class FavoriteProductController extends Controller
 {
-    /**
-     * Toggle a product's favorite status for the authenticated user.
-     *
-     * @OA\Post(
-     *     path="/api/favorites/{product}",
-     *     summary="Toggle favorite product",
-     *     description="Add or remove a product from user's favorites",
-     *     tags={"Favorites"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="product",
-     *         in="path",
-     *         description="Product ID",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Product added to favorites."),
-     *             @OA\Property(property="is_favorite", type="boolean", example=true)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     )
-     * )
-     */
     public function toggle(Product $product): JsonResponse
     {
         $user = Auth::user();
@@ -77,28 +40,6 @@ class FavoriteProductController extends Controller
         ]);
     }
     
-    /**
-     * Get all favorite products for the authenticated user.
-     *
-     * @OA\Get(
-     *     path="/api/favorites",
-     *     summary="Get favorite products",
-     *     description="Retrieve all favorite products for the authenticated user",
-     *     tags={"Favorites"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="favorite_products", type="array", @OA\Items(ref="#/components/schemas/Product"))
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     )
-     * )
-     */
     public function index(): JsonResponse
     {
         $user = Auth::user();
@@ -127,35 +68,6 @@ class FavoriteProductController extends Controller
         ]);
     }
     
-    /**
-     * Check if a product is in the user's favorites.
-     *
-     * @OA\Get(
-     *     path="/api/favorites/check/{product}",
-     *     summary="Check if product is favorite",
-     *     description="Check if a product is in the user's favorites",
-     *     tags={"Favorites"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="product",
-     *         in="path",
-     *         description="Product ID",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="is_favorite", type="boolean", example=true)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     )
-     * )
-     */
     public function check(Product $product): JsonResponse
     {
         $user = Auth::user();

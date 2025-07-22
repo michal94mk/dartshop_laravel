@@ -40,8 +40,7 @@ use App\Http\Controllers\API\TermsOfServiceController;
 use App\Http\Controllers\API\SocialAuthController;
 use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\Api\ShippingController;
-use App\Http\Controllers\API\SwaggerController;
-use App\Http\Controllers\API\SwaggerSchemasController;
+
 
 /*
 |--------------------------------------------------------------------------

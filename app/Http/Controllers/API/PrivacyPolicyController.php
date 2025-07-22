@@ -8,37 +8,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-/**
- * @OA\Tag(
- *     name="Privacy Policy",
- *     description="API Endpoints for privacy policy management"
- * )
- */
-
 class PrivacyPolicyController extends Controller
 {
     /**
      * Display the current privacy policy.
-     *
-     * @OA\Get(
-     *     path="/api/privacy-policy",
-     *     summary="Get privacy policy",
-     *     description="Get current active privacy policy",
-     *     tags={"Privacy Policy"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="privacy_policy", type="object",
-     *                 @OA\Property(property="id", type="integer", nullable=true, example=1),
-     *                 @OA\Property(property="title", type="string", example="Polityka Prywatności DartShop"),
-     *                 @OA\Property(property="version", type="string", example="1.0"),
-     *                 @OA\Property(property="effective_date", type="string", format="date-time"),
-     *                 @OA\Property(property="content", type="string", example="<h2>1. Informacje ogólne</h2>...")
-     *             )
-     *         )
-     *     )
-     * )
      */
     public function show()
     {
@@ -56,27 +29,6 @@ class PrivacyPolicyController extends Controller
 
     /**
      * Accept privacy policy for authenticated user.
-     *
-     * @OA\Post(
-     *     path="/api/privacy-policy/accept",
-     *     summary="Accept privacy policy",
-     *     description="Accept privacy policy for authenticated user",
-     *     tags={"Privacy Policy"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Privacy policy accepted successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Polityka prywatności została zaakceptowana"),
-     *             @OA\Property(property="privacy_policy_accepted", type="boolean", example=true),
-     *             @OA\Property(property="privacy_policy_accepted_at", type="string", format="date-time")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     )
-     * )
      */
     public function accept(Request $request)
     {

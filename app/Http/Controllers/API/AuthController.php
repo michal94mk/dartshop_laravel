@@ -13,13 +13,6 @@ use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Str;
 
-/**
- * @OA\Tag(
- *     name="Authentication",
- *     description="API Endpoints for user authentication"
- * )
- */
-
 class AuthController extends Controller
 {
     protected $cartService;
@@ -29,38 +22,6 @@ class AuthController extends Controller
         $this->cartService = $cartService;
     }
 
-    /**
-     * Login user and create token
-     *
-     * @OA\Post(
-     *     path="/api/login",
-     *     summary="User login",
-     *     description="Authenticate user and return access token",
-     *     tags={"Authentication"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"email","password"},
-     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
-     *             @OA\Property(property="password", type="string", example="password123")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Login successful",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="user", ref="#/components/schemas/User"),
-     *             @OA\Property(property="token", type="string", example="1|abc123..."),
-     *             @OA\Property(property="token_type", type="string", example="Bearer")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     )
-     * )
-     */
     public function login(Request $request)
     {
         $request->validate([
@@ -91,44 +52,6 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Register a new user
-     *
-     * @OA\Post(
-     *     path="/api/register",
-     *     summary="User registration",
-     *     description="Register a new user account",
-     *     tags={"Authentication"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"name","first_name","last_name","email","password","password_confirmation","privacy_policy_accepted"},
-     *             @OA\Property(property="name", type="string", example="John Doe"),
-     *             @OA\Property(property="first_name", type="string", example="John"),
-     *             @OA\Property(property="last_name", type="string", example="Doe"),
-     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
-     *             @OA\Property(property="password", type="string", example="password123"),
-     *             @OA\Property(property="password_confirmation", type="string", example="password123"),
-     *             @OA\Property(property="privacy_policy_accepted", type="boolean", example=true),
-     *             @OA\Property(property="newsletter_consent", type="boolean", example=false)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Registration successful",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="user", ref="#/components/schemas/User"),
-     *             @OA\Property(property="token", type="string", example="1|abc123..."),
-     *             @OA\Property(property="token_type", type="string", example="Bearer")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     )
-     * )
-     */
     public function register(Request $request)
     {
         $request->validate([
@@ -178,9 +101,6 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Handle Google OAuth login/register
-     */
     public function handleGoogleCallback(Request $request)
     {
         try {
@@ -245,18 +165,12 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Get the authenticated user
-     */
     public function user(Request $request)
     {
         $user = $request->user();
         return response()->json($this->getUserWithRolesAndPermissions($user));
     }
 
-    /**
-     * Logout user (Revoke the token)
-     */
     public function logout(Request $request)
     {
         // Handle token-based logout (API tokens)
@@ -275,9 +189,6 @@ class AuthController extends Controller
         return response()->json(['message' => 'Successfully logged out'])->withCookie($cookie);
     }
 
-    /**
-     * Get user with roles and permissions
-     */
     protected function getUserWithRolesAndPermissions(User $user)
     {
         $userData = $user->toArray();

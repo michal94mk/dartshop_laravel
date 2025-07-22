@@ -7,77 +7,10 @@ use App\Http\Requests\Admin\TutorialRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
-/**
- * @OA\Tag(
- *     name="Admin/Tutorials",
- *     description="API Endpoints for admin tutorial management"
- * )
- */
-
 class TutorialController extends BaseAdminController
 {
     /**
      * Display a listing of the tutorials.
-     *
-     * @OA\Get(
-     *     path="/api/admin/tutorials",
-     *     summary="Get tutorials list (admin)",
-     *     description="Retrieve all tutorials with admin filters and pagination",
-     *     tags={"Admin/Tutorials"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="search",
-     *         in="query",
-     *         description="Search in title, content",
-     *         required=false,
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="status",
-     *         in="query",
-     *         description="Filter by status (published, draft)",
-     *         required=false,
-     *         @OA\Schema(type="string", enum={"published", "draft"})
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_field",
-     *         in="query",
-     *         description="Sort field (created_at, title)",
-     *         required=false,
-     *         @OA\Schema(type="string", default="created_at")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_direction",
-     *         in="query",
-     *         description="Sort direction (asc, desc)",
-     *         required=false,
-     *         @OA\Schema(type="string", default="desc")
-     *     ),
-     *     @OA\Parameter(
-     *         name="per_page",
-     *         in="query",
-     *         description="Items per page",
-     *         required=false,
-     *         @OA\Schema(type="integer", default=15)
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Tutorial")),
-     *             @OA\Property(property="meta", ref="#/components/schemas/PaginationMeta"),
-     *             @OA\Property(property="links", ref="#/components/schemas/PaginationLinks")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     ),
-     *     @OA\Response(
-     *         response=403,
-     *         description="Forbidden - Admin access required"
-     *     )
-     * )
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response

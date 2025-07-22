@@ -7,103 +7,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 
-/**
- * @OA\Tag(
- *     name="Admin/Newsletter",
- *     description="API Endpoints for admin newsletter management"
- * )
- */
-
 class NewsletterController extends BaseAdminController
 {
     /**
      * Display a listing of newsletter subscriptions
-     *
-     * @OA\Get(
-     *     path="/api/admin/newsletter",
-     *     summary="Get newsletter subscriptions list (admin)",
-     *     description="Retrieve all newsletter subscriptions with admin filters and pagination",
-     *     tags={"Admin/Newsletter"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="search",
-     *         in="query",
-     *         description="Search in email",
-     *         required=false,
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="status",
-     *         in="query",
-     *         description="Filter by status (active, pending, unsubscribed)",
-     *         required=false,
-     *         @OA\Schema(type="string", enum={"active", "pending", "unsubscribed"})
-     *     ),
-     *     @OA\Parameter(
-     *         name="date_from",
-     *         in="query",
-     *         description="Filter from date (YYYY-MM-DD)",
-     *         required=false,
-     *         @OA\Schema(type="string", format="date")
-     *     ),
-     *     @OA\Parameter(
-     *         name="date_to",
-     *         in="query",
-     *         description="Filter to date (YYYY-MM-DD)",
-     *         required=false,
-     *         @OA\Schema(type="string", format="date")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_field",
-     *         in="query",
-     *         description="Sort field (created_at, email, status, verified_at, unsubscribed_at)",
-     *         required=false,
-     *         @OA\Schema(type="string", default="created_at")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_direction",
-     *         in="query",
-     *         description="Sort direction (asc, desc)",
-     *         required=false,
-     *         @OA\Schema(type="string", default="desc")
-     *     ),
-     *     @OA\Parameter(
-     *         name="per_page",
-     *         in="query",
-     *         description="Items per page",
-     *         required=false,
-     *         @OA\Schema(type="integer", default=15)
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/NewsletterSubscription")),
-     *             @OA\Property(property="pagination", type="object",
-     *                 @OA\Property(property="current_page", type="integer", example=1),
-     *                 @OA\Property(property="last_page", type="integer", example=5),
-     *                 @OA\Property(property="per_page", type="integer", example=15),
-     *                 @OA\Property(property="total", type="integer", example=75),
-     *                 @OA\Property(property="from", type="integer", example=1),
-     *                 @OA\Property(property="to", type="integer", example=15)
-     *             ),
-     *             @OA\Property(property="stats", type="object",
-     *                 @OA\Property(property="active", type="integer", example=50),
-     *                 @OA\Property(property="pending", type="integer", example=10),
-     *                 @OA\Property(property="unsubscribed", type="integer", example=15),
-     *                 @OA\Property(property="total", type="integer", example=75)
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     ),
-     *     @OA\Response(
-     *         response=403,
-     *         description="Forbidden - Admin access required"
-     *     )
-     * )
      */
     public function index(Request $request): JsonResponse
     {

@@ -8,50 +8,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 
-/**
- * @OA\Tag(
- *     name="Profile",
- *     description="API Endpoints for user profile management"
- * )
- */
-
 class ProfileController extends Controller
 {
     /**
      * Update user profile
-     *
-     * @OA\Put(
-     *     path="/api/user/profile",
-     *     summary="Update user profile",
-     *     description="Update user profile information",
-     *     tags={"Profile"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"name","email"},
-     *             @OA\Property(property="name", type="string", example="John Doe"),
-     *             @OA\Property(property="email", type="string", format="email", example="john@example.com")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Profile updated successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Profil został pomyślnie zaktualizowany."),
-     *             @OA\Property(property="user", ref="#/components/schemas/User")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     )
-     * )
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
@@ -97,39 +57,6 @@ class ProfileController extends Controller
 
     /**
      * Update user password
-     *
-     * @OA\Put(
-     *     path="/api/user/password",
-     *     summary="Update user password",
-     *     description="Update user password (not available for Google OAuth users)",
-     *     tags={"Profile"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"current_password","password","password_confirmation"},
-     *             @OA\Property(property="current_password", type="string", example="oldpassword123"),
-     *             @OA\Property(property="password", type="string", example="newpassword123"),
-     *             @OA\Property(property="password_confirmation", type="string", example="newpassword123")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Password updated successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Hasło zostało pomyślnie zmienione.")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error or Google OAuth user",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     )
-     * )
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse

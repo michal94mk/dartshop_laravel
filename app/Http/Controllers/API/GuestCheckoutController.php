@@ -15,13 +15,6 @@ use App\Enums\PaymentStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-/**
- * @OA\Tag(
- *     name="Guest Checkout",
- *     description="API Endpoints for guest checkout process"
- * )
- */
-
 class GuestCheckoutController extends Controller
 {
     protected $shippingService;
@@ -35,54 +28,6 @@ class GuestCheckoutController extends Controller
         $this->cartService = $cartService;
     }
 
-    /**
-     * Process guest checkout
-     *
-     * @OA\Post(
-     *     path="/api/guest-checkout",
-     *     summary="Process guest checkout",
-     *     description="Process checkout for non-authenticated users",
-     *     tags={"Guest Checkout"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"shipping_address","shipping_method","payment_method"},
-     *             @OA\Property(property="shipping_address", type="object",
-     *                 @OA\Property(property="first_name", type="string", example="John"),
-     *                 @OA\Property(property="last_name", type="string", example="Doe"),
-     *                 @OA\Property(property="email", type="string", format="email", example="john@example.com"),
-     *                 @OA\Property(property="phone", type="string", example="+48123456789"),
-     *                 @OA\Property(property="street", type="string", example="ul. Przykładowa 1"),
-     *                 @OA\Property(property="city", type="string", example="Warszawa"),
-     *                 @OA\Property(property="postal_code", type="string", example="00-001"),
-     *                 @OA\Property(property="country", type="string", example="Polska")
-     *             ),
-     *             @OA\Property(property="shipping_method", type="string", enum={"standard", "express"}, example="standard"),
-     *             @OA\Property(property="payment_method", type="string", enum={"stripe", "bank_transfer"}, example="stripe"),
-     *             @OA\Property(property="notes", type="string", nullable=true, example="Dostawa do biura")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Order created successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Order created successfully"),
-     *             @OA\Property(property="order", ref="#/components/schemas/Order"),
-     *             @OA\Property(property="payment_url", type="string", nullable=true, example="https://checkout.stripe.com/...")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Bad request - Empty cart or product unavailable",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     )
-     * )
-     */
     public function __invoke(CheckoutRequest $request)
     {
         try {

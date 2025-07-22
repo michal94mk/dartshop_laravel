@@ -17,13 +17,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
-/**
- * @OA\Tag(
- *     name="Stripe Payments",
- *     description="API Endpoints for Stripe payment processing"
- * )
- */
-
 class StripeController extends Controller
 {
     protected $shippingService;
@@ -75,50 +68,6 @@ class StripeController extends Controller
 
     /**
      * Utworzenie Stripe Checkout Session dla zalogowanych użytkowników
-     *
-     * @OA\Post(
-     *     path="/api/stripe/create-checkout-session",
-     *     summary="Create Stripe checkout session",
-     *     description="Create Stripe checkout session for authenticated users",
-     *     tags={"Stripe Payments"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"shipping","shipping_method"},
-     *             @OA\Property(property="shipping", type="object",
-     *                 @OA\Property(property="name", type="string", example="John Doe"),
-     *                 @OA\Property(property="email", type="string", format="email", example="john@example.com"),
-     *                 @OA\Property(property="address", type="string", example="ul. Przykładowa 1"),
-     *                 @OA\Property(property="city", type="string", example="Warszawa"),
-     *                 @OA\Property(property="postalCode", type="string", example="00-001")
-     *             ),
-     *             @OA\Property(property="shipping_method", type="string", example="standard")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Checkout session created successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="session_id", type="string", example="cs_test_..."),
-     *             @OA\Property(property="session_url", type="string", example="https://checkout.stripe.com/...")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Bad request - Empty cart",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     )
-     * )
      */
     public function createCheckoutSession(Request $request)
     {
@@ -213,49 +162,6 @@ class StripeController extends Controller
 
     /**
      * Utworzenie Stripe Checkout Session dla gości
-     *
-     * @OA\Post(
-     *     path="/api/guest-stripe/create-checkout-session",
-     *     summary="Create guest Stripe checkout session",
-     *     description="Create Stripe checkout session for guest users",
-     *     tags={"Stripe Payments"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"items","shipping","shipping_method"},
-     *             @OA\Property(property="items", type="array", @OA\Items(
-     *                 @OA\Property(property="product_id", type="integer", example=1),
-     *                 @OA\Property(property="quantity", type="integer", example=2)
-     *             )),
-     *             @OA\Property(property="shipping", type="object",
-     *                 @OA\Property(property="name", type="string", example="John Doe"),
-     *                 @OA\Property(property="email", type="string", format="email", example="john@example.com"),
-     *                 @OA\Property(property="address", type="string", example="ul. Przykładowa 1"),
-     *                 @OA\Property(property="city", type="string", example="Warszawa"),
-     *                 @OA\Property(property="postalCode", type="string", example="00-001")
-     *             ),
-     *             @OA\Property(property="shipping_method", type="string", example="standard")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Checkout session created successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="session_id", type="string", example="cs_test_..."),
-     *             @OA\Property(property="session_url", type="string", example="https://checkout.stripe.com/...")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Bad request - Invalid items",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     )
-     * )
      */
     public function createGuestCheckoutSession(Request $request)
     {
@@ -353,40 +259,6 @@ class StripeController extends Controller
 
     /**
      * Utworzenie Payment Intent dla zalogowanych użytkowników
-     *
-     * @OA\Post(
-     *     path="/api/stripe/create-payment-intent",
-     *     summary="Create payment intent",
-     *     description="Create Stripe payment intent for authenticated users",
-     *     tags={"Stripe Payments"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"amount","currency"},
-     *             @OA\Property(property="amount", type="integer", example=2999),
-     *             @OA\Property(property="currency", type="string", example="pln"),
-     *             @OA\Property(property="metadata", type="object", nullable=true)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Payment intent created successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="client_secret", type="string", example="pi_..._secret_..."),
-     *             @OA\Property(property="payment_intent_id", type="string", example="pi_...")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Bad request",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     )
-     * )
      */
     public function createPaymentIntent(Request $request)
     {
@@ -442,35 +314,6 @@ class StripeController extends Controller
 
     /**
      * Utworzenie Payment Intent dla gości
-     *
-     * @OA\Post(
-     *     path="/api/guest-stripe/create-payment-intent",
-     *     summary="Create guest payment intent",
-     *     description="Create Stripe payment intent for guest users",
-     *     tags={"Stripe Payments"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"amount","currency"},
-     *             @OA\Property(property="amount", type="integer", example=2999),
-     *             @OA\Property(property="currency", type="string", example="pln"),
-     *             @OA\Property(property="metadata", type="object", nullable=true)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Payment intent created successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="client_secret", type="string", example="pi_..._secret_..."),
-     *             @OA\Property(property="payment_intent_id", type="string", example="pi_...")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Bad request",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     )
-     * )
      */
     public function createGuestPaymentIntent(Request $request)
     {
@@ -539,47 +382,6 @@ class StripeController extends Controller
 
     /**
      * Potwierdzenie płatności i utworzenie zamówienia dla zalogowanych użytkowników
-     */
-    /**
-     * Potwierdzenie płatności dla zalogowanych użytkowników
-     *
-     * @OA\Post(
-     *     path="/api/stripe/confirm-payment",
-     *     summary="Confirm payment",
-     *     description="Confirm Stripe payment for authenticated users",
-     *     tags={"Stripe Payments"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"payment_intent_id","order_id"},
-     *             @OA\Property(property="payment_intent_id", type="string", example="pi_..."),
-     *             @OA\Property(property="order_id", type="integer", example=1)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Payment confirmed successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Payment confirmed successfully"),
-     *             @OA\Property(property="order", ref="#/components/schemas/Order")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Bad request - Payment failed",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Order not found",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     )
-     * )
      */
     public function confirmPayment(Request $request)
     {

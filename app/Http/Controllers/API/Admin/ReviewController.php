@@ -8,91 +8,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Requests\Admin\ReviewRequest;
 
-/**
- * @OA\Tag(
- *     name="Admin/Reviews",
- *     description="API Endpoints for admin review management"
- * )
- */
-
 class ReviewController extends BaseAdminController
 {
     /**
      * Display a listing of the reviews.
-     *
-     * @OA\Get(
-     *     path="/api/admin/reviews",
-     *     summary="Get reviews list (admin)",
-     *     description="Retrieve all reviews with admin filters and pagination",
-     *     tags={"Admin/Reviews"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="search",
-     *         in="query",
-     *         description="Search in title, content, user name, product name",
-     *         required=false,
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="rating",
-     *         in="query",
-     *         description="Filter by rating (1-5)",
-     *         required=false,
-     *         @OA\Schema(type="integer", minimum=1, maximum=5)
-     *     ),
-     *     @OA\Parameter(
-     *         name="approved",
-     *         in="query",
-     *         description="Filter by approval status",
-     *         required=false,
-     *         @OA\Schema(type="string", enum={"true", "false"})
-     *     ),
-     *     @OA\Parameter(
-     *         name="featured",
-     *         in="query",
-     *         description="Filter by featured status",
-     *         required=false,
-     *         @OA\Schema(type="string", enum={"true", "false"})
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_field",
-     *         in="query",
-     *         description="Sort field (id, rating, created_at, product)",
-     *         required=false,
-     *         @OA\Schema(type="string", default="created_at")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_direction",
-     *         in="query",
-     *         description="Sort direction (asc, desc)",
-     *         required=false,
-     *         @OA\Schema(type="string", default="desc")
-     *     ),
-     *     @OA\Parameter(
-     *         name="per_page",
-     *         in="query",
-     *         description="Items per page",
-     *         required=false,
-     *         @OA\Schema(type="integer", default=15)
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Review")),
-     *             @OA\Property(property="meta", ref="#/components/schemas/PaginationMeta"),
-     *             @OA\Property(property="links", ref="#/components/schemas/PaginationLinks")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized"
-     *     ),
-     *     @OA\Response(
-     *         response=403,
-     *         description="Forbidden - Admin access required"
-     *     )
-     * )
      *
      * @return \Illuminate\Http\Response
      */

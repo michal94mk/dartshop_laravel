@@ -8,13 +8,6 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
-/**
- * @OA\Tag(
- *     name="Promotions",
- *     description="API Endpoints for promotion management"
- * )
- */
-
 class PromotionController extends Controller
 {
     /**
