@@ -120,7 +120,8 @@ export default {
         const response = await newsletterService.unsubscribe(this.email);
         
         if (response.success) {
-          this.toast.success(response.message, {
+          const message = response.data?.message || response.message || 'Zostałeś pomyślnie wypisany z newslettera';
+          this.toast.success(message, {
             position: "top-center",
             timeout: 6000,
             closeOnClick: true,
@@ -142,7 +143,8 @@ export default {
             this.$router.push('/');
           }, 2000);
         } else {
-          this.errorMessage = response.message || 'Wystąpił błąd podczas wypisywania z newslettera';
+          const message = response.data?.message || response.message || 'Wystąpił błąd podczas wypisywania z newslettera';
+          this.errorMessage = message;
         }
       } catch (error) {
         console.error('Newsletter unsubscribe error:', error);

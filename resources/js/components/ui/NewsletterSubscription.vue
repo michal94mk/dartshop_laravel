@@ -23,7 +23,7 @@
             required
             :disabled="loading"
             class="w-full px-4 py-3 text-gray-900 bg-white/95 backdrop-blur-sm border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-white/30 focus:border-white focus:outline-none disabled:opacity-50 disabled:bg-gray-200 transition-all duration-200 text-center font-medium placeholder-gray-500 shadow-lg"
-            :class="{ 'border-red-300 focus:border-red-400 focus:ring-red-400/30': errorMessage }"
+            :class="{ 'border-red-300 focus:border-red-400 focus:ring-red-400/30': localAlert && localAlert.class.includes('error') }"
           />
           <div v-if="loading" class="absolute right-3 top-1/2 transform -translate-y-1/2">
             <svg class="animate-spin h-4 w-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -121,7 +121,8 @@ export default {
         if (response.success) {
           // Success alert with same style as login alerts
           console.log('Showing success alert with timeout:', 6000);
-          this.showLocalAlert(`🎯 ${response.message}`, 'success', 6000);
+          const message = response.data?.message || response.message || 'Zapisano do newslettera!';
+          this.showLocalAlert(`🎯 ${message}`, 'success', 6000);
           
           this.email = '';
           
@@ -129,7 +130,8 @@ export default {
           this.celebrateSuccess();
         } else {
           console.log('Showing warning alert with timeout:', 5000);
-          this.showLocalAlert(response.message || 'Wystąpił błąd podczas zapisywania do newslettera', 'warning', 5000);
+          const message = response.data?.message || response.message || 'Wystąpił błąd podczas zapisywania do newslettera';
+          this.showLocalAlert(message, 'warning', 5000);
         }
       } catch (error) {
         console.error('Newsletter subscription error:', error);

@@ -90,10 +90,12 @@ export default {
         
         if (response.success) {
           this.verified = true;
-          this.message = response.message;
+          const message = response.data?.message || response.message || 'Email został pomyślnie zweryfikowany!';
+          this.message = message;
         } else {
           this.verified = false;
-          this.message = response.message || 'Wystąpił błąd podczas weryfikacji adresu email.';
+          const message = response.data?.message || response.message || 'Wystąpił błąd podczas weryfikacji adresu email.';
+          this.message = message;
         }
       } catch (error) {
         console.error('Newsletter verification error:', error);
