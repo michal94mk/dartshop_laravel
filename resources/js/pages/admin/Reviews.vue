@@ -15,7 +15,7 @@
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
             </svg>
           </div>
           <div class="ml-3">
@@ -335,6 +335,7 @@
                 {{ product.name }}
               </option>
             </select>
+            <p v-if="formErrors.product_id" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.product_id) ? formErrors.product_id[0] : formErrors.product_id }}</p>
           </div>
           
           <!-- User selection -->
@@ -350,6 +351,7 @@
                 {{ user.name }} ({{ user.email }})
               </option>
             </select>
+            <p v-if="formErrors.user_id" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.user_id) ? formErrors.user_id[0] : formErrors.user_id }}</p>
           </div>
           
           <!-- Rating -->
@@ -363,6 +365,7 @@
             >
               <option v-for="n in 5" :key="n" :value="n">{{ n }} gwiazdek</option>
             </select>
+            <p v-if="formErrors.rating" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.rating) ? formErrors.rating[0] : formErrors.rating }}</p>
           </div>
           
           <!-- Is Approved -->
@@ -376,6 +379,7 @@
               <option :value="true">Zatwierdzona</option>
               <option :value="false">Odrzucona</option>
             </select>
+            <p v-if="formErrors.is_approved" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.is_approved) ? formErrors.is_approved[0] : formErrors.is_approved }}</p>
           </div>
           
           <!-- Is Featured -->
@@ -389,6 +393,7 @@
               <option :value="true">Wyróżniona</option>
               <option :value="false">Zwykła</option>
             </select>
+            <p v-if="formErrors.is_featured" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.is_featured) ? formErrors.is_featured[0] : formErrors.is_featured }}</p>
           </div>
           
           <!-- Title -->
@@ -401,6 +406,7 @@
               class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               required
             />
+            <p v-if="formErrors.title" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.title) ? formErrors.title[0] : formErrors.title }}</p>
           </div>
           
           <!-- Content -->
@@ -413,6 +419,7 @@
               class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               required
             ></textarea>
+            <p v-if="formErrors.content" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.content) ? formErrors.content[0] : formErrors.content }}</p>
           </div>
         </div>
       </form>
@@ -464,6 +471,7 @@
                 {{ product.name }}
               </option>
             </select>
+            <p v-if="formErrors.product_id" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.product_id) ? formErrors.product_id[0] : formErrors.product_id }}</p>
           </div>
           
           <!-- User selection -->
@@ -479,6 +487,7 @@
                 {{ user.name }} ({{ user.email }})
               </option>
             </select>
+            <p v-if="formErrors.user_id" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.user_id) ? formErrors.user_id[0] : formErrors.user_id }}</p>
           </div>
           
           <!-- Rating -->
@@ -492,6 +501,7 @@
             >
               <option v-for="n in 5" :key="n" :value="n">{{ n }} gwiazdek</option>
             </select>
+            <p v-if="formErrors.rating" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.rating) ? formErrors.rating[0] : formErrors.rating }}</p>
           </div>
           
           <!-- Is Approved -->
@@ -505,6 +515,7 @@
               <option :value="true">Zatwierdzona</option>
               <option :value="false">Odrzucona</option>
             </select>
+            <p v-if="formErrors.is_approved" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.is_approved) ? formErrors.is_approved[0] : formErrors.is_approved }}</p>
           </div>
           
           <!-- Is Featured -->
@@ -518,6 +529,7 @@
               <option :value="true">Wyróżniona</option>
               <option :value="false">Zwykła</option>
             </select>
+            <p v-if="formErrors.is_featured" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.is_featured) ? formErrors.is_featured[0] : formErrors.is_featured }}</p>
           </div>
           
           <!-- Title -->
@@ -530,6 +542,7 @@
               class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               required
             />
+            <p v-if="formErrors.title" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.title) ? formErrors.title[0] : formErrors.title }}</p>
           </div>
           
           <!-- Content -->
@@ -542,6 +555,7 @@
               class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               required
             ></textarea>
+            <p v-if="formErrors.content" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.content) ? formErrors.content[0] : formErrors.content }}</p>
           </div>
         </div>
       </form>
@@ -761,6 +775,13 @@ export default {
     const formDataLoading = ref(false)
     const formSubmitting = ref(false)
     
+    // Form validation errors
+    const formErrors = ref({})
+    
+    // Detailed Error Modal
+    const showErrorModal = ref(false)
+    const errorMessage = ref('')
+    
     // Product details modal
     const showProductDetailsModal = ref(false)
     const selectedProduct = ref(null)
@@ -932,30 +953,27 @@ export default {
       }
     }
     
-    // Handle the Add button click
+    // Handle add button click
     const handleAddButtonClick = async () => {
       console.log('Add button clicked')
       formDataLoading.value = true
-      
-      // Test the API first
-      const apiTest = await testFormDataAPI()
-      console.log('API test result:', apiTest)
-      
-      // Reset the form
-      editingReview.value = {
-        product_id: '',
-        user_id: '',
-        rating: 5,
-        is_approved: true,
-        is_featured: false,
-        title: '',
-        content: ''
-      }
-      
-      // Set editing mode
       isEditing.value = false
       
       try {
+        // Reset form data
+        editingReview.value = {
+          product_id: '',
+          user_id: '',
+          rating: 5,
+          title: '',
+          content: '',
+          is_approved: true,
+          is_featured: false
+        }
+        
+        // Clear any previous errors
+        formErrors.value = {}
+        
         // Load form data for dropdowns
         await loadFormData()
         
@@ -1053,6 +1071,8 @@ export default {
         title: '',
         content: ''
       }
+      // Clear form errors
+      formErrors.value = {}
     }
     
     // Initialize new review
@@ -1186,7 +1206,7 @@ export default {
       console.log('Saving review started:', editingReview.value)
       
       // Reset validation errors at the beginning
-      const validationErrors = []
+      formErrors.value = {}
       
       if (!editingReview.value) {
         alertStore.error('Brak danych recenzji do zapisania.')
@@ -1195,30 +1215,43 @@ export default {
       
       // Validate required fields
       if (!editingReview.value.product_id) {
-        validationErrors.push('Wybierz produkt dla recenzji.')
+        formErrors.value.product_id = 'Wybierz produkt dla recenzji.'
       }
       
       if (!editingReview.value.user_id) {
-        validationErrors.push('Wybierz użytkownika dla recenzji.')
+        formErrors.value.user_id = 'Wybierz użytkownika dla recenzji.'
       }
       
       if (!editingReview.value.rating) {
-        validationErrors.push('Wybierz ocenę dla recenzji.')
+        formErrors.value.rating = 'Wybierz ocenę dla recenzji.'
       }
       
       if (!editingReview.value.title || editingReview.value.title.trim() === '') {
-        validationErrors.push('Tytuł recenzji jest wymagany.')
+        formErrors.value.title = 'Tytuł recenzji jest wymagany.'
       }
       
       if (!editingReview.value.content || editingReview.value.content.trim() === '') {
-        validationErrors.push('Treść recenzji jest wymagana.')
+        formErrors.value.content = 'Treść recenzji jest wymagana.'
       }
       
       // If there are validation errors, show them and return
-      if (validationErrors.length > 0) {
-        console.log('Validation errors:', validationErrors)
-        validationErrors.forEach(error => alertStore.error(error))
+      if (Object.keys(formErrors.value).length > 0) {
+        console.log('Validation errors:', formErrors.value)
+        Object.values(formErrors.value).forEach(error => alertStore.error(error))
         return
+      }
+      
+      // Check if user already has a review for this product
+      if (!isEditing.value) {
+        const existingReview = reviews.value.data.find(review => 
+          review.user_id === editingReview.value.user_id && 
+          review.product_id === editingReview.value.product_id
+        )
+        
+        if (existingReview) {
+          formErrors.value.user_id = 'Ten użytkownik już dodał recenzję dla tego produktu.'
+          return
+        }
       }
       
       formSubmitting.value = true
@@ -1249,10 +1282,14 @@ export default {
         console.error('Error saving review:', error)
         
         if (error.response && error.response.data && error.response.data.errors) {
-          const errorMessages = Object.values(error.response.data.errors).flat().join(', ')
-          alertStore.error(`Błąd walidacji: ${errorMessages}`)
+          formErrors.value = error.response.data.errors
         } else if (error.response && error.response.data && error.response.data.message) {
-          alertStore.error(`Błąd: ${error.response.data.message}`)
+          // Check if it's a duplicate error
+          if (error.response.data.message.includes('już dodał recenzję')) {
+            formErrors.value.user_id = error.response.data.message
+          } else {
+            alertStore.error(`Błąd: ${error.response.data.message}`)
+          }
         } else {
           alertStore.error('Wystąpił błąd podczas zapisywania recenzji.')
         }
@@ -1282,6 +1319,9 @@ export default {
           is_approved: review.is_approved,
           is_featured: review.is_featured
         }
+        
+        // Clear any previous errors
+        formErrors.value = {}
         
         // Finally show the modal
         showEditModal.value = true
@@ -1391,7 +1431,10 @@ export default {
       getProductImageUrl,
       handleImageError,
       featuredReviewsCount,
-      fetchFeaturedCount
+      fetchFeaturedCount,
+      formErrors,
+      showErrorModal,
+      errorMessage
     }
   }
 }

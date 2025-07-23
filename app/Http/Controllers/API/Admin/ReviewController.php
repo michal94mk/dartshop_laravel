@@ -95,6 +95,12 @@ class ReviewController extends BaseAdminController
             
             $review = Review::create($validated);
             return $this->successResponse('Recenzja została utworzona', $review, 201);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle duplicate key error
+            if ($e->getCode() == 23000 && strpos($e->getMessage(), 'reviews_user_id_product_id_unique') !== false) {
+                return $this->errorResponse('Ten użytkownik już dodał recenzję dla tego produktu. Każdy użytkownik może dodać tylko jedną recenzję per produkt.', 422);
+            }
+            return $this->errorResponse('Błąd podczas tworzenia recenzji: ' . $e->getMessage(), 500);
         } catch (\Exception $e) {
             return $this->errorResponse('Błąd podczas tworzenia recenzji: ' . $e->getMessage(), 500);
         }
@@ -145,6 +151,12 @@ class ReviewController extends BaseAdminController
             
             $review->update($validated);
             return $this->successResponse('Recenzja została zaktualizowana', $review);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle duplicate key error
+            if ($e->getCode() == 23000 && strpos($e->getMessage(), 'reviews_user_id_product_id_unique') !== false) {
+                return $this->errorResponse('Ten użytkownik już dodał recenzję dla tego produktu. Każdy użytkownik może dodać tylko jedną recenzję per produkt.', 422);
+            }
+            return $this->errorResponse('Błąd podczas aktualizacji recenzji: ' . $e->getMessage(), 500);
         } catch (\Exception $e) {
             return $this->errorResponse('Błąd podczas aktualizacji recenzji: ' . $e->getMessage(), 500);
         }
