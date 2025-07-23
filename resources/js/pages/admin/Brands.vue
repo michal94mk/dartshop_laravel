@@ -232,7 +232,6 @@ export default {
     
     // Sort options for the filter component
     const sortOptions = [
-      { value: 'id', label: 'ID' },
       { value: 'name', label: 'Nazwa' },
       { value: 'created_at', label: 'Data utworzenia' },
       { value: 'products_count', label: 'Liczba produktów' }
@@ -241,7 +240,7 @@ export default {
     // Default filters
     const defaultFilters = {
       search: '',
-      sort_field: 'id',
+      sort_field: 'name',
       sort_direction: 'asc',
       page: 1
     }

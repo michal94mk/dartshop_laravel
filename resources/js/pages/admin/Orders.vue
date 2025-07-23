@@ -103,9 +103,10 @@
             @change="fetchOrders"
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
-            <option value="created_at">Data utworzenia</option>
-            <option value="total">Kwota</option>
-            <option value="id">Numer zamówienia</option>
+            <option value="created_at">Data zamówienia</option>
+            <option value="status">Status</option>
+            <option value="total">Wartość</option>
+            <option value="payment_status">Status płatności</option>
           </select>
         </div>
         
@@ -909,9 +910,10 @@ export default {
     
     // Sort options for the filter component
     const sortOptions = [
-      { value: 'created_at', label: 'Data utworzenia' },
-      { value: 'total', label: 'Kwota' },
-      { value: 'id', label: 'Numer zamówienia' }
+      { value: 'created_at', label: 'Data zamówienia' },
+      { value: 'status', label: 'Status' },
+      { value: 'total', label: 'Wartość' },
+      { value: 'payment_status', label: 'Status płatności' }
     ]
     
     // Order items table columns
@@ -967,8 +969,7 @@ export default {
     const defaultFilters = {
       search: '',
       status: '',
-      date_from: '',
-      date_to: '',
+      payment_status: '',
       sort_field: 'created_at',
       sort_direction: 'desc',
       page: 1

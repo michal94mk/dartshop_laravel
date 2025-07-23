@@ -765,19 +765,22 @@ export default {
     const showProductDetailsModal = ref(false)
     const selectedProduct = ref(null)
     
-    // Sort options for filter component
+    // Sort options for the filter component
     const sortOptions = [
       { value: 'created_at', label: 'Data dodania' },
       { value: 'rating', label: 'Ocena' },
-      { value: 'product', label: 'Produkt' }
+      { value: 'status', label: 'Status' },
+      { value: 'approved', label: 'Zatwierdzone' },
+      { value: 'featured', label: 'Wyróżnione' }
     ]
     
     // Default filters
     const defaultFilters = {
+      search: '',
+      status: '',
+      rating: '',
       approved: '',
       featured: '',
-      rating: '',
-      search: '',
       sort_field: 'created_at',
       sort_direction: 'desc',
       page: 1

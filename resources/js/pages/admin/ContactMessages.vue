@@ -371,12 +371,20 @@ export default {
     
     // Sort options for the filter component
     const sortOptions = [
-      { value: 'created_at', label: 'Data dodania' },
-      { value: 'name', label: 'Imię' },
+      { value: 'created_at', label: 'Data wysłania' },
+      { value: 'name', label: 'Imię i nazwisko' },
       { value: 'email', label: 'Email' },
-      { value: 'subject', label: 'Temat' },
       { value: 'status', label: 'Status' }
     ]
+    
+    // Default filters
+    const defaultFilters = {
+      search: '',
+      status: '',
+      sort_field: 'created_at',
+      sort_direction: 'desc',
+      page: 1
+    }
     
     // Filters and pagination
     const filters = reactive({

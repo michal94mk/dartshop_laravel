@@ -589,9 +589,13 @@ export default {
     
     // Sort options for the filter component
     const sortOptions = [
-      { value: 'created_at', label: 'Data utworzenia' },
-      { value: 'name', label: 'Nazwa użytkownika' },
-      { value: 'email', label: 'Email' }
+      { value: 'name', label: 'Nazwa' },
+      { value: 'email', label: 'Email' },
+      { value: 'role', label: 'Rola' },
+      { value: 'status', label: 'Status' },
+      { value: 'account_type', label: 'Typ konta' },
+      { value: 'created_at', label: 'Data rejestracji' },
+      { value: 'last_login_at', label: 'Ostatnie logowanie' }
     ]
     
     // Table columns definition
@@ -608,7 +612,7 @@ export default {
     const defaultFilters = {
       search: '',
       role: '',
-      verified: '',
+      status: 'all',
       account_type: '',
       sort_field: 'created_at',
       sort_direction: 'desc',
