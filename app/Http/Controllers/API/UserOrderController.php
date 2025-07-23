@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 
-class UserOrderController extends Controller
+class UserOrderController extends BaseApiController
 {
     /**
      * Get all orders for the authenticated user
@@ -22,10 +22,7 @@ class UserOrderController extends Controller
             ->where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
-            
-        return response()->json([
-            'data' => $orders
-        ]);
+        return $this->successResponse($orders);
     }
     
     /**
@@ -40,8 +37,10 @@ class UserOrderController extends Controller
         $order = Order::with(['items.product'])
             ->where('user_id', $user->id)
             ->where('id', $id)
-            ->firstOrFail();
-            
-        return response()->json($order);
+            ->first();
+        if (!$order) {
+            return $this->notFoundResponse('Order not found');
+        }
+        return $this->successResponse($order);
     }
 } 

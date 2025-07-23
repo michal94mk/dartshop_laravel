@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Tutorial;
 use Illuminate\Http\Request;
 
-class TutorialController extends Controller
+class TutorialController extends BaseApiController
 {
     /**
      * Display a listing of published tutorials.
@@ -38,8 +38,7 @@ class TutorialController extends Controller
                     'updated_at' => $tutorial->updated_at,
                 ];
             });
-            
-        return response()->json($tutorials);
+        return $this->successResponse($tutorials);
     }
 
     /**
@@ -52,9 +51,11 @@ class TutorialController extends Controller
     {
         $tutorial = Tutorial::published()
             ->where('slug', $slug)
-            ->firstOrFail();
-            
-        return response()->json([
+            ->first();
+        if (!$tutorial) {
+            return $this->notFoundResponse('Tutorial not found');
+        }
+        return $this->successResponse([
             'id' => $tutorial->id,
             'title' => $tutorial->title,
             'slug' => $tutorial->slug,

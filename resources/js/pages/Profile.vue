@@ -860,7 +860,7 @@ export default {
       
       try {
         const response = await axios.get('/api/orders/my-orders');
-        orders.value = response.data.data || response.data;
+        orders.value = response.data.data;
       } catch (error) {
         console.error('Error fetching orders:', error);
       } finally {

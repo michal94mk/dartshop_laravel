@@ -193,7 +193,7 @@ export default {
         loading.value = true
         error.value = null
         const response = await axios.get('/api/tutorials')
-        tutorials.value = response.data
+        tutorials.value = response.data.data
       } catch (err) {
         console.error('Error fetching tutorials:', err)
         error.value = 'Wystąpił błąd podczas pobierania poradników. Spróbuj ponownie później.'
