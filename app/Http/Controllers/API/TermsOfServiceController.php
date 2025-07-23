@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use App\Models\TermsOfService;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class TermsOfServiceController extends Controller
+class TermsOfServiceController extends BaseApiController
 {
     /**
      * Display the current terms of service.
@@ -16,10 +16,7 @@ class TermsOfServiceController extends Controller
     public function show()
     {
         $termsOfService = TermsOfService::getActive();
-        
-        return response()->json([
-            'terms_of_service' => $termsOfService
-        ]);
+        return $this->successResponse($termsOfService);
     }
 
     /**
@@ -29,22 +26,16 @@ class TermsOfServiceController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        
         if (!$user) {
-            return response()->json([
-                'message' => 'Unauthorized'
-            ], 401);
+            return $this->unauthorizedResponse();
         }
-
         $user->update([
             'terms_of_service_accepted' => true,
             'terms_of_service_accepted_at' => now(),
         ]);
-
-        return response()->json([
-            'message' => 'Regulamin został zaakceptowany',
+        return $this->successResponse([
             'terms_of_service_accepted' => true,
             'terms_of_service_accepted_at' => $user->terms_of_service_accepted_at
-        ]);
+        ], 'Regulamin został zaakceptowany');
     }
 } 

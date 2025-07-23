@@ -385,7 +385,7 @@ export default {
         error.value = null
         
         const response = await axios.get('/api/admin/terms-of-service')
-        terms.value = response.data.data || response.data.terms_of_service || []
+        terms.value = response.data.data
       } catch (err) {
         error.value = 'Nie udało się załadować regulaminów'
         alertStore.error('Nie udało się załadować regulaminów')

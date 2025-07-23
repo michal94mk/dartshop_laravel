@@ -66,8 +66,10 @@
               </svg>
             </div>
             <h2 class="text-3xl font-bold text-green-800 mb-3">Zamówienie złożone pomyślnie!</h2>
-            <p class="text-green-700 text-lg" v-if="order && order.payment_method === 'stripe'">Twoje zamówienie zostało złożone i opłacone.</p>
-            <p class="text-green-700 text-lg" v-else>Twoje zamówienie zostało złożone. Płatność nastąpi przy odbiorze.</p>
+            <p class="text-green-700 text-lg" v-if="order && order.payment_status === 'paid'">Twoje zamówienie zostało złożone i opłacone.</p>
+            <p class="text-yellow-700 text-lg" v-else-if="order && order.payment_status === 'pending'">Twoje zamówienie zostało złożone. Płatność oczekuje na realizację.</p>
+            <p class="text-red-700 text-lg" v-else-if="order && order.payment_status === 'failed'">Płatność nie powiodła się. Skontaktuj się z obsługą sklepu.</p>
+            <p class="text-gray-700 text-lg" v-else>Twoje zamówienie zostało złożone. Status płatności: nieznany.</p>
           </div>
           
           <!-- Order details -->
@@ -87,17 +89,29 @@
                 </div>
                 <div class="bg-gray-50 rounded-lg p-4">
                   <p class="text-sm font-semibold text-gray-600 mb-1">Status</p>
-                  <span v-if="order && order.payment_method === 'stripe'" class="inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
+                  <span v-if="order && order.payment_status === 'paid'" class="inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
                     Opłacone
                   </span>
-                  <span v-else class="inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                  <span v-else-if="order && order.payment_status === 'pending'" class="inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full bg-yellow-100 text-yellow-800">
                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     Oczekuje na płatność
+                  </span>
+                  <span v-else-if="order && order.payment_status === 'failed'" class="inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Płatność nieudana
+                  </span>
+                  <span v-else class="inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full bg-gray-100 text-gray-800">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Nieznany status
                   </span>
                 </div>
                 <div class="bg-gray-50 rounded-lg p-4">
@@ -213,7 +227,7 @@ export default {
             session_id: sessionId
           })
           
-          order.value = response.data.order
+          order.value = response.data.data?.order
           success.value = true
           
         } else if (orderId) {

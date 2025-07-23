@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use App\Services\Payment\PaymentService;
 use App\Services\Payment\CardValidationService;
 use App\Services\OrderService;
@@ -14,7 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
-class StripePaymentController extends Controller
+class StripePaymentController extends BaseApiController
 {
     protected $paymentService;
     protected $cardValidationService;
@@ -37,17 +37,13 @@ class StripePaymentController extends Controller
     {
         try {
             $result = $this->paymentService->createPaymentIntent();
-            return response()->json($result);
-
+            return $this->successResponse($result);
         } catch (\Exception $e) {
             Log::error('Error creating payment intent', [
                 'error' => $e->getMessage(),
                 'user_id' => Auth::id()
             ]);
-
-            return response()->json([
-                'message' => 'Błąd podczas tworzenia płatności: ' . $e->getMessage()
-            ], 500);
+            return $this->serverErrorResponse('Błąd podczas tworzenia płatności: ' . $e->getMessage(), $e);
         }
     }
 
@@ -60,18 +56,13 @@ class StripePaymentController extends Controller
             $result = $this->paymentService->createGuestPaymentIntent(
                 $request->getCartItems()
             );
-
-            return response()->json($result);
-
+            return $this->successResponse($result);
         } catch (\Exception $e) {
             Log::error('Error creating guest payment intent', [
                 'error' => $e->getMessage(),
                 'cart_items' => $request->getCartItems()
             ]);
-
-            return response()->json([
-                'message' => 'Błąd podczas tworzenia płatności: ' . $e->getMessage()
-            ], 500);
+            return $this->serverErrorResponse('Błąd podczas tworzenia płatności: ' . $e->getMessage(), $e);
         }
     }
 
@@ -82,25 +73,19 @@ class StripePaymentController extends Controller
     {
         try {
             $paymentIntentId = $request->getPaymentIntentId();
-
             // Check if order already exists
             $existingOrder = $this->orderService->orderExistsByPaymentIntent($paymentIntentId);
             if ($existingOrder) {
-                return response()->json([
+                return $this->successResponse([
                     'message' => 'Zamówienie już istnieje',
                     'order' => $existingOrder->load('items')
                 ]);
             }
-
             // Check payment status in Stripe
             $paymentIntent = $this->paymentService->getPaymentIntent($paymentIntentId);
-            
             if ($paymentIntent->status !== 'succeeded') {
-                return response()->json([
-                    'message' => 'Płatność nie została potwierdzona'
-                ], 400);
+                return $this->errorResponse('Płatność nie została potwierdzona', 400);
             }
-
             // Create order
             if ($request->isGuestPayment()) {
                 $order = $this->orderService->createOrderFromGuestCart(
@@ -117,22 +102,17 @@ class StripePaymentController extends Controller
                     $paymentIntentId
                 );
             }
-
-            return response()->json([
+            return $this->successResponse([
                 'message' => 'Zamówienie zostało utworzone pomyślnie',
                 'order' => $order->load('items')
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error confirming payment', [
                 'error' => $e->getMessage(),
                 'payment_intent_id' => $request->getPaymentIntentId(),
                 'user_id' => Auth::id()
             ]);
-
-            return response()->json([
-                'message' => 'Błąd podczas przetwarzania zamówienia: ' . $e->getMessage()
-            ], 500);
+            return $this->serverErrorResponse('Błąd podczas przetwarzania zamówienia: ' . $e->getMessage(), $e);
         }
     }
 
@@ -144,23 +124,17 @@ class StripePaymentController extends Controller
         $request->validate([
             'payment_intent_id' => 'required|string',
         ]);
-
         try {
             $result = $this->paymentService->checkPaymentStatus(
                 $request->payment_intent_id
             );
-
-            return response()->json($result);
-
+            return $this->successResponse($result);
         } catch (\Exception $e) {
             Log::error('Error checking payment status', [
                 'error' => $e->getMessage(),
                 'payment_intent_id' => $request->payment_intent_id
             ]);
-
-            return response()->json([
-                'message' => 'Błąd podczas sprawdzania statusu płatności: ' . $e->getMessage()
-            ], 500);
+            return $this->serverErrorResponse('Błąd podczas sprawdzania statusu płatności: ' . $e->getMessage(), $e);
         }
     }
 
@@ -173,23 +147,18 @@ class StripePaymentController extends Controller
             $cardNumber = $request->getCardNumber();
             $isValid = $this->cardValidationService->validateCardNumber($cardNumber);
             $cardBrand = $this->cardValidationService->detectCardBrand($cardNumber);
-
-            return response()->json([
+            return $this->successResponse([
                 'card_number' => $this->cardValidationService->maskCardNumber($cardNumber),
                 'is_valid' => $isValid,
                 'card_brand' => $cardBrand,
                 'message' => $isValid ? 'Numer karty jest prawidłowy' : 'Numer karty jest nieprawidłowy',
                 'test_cards' => $this->cardValidationService->getTestCards()
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error validating card', [
                 'error' => $e->getMessage()
             ]);
-
-            return response()->json([
-                'message' => 'Błąd podczas walidacji karty: ' . $e->getMessage()
-            ], 500);
+            return $this->serverErrorResponse('Błąd podczas walidacji karty: ' . $e->getMessage(), $e);
         }
     }
 } 

@@ -131,7 +131,7 @@ export default {
         error.value = null
         
         const response = await axios.get('/api/terms-of-service')
-        termsOfService.value = response.data.terms_of_service
+        termsOfService.value = response.data.data
       } catch (err) {
         error.value = 'Nie udało się załadować regulaminu'
         console.error('Error fetching terms of service:', err)

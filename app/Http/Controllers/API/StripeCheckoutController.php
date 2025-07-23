@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use App\Services\Payment\PaymentService;
 use App\Services\OrderService;
 use App\Http\Requests\Payment\CheckoutSessionRequest;
@@ -12,7 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
-class StripeCheckoutController extends Controller
+class StripeCheckoutController extends BaseApiController
 {
     protected $paymentService;
     protected $orderService;
@@ -82,45 +82,33 @@ class StripeCheckoutController extends Controller
         $request->validate([
             'session_id' => 'required|string',
         ]);
-
         try {
             $sessionId = $request->session_id;
-
             // Check if order already exists
             $existingOrder = $this->orderService->orderExistsByStripeSession($sessionId);
             if ($existingOrder) {
-                return response()->json([
+                return $this->successResponse([
                     'message' => 'Zamówienie już istnieje',
                     'order' => $existingOrder->load('items')
                 ]);
             }
-
             // Get session from Stripe
             $session = $this->paymentService->getCheckoutSession($sessionId);
-
             if ($session->payment_status !== 'paid') {
-                return response()->json([
-                    'message' => 'Płatność nie została potwierdzona'
-                ], 400);
+                return $this->errorResponse('Płatność nie została potwierdzona', 400);
             }
-
             // Create order based on session metadata
             $order = $this->createOrderFromSession($session);
-
-            return response()->json([
+            return $this->successResponse([
                 'message' => 'Zamówienie zostało utworzone pomyślnie',
                 'order' => $order->load('items')
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error handling checkout success', [
                 'error' => $e->getMessage(),
                 'session_id' => $request->session_id
             ]);
-
-            return response()->json([
-                'message' => 'Błąd podczas przetwarzania zamówienia: ' . $e->getMessage()
-            ], 500);
+            return $this->serverErrorResponse('Błąd podczas przetwarzania zamówienia: ' . $e->getMessage(), $e);
         }
     }
 

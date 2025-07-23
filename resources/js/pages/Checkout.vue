@@ -579,14 +579,14 @@ export default {
         console.log('Odpowiedź z serwera:', response.data)
 
         // Obsługa odpowiedzi
-        if (response.data.order) {
+        if (response.data.data?.order) {
           // Wyczyść koszyk
           await cartStore.clearCart()
           
           // Przekieruj do strony potwierdzenia
           router.push({
             name: 'payment-success',
-            query: { order_id: response.data.order.id }
+            query: { order_id: response.data.data.order.id }
           })
         }
 

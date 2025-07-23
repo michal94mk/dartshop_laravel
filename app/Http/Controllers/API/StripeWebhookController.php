@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
 use Stripe\Webhook;
 use Stripe\Exception\SignatureVerificationException;
@@ -10,7 +10,7 @@ use App\Models\Order;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
-class StripeWebhookController extends Controller
+class StripeWebhookController extends BaseApiController
 {
     /**
      * Obsługa webhooków Stripe
@@ -31,7 +31,7 @@ class StripeWebhookController extends Controller
             Log::error('Stripe webhook signature verification failed', [
                 'error' => $e->getMessage()
             ]);
-            return response()->json(['error' => 'Invalid signature'], 400);
+            return $this->errorResponse('Invalid signature', 400);
         }
 
         Log::info('Stripe webhook received', [
@@ -57,7 +57,7 @@ class StripeWebhookController extends Controller
                 Log::info('Unhandled Stripe webhook event', [
                     'type' => $event->type
                 ]);
-                return response()->json(['status' => 'received']);
+                return $this->noContentResponse();
         }
     }
 
@@ -90,7 +90,7 @@ class StripeWebhookController extends Controller
             ]);
         }
 
-        return response()->json(['status' => 'success']);
+        return $this->successResponse(['status' => 'success']);
     }
 
     /**
@@ -115,7 +115,7 @@ class StripeWebhookController extends Controller
             ]);
         }
 
-        return response()->json(['status' => 'failed']);
+        return $this->errorResponse('Payment failed', 400);
     }
 
     /**
@@ -139,7 +139,7 @@ class StripeWebhookController extends Controller
             ]);
         }
 
-        return response()->json(['status' => 'processing']);
+        return $this->successResponse(['status' => 'processing']);
     }
 
     /**
@@ -155,6 +155,6 @@ class StripeWebhookController extends Controller
             'payment_status' => $session->payment_status
         ]);
 
-        return response()->json(['status' => 'session_completed']);
+        return $this->successResponse(['status' => 'session_completed']);
     }
 } 
