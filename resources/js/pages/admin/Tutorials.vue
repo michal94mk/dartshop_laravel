@@ -211,7 +211,8 @@
           <label class="block text-sm font-medium text-gray-700">Obrazek poradnika</label>
           <div class="mt-1 flex items-center space-x-4">
             <div class="flex-shrink-0 h-40 w-40 bg-gray-100 rounded-md overflow-hidden">
-              <img v-if="form.image_url" :src="getImageUrl(form.image_url)" alt="Tutorial image" class="h-40 w-40 object-cover">
+              <img v-if="form.image_url && !isFileObject(form.image_url)" :src="getImageUrl(form.image_url)" alt="Tutorial image" class="h-40 w-40 object-cover">
+              <img v-else-if="form.image_url && isFileObject(form.image_url)" :src="getImagePreviewUrl(form.image_url)" alt="Tutorial image" class="h-40 w-40 object-cover">
               <div v-else class="h-40 w-40 flex items-center justify-center text-gray-400">
                 <svg class="h-12 w-12" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
@@ -223,7 +224,7 @@
                 type="file"
                 id="image_upload"
                 ref="fileInput"
-                @change="handleImageUpload"
+                @change="handleFileChange"
                 accept="image/*"
                 class="sr-only"
               />
@@ -232,13 +233,13 @@
                   for="image_upload"
                   class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
                 >
-                  Wybierz plik
+                  {{ form.image_url ? 'Zmień obrazek' : 'Wybierz plik' }}
                 </label>
                 <p v-if="imageUploadError" class="text-sm text-red-500">{{ imageUploadError }}</p>
                 <p v-if="uploadingImage" class="text-sm text-indigo-500">Trwa przesyłanie...</p>
                 <p v-else-if="form.image_url" class="text-sm text-gray-500">
                   <span class="truncate block max-w-xs">
-                    {{ form.image_url.split('/').pop() }}
+                    {{ isFileObject(form.image_url) ? form.image_url.name : form.image_url.split('/').pop() }}
                   </span>
                   <button 
                     type="button" 
@@ -431,24 +432,59 @@ export default {
     // Add new tutorial
     const addTutorial = async () => {
       try {
-        // Clear previous errors
         formErrors.value = {}
+        loading.value = true
         
-        const response = await axios.post('/api/admin/tutorials', form.value)
-        // Refresh the list to get updated data
-        fetchTutorials()
-        alertStore.success('Poradnik został dodany.')
+        // Check if we're dealing with a file upload
+        const hasFileUpload = isFileObject(form.value.image_url)
+        
+        let response
+        
+        if (hasFileUpload) {
+          // Use FormData for file uploads
+          const formData = new FormData()
+          formData.append('title', form.value.title)
+          formData.append('slug', form.value.slug)
+          formData.append('content', form.value.content)
+          formData.append('order', form.value.order || 0)
+          formData.append('status', form.value.status)
+          formData.append('image', form.value.image_url)
+          
+          response = await axios.post('/api/admin/tutorials', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          })
+        } else {
+          // Regular JSON update (no file)
+          const tutorialData = {
+            title: form.value.title,
+            slug: form.value.slug,
+            content: form.value.content,
+            order: form.value.order || 0,
+            status: form.value.status
+          }
+          
+          response = await axios.post('/api/admin/tutorials', tutorialData)
+        }
+        
+        alertStore.success(response.data.message || 'Poradnik został dodany.')
         closeForm()
+        await fetchTutorials()
       } catch (error) {
         console.error('Error adding tutorial:', error)
         
-        if (error.response && error.response.data && error.response.data.errors) {
-          formErrors.value = error.response.data.errors
-        } else if (error.response && error.response.data && error.response.data.message) {
-          alertStore.error(`Błąd: ${error.response.data.message}`)
+        if (error.response && error.response.status === 422) {
+          if (error.response.data.errors) {
+            formErrors.value = error.response.data.errors
+          } else if (error.response.data.message) {
+            alertStore.error(error.response.data.message)
+          }
         } else {
-          alertStore.error('Wystąpił błąd podczas dodawania poradnika.')
+          alertStore.error('Błąd podczas dodawania poradnika: ' + (error.response?.data?.message || error.message))
         }
+      } finally {
+        loading.value = false
       }
     }
     
@@ -482,24 +518,60 @@ export default {
     // Update tutorial
     const updateTutorial = async () => {
       try {
-        // Clear previous errors
         formErrors.value = {}
+        loading.value = true
         
-        const response = await axios.put(`/api/admin/tutorials/${form.value.id}`, form.value)
-        // Refresh the list to get updated data
-        fetchTutorials()
-        alertStore.success('Poradnik został zaktualizowany.')
+        // Check if we're dealing with a file upload
+        const hasFileUpload = isFileObject(form.value.image_url)
+        
+        let response
+        
+        if (hasFileUpload) {
+          // Use FormData for file uploads
+          const formData = new FormData()
+          formData.append('title', form.value.title)
+          formData.append('slug', form.value.slug)
+          formData.append('content', form.value.content)
+          formData.append('order', form.value.order || 0)
+          formData.append('status', form.value.status)
+          formData.append('image', form.value.image_url)
+          formData.append('_method', 'PUT') // Laravel method spoofing
+          
+          response = await axios.post(`/api/admin/tutorials/${form.value.id}`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          })
+        } else {
+          // Regular JSON update (no file)
+          const tutorialData = {
+            title: form.value.title,
+            slug: form.value.slug,
+            content: form.value.content,
+            order: form.value.order || 0,
+            status: form.value.status
+          }
+          
+          response = await axios.put(`/api/admin/tutorials/${form.value.id}`, tutorialData)
+        }
+        
+        alertStore.success(response.data.message || 'Poradnik został zaktualizowany.')
         closeForm()
+        await fetchTutorials()
       } catch (error) {
         console.error('Error updating tutorial:', error)
         
-        if (error.response && error.response.data && error.response.data.errors) {
-          formErrors.value = error.response.data.errors
-        } else if (error.response && error.response.data && error.response.data.message) {
-          alertStore.error(`Błąd: ${error.response.data.message}`)
+        if (error.response && error.response.status === 422) {
+          if (error.response.data.errors) {
+            formErrors.value = error.response.data.errors
+          } else if (error.response.data.message) {
+            alertStore.error(error.response.data.message)
+          }
         } else {
-          alertStore.error('Wystąpił błąd podczas aktualizacji poradnika.')
+          alertStore.error('Błąd podczas aktualizacji poradnika: ' + (error.response?.data?.message || error.message))
         }
+      } finally {
+        loading.value = false
       }
     }
     
@@ -543,14 +615,22 @@ export default {
         title: '',
         slug: '',
         content: '',
-        image_url: '',
+        image_url: null,
         order: 0,
         status: 'draft'
       }
       // Clear form errors
       formErrors.value = {}
+      // Clear image upload errors
+      imageUploadError.value = ''
+      uploadingImage.value = false
       showAddForm.value = false
       showEditForm.value = false
+      
+      // Reset file input
+      if (fileInput.value) {
+        fileInput.value.value = ''
+      }
     }
     
     // Format date
@@ -604,47 +684,38 @@ export default {
     }
     
     // Image upload handling
-    const handleImageUpload = async (event) => {
+    const handleFileChange = async (event) => {
       const file = event.target.files[0]
       if (!file) return
       
-      const maxSize = 5 * 1024 * 1024 // 5MB
-      if (file.size > maxSize) {
-        imageUploadError.value = 'Plik jest zbyt duży. Maksymalny rozmiar to 5MB.'
-        return
-      }
-      
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-      if (!allowedTypes.includes(file.type)) {
-        imageUploadError.value = 'Nieprawidłowy format pliku. Dozwolone formaty: JPEG, PNG, GIF, WEBP.'
-        return
-      }
-      
-      uploadingImage.value = true
+      // Clear previous errors
       imageUploadError.value = ''
       
-      const formData = new FormData()
-      formData.append('image', file)
-      
-      try {
-        const response = await axios.post('/api/admin/upload/image/tutorial', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        })
-        
-        form.value.image_url = response.data.path
-      } catch (error) {
-        console.error('Error uploading image:', error)
-        imageUploadError.value = 'Nie udało się przesłać obrazka. Spróbuj ponownie.'
-      } finally {
-        uploadingImage.value = false
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        imageUploadError.value = 'Proszę wybrać plik obrazu.'
+        return
       }
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        imageUploadError.value = 'Plik jest za duży. Maksymalny rozmiar to 5MB.'
+        return
+      }
+      
+      // Set the file in the form
+      form.value.image_url = file
     }
     
-    // Remove image
     const removeImage = () => {
-      form.value.image_url = ''
+      form.value.image_url = null
+      imageUploadError.value = ''
+      uploadingImage.value = false
+      
+      // Reset file input
+      if (fileInput.value) {
+        fileInput.value.value = ''
+      }
     }
     
     // Get the full URL for an image path
@@ -661,9 +732,28 @@ export default {
         return `/${path}`
       }
       
-      // Otherwise, construct URL from storage path
+      // If it's a storage path (starts with 'images/')
+      if (path.startsWith('images/')) {
+        return `/storage/${path}`
+      }
+      
+      // Otherwise, assume it's a storage path and add /storage/ prefix
       return `/storage/${path}`
     }
+
+    // Get the full URL for a file object (for preview)
+    const getImagePreviewUrl = (file) => {
+      if (!file) return null;
+      if (typeof file === 'string') {
+        return getImageUrl(file);
+      }
+      return URL.createObjectURL(file);
+    };
+
+    // Check if it's a File object (for preview)
+    const isFileObject = (value) => {
+      return value instanceof File;
+    };
     
     // Watch for search changes to trigger debounced fetch
     watch(() => filters.search, () => {
@@ -697,14 +787,16 @@ export default {
       confirmDelete,
       deleteTutorial,
       closeForm,
-      handleImageUpload,
+      handleFileChange,
       removeImage,
       getImageUrl,
       formatDate,
       generateSlug,
       getStatusLabel,
       getStatusClass,
-      getStatusVariant
+      getStatusVariant,
+      getImagePreviewUrl,
+      isFileObject
     }
   }
 }

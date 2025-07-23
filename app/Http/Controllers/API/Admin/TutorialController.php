@@ -6,6 +6,7 @@ use App\Models\Tutorial;
 use App\Http\Requests\Admin\TutorialRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class TutorialController extends BaseAdminController
 {
@@ -92,33 +93,44 @@ class TutorialController extends BaseAdminController
      */
     public function store(TutorialRequest $request)
     {
-        // Generate slug if not provided
-        $slug = $request->slug ?: Str::slug($request->title);
+        $validated = $request->validated();
 
-        // Transform the input data to match the database schema
-        $tutorialData = $request->validated();
-        $tutorialData['slug'] = $slug;
-        $tutorialData['order'] = $request->order ?? 0;
-        $tutorialData['is_published'] = $request->status === 'published';
-
-        $tutorial = Tutorial::create($tutorialData);
-        
-        // Return the transformed tutorial data
-        return $this->successResponse('Poradnik został utworzony', [
-            'id' => $tutorial->id,
-            'title' => $tutorial->title,
-            'slug' => $tutorial->slug,
-            'excerpt' => $tutorial->excerpt, // Uses getter
-            'content' => $tutorial->content,
-            'image_url' => $tutorial->image_url,
-            'order' => $tutorial->order,
-            'published_at' => $tutorial->published_at, // Uses getter
-            'status' => $tutorial->is_published ? 'published' : 'draft',
-            'author' => $tutorial->user(), // Uses getter method
-            'is_published' => $tutorial->is_published,
-            'created_at' => $tutorial->created_at,
-            'updated_at' => $tutorial->updated_at
-        ], 201);
+        try {
+            // Convert status to is_published
+            if (isset($validated['status'])) {
+                $validated['is_published'] = $validated['status'] === 'published';
+                unset($validated['status']);
+            }
+            
+            // Handle the image upload
+            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+                $file = $request->file('image');
+                $imageName = 'tutorial_' . time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                
+                // Create directory if it doesn't exist
+                $uploadPath = public_path('img/tutorials');
+                if (!file_exists($uploadPath)) {
+                    mkdir($uploadPath, 0755, true);
+                }
+                
+                // Save to public/img/tutorials
+                $file->move($uploadPath, $imageName);
+                $validated['image_url'] = 'img/tutorials/' . $imageName;
+                
+                Log::info('Tutorial image saved:', [
+                    'name' => $imageName,
+                    'path' => $validated['image_url'],
+                    'full_path' => public_path('img/tutorials/' . $imageName),
+                    'exists' => file_exists(public_path('img/tutorials/' . $imageName))
+                ]);
+            }
+            
+            $tutorial = Tutorial::create($validated);
+            return $this->successResponse('Poradnik został utworzony', $tutorial, 201);
+        } catch (\Exception $e) {
+            Log::error('Error creating tutorial: ' . $e->getMessage());
+            return $this->errorResponse('Błąd podczas tworzenia poradnika: ' . $e->getMessage(), 500);
+        }
     }
 
     /**
@@ -157,46 +169,66 @@ class TutorialController extends BaseAdminController
      */
     public function update(TutorialRequest $request, $id)
     {
-        $tutorial = Tutorial::findOrFail($id);
+        try {
+            $tutorial = Tutorial::findOrFail($id);
 
-        // Generate slug if title is changed but slug is not provided
-        $slug = $request->slug;
-        if ($request->has('title') && (!$request->has('slug') || empty($request->slug))) {
-            $slug = Str::slug($request->title);
-        }
+            // Generate slug if title is changed but slug is not provided
+            $slug = $request->slug;
+            if ($request->has('title') && (!$request->has('slug') || empty($request->slug))) {
+                $slug = Str::slug($request->title);
+            }
 
-        // Transform the input data to match the database schema
-        $updateData = $request->validated();
-        
-        if ($slug) {
-            $updateData['slug'] = $slug;
+            // Transform the input data to match the database schema
+            $updateData = $request->validated();
+            
+            if ($slug) {
+                $updateData['slug'] = $slug;
+            }
+            
+            // Convert status to is_published
+            if (isset($updateData['status'])) {
+                $updateData['is_published'] = $updateData['status'] === 'published';
+                unset($updateData['status']);
+            }
+            
+            // Handle the image upload
+            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+                $file = $request->file('image');
+                $imageName = 'tutorial_' . time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                
+                // Create directory if it doesn't exist
+                $uploadPath = public_path('img/tutorials');
+                if (!file_exists($uploadPath)) {
+                    mkdir($uploadPath, 0755, true);
+                }
+                
+                // Delete old image if exists
+                if ($tutorial->image_url) {
+                    $oldImagePath = public_path($tutorial->image_url);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
+                }
+                
+                // Save to public/img/tutorials
+                $file->move($uploadPath, $imageName);
+                $updateData['image_url'] = 'img/tutorials/' . $imageName;
+                
+                Log::info('Tutorial image updated:', [
+                    'name' => $imageName,
+                    'path' => $updateData['image_url'],
+                    'full_path' => public_path('img/tutorials/' . $imageName),
+                    'exists' => file_exists(public_path('img/tutorials/' . $imageName))
+                ]);
+            }
+            
+            $tutorial->update($updateData);
+            
+            return $this->successResponse('Poradnik został zaktualizowany', $tutorial);
+        } catch (\Exception $e) {
+            Log::error('Error updating tutorial: ' . $e->getMessage());
+            return $this->errorResponse('Błąd podczas aktualizacji poradnika: ' . $e->getMessage(), 500);
         }
-        
-        if ($request->has('status')) {
-            $updateData['is_published'] = $request->status === 'published';
-        }
-
-        $tutorial->update($updateData);
-        
-        // Refresh to get updated data
-        $tutorial->refresh();
-        
-        // Return the transformed tutorial data
-        return $this->successResponse('Poradnik został zaktualizowany', [
-            'id' => $tutorial->id,
-            'title' => $tutorial->title,
-            'slug' => $tutorial->slug,
-            'excerpt' => $tutorial->excerpt, // Uses getter
-            'content' => $tutorial->content,
-            'image_url' => $tutorial->image_url,
-            'order' => $tutorial->order,
-            'published_at' => $tutorial->published_at, // Uses getter
-            'status' => $tutorial->is_published ? 'published' : 'draft',
-            'author' => $tutorial->user(), // Uses getter method
-            'is_published' => $tutorial->is_published,
-            'created_at' => $tutorial->created_at,
-            'updated_at' => $tutorial->updated_at
-        ]);
     }
 
     /**

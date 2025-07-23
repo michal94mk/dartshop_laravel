@@ -25,7 +25,7 @@ use App\Http\Controllers\Api\Admin\TutorialController as AdminTutorialController
 use App\Http\Controllers\Api\Admin\ContactMessageController as AdminContactMessageController;
 use App\Http\Controllers\Api\Admin\AboutPageController;
 use App\Http\Controllers\Api\Admin\NewsletterController as AdminNewsletterController;
-use App\Http\Controllers\API\Admin\ImageUploadController;
+
 use App\Http\Controllers\Api\AboutUsController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\FavoriteProductController;
@@ -208,7 +208,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/dashboard', [DashboardController::class, 'index']);
     
     // Image uploads
-    Route::post('/upload/image/tutorial', [ImageUploadController::class, 'uploadTutorialImage']);
+    
     
     // Products management - custom routes must be defined BEFORE the resource route
     Route::get('/products/form-data', [AdminProductController::class, 'getFormData']);
