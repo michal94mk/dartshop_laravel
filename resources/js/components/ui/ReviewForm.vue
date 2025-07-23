@@ -210,7 +210,7 @@ export default {
         successMessage.value = response.data.message || 'Recenzja została dodana i czeka na zatwierdzenie przez administratora'
         
         // Emit success event with the new review
-        emit('success', response.data.review)
+        emit('success', response.data.data)
 
         // Reset form after short delay
         setTimeout(() => {

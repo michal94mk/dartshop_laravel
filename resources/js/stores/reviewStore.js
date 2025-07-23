@@ -17,10 +17,9 @@ export const useReviewStore = defineStore('review', {
         const response = await axios.get(`/api/reviews/latest?limit=${limit}`)
         
         if (response.data.success) {
-          this.latestReviews = response.data.reviews || []
-        } else if (response.data.reviews) {
-          // Some APIs might return data directly without success flag
-          this.latestReviews = response.data.reviews
+          this.latestReviews = response.data.data || []
+        } else if (response.data.data) {
+          this.latestReviews = response.data.data
         } else {
           console.warn('Unexpected API response format:', response.data)
           this.latestReviews = []

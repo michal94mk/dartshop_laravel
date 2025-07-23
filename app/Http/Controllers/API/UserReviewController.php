@@ -10,8 +10,9 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Api\BaseApiController;
 
-class UserReviewController extends Controller
+class UserReviewController extends BaseApiController
 {
     /**
      * Get all reviews for the authenticated user
@@ -26,10 +27,7 @@ class UserReviewController extends Controller
             ->where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
-            
-        return response()->json([
-            'data' => $reviews
-        ]);
+        return $this->successResponse($reviews);
     }
     
     /**
@@ -41,12 +39,15 @@ class UserReviewController extends Controller
     public function show($id)
     {
         $user = Auth::user();
-        $review = Review::with('product')
-            ->where('user_id', $user->id)
-            ->where('id', $id)
-            ->firstOrFail();
-            
-        return response()->json($review);
+        try {
+            $review = Review::with('product')
+                ->where('user_id', $user->id)
+                ->where('id', $id)
+                ->firstOrFail();
+            return $this->successResponse($review);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return $this->notFoundResponse('Review not found');
+        }
     }
 
     /**
@@ -57,9 +58,11 @@ class UserReviewController extends Controller
      */
     public function getProductReviews($productId)
     {
-        $product = Product::findOrFail($productId);
-        
-        // Get approved reviews with user information
+        try {
+            $product = Product::findOrFail($productId);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return $this->notFoundResponse('Product not found');
+        }
         $reviews = Review::with('user')
             ->where('product_id', $productId)
             ->approved()
@@ -80,25 +83,18 @@ class UserReviewController extends Controller
                     ]
                 ];
             });
-
-        // Calculate statistics
         $totalReviews = $reviews->count();
         $averageRating = $totalReviews > 0 ? round($reviews->avg('rating'), 1) : 0;
-        
-        // Rating distribution
         $distribution = [];
         for ($i = 1; $i <= 5; $i++) {
             $distribution[$i] = $reviews->where('rating', $i)->count();
         }
-
         $statistics = [
             'reviews_count' => $totalReviews,
             'average_rating' => $averageRating,
             'distribution' => $distribution
         ];
-
-        return response()->json([
-            'success' => true,
+        return $this->successResponse([
             'reviews' => $reviews,
             'statistics' => $statistics
         ]);
@@ -114,39 +110,21 @@ class UserReviewController extends Controller
     public function store(UserReviewRequest $request, $productId): JsonResponse
     {
         try {
-            $user = Auth::user();
             $product = Product::findOrFail($productId);
-
-            // Check if user can review this product
-            if (!$product->canBeReviewedBy($user->id)) {
-                return response()->json([
-                    'error' => 'Już dodałeś recenzję dla tego produktu'
-                ], 422);
-            }
-
-            // Get validated data
-            $validated = $request->validated();
-
-            $review = Review::create([
-                'user_id' => $user->id,
-                'product_id' => $productId,
-                'rating' => $validated['rating'],
-                'title' => $validated['title'],
-                'content' => $validated['content'],
-                'is_approved' => false, // Admin approval required
-                'is_featured' => false
-            ]);
-
-            $review->load('user:id,name');
-
-            return response()->json([
-                'message' => 'Recenzja została dodana i oczekuje na moderację',
-                'review' => $review
-            ], 201);
-
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Nie udało się dodać recenzji'], 500);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return $this->notFoundResponse('Product not found');
         }
+        $user = Auth::user();
+        $review = Review::create([
+            'user_id' => $user->id,
+            'product_id' => $productId,
+            'title' => $request->title,
+            'content' => $request->content,
+            'rating' => $request->rating,
+            'is_featured' => false,
+            'status' => 'pending',
+        ]);
+        return $this->createdResponse($review, 'Review submitted successfully');
     }
 
     /**
@@ -158,37 +136,14 @@ class UserReviewController extends Controller
      */
     public function update(Request $request, $reviewId): JsonResponse
     {
+        $user = Auth::user();
         try {
-            $user = Auth::user();
-            $review = Review::where('user_id', $user->id)
-                ->where('id', $reviewId)
-                ->firstOrFail();
-
-            $validator = Validator::make($request->all(), [
-                'rating' => 'sometimes|integer|min:1|max:5',
-                'title' => 'sometimes|string|max:255',
-                'content' => 'sometimes|string|max:1000'
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'error' => 'Błędy walidacji',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-
-            $review->update($request->only(['rating', 'title', 'content']));
-            $review->update(['is_approved' => false]); // Reset approval status
-            $review->load('user:id,name');
-
-            return response()->json([
-                'message' => 'Recenzja została zaktualizowana i oczekuje na moderację',
-                'review' => $review
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Nie udało się zaktualizować recenzji'], 500);
+            $review = Review::where('user_id', $user->id)->where('id', $reviewId)->firstOrFail();
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return $this->notFoundResponse('Review not found');
         }
+        $review->update($request->only(['title', 'content', 'rating']));
+        return $this->successResponse($review, 'Review updated successfully');
     }
 
     /**
@@ -199,21 +154,14 @@ class UserReviewController extends Controller
      */
     public function destroy($reviewId): JsonResponse
     {
+        $user = Auth::user();
         try {
-            $user = Auth::user();
-            $review = Review::where('user_id', $user->id)
-                ->where('id', $reviewId)
-                ->firstOrFail();
-
-            $review->delete();
-
-            return response()->json([
-                'message' => 'Recenzja została usunięta'
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Nie udało się usunąć recenzji'], 500);
+            $review = Review::where('user_id', $user->id)->where('id', $reviewId)->firstOrFail();
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return $this->notFoundResponse('Review not found');
         }
+        $review->delete();
+        return $this->noContentResponse();
     }
 
     /**
@@ -224,27 +172,13 @@ class UserReviewController extends Controller
      */
     public function canReview($productId): JsonResponse
     {
-        try {
-            $user = Auth::user();
-            $product = Product::findOrFail($productId);
-            
-            $canReview = $product->canBeReviewedBy($user->id);
-            $existingReview = null;
-            
-            if (!$canReview) {
-                $existingReview = Review::where('user_id', $user->id)
-                    ->where('product_id', $productId)
-                    ->first();
-            }
-
-            return response()->json([
-                'can_review' => $canReview,
-                'existing_review' => $existingReview
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Nie udało się sprawdzić uprawnień'], 500);
-        }
+        $user = Auth::user();
+        $hasReviewed = Review::where('user_id', $user->id)
+            ->where('product_id', $productId)
+            ->exists();
+        return $this->successResponse([
+            'can_review' => !$hasReviewed
+        ]);
     }
 
     /**
@@ -255,35 +189,11 @@ class UserReviewController extends Controller
      */
     public function getLatestReviews(Request $request)
     {
-        $limit = $request->get('limit', 6); // Default to 6 reviews
-        
-        $reviews = Review::with(['user', 'product'])
+        $reviews = Review::with('user', 'product')
             ->approved()
             ->orderBy('created_at', 'desc')
-            ->limit($limit)
-            ->get()
-            ->map(function ($review) {
-                return [
-                    'id' => $review->id,
-                    'title' => $review->title,
-                    'content' => $review->content,
-                    'rating' => $review->rating,
-                    'created_at' => $review->created_at,
-                    'user' => [
-                        'id' => $review->user->id,
-                        'name' => $review->user->full_name
-                    ],
-                    'product' => [
-                        'id' => $review->product->id,
-                        'name' => $review->product->name,
-                        'slug' => $review->product->slug ?? null
-                    ]
-                ];
-            });
-
-        return response()->json([
-            'success' => true,
-            'reviews' => $reviews
-        ]);
+            ->limit(10)
+            ->get();
+        return $this->successResponse($reviews);
     }
 } 
