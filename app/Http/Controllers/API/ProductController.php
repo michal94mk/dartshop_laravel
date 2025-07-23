@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
 use App\Services\ProductService;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 
-class ProductController extends Controller
+class ProductController extends BaseApiController
 {
     protected $productService;
 
@@ -26,12 +26,12 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        Log::info('ProductController@index called with parameters', [
-            'query_params' => $request->all(),
-            'user_agent' => $request->header('User-Agent'),
-        ]);
-        
         try {
+            Log::info('ProductController@index called with parameters', [
+                'query_params' => $request->all(),
+                'user_agent' => $request->header('User-Agent'),
+            ]);
+            
             $products = $this->productService->getProducts($request);
             
             // Add promotion information to each product
@@ -63,18 +63,10 @@ class ProductController extends Controller
                 'filters_available' => $this->productService->getFiltersMetadata()
             ]);
             
-            return response()->json($response);
+            return $this->successResponse($response);
             
         } catch (Exception $e) {
-            Log::error('Error fetching products', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            
-            return response()->json([
-                'error' => 'Wystąpił błąd podczas pobierania produktów',
-                'message' => $e->getMessage()
-            ], 500);
+            return $this->handleException($e, 'Fetching products');
         }
     }
     
@@ -86,11 +78,11 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        Log::info('ProductController@show called with ID', [
-            'product_id' => $id
-        ]);
-        
         try {
+            Log::info('ProductController@show called with ID', [
+                'product_id' => $id
+            ]);
+            
             $product = $this->productService->getProduct($id);
             
             Log::info('Product detail response', [
@@ -102,15 +94,10 @@ class ProductController extends Controller
                 'has_reviews' => $product->reviews !== null
             ]);
             
-            return response()->json($product);
+            // Nowy format odpowiedzi z BaseApiController
+            return $this->successResponse($product);
         } catch (Exception $e) {
-            Log::error('Error fetching product details', [
-                'id' => $id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
-            return response()->json(['error' => 'Product not found'], 404);
+            return $this->handleException($e, "Fetching product with ID: {$id}");
         }
     }
     
@@ -121,9 +108,9 @@ class ProductController extends Controller
      */
     public function latest()
     {
-        Log::info('ProductController@latest called');
-        
         try {
+            Log::info('ProductController@latest called');
+            
             $products = $this->productService->getLatestProducts();
             $cacheKey = 'latest_products';
             $cacheUsed = Cache::has($cacheKey);
@@ -135,7 +122,8 @@ class ProductController extends Controller
                 'cache_key' => $cacheKey,
             ]);
             
-            return response()->json([
+            // Nowy format odpowiedzi z BaseApiController
+            return $this->successResponse([
                 'data' => $products,
                 'meta' => [
                     'count' => $products->count(),
@@ -145,15 +133,7 @@ class ProductController extends Controller
             ]);
             
         } catch (Exception $e) {
-            Log::error('Error fetching latest products', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
-            return response()->json([
-                'data' => [],
-                'error' => 'Wystąpił błąd podczas pobierania najnowszych produktów'
-            ], 500);
+            return $this->handleException($e, 'Fetching latest products');
         }
     }
 } 

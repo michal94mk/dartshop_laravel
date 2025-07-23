@@ -190,15 +190,32 @@ export default {
           }
         })
 
-        if (response.data.data && Array.isArray(response.data.data)) {
-          searchResults.value = response.data.data
-          totalResults.value = response.data.total || response.data.data.length
+        // Handle new API response format (BaseApiController)
+        if (response.data.success && response.data.data) {
+          // New format: { success: true, data: { data: [...], total: number } }
+          const responseData = response.data.data;
+          
+          if (responseData.data && Array.isArray(responseData.data)) {
+            searchResults.value = responseData.data;
+            totalResults.value = responseData.total || responseData.data.length;
+          } else if (Array.isArray(responseData)) {
+            searchResults.value = responseData;
+            totalResults.value = responseData.length;
+          } else {
+            searchResults.value = [];
+            totalResults.value = 0;
+          }
+        } else if (response.data.data && Array.isArray(response.data.data)) {
+          // Fallback for old format: { data: [...], total: number }
+          searchResults.value = response.data.data;
+          totalResults.value = response.data.total || response.data.data.length;
         } else if (Array.isArray(response.data)) {
-          searchResults.value = response.data
-          totalResults.value = response.data.length
+          // Direct array response
+          searchResults.value = response.data;
+          totalResults.value = response.data.length;
         } else {
-          searchResults.value = []
-          totalResults.value = 0
+          searchResults.value = [];
+          totalResults.value = 0;
         }
 
         showDropdown.value = true

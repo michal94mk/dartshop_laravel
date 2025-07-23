@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
 use App\Services\CategoryService;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 
-class CategoryController extends Controller
+class CategoryController extends BaseApiController
 {
     protected $categoryService;
     
@@ -43,7 +43,7 @@ class CategoryController extends Controller
                 'cache_used' => Cache::has('categories_list_' . md5(json_encode($request->all()))),
             ]);
 
-            return response()->json([
+            return $this->successResponse([
                 'data' => $categoriesData,
                 'meta' => [
                     'total' => $categories->count(),
@@ -85,7 +85,7 @@ class CategoryController extends Controller
                 'products_count' => $categoryData['products_count'],
             ]);
 
-            return response()->json($categoryData);
+            return $this->successResponse($categoryData);
 
         } catch (Exception $e) {
             Log::error('Error fetching category details', [
@@ -122,7 +122,7 @@ class CategoryController extends Controller
                 'products_count' => $products->total(),
             ]);
 
-            return response()->json($products);
+            return $this->successResponse($products);
 
         } catch (Exception $e) {
             Log::error('Error fetching category products', [
@@ -146,7 +146,7 @@ class CategoryController extends Controller
     {
         try {
             $stats = $this->categoryService->getStatistics();
-            return response()->json($stats);
+            return $this->successResponse($stats);
 
         } catch (Exception $e) {
             Log::error('Error fetching category statistics', [

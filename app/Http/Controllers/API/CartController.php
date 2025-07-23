@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use App\Models\CartItem;
 use App\Models\Product;
 use App\Services\CartService;
@@ -12,8 +12,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Exception;
 
-class CartController extends Controller
+class CartController extends BaseApiController
 {
     protected $cartService;
     protected $promotionService;
@@ -41,14 +42,13 @@ class CartController extends Controller
                 return $item->quantity * $item->product->getPromotionalPrice();
             });
             
-            return response()->json([
+            return $this->successResponse([
                 'items' => $cartItems,
                 'subtotal' => $subtotal,
                 'count' => $cartItems->sum('quantity'),
             ]);
-        } catch (\Exception $e) {
-            Log::error('Error fetching cart items: ' . $e->getMessage());
-            return response()->json(['message' => 'Error fetching cart items', 'error' => $e->getMessage()], 500);
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Fetching cart items');
         }
     }
 
@@ -66,15 +66,11 @@ class CartController extends Controller
             $product = Product::findOrFail($validated['product_id']);
             $cartItem = $this->cartService->addToCart($product, $validated['quantity']);
 
-            return response()->json([
-                'message' => 'Product added to cart successfully',
-                'cart_item' => $cartItem,
-            ], 201);
+            return $this->createdResponse($cartItem, 'Product added to cart successfully');
         } catch (ValidationException $e) {
-            return response()->json(['message' => 'Validation error', 'errors' => $e->errors()], 422);
-        } catch (\Exception $e) {
-            Log::error('Error adding product to cart: ' . $e->getMessage());
-            return response()->json(['message' => 'Error adding product to cart', 'error' => $e->getMessage()], 500);
+            return $this->validationErrorResponse($e->errors(), 'Validation error');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Adding product to cart');
         }
     }
 
@@ -90,18 +86,16 @@ class CartController extends Controller
 
             // Check if cart item belongs to current user
             if ($cartItem->user_id !== Auth::id()) {
-                return response()->json(['message' => 'Unauthorized'], 403);
+                return $this->forbiddenResponse('Unauthorized access to cart item');
             }
 
             $cartItem->update(['quantity' => $validated['quantity']]);
 
-            return response()->json([
-                'message' => 'Cart item updated successfully',
-                'cart_item' => $cartItem->fresh(),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error updating cart item: ' . $e->getMessage());
-            return response()->json(['message' => 'Error updating cart item', 'error' => $e->getMessage()], 500);
+            return $this->successResponse($cartItem->fresh(), 'Cart item updated successfully');
+        } catch (ValidationException $e) {
+            return $this->validationErrorResponse($e->errors(), 'Validation error');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Updating cart item');
         }
     }
 
@@ -113,17 +107,14 @@ class CartController extends Controller
         try {
             // Check if cart item belongs to current user
             if ($cartItem->user_id !== Auth::id()) {
-                return response()->json(['message' => 'Unauthorized'], 403);
+                return $this->forbiddenResponse('Unauthorized access to cart item');
             }
 
             $cartItem->delete();
 
-            return response()->json([
-                'message' => 'Item removed from cart successfully',
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error removing cart item: ' . $e->getMessage());
-            return response()->json(['message' => 'Error removing cart item', 'error' => $e->getMessage()], 500);
+            return $this->successResponse(null, 'Item removed from cart successfully');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Removing cart item');
         }
     }
 
@@ -135,12 +126,9 @@ class CartController extends Controller
         try {
             $this->cartService->clearCart();
 
-            return response()->json([
-                'message' => 'Cart cleared successfully',
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error clearing cart: ' . $e->getMessage());
-            return response()->json(['message' => 'Error clearing cart', 'error' => $e->getMessage()], 500);
+            return $this->successResponse(null, 'Cart cleared successfully');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Clearing cart');
         }
     }
 
@@ -163,13 +151,13 @@ class CartController extends Controller
                 $this->cartService->addToCart($product, $item['quantity']);
             }
 
-            return response()->json([
-                'message' => 'Cart synchronized successfully',
+            return $this->successResponse([
                 'items' => $this->cartService->getCartItems(),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error syncing cart: ' . $e->getMessage());
-            return response()->json(['message' => 'Error syncing cart', 'error' => $e->getMessage()], 500);
+            ], 'Cart synchronized successfully');
+        } catch (ValidationException $e) {
+            return $this->validationErrorResponse($e->errors(), 'Validation error');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Syncing cart');
         }
     }
 } 

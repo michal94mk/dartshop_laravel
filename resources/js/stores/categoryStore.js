@@ -35,10 +35,21 @@ export const useCategoryStore = defineStore('category', {
         const response = await api.getCategories();
         console.log('CategoryStore: API response:', response.data);
         
-        // Handle the new API response structure
-        if (response.data && response.data.data) {
+        // Handle new API response format (BaseApiController)
+        if (response.data.success && response.data.data) {
+          // Nowy format: { success: true, data: { data: [...], meta: {...} } }
+          if (Array.isArray(response.data.data)) {
+            this.categories = response.data.data;
+          } else if (Array.isArray(response.data.data.data)) {
+            this.categories = response.data.data.data;
+          } else {
+            this.categories = [];
+          }
+        } else if (response.data && response.data.data) {
+          // Fallback for old format: { data: [...] }
           this.categories = response.data.data;
         } else if (Array.isArray(response.data)) {
+          // Direct array response
           this.categories = response.data;
         } else {
           throw new Error('Unexpected API response format');
@@ -69,10 +80,21 @@ export const useCategoryStore = defineStore('category', {
         const response = await api.getCategories({ _t: Date.now() });
         console.log('CategoryStore: Force refresh API response:', response.data);
         
-        // Handle the new API response structure
-        if (response.data && response.data.data) {
+        // Handle new API response format (BaseApiController)
+        if (response.data.success && response.data.data) {
+          // Nowy format: { success: true, data: { data: [...], meta: {...} } }
+          if (Array.isArray(response.data.data)) {
+            this.categories = response.data.data;
+          } else if (Array.isArray(response.data.data.data)) {
+            this.categories = response.data.data.data;
+          } else {
+            this.categories = [];
+          }
+        } else if (response.data && response.data.data) {
+          // Fallback for old format: { data: [...] }
           this.categories = response.data.data;
         } else if (Array.isArray(response.data)) {
+          // Direct array response
           this.categories = response.data;
         } else {
           throw new Error('Unexpected API response format');

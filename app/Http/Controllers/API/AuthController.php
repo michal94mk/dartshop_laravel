@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -12,8 +12,9 @@ use App\Services\CartService;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Str;
+use Exception;
 
-class AuthController extends Controller
+class AuthController extends BaseApiController
 {
     protected $cartService;
     
@@ -24,81 +25,92 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        if (Auth::attempt($request->only('email', 'password'), true)) {
-            $user = Auth::user();
-            
-            // Also login via web guard for session-based auth
-            Auth::guard('web')->login($user, true);
-            
-            // Migrate session cart to database
-            $this->cartService->migrateSessionCartToDatabase($user);
-            
-            $token = $user->createToken('auth_token')->plainTextToken;
-
-            return response()->json([
-                'user' => $this->getUserWithRolesAndPermissions($user),
-                'token' => $token,
-                'token_type' => 'Bearer',
+        try {
+            $request->validate([
+                'email' => 'required|email',
+                'password' => 'required',
             ]);
-        }
 
-        throw ValidationException::withMessages([
-            'email' => ['The provided credentials are incorrect.'],
-        ]);
+            if (Auth::attempt($request->only('email', 'password'), true)) {
+                $user = Auth::user();
+                
+                // Also login via web guard for session-based auth
+                Auth::guard('web')->login($user, true);
+                
+                // Migrate session cart to database
+                $this->cartService->migrateSessionCartToDatabase($user);
+                
+                $token = $user->createToken('auth_token')->plainTextToken;
+
+                return $this->successResponse([
+                    'token' => $token,
+                    'user' => $this->getUserWithRolesAndPermissions($user),
+                    'token_type' => 'Bearer'
+                ], 'Login successful');
+            }
+
+            return $this->unauthorizedResponse('The provided credentials are incorrect.');
+        } catch (ValidationException $e) {
+            return $this->validationErrorResponse($e->errors(), 'Validation failed');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Login operation');
+        }
     }
 
     public function register(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'privacy_policy_accepted' => 'required|boolean|accepted',
-            'newsletter_consent' => 'boolean',
-        ]);
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users',
+                'password' => 'required|string|min:8|confirmed',
+                'privacy_policy_accepted' => 'required|boolean|accepted',
+                'newsletter_consent' => 'boolean',
+            ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'privacy_policy_accepted' => $request->privacy_policy_accepted,
-            'privacy_policy_accepted_at' => $request->privacy_policy_accepted ? now() : null,
-        ]);
+            $user = User::create([
+                'name' => $request->name,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'privacy_policy_accepted' => $request->privacy_policy_accepted,
+                'privacy_policy_accepted_at' => $request->privacy_policy_accepted ? now() : null,
+            ]);
 
-        // Assign default user role
-        $user->assignRole(RoleEnum::User->value);
+            // Assign default user role
+            $user->assignRole(RoleEnum::User->value);
 
-        // Send email verification notification
-        $user->sendEmailVerificationNotification();
+            // Send email verification notification
+            $user->sendEmailVerificationNotification();
 
-        // Handle newsletter subscription if consent was given
-        if ($request->newsletter_consent) {
-            // You might want to handle newsletter subscription here
+            // Handle newsletter subscription if consent was given
+            if ($request->newsletter_consent) {
+                // You might want to handle newsletter subscription here
+            }
+
+            // Auto-login the user after registration
+            Auth::login($user, true);
+            Auth::guard('web')->login($user, true);
+            
+            // Migrate session cart to database
+            $this->cartService->migrateSessionCartToDatabase($user);
+
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            // Nowy format odpowiedzi z BaseApiController
+            return $this->createdResponse([
+                'token' => $token,
+                'user' => $this->getUserWithRolesAndPermissions($user),
+                'token_type' => 'Bearer'
+            ], 'User registered successfully');
+        } catch (ValidationException $e) {
+            return $this->validationErrorResponse($e->errors(), 'Validation failed');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Registration operation');
         }
-
-        // Auto-login the user after registration
-        Auth::login($user, true);
-        Auth::guard('web')->login($user, true);
-        
-        // Migrate session cart to database
-        $this->cartService->migrateSessionCartToDatabase($user);
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'user' => $this->getUserWithRolesAndPermissions($user),
-            'token' => $token,
-            'token_type' => 'Bearer',
-        ]);
     }
 
     public function handleGoogleCallback(Request $request)
@@ -150,43 +162,48 @@ class AuthController extends Controller
             
             $token = $user->createToken('auth_token')->plainTextToken;
             
-            return response()->json([
+            return $this->successResponse([
                 'user' => $this->getUserWithRolesAndPermissions($user),
                 'token' => $token,
                 'token_type' => 'Bearer',
                 'is_new_user' => $isNewUser
-            ]);
+            ], 'Google authentication successful');
             
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Error during Google authentication',
-                'error' => $e->getMessage()
-            ], 500);
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Google authentication');
         }
     }
 
     public function user(Request $request)
     {
-        $user = $request->user();
-        return response()->json($this->getUserWithRolesAndPermissions($user));
+        try {
+            $user = $request->user();
+            return $this->successResponse($this->getUserWithRolesAndPermissions($user));
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Get user profile');
+        }
     }
 
     public function logout(Request $request)
     {
-        // Handle token-based logout (API tokens)
-        if ($request->user()) {
-            $request->user()->tokens()->delete();
+        try {
+            // Handle token-based logout (API tokens)
+            if ($request->user()) {
+                $request->user()->tokens()->delete();
+            }
+            
+            // Handle session-based logout
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            
+            // Set cookie expiry to force browser to remove it
+            $cookie = cookie()->forget('laravel_session');
+            
+            return $this->successResponse(null, 'Successfully logged out')->withCookie($cookie);
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Logout operation');
         }
-        
-        // Handle session-based logout
-        Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        
-        // Set cookie expiry to force browser to remove it
-        $cookie = cookie()->forget('laravel_session');
-        
-        return response()->json(['message' => 'Successfully logged out'])->withCookie($cookie);
     }
 
     protected function getUserWithRolesAndPermissions(User $user)

@@ -162,7 +162,17 @@ export const useCartStore = defineStore('cart', {
       
       try {
         const response = await axios.get('/api/cart');
-        this.items = response.data.items || [];
+        
+        // Handle new API response format (BaseApiController)
+        if (response.data.success && response.data.data) {
+          // New format: { success: true, data: { items: [...] } }
+          this.items = response.data.data.items || [];
+        } else if (response.data.items) {
+          // Fallback for old format: { items: [...] }
+          this.items = response.data.items || [];
+        } else {
+          this.items = [];
+        }
       } catch (error) {
         console.error('Failed to fetch cart:', error);
         
@@ -218,38 +228,34 @@ export const useCartStore = defineStore('cart', {
         } else {
           // Dla gościa: obsługa w localStorage
           const existingItemIndex = this.items.findIndex(item => item.product_id === productId);
-          
           if (existingItemIndex !== -1) {
             // Product already exists in cart, increase quantity
             this.items[existingItemIndex].quantity += quantity;
+            // Uzupełnij dane produktu jeśli brakuje
+            if (!this.items[existingItemIndex].product) {
+              try {
+                const response = await axios.get(`/api/products/${productId}`);
+                const product = response.data.success && response.data.data ? response.data.data : response.data;
+                this.items[existingItemIndex].product = product;
+              } catch (error) {
+                console.error('Failed to fetch product details:', error);
+              }
+            }
           } else {
-            // Najpierw pobierz dane produktu z API
+            // Pobierz dane produktu z API
             try {
               const response = await axios.get(`/api/products/${productId}`);
-              const product = response.data;
-              
-              // Dodaj nowy produkt do koszyka z pełnymi danymi
-              this.items.push({
-                id: Date.now(), // Tymczasowe ID dla localStorage
-                product_id: productId,
-                quantity: quantity,
-                product: product
-              });
-            } catch (error) {
-              console.error('Failed to fetch product details:', error);
-              // Jeśli nie udało się pobrać danych produktu, użyj podstawowych informacji
-              const product = { id: productId, name: 'Produkt', price: 0 };
-              
+              const product = response.data.success && response.data.data ? response.data.data : response.data;
               this.items.push({
                 id: Date.now(),
                 product_id: productId,
                 quantity: quantity,
                 product: product
               });
+            } catch (error) {
+              console.error('Failed to fetch product details:', error);
             }
           }
-          
-          // Zapisz zmiany w localStorage
           this.saveToLocalStorage();
           
           // Return true to indicate success for guest users

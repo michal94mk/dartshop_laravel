@@ -475,10 +475,19 @@ export default {
           // Dla gości - pobierz z localStorage
           const savedCart = localStorage.getItem('cart')
           if (savedCart) {
-            console.log('Saved cart from localStorage:', savedCart)
             const localCartItems = JSON.parse(savedCart)
-            console.log('Parsed cart items:', localCartItems)
             cartItems.value = localCartItems
+            // Uzupełnij brakujące dane produktów
+            for (const item of cartItems.value) {
+              if (!item.product) {
+                try {
+                  const response = await axios.get(`/api/products/${item.product_id}`)
+                  item.product = response.data.success && response.data.data ? response.data.data : response.data
+                } catch (error) {
+                  console.error('Failed to fetch product details for guest cart:', error)
+                }
+              }
+            }
             
             // Oblicz sumę koszyka
             const calculatedTotal = localCartItems.reduce((total, item) => {

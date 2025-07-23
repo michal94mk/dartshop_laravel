@@ -197,8 +197,34 @@ export const useAuthStore = defineStore('auth', {
             password
         }, { headers, withCredentials: true });
         
-        if (response.data.user) {
+        // Handle new API response format (BaseApiController)
+        if (response.data.success && response.data.data) {
+            // New format: { success: true, data: { user, token, token_type } }
+            this.user = response.data.data.user;
+            this.token = response.data.data.token;
+            
+            // Save permissions if they exist
+            if (response.data.data.user.permissions) {
+                this.permissions = response.data.data.user.permissions;
+            }
+            
+            // Save data to localStorage
+            this.saveUserToLocalStorage();
+            
+            // Sync cart after login
+            const cartStore = useCartStore();
+            await cartStore.syncCartAfterLogin();
+            
+            // Set auth init to true and clear error status
+            this.authInitialized = true;
+            this.hasError = false;
+            this.errorMessage = '';
+            
+            return true;
+        } else if (response.data.user) {
+            // Fallback for old format: { user, token, token_type }
             this.user = response.data.user;
+            this.token = response.data.token;
             
             // Save permissions if they exist
             if (response.data.user.permissions) {
@@ -273,21 +299,37 @@ export const useAuthStore = defineStore('auth', {
           newsletter_consent: newsletterConsent
         });
         
-        this.user = response.data.user;
-        
-                  // Save permissions if they exist
-        if (response.data.user.permissions) {
-          this.permissions = response.data.user.permissions;
+        // Handle new API response format (BaseApiController)
+        if (response.data.success && response.data.data) {
+            // New format: { success: true, data: { user, token, token_type } }
+            this.user = response.data.data.user;
+            this.token = response.data.data.token;
+            
+            // Save permissions if they exist
+            if (response.data.data.user.permissions) {
+                this.permissions = response.data.data.user.permissions;
+            }
+        } else if (response.data.user) {
+            // Fallback for old format: { user, token, token_type }
+            this.user = response.data.user;
+            this.token = response.data.token;
+            
+            // Save permissions if they exist
+            if (response.data.user.permissions) {
+                this.permissions = response.data.user.permissions;
+            }
+        } else {
+            throw new Error('Invalid response format');
         }
         
-        // Zapisz dane do localStorage
+        // Save data to localStorage
         this.saveUserToLocalStorage();
         
         // Sync cart after registration and automatic login
         const cartStore = useCartStore();
         await cartStore.syncCartAfterLogin();
         
-                  // Set auth init to true and clear error status
+        // Set auth init to true and clear error status
         this.authInitialized = true;
         this.hasError = false;
         this.errorMessage = '';

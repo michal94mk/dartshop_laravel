@@ -552,8 +552,33 @@ export default {
               }
             })
             
-            mobileSearchResults.value = response.data.data
-            mobileSearchTotalResults.value = response.data.total
+            // Handle new API response format (BaseApiController)
+            if (response.data.success && response.data.data) {
+              // New format: { success: true, data: { data: [...], total: number } }
+              const responseData = response.data.data;
+              
+              if (responseData.data && Array.isArray(responseData.data)) {
+                mobileSearchResults.value = responseData.data;
+                mobileSearchTotalResults.value = responseData.total;
+              } else if (Array.isArray(responseData)) {
+                mobileSearchResults.value = responseData;
+                mobileSearchTotalResults.value = responseData.length;
+              } else {
+                mobileSearchResults.value = [];
+                mobileSearchTotalResults.value = 0;
+              }
+            } else if (response.data.data && Array.isArray(response.data.data)) {
+              // Fallback for old format: { data: [...], total: number }
+              mobileSearchResults.value = response.data.data;
+              mobileSearchTotalResults.value = response.data.total;
+            } else if (Array.isArray(response.data)) {
+              // Direct array response
+              mobileSearchResults.value = response.data;
+              mobileSearchTotalResults.value = response.data.length;
+            } else {
+              mobileSearchResults.value = [];
+              mobileSearchTotalResults.value = 0;
+            }
             showMobileSearchDropdown.value = true
           } catch (error) {
             console.error('Error searching products:', error)

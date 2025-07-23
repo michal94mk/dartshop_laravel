@@ -73,7 +73,45 @@ export const useProductStore = defineStore('product', {
           throw new Error('API returned HTML instead of JSON. Check routes and CSRF configuration.');
         }
         
-        if (response.data.data && Array.isArray(response.data.data)) {
+        // Handle new API response format (BaseApiController)
+        if (response.data.success && response.data.data) {
+          // New format: { success: true, data: { data: [...], current_page, last_page, ... } }
+          const responseData = response.data.data;
+          
+          if (responseData.data && Array.isArray(responseData.data)) {
+            this.products = responseData.data.map(product => ({
+              ...product,
+              price: product.price || 0,
+              name: product.name || 'Unnamed Product',
+              image_url: product.image_url || null
+            }));
+            
+            this.pagination = {
+              currentPage: parseInt(responseData.current_page) || 1,
+              totalPages: parseInt(responseData.last_page) || 1,
+              perPage: parseInt(responseData.per_page) || 12,
+              total: parseInt(responseData.total) || 0
+            };
+          } else if (Array.isArray(responseData)) {
+            this.products = responseData.map(product => ({
+              ...product,
+              price: product.price || 0,
+              name: product.name || 'Unnamed Product',
+              image_url: product.image_url || null
+            }));
+            
+            this.pagination = {
+              currentPage: 1,
+              totalPages: 1,
+              perPage: this.pagination.perPage,
+              total: responseData.length
+            };
+          } else {
+            console.error('Unexpected API response format:', response.data);
+            throw new Error('Invalid API response format - Unexpected structure');
+          }
+        } else if (response.data.data && Array.isArray(response.data.data)) {
+          // Fallback for old format: { data: [...], current_page, last_page, ... }
           this.products = response.data.data.map(product => ({
             ...product,
             price: product.price || 0,
@@ -88,6 +126,7 @@ export const useProductStore = defineStore('product', {
             total: parseInt(response.data.total) || 0
           };
         } else if (Array.isArray(response.data)) {
+          // Fallback for direct array response
           this.products = response.data.map(product => ({
             ...product,
             price: product.price || 0,
@@ -132,8 +171,31 @@ export const useProductStore = defineStore('product', {
         const response = await axios.get('/api/products/latest');
         console.log('Latest products API response:', response.data);
         
-        // Handle the response structure which includes data and meta
-        if (response.data.data && Array.isArray(response.data.data)) {
+        // Handle new API response format (BaseApiController)
+        if (response.data.success && response.data.data) {
+          // New format: { success: true, data: { data: [...], meta: {...} } }
+          const responseData = response.data.data;
+          
+          if (responseData.data && Array.isArray(responseData.data)) {
+            this.latestProducts = responseData.data.map(product => ({
+              ...product,
+              price: product.price || 0,
+              name: product.name || 'Unnamed Product',
+              image_url: product.image_url || null
+            }));
+          } else if (Array.isArray(responseData)) {
+            this.latestProducts = responseData.map(product => ({
+              ...product,
+              price: product.price || 0,
+              name: product.name || 'Unnamed Product',
+              image_url: product.image_url || null
+            }));
+          } else {
+            console.error('Unexpected latest products API response format:', response.data);
+            this.latestProducts = [];
+          }
+        } else if (response.data.data && Array.isArray(response.data.data)) {
+          // Fallback for old format: { data: [...], meta: {...} }
           this.latestProducts = response.data.data.map(product => ({
             ...product,
             price: product.price || 0,
@@ -173,8 +235,19 @@ export const useProductStore = defineStore('product', {
         console.log('API Response:', response);
         
         if (response && response.data) {
-          // The API may return the product directly or wrapped in a 'data' property
-          const productData = response.data.data || response.data;
+          // Handle new API response format (BaseApiController)
+          let productData;
+          
+          if (response.data.success && response.data.data) {
+            // New format: { success: true, data: {...} }
+            productData = response.data.data;
+          } else if (response.data.data) {
+            // Fallback for old format: { data: {...} }
+            productData = response.data.data;
+          } else {
+            // Direct product response
+            productData = response.data;
+          }
           
           this.currentProduct = {
             ...productData,
