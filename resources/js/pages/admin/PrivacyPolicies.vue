@@ -162,8 +162,14 @@
             v-model="form.title" 
             type="text" 
             required
-            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            :class="[
+              'mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
+              formErrors.title 
+                ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                : 'border-gray-300'
+            ]"
           />
+          <p v-if="formErrors.title" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.title) ? formErrors.title[0] : formErrors.title }}</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -174,8 +180,14 @@
               type="text" 
               required
               placeholder="np. 1.0"
-              class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              :class="[
+                'mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
+                formErrors.version 
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-gray-300'
+              ]"
             />
+            <p v-if="formErrors.version" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.version) ? formErrors.version[0] : formErrors.version }}</p>
           </div>
 
           <div>
@@ -184,8 +196,14 @@
               v-model="form.effective_date" 
               type="date" 
               required
-              class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              :class="[
+                'mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
+                formErrors.effective_date 
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-gray-300'
+              ]"
             />
+            <p v-if="formErrors.effective_date" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.effective_date) ? formErrors.effective_date[0] : formErrors.effective_date }}</p>
           </div>
         </div>
 
@@ -207,9 +225,15 @@
             v-model="form.content" 
             rows="20"
             required
-            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            :class="[
+              'mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
+              formErrors.content 
+                ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                : 'border-gray-300'
+            ]"
             placeholder="Wprowadź treść polityki prywatności w formacie HTML..."
           ></textarea>
+          <p v-if="formErrors.content" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.content) ? formErrors.content[0] : formErrors.content }}</p>
           <p class="mt-1 text-xs text-gray-500">Możesz używać HTML do formatowania treści</p>
         </div>
       </form>
@@ -341,6 +365,7 @@ export default {
     const editingPolicy = ref(null)
     const policyToDelete = ref(null)
     const submitting = ref(false)
+    const formErrors = ref({})
     
     // Form
     const form = ref({
@@ -385,6 +410,7 @@ export default {
         content: '',
         is_active: false
       }
+      formErrors.value = {}
     }
     
     const closeModal = () => {
@@ -433,21 +459,31 @@ export default {
     const submitForm = async () => {
       try {
         submitting.value = true
+        formErrors.value = {}
         
         if (showCreateModal.value) {
-          await axios.post('/api/admin/privacy-policies', form.value)
-          alertStore.success('Polityka prywatności została utworzona')
+          const response = await axios.post('/api/admin/privacy-policies', form.value)
+          alertStore.success(response.data.message || 'Polityka prywatności została utworzona')
         } else {
-          await axios.put(`/api/admin/privacy-policies/${editingPolicy.value.id}`, form.value)
-          alertStore.success('Polityka prywatności została zaktualizowana')
+          const response = await axios.put(`/api/admin/privacy-policies/${editingPolicy.value.id}`, form.value)
+          alertStore.success(response.data.message || 'Polityka prywatności została zaktualizowana')
         }
         
         closeModal()
         await fetchPolicies()
         await fetchStats()
       } catch (err) {
-        alertStore.error('Wystąpił błąd podczas zapisywania')
         console.error('Error submitting form:', err)
+        
+        if (err.response && err.response.status === 422) {
+          if (err.response.data.errors) {
+            formErrors.value = err.response.data.errors
+          } else if (err.response.data.message) {
+            alertStore.error(err.response.data.message)
+          }
+        } else {
+          alertStore.error('Wystąpił błąd podczas zapisywania')
+        }
       } finally {
         submitting.value = false
       }
@@ -494,6 +530,7 @@ export default {
       policyToDelete,
       submitting,
       form,
+      formErrors,
       fetchPolicies,
       fetchStats,
       resetForm,

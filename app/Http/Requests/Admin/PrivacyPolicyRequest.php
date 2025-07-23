@@ -29,8 +29,8 @@ class PrivacyPolicyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'title' => 'required|string|min:3|max:255',
+            'content' => 'required|string|min:50',
             'version' => 'required|string|max:20',
             'effective_date' => 'required|date',
             'is_active' => 'boolean',
@@ -45,9 +45,11 @@ class PrivacyPolicyRequest extends FormRequest
         return [
             'title.required' => 'Tytuł jest wymagany.',
             'title.string' => 'Tytuł musi być tekstem.',
+            'title.min' => 'Tytuł musi mieć co najmniej 3 znaki.',
             'title.max' => 'Tytuł nie może być dłuższy niż 255 znaków.',
             'content.required' => 'Treść jest wymagana.',
             'content.string' => 'Treść musi być tekstem.',
+            'content.min' => 'Treść musi mieć co najmniej 50 znaków.',
             'version.required' => 'Wersja jest wymagana.',
             'version.string' => 'Wersja musi być tekstem.',
             'version.max' => 'Wersja nie może być dłuższa niż 20 znaków.',
