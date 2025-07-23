@@ -110,16 +110,19 @@ export const useAuthStore = defineStore('auth', {
         const response = await axios.get('/api/user');
         console.log('User API response:', response);
         
-                  if (response.data) {
-            this.user = response.data;
-            
-            // Get user permissions if they exist
-            if (response.data.permissions) {
-              this.permissions = response.data.permissions;
-            }
-            
-            // Save data to localStorage
-            this.saveUserToLocalStorage();
+        // Handle new API response format
+        const userData = response.data.success ? response.data.data : response.data;
+        
+        if (userData) {
+          this.user = userData;
+          
+          // Get user permissions if they exist
+          if (userData.permissions) {
+            this.permissions = userData.permissions;
+          }
+          
+          // Save data to localStorage
+          this.saveUserToLocalStorage();
           
           console.log('User authenticated:', this.user);
         }
@@ -130,8 +133,6 @@ export const useAuthStore = defineStore('auth', {
         return this.user;
       } catch (error) {
         console.error('Failed to initialize auth state:', error);
-        
-
         
         // Set error only if it's not 401 Unauthorized (user not logged in)
         if (error.response && error.response.status !== 401) {
@@ -197,7 +198,7 @@ export const useAuthStore = defineStore('auth', {
             password
         }, { headers, withCredentials: true });
         
-        // Handle new API response format (BaseApiController)
+        // Handle new API response format
         if (response.data.success && response.data.data) {
             // New format: { success: true, data: { user, token, token_type } }
             this.user = response.data.data.user;
@@ -206,29 +207,6 @@ export const useAuthStore = defineStore('auth', {
             // Save permissions if they exist
             if (response.data.data.user.permissions) {
                 this.permissions = response.data.data.user.permissions;
-            }
-            
-            // Save data to localStorage
-            this.saveUserToLocalStorage();
-            
-            // Sync cart after login
-            const cartStore = useCartStore();
-            await cartStore.syncCartAfterLogin();
-            
-            // Set auth init to true and clear error status
-            this.authInitialized = true;
-            this.hasError = false;
-            this.errorMessage = '';
-            
-            return true;
-        } else if (response.data.user) {
-            // Fallback for old format: { user, token, token_type }
-            this.user = response.data.user;
-            this.token = response.data.token;
-            
-            // Save permissions if they exist
-            if (response.data.user.permissions) {
-                this.permissions = response.data.user.permissions;
             }
             
             // Save data to localStorage
@@ -637,18 +615,25 @@ export const useAuthStore = defineStore('auth', {
     // Refresh user data (to update email_verified_at after verification)
     async refreshUser() {
       try {
+        console.log('Starting user refresh...');
+        
         // First refresh CSRF token
         await axios.get('/sanctum/csrf-cookie');
         console.log('CSRF token refreshed before user check');
         
         const response = await axios.get('/api/user');
+        console.log('User API response:', response.data);
         
-        if (response.data) {
-          this.user = response.data;
+        // Handle new API response format
+        const userData = response.data.success ? response.data.data : response.data;
+        
+        if (userData) {
+          // Create a new object to ensure reactivity
+          this.user = { ...userData };
           
           // Get user permissions if they exist
-          if (response.data.permissions) {
-            this.permissions = response.data.permissions;
+          if (userData.permissions) {
+            this.permissions = [...userData.permissions];
           }
           
           // Save updated data to localStorage
@@ -660,11 +645,19 @@ export const useAuthStore = defineStore('auth', {
           console.log('User refreshed successfully:', {
             email: this.user.email,
             isLoggedIn: this.isLoggedIn,
-            emailVerified: !!this.user.email_verified_at
+            emailVerified: !!this.user.email_verified_at,
+            isAdmin: this.isAdmin
           });
           
           return this.user;
         }
+        
+        // If no user data, clear the state
+        this.user = null;
+        this.permissions = [];
+        localStorage.removeItem('user');
+        localStorage.removeItem('permissions');
+        localStorage.removeItem('auth_time');
         
         return null;
       } catch (error) {
@@ -677,6 +670,26 @@ export const useAuthStore = defineStore('auth', {
           localStorage.removeItem('user');
           localStorage.removeItem('permissions');
           localStorage.removeItem('auth_time');
+          
+          // Try to refresh CSRF token and retry once
+          try {
+            await axios.get('/sanctum/csrf-cookie');
+            const retryResponse = await axios.get('/api/user');
+            
+            // Handle new API response format for retry
+            const retryUserData = retryResponse.data.success ? retryResponse.data.data : retryResponse.data;
+            
+            if (retryUserData) {
+              this.user = { ...retryUserData };
+              if (retryUserData.permissions) {
+                this.permissions = [...retryUserData.permissions];
+              }
+              this.saveUserToLocalStorage();
+              return this.user;
+            }
+          } catch (retryError) {
+            console.error('Retry failed:', retryError);
+          }
         }
         
         return null;

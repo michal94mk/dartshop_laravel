@@ -194,6 +194,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cartStore'
+import { useAuthStore } from '../stores/authStore'
 import axios from 'axios'
 
 export default {
@@ -203,6 +204,7 @@ export default {
     const route = useRoute()
     const router = useRouter()
     const cartStore = useCartStore()
+    const authStore = useAuthStore()
     
     const loading = ref(true)
     const error = ref(null)
@@ -221,36 +223,67 @@ export default {
         const sessionId = route.query.session_id
         const orderId = route.query.order_id
         
-        if (sessionId) {
+        // Ensure auth store is initialized
+        if (!authStore.authInitialized) {
+          console.log('Auth not initialized, initializing...');
+          await authStore.initAuth();
+        }
+        
+        // Sprawdź, czy zamówienie zostało przekazane przez router state (gość)
+        const stateOrder = window.history.state && window.history.state.order
+        if (stateOrder) {
+          order.value = stateOrder
+          success.value = true
+          // Clear cart for guest users
+          await cartStore.clearCart();
+        } else if (sessionId) {
           // Stripe payment
+          // Najpierw odśwież dane użytkownika
+          console.log('Refreshing user data before processing Stripe payment...');
+          await authStore.refreshUser();
+          
           const response = await axios.post('/api/stripe/success', {
             session_id: sessionId
           })
-          
           order.value = response.data.data?.order
           success.value = true
           
-        } else if (orderId) {
-          // Cash on delivery - get order data
-          const response = await axios.get(`/api/orders/${orderId}`)
+          // Clear cart after successful Stripe payment
+          await cartStore.clearCart();
           
+          // Ponownie odśwież dane użytkownika po potwierdzeniu płatności
+          console.log('Payment confirmed, refreshing user data again...');
+          await authStore.refreshUser();
+          
+          // Dodatkowe sprawdzenie czy dane użytkownika są poprawne
+          if (!authStore.user) {
+            console.log('User data still missing, forcing auth refresh...');
+            await authStore.initAuth();
+          }
+        } else if (orderId) {
+          // Cash on delivery - get order data (dla zalogowanych)
+          const response = await axios.get(`/api/orders/${orderId}`)
           order.value = response.data.order
           success.value = true
           
+          // Clear cart after successful COD order
+          await cartStore.clearCart();
+          
+          // Odśwież dane użytkownika również dla płatności przy odbiorze
+          if (authStore.isLoggedIn) {
+            await authStore.refreshUser();
+          }
         } else {
           throw new Error('Brak danych zamówienia')
         }
-        
-                  // Clear cart locally (if guest)
+        // Clear cart locally (if guest)
         const savedCart = localStorage.getItem('cart')
         if (savedCart) {
           localStorage.removeItem('cart')
           cartStore.items = []
         }
-        
-                  // Clear checkout data
+        // Clear checkout data
         localStorage.removeItem('checkout_shipping')
-        
       } catch (err) {
         console.error('Error processing payment success:', err)
         error.value = err.response?.data?.message || err.message || 'Nie udało się przetworzyć płatności'
@@ -258,7 +291,6 @@ export default {
         loading.value = false
       }
     }
-    
     onMounted(() => {
       processPaymentSuccess()
     })

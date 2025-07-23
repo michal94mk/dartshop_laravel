@@ -38,7 +38,7 @@ export const useFavoriteStore = defineStore('favorites', {
       
       try {
         const response = await axios.get('/api/favorites');
-        this.favorites = response.data.favorite_products || [];
+        this.favorites = (response.data.data && response.data.data.favorite_products) || response.data.favorite_products || [];
         this.initialized = true;
       } catch (error) {
         this.error = 'Failed to load favorites';
@@ -65,8 +65,8 @@ export const useFavoriteStore = defineStore('favorites', {
       
       try {
         const response = await axios.post(`/api/favorites/${product.id}`);
-        
-        if (response.data.is_favorite) {
+        const isFavorite = (response.data.data && response.data.data.is_favorite) ?? response.data.is_favorite;
+        if (isFavorite) {
           // Add to favorites if not already there
           if (!this.isInFavorites(product.id)) {
             this.favorites.push({
@@ -82,8 +82,7 @@ export const useFavoriteStore = defineStore('favorites', {
           // Remove from favorites
           this.favorites = this.favorites.filter(item => item.id !== product.id);
         }
-        
-        return response.data;
+        return { is_favorite: isFavorite };
       } catch (error) {
         this.error = 'Failed to update favorite status';
         console.error('Error toggling favorite:', error);
@@ -103,7 +102,7 @@ export const useFavoriteStore = defineStore('favorites', {
       
       try {
         const response = await axios.get(`/api/favorites/check/${productId}`);
-        return response.data.is_favorite;
+        return (response.data.data && response.data.data.is_favorite) ?? response.data.is_favorite;
       } catch (error) {
         console.error('Error checking favorite status:', error);
         return false;
@@ -124,7 +123,7 @@ export const useFavoriteStore = defineStore('favorites', {
       
       try {
         const response = await axios.get('/api/favorites');
-        this.favorites = response.data.favorite_products || [];
+        this.favorites = (response.data.data && response.data.data.favorite_products) || response.data.favorite_products || [];
         
         // Format price for display
         this.favorites.forEach(product => {

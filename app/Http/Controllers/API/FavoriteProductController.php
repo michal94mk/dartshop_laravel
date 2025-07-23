@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
-class FavoriteProductController extends Controller
+class FavoriteProductController extends BaseApiController
 {
     public function toggle(Product $product): JsonResponse
     {
         $user = Auth::user();
         
         if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            return $this->errorResponse('Unauthenticated.', 401);
         }
         
         // Check if the product is already in favorites
@@ -34,10 +34,7 @@ class FavoriteProductController extends Controller
             $status = true;
         }
         
-        return response()->json([
-            'message' => $message,
-            'is_favorite' => $status
-        ]);
+        return $this->successResponse(['is_favorite' => $status], $message);
     }
     
     public function index(): JsonResponse
@@ -45,7 +42,7 @@ class FavoriteProductController extends Controller
         $user = Auth::user();
         
         if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            return $this->errorResponse('Unauthenticated.', 401);
         }
         
         $favoriteProducts = $user->favoriteProducts()->with(['category', 'brand', 'activePromotions'])->get();
@@ -63,9 +60,7 @@ class FavoriteProductController extends Controller
             }
         }
         
-        return response()->json([
-            'favorite_products' => $favoriteProducts
-        ]);
+        return $this->successResponse(['favorite_products' => $favoriteProducts]);
     }
     
     public function check(Product $product): JsonResponse
@@ -73,13 +68,11 @@ class FavoriteProductController extends Controller
         $user = Auth::user();
         
         if (!$user) {
-            return response()->json(['is_favorite' => false]);
+            return $this->successResponse(['is_favorite' => false]);
         }
         
         $isFavorite = $user->favoriteProducts()->where('product_id', $product->id)->exists();
         
-        return response()->json([
-            'is_favorite' => $isFavorite
-        ]);
+        return $this->successResponse(['is_favorite' => $isFavorite]);
     }
 } 

@@ -356,35 +356,38 @@ export const useCartStore = defineStore('cart', {
     async clearCart() {
       const authStore = useAuthStore();
       
-      if (authStore.isLoggedIn) {
-        // Dla zalogowanego użytkownika: użyj dedykowanego endpointu clear
+      try {
         this.isLoading = true;
         
-        try {
-          // Użyj dedykowanego endpointu do czyszczenia koszyka
-          await axios.delete('/api/cart');
-          
-          // Wyczyść lokalny stan
-          this.items = [];
-          
-        } catch (error) {
-          console.error('Failed to clear cart:', error);
-          
-          // Jeśli nie udało się wyczyścić przez API, spróbuj pobrać aktualny stan
+        if (authStore.isLoggedIn) {
+          // Dla zalogowanego użytkownika: użyj dedykowanego endpointu clear
           try {
-            await this.fetchCart();
-          } catch (fetchError) {
-            console.error('Failed to fetch cart after clear error:', fetchError);
-            this.hasError = true;
-            this.errorMessage = 'Nie udało się wyczyścić koszyka';
+            // Użyj dedykowanego endpointu do czyszczenia koszyka
+            await axios.delete('/api/cart');
+          } catch (error) {
+            console.error('Failed to clear cart via API:', error);
+            // Kontynuuj mimo błędu API, aby wyczyścić lokalny stan
           }
-        } finally {
-          this.isLoading = false;
         }
-      } else {
-        // Dla gościa: czyścimy localStorage
+        
+        // Zawsze wyczyść lokalny stan
         this.items = [];
+        
+        // Zawsze wyczyść localStorage
         localStorage.removeItem('cart');
+        
+        // Reset error state
+        this.hasError = false;
+        this.errorMessage = '';
+        
+        return true;
+      } catch (error) {
+        console.error('Failed to clear cart:', error);
+        this.hasError = true;
+        this.errorMessage = 'Nie udało się wyczyścić koszyka';
+        return false;
+      } finally {
+        this.isLoading = false;
       }
     },
     

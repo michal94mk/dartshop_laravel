@@ -468,6 +468,18 @@ router.beforeEach(async (to, from, next) => {
     next();
     return;
   }
+
+  // Special check: if returning from Stripe payment
+  if (to.name === 'payment-success' && to.query.session_id) {
+    console.log('Returning from Stripe payment, refreshing auth state');
+    try {
+      await authStore.refreshUser();
+    } catch (error) {
+      console.error('Failed to refresh auth after Stripe payment:', error);
+    }
+    next();
+    return;
+  }
   
   // Always wait for auth state initialization before making redirect decisions
   if (!authStore.authInitialized) {

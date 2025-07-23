@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50">
-    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8" :key="componentKey">
       <!-- Header -->
       <div class="text-center mb-12">
         <div class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-full text-indigo-700 font-semibold text-sm mb-4">
@@ -115,9 +115,9 @@
                <div v-if="!showChangePassword" class="max-w-2xl mx-auto">
                  <div class="text-center mb-8">
                    <div class="w-24 h-24 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4">
-                     {{ authStore.userInitial }}
+                     {{ userInitial }}
                    </div>
-                   <h3 class="text-2xl font-bold text-gray-900">{{ authStore.userName }}</h3>
+                   <h3 class="text-2xl font-bold text-gray-900">{{ userName }}</h3>
                  </div>
                  
                  <div class="space-y-6">
@@ -128,7 +128,7 @@
                        </svg>
                        <h4 class="text-sm font-semibold text-gray-600">Imię i nazwisko</h4>
                      </div>
-                     <p class="text-gray-900 font-medium">{{ authStore.userName }}</p>
+                     <p class="text-gray-900 font-medium">{{ userName }}</p>
                    </div>
                    
                    <div class="bg-gray-50 rounded-lg p-6">
@@ -138,16 +138,16 @@
                        </svg>
                        <h4 class="text-sm font-semibold text-gray-600">Email</h4>
                      </div>
-                     <p class="text-gray-900 font-medium">{{ authStore.userEmail }}</p>
+                     <p class="text-gray-900 font-medium">{{ userEmail }}</p>
                      
                      <!-- Email verification status -->
-                     <div v-if="authStore.isEmailVerified || authStore.isGoogleUser" class="mt-3 flex items-center text-sm text-green-600">
+                     <div v-if="isEmailVerified || isGoogleUser" class="mt-3 flex items-center text-sm text-green-600">
                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                        </svg>
-                       {{ authStore.isGoogleUser ? 'Zweryfikowany przez Google' : 'Zweryfikowany' }}
+                       {{ isGoogleUser ? 'Zweryfikowany przez Google' : 'Zweryfikowany' }}
                      </div>
-                     <div v-else-if="!authStore.isGoogleUser" class="mt-3">
+                     <div v-else-if="!isGoogleUser" class="mt-3">
                        <div class="flex items-center text-sm text-red-600 mb-2">
                          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -180,7 +180,7 @@
                    <div class="flex flex-col sm:flex-row gap-4">
                      <!-- Password change button - hidden for Google OAuth users -->
                      <button 
-                       v-if="!authStore.isGoogleUser"
+                       v-if="!isGoogleUser"
                        @click="showChangePassword = true" 
                        class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-lg hover:shadow-xl"
                      >
@@ -225,7 +225,7 @@
                </div>
                
                <!-- Password change form - only for non-Google users -->
-               <div v-else-if="!authStore.isGoogleUser" class="max-w-2xl mx-auto">
+               <div v-else-if="!isGoogleUser" class="max-w-2xl mx-auto">
                  <div class="mb-8">
                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Zmiana hasła</h3>
                    <p class="text-gray-600">Wprowadź swoje aktualne hasło oraz nowe hasło</p>
@@ -633,7 +633,7 @@
  </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed, getCurrentInstance } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 import { useFavoriteStore } from '../stores/favoriteStore';
@@ -671,19 +671,55 @@ export default {
     const loadingReviews = ref(false);
     const reviews = ref([]);
     
+    // Component state management
+    const componentKey = ref(0);
+    const isReady = ref(false);
+    
     const router = useRouter();
     const authStore = useAuthStore();
     const favoriteStore = useFavoriteStore();
     const alertStore = useAlertStore();
+
+    // Computed properties for user data
+    const userName = computed(() => authStore.userName);
+    const userEmail = computed(() => authStore.userEmail);
+    const userInitial = computed(() => authStore.userInitial);
+    const isGoogleUser = computed(() => authStore.isGoogleUser);
+    const isEmailVerified = computed(() => authStore.isEmailVerified);
     
-    // Fetch data when tab changes
-    watch(activeTab, (newTab) => {
+    // Watch for user changes (e.g. after Stripe payment)
+    watch(() => authStore.user, async (newUser, oldUser) => {
+      if (!isReady.value) return;
+      
+      if (newUser && newUser !== oldUser) {
+        if (activeTab.value === 'orders') await fetchOrders();
+        if (activeTab.value === 'favorites') await fetchFavorites();
+        if (activeTab.value === 'reviews') await fetchReviews();
+        // Increment key to force re-render
+        componentKey.value++;
+      }
+    });
+
+    // Watch for changes in userName, userEmail, userInitial
+    watch([
+      () => authStore.userName,
+      () => authStore.userEmail,
+      () => authStore.userInitial
+    ], () => {
+      if (!isReady.value) return;
+      componentKey.value++;
+    });
+    
+    // Watch for tab changes
+    watch(activeTab, async (newTab) => {
+      if (!isReady.value) return;
+      
       if (newTab === 'favorites') {
-        fetchFavorites();
+        await fetchFavorites();
       } else if (newTab === 'orders') {
-        fetchOrders();
+        await fetchOrders();
       } else if (newTab === 'reviews') {
-        fetchReviews();
+        await fetchReviews();
       }
     });
     
@@ -712,24 +748,46 @@ export default {
     };
     
     onMounted(async () => {
-      // Initialize auth state ONLY if it hasn't been initialized yet
-      if (!authStore.authInitialized) {
-        console.log('Profile: Auth not initialized, initializing...');
-        await authStore.initAuth();
-      } else {
-        console.log('Profile: Auth already initialized, skipping initAuth');
+      console.log('Profile mounted, checking auth state...');
+      
+      try {
+        // Initialize auth state ONLY if it hasn't been initialized yet
+        if (!authStore.authInitialized) {
+          console.log('Profile: Auth not initialized, initializing...');
+          await authStore.initAuth();
+        } else {
+          console.log('Profile: Auth already initialized, refreshing user data...');
+          await authStore.refreshUser();
+        }
+        
         console.log('Profile: Current auth state:', {
           isLoggedIn: authStore.isLoggedIn,
           user: authStore.user?.email,
           authInitialized: authStore.authInitialized
         });
+        
+        // Initialize the favorite store
+        await favoriteStore.initializeFavorites();
+        
+        // Load initial data based on active tab
+        if (activeTab.value === 'favorites') {
+          await fetchFavorites();
+        } else if (activeTab.value === 'orders') {
+          await fetchOrders();
+        } else if (activeTab.value === 'reviews') {
+          await fetchReviews();
+        }
+        
+        // Handle email verification status
+        handleVerificationStatus();
+        
+        // Mark component as ready
+        isReady.value = true;
+        componentKey.value++;
+      } catch (error) {
+        console.error('Error initializing profile:', error);
+        alertStore.error('Wystąpił błąd podczas ładowania profilu. Spróbuj odświeżyć stronę.');
       }
-      
-      // Initialize the favorite store
-      favoriteStore.initializeFavorites();
-      
-      // Handle email verification status
-      handleVerificationStatus();
     });
     
     // Profile tab methods
@@ -953,6 +1011,11 @@ export default {
     return {
       // Auth and profile
       authStore,
+      userName,
+      userEmail,
+      userInitial,
+      isGoogleUser,
+      isEmailVerified,
       isLoggingOut,
       isVerificationLoading,
       showChangePassword,

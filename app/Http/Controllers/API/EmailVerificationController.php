@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
-class EmailVerificationController extends Controller
+class EmailVerificationController extends BaseApiController
 {
     /**
      * Mark user's email as verified
@@ -86,21 +86,15 @@ class EmailVerificationController extends Controller
 
         // Prevent email verification for Google OAuth users
         if (!empty($user->google_id)) {
-            return response()->json([
-                'message' => 'Użytkownicy zalogowani przez Google OAuth mają już zweryfikowany email.'
-            ], 400);
+            return $this->errorResponse('Użytkownicy zalogowani przez Google OAuth mają już zweryfikowany email.', 400);
         }
 
         if ($user->hasVerifiedEmail()) {
-            return response()->json([
-                'message' => 'Adres e-mail jest już zweryfikowany.'
-            ]);
+            return $this->successResponse(null, 'Adres e-mail jest już zweryfikowany.');
         }
 
         $user->sendEmailVerificationNotification();
 
-        return response()->json([
-            'message' => 'Link weryfikacyjny został wysłany ponownie.'
-        ]);
+        return $this->successResponse(null, 'Link weryfikacyjny został wysłany ponownie.');
     }
 } 

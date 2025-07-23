@@ -581,10 +581,19 @@ export default {
         if (response.data && response.data.success && response.data.data?.order) {
           // Wyczyść koszyk
           await cartStore.clearCart()
-          // Przekieruj do strony potwierdzenia
+          // Przekieruj do strony potwierdzenia, przekazując zamówienie przez state
           router.push({
             name: 'payment-success',
-            query: { order_id: response.data.data.order.id }
+            query: { order_id: response.data.data.order.id },
+            state: { order: response.data.data.order }
+          })
+        } else if (response.data && response.data.order) {
+          // Obsługa starego formatu odpowiedzi
+          await cartStore.clearCart()
+          router.push({
+            name: 'payment-success',
+            query: { order_id: response.data.order.id },
+            state: { order: response.data.order }
           })
         } else if (response.data && response.data.message) {
           error.value = response.data.message

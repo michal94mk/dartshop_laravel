@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
 use App\Http\Requests\Frontend\CheckoutRequest;
 use App\Models\Order;
@@ -15,7 +15,7 @@ use App\Enums\PaymentStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class GuestCheckoutController extends Controller
+class GuestCheckoutController extends BaseApiController
 {
     protected $shippingService;
     protected $cartService;
@@ -51,7 +51,7 @@ class GuestCheckoutController extends Controller
 
             if (empty($cartItems)) {
                 Log::warning('Próba utworzenia zamówienia z pustym koszykiem');
-                return response()->json(['message' => 'Koszyk jest pusty'], 400);
+                return $this->errorResponse('Koszyk jest pusty', 400);
             }
 
             // Rozpocznij transakcję
@@ -134,10 +134,10 @@ class GuestCheckoutController extends Controller
                     ]);
 
                     // Zwróć utworzone zamówienie
-                    return response()->json([
-                        'message' => 'Zamówienie zostało utworzone',
-                        'order' => $order->load('items')
-                    ], 201);
+                    $order->load('items');
+                    return $this->createdResponse([
+                        'order' => $order
+                    ], 'Zamówienie zostało utworzone');
 
                 } catch (\Exception $e) {
                     Log::error('Błąd w transakcji DB podczas tworzenia zamówienia gościa', [
@@ -154,10 +154,7 @@ class GuestCheckoutController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return response()->json([
-                'message' => 'Wystąpił błąd podczas tworzenia zamówienia',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Wystąpił błąd podczas tworzenia zamówienia: ' . $e->getMessage(), 500);
         }
     }
 
