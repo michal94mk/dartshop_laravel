@@ -57,10 +57,7 @@ class CategoryController extends BaseApiController
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return response()->json([
-                'error' => 'Wystąpił błąd podczas pobierania kategorii',
-                'message' => $e->getMessage()
-            ], 500);
+            return $this->handleException($e, 'Fetching categories');
         }
     }
 
@@ -94,9 +91,7 @@ class CategoryController extends BaseApiController
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return response()->json([
-                'error' => 'Wystąpił błąd podczas pobierania kategorii'
-            ], 500);
+            return $this->handleException($e, 'Fetching category details');
         }
     }
 
@@ -131,9 +126,7 @@ class CategoryController extends BaseApiController
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return response()->json([
-                'error' => 'Wystąpił błąd podczas pobierania produktów kategorii'
-            ], 500);
+            return $this->handleException($e, 'Fetching category products');
         }
     }
 
@@ -153,9 +146,7 @@ class CategoryController extends BaseApiController
                 'error' => $e->getMessage(),
             ]);
 
-            return response()->json([
-                'error' => 'Wystąpił błąd podczas pobierania statystyk kategorii'
-            ], 500);
+            return $this->handleException($e, 'Fetching category statistics');
         }
     }
 } 

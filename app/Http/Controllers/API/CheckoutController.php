@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\CartService;
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class CheckoutController extends Controller
+class CheckoutController extends BaseApiController
 {
     protected $cartService;
     protected $reservationService;
@@ -163,10 +163,7 @@ class CheckoutController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return response()->json([
-                'message' => 'Wystąpił błąd podczas tworzenia zamówienia',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Wystąpił błąd podczas tworzenia zamówienia: ' . $e->getMessage(), 500);
         }
     }
 
@@ -180,10 +177,7 @@ class CheckoutController extends Controller
     {
         $order = Order::with(['items', 'items.product'])->findOrFail($orderId);
 
-        return response()->json([
-            'success' => true,
-            'order' => $order
-        ]);
+        return $this->successResponse(['order' => $order]);
     }
 
 

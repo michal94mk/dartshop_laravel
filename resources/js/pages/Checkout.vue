@@ -455,7 +455,7 @@ export default {
         if (authStore.isLoggedIn) {
           // Pobierz koszyk dla zalogowanych użytkowników
           const cartResponse = await axios.get('/api/cart')
-          cartItems.value = cartResponse.data.items
+          cartItems.value = cartResponse.data.data?.items || []
           cartTotal.value = cartResponse.data.total || 0
 
           // Pobierz metody wysyłki dla zalogowanych użytkowników
@@ -578,16 +578,16 @@ export default {
         const response = await axios.post(endpoint, checkoutData)
         console.log('Odpowiedź z serwera:', response.data)
 
-        // Obsługa odpowiedzi
-        if (response.data.data?.order) {
+        if (response.data && response.data.success && response.data.data?.order) {
           // Wyczyść koszyk
           await cartStore.clearCart()
-          
           // Przekieruj do strony potwierdzenia
           router.push({
             name: 'payment-success',
             query: { order_id: response.data.data.order.id }
           })
+        } else if (response.data && response.data.message) {
+          error.value = response.data.message
         }
 
       } catch (err) {

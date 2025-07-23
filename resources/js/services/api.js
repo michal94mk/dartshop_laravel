@@ -134,6 +134,8 @@ export default {
   
   // Other endpoints
   getPromotions() {
+    // Usage: const response = await api.getPromotions();
+    // if (response.data.success) { const promotions = response.data.data.data; }
     return withLogging(api.get, 'getPromotions')('/promotions');
   },
   

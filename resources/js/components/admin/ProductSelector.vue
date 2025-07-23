@@ -182,14 +182,11 @@ export default {
       try {
         const response = await axios.get('/api/categories');
         // Handle new API response format (BaseApiController)
-        if (response.data.success && response.data.data) {
-          // New format: { success: true, data: [...] }
+        if (response.data && response.data.success && response.data.data) {
           this.categories = response.data.data;
         } else if (response.data && response.data.data) {
-          // Fallback for old format: { data: [...] }
           this.categories = response.data.data;
         } else if (Array.isArray(response.data)) {
-          // Direct array response
           this.categories = response.data;
         } else {
           this.categories = [];

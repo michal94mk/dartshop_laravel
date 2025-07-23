@@ -36,20 +36,17 @@ export const useCategoryStore = defineStore('category', {
         console.log('CategoryStore: API response:', response.data);
         
         // Handle new API response format (BaseApiController)
-        if (response.data.success && response.data.data) {
-          // Nowy format: { success: true, data: { data: [...], meta: {...} } }
-          if (Array.isArray(response.data.data)) {
-            this.categories = response.data.data;
-          } else if (Array.isArray(response.data.data.data)) {
+        if (response.data && response.data.success && response.data.data) {
+          if (Array.isArray(response.data.data.data)) {
             this.categories = response.data.data.data;
+          } else if (Array.isArray(response.data.data)) {
+            this.categories = response.data.data;
           } else {
             this.categories = [];
           }
         } else if (response.data && response.data.data) {
-          // Fallback for old format: { data: [...] }
           this.categories = response.data.data;
         } else if (Array.isArray(response.data)) {
-          // Direct array response
           this.categories = response.data;
         } else {
           throw new Error('Unexpected API response format');

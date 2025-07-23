@@ -10,7 +10,6 @@ use App\Services\PromotionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Exception;
 
@@ -109,10 +108,8 @@ class CartController extends BaseApiController
             if ($cartItem->user_id !== Auth::id()) {
                 return $this->forbiddenResponse('Unauthorized access to cart item');
             }
-
             $cartItem->delete();
-
-            return $this->successResponse(null, 'Item removed from cart successfully');
+            return $this->successResponse(null, 'Cart item removed successfully');
         } catch (Exception $e) {
             return $this->handleException($e, 'Removing cart item');
         }
@@ -125,7 +122,6 @@ class CartController extends BaseApiController
     {
         try {
             $this->cartService->clearCart();
-
             return $this->successResponse(null, 'Cart cleared successfully');
         } catch (Exception $e) {
             return $this->handleException($e, 'Clearing cart');
@@ -143,14 +139,11 @@ class CartController extends BaseApiController
                 'items.*.product_id' => 'required|exists:products,id',
                 'items.*.quantity' => 'required|integer|min:1',
             ]);
-
             $this->cartService->clearCart();
-
             foreach ($validated['items'] as $item) {
                 $product = Product::findOrFail($item['product_id']);
                 $this->cartService->addToCart($product, $item['quantity']);
             }
-
             return $this->successResponse([
                 'items' => $this->cartService->getCartItems(),
             ], 'Cart synchronized successfully');

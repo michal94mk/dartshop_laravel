@@ -295,13 +295,18 @@ export default {
 
         const response = await window.axios.get(`/api/promotions?${params}`)
         
-        promotions.value = response.data.data
-        Object.assign(pagination, {
-          current_page: response.data.current_page,
-          last_page: response.data.last_page,
-          per_page: response.data.per_page,
-          total: response.data.total
-        })
+        if (response.data && response.data.success && response.data.data) {
+          // Laravel paginator: response.data.data = paginator, response.data.data.data = items
+          promotions.value = response.data.data.data || []
+          Object.assign(pagination, {
+            current_page: response.data.data.current_page,
+            last_page: response.data.data.last_page,
+            per_page: response.data.data.per_page,
+            total: response.data.data.total
+          })
+        } else {
+          promotions.value = []
+        }
       } catch (err) {
         console.error('Błąd podczas pobierania promocji:', err)
         error.value = 'Nie udało się pobrać promocji. Spróbuj ponownie później.'

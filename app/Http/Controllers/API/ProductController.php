@@ -31,17 +31,12 @@ class ProductController extends BaseApiController
                 'query_params' => $request->all(),
                 'user_agent' => $request->header('User-Agent'),
             ]);
-            
             $products = $this->productService->getProducts($request);
-            
-            // Add promotion information to each product
             $products->getCollection()->transform(function ($product) {
                 return $this->productService->addPromotionInfo($product);
             });
-            
             $cacheKey = 'products_list_' . md5(json_encode($request->all()));
             $cacheUsed = Cache::has($cacheKey);
-            
             Log::info('Products query successful', [
                 'total' => $products->total(),
                 'per_page' => $products->perPage(),
@@ -54,17 +49,13 @@ class ProductController extends BaseApiController
                     'featured_only', 'in_stock_only', 'on_promotion_only', 'sort_by', 'sort_direction'
                 ]))
             ]);
-            
-            // Add metadata to response
             $response = $products->toArray();
             $response['meta'] = array_merge($response['meta'] ?? [], [
                 'cache_hit' => $cacheUsed,
-                'cache_key' => substr($cacheKey, 0, 20) . '...', // Show first 20 chars for debugging
+                'cache_key' => substr($cacheKey, 0, 20) . '...',
                 'filters_available' => $this->productService->getFiltersMetadata()
             ]);
-            
             return $this->successResponse($response);
-            
         } catch (Exception $e) {
             return $this->handleException($e, 'Fetching products');
         }
@@ -82,9 +73,7 @@ class ProductController extends BaseApiController
             Log::info('ProductController@show called with ID', [
                 'product_id' => $id
             ]);
-            
             $product = $this->productService->getProduct($id);
-            
             Log::info('Product detail response', [
                 'product_id' => $id,
                 'product_name' => $product->name,
@@ -93,8 +82,6 @@ class ProductController extends BaseApiController
                 'has_brand' => $product->brand ? true : false,
                 'has_reviews' => $product->reviews !== null
             ]);
-            
-            // Nowy format odpowiedzi z BaseApiController
             return $this->successResponse($product);
         } catch (Exception $e) {
             return $this->handleException($e, "Fetching product with ID: {$id}");
@@ -110,19 +97,15 @@ class ProductController extends BaseApiController
     {
         try {
             Log::info('ProductController@latest called');
-            
             $products = $this->productService->getLatestProducts();
             $cacheKey = 'latest_products';
             $cacheUsed = Cache::has($cacheKey);
-            
             Log::info('Latest products response', [
                 'count' => $products->count(),
                 'columns' => $products->count() > 0 ? array_keys($products->first()->toArray()) : [],
                 'cache_hit' => $cacheUsed,
                 'cache_key' => $cacheKey,
             ]);
-            
-            // Nowy format odpowiedzi z BaseApiController
             return $this->successResponse([
                 'data' => $products,
                 'meta' => [
@@ -131,7 +114,6 @@ class ProductController extends BaseApiController
                     'cache_key' => $cacheKey,
                 ]
             ]);
-            
         } catch (Exception $e) {
             return $this->handleException($e, 'Fetching latest products');
         }

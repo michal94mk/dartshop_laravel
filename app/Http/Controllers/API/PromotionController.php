@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Promotion;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
-class PromotionController extends Controller
+class PromotionController extends BaseApiController
 {
     /**
      * Wyświetl listę promocji (publiczne API)
@@ -24,27 +24,31 @@ class PromotionController extends Controller
             $query->featured();
         }
 
-        $promotions = $query->paginate($request->get('per_page', 10));
+        try {
+            $promotions = $query->paginate($request->get('per_page', 10));
 
-        // Dodaj informacje o promocji do każdego produktu w każdej promocji
-        $promotions->getCollection()->transform(function ($promotion) {
-            $promotion->products->transform(function ($product) use ($promotion) {
-                $product->promotion_price = $promotion->calculateDiscountedPrice($product->price);
-                $product->savings = $promotion->getDiscountAmount($product->price);
-                $product->promotion = [
-                    'id' => $promotion->id,
-                    'title' => $promotion->title,
-                    'badge_text' => $promotion->badge_text,
-                    'badge_color' => $promotion->badge_color,
-                    'discount_type' => $promotion->discount_type,
-                    'discount_value' => $promotion->discount_value
-                ];
-                return $product;
+            // Dodaj informacje o promocji do każdego produktu w każdej promocji
+            $promotions->getCollection()->transform(function ($promotion) {
+                $promotion->products->transform(function ($product) use ($promotion) {
+                    $product->promotion_price = $promotion->calculateDiscountedPrice($product->price);
+                    $product->savings = $promotion->getDiscountAmount($product->price);
+                    $product->promotion = [
+                        'id' => $promotion->id,
+                        'title' => $promotion->title,
+                        'badge_text' => $promotion->badge_text,
+                        'badge_color' => $promotion->badge_color,
+                        'discount_type' => $promotion->discount_type,
+                        'discount_value' => $promotion->discount_value
+                    ];
+                    return $product;
+                });
+                return $promotion;
             });
-            return $promotion;
-        });
 
-        return response()->json($promotions);
+            return $this->successResponse($promotions);
+        } catch (\Exception $e) {
+            return $this->errorResponse('Wystąpił błąd podczas pobierania promocji: ' . $e->getMessage(), 500);
+        }
     }
 
     /**
