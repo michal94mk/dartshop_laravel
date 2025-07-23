@@ -131,9 +131,10 @@
           </table>
         </div>
       </div>
-      <div v-else class="p-6 text-center">
-        <p class="text-gray-500">Brak promocji do wyświetlenia</p>
-      </div>
+      <no-data-message 
+        v-if="!loading && (!promotions || promotions.length === 0)" 
+        message="Brak promocji do wyświetlenia" 
+      />
     </div>
 
     <!-- Paginacja -->
@@ -262,6 +263,7 @@ import SearchFilters from '../../components/admin/SearchFilters.vue'
 import ActionButtons from '../../components/admin/ActionButtons.vue'
 import AdminModal from '../../components/admin/ui/AdminModal.vue'
 import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue'
+import NoDataMessage from '../../components/admin/NoDataMessage.vue'
 
 export default {
   name: 'AdminPromotions',
@@ -278,7 +280,8 @@ export default {
     SearchFilters,
     ActionButtons,
     AdminModal,
-    AdminButtonGroup
+    AdminButtonGroup,
+    NoDataMessage
   },
   setup() {
     const alertStore = useAlertStore()
