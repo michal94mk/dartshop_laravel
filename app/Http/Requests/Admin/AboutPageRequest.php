@@ -29,8 +29,8 @@ class AboutPageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'title' => 'required|string|min:3|max:255',
+            'content' => 'required|string|min:50',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
             'header_style' => 'nullable|string',
@@ -47,9 +47,11 @@ class AboutPageRequest extends FormRequest
         return [
             'title.required' => 'Tytuł jest wymagany.',
             'title.string' => 'Tytuł musi być tekstem.',
+            'title.min' => 'Tytuł musi mieć co najmniej 3 znaki.',
             'title.max' => 'Tytuł nie może być dłuższy niż 255 znaków.',
             'content.required' => 'Treść jest wymagana.',
             'content.string' => 'Treść musi być tekstem.',
+            'content.min' => 'Treść musi mieć co najmniej 50 znaków.',
             'meta_title.string' => 'Meta tytuł musi być tekstem.',
             'meta_title.max' => 'Meta tytuł nie może być dłuższy niż 255 znaków.',
             'meta_description.string' => 'Meta opis musi być tekstem.',

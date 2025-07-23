@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\Admin\TutorialController as AdminTutorialController
 use App\Http\Controllers\Api\Admin\ContactMessageController as AdminContactMessageController;
 use App\Http\Controllers\Api\Admin\AboutPageController;
 use App\Http\Controllers\Api\Admin\NewsletterController as AdminNewsletterController;
+use App\Http\Controllers\API\Admin\ContentImageUploadController;
 
 use App\Http\Controllers\Api\AboutUsController;
 use App\Http\Controllers\Api\ContactController;
@@ -260,6 +261,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     // About page management
     Route::get('/about', [AboutPageController::class, 'index']);
     Route::put('/about', [AboutPageController::class, 'update']);
+    Route::post('/upload/content-image', [ContentImageUploadController::class, 'upload']);
     
     // Newsletter management
     Route::get('/newsletter', [AdminNewsletterController::class, 'index']);

@@ -512,7 +512,7 @@ export default {
         minute: '2-digit'
       })
     }
-    
+
     // Initialize
     onMounted(async () => {
       await Promise.all([fetchTerms(), fetchStats()])

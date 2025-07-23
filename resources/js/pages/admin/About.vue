@@ -22,9 +22,15 @@
                 type="text" 
                 id="title" 
                 v-model="aboutUs.title" 
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                :class="[
+                  'mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
+                  formErrors.title 
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300'
+                ]"
                 placeholder="Wpisz tytuł strony..."
               >
+              <p v-if="formErrors.title" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.title) ? formErrors.title[0] : formErrors.title }}</p>
             </div>
             
             <!-- Styl nagłówka -->
@@ -97,6 +103,7 @@
                   ['clean']
                 ]"
               />
+              <p v-if="formErrors.content" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.content) ? formErrors.content[0] : formErrors.content }}</p>
             </div>
             
 
@@ -171,6 +178,7 @@ export default {
       margin: 'mb-6',
       contentLayout: 'prose-lg'
     })
+    const formErrors = ref({})
     
     // Fetch about page data
     const fetchAboutPage = async () => {
@@ -205,6 +213,7 @@ export default {
     const saveAboutPage = async () => {
       try {
         saving.value = true
+        formErrors.value = {}
         
         // Zapisz opcje nagłówka do obiektu aboutUs
         aboutUs.value.header_margin = headerOptions.value.margin
@@ -215,7 +224,16 @@ export default {
         alertStore.success('Strona została zaktualizowana')
       } catch (error) {
         console.error('Error saving about page:', error)
-        alertStore.error('Nie udało się zapisać zmian')
+        
+        if (error.response && error.response.status === 422) {
+          if (error.response.data.errors) {
+            formErrors.value = error.response.data.errors
+          } else if (error.response.data.message) {
+            alertStore.error(error.response.data.message)
+          }
+        } else {
+          alertStore.error('Nie udało się zapisać zmian')
+        }
       } finally {
         saving.value = false
       }
@@ -239,7 +257,8 @@ export default {
       saving,
       saveAboutPage,
       resetForm,
-      headerOptions
+      headerOptions,
+      formErrors,
     }
   }
 }

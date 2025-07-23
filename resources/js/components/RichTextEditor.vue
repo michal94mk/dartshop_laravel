@@ -8,6 +8,7 @@
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
+import axios from 'axios'
 
 export default {
   name: 'RichTextEditor',
@@ -27,7 +28,7 @@ export default {
         [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
         [{ 'list': 'ordered'}, { 'list': 'bullet' }],
         [{ 'align': [] }],
-        ['link'],
+        ['link', 'image'],
         ['clean']
       ]
     },
@@ -41,6 +42,36 @@ export default {
     const editor = ref(null)
     let quill = null
 
+    // Image upload handler
+    const imageHandler = () => {
+      const input = document.createElement('input')
+      input.setAttribute('type', 'file')
+      input.setAttribute('accept', 'image/*')
+      input.click()
+
+      input.onchange = async () => {
+        const file = input.files[0]
+        if (file) {
+          try {
+            const formData = new FormData()
+            formData.append('image', file)
+            
+            const response = await axios.post('/api/admin/upload/content-image', formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+            })
+            
+            const range = quill.getSelection()
+            quill.insertEmbed(range.index, 'image', response.data.url)
+          } catch (error) {
+            console.error('Error uploading image:', error)
+            alert('Nie udało się przesłać obrazka. Sprawdź czy plik nie jest za duży (max 2MB) i czy ma poprawny format.')
+          }
+        }
+      }
+    }
+
     // Set min-height
     onMounted(() => {
       if (editor.value) {
@@ -49,7 +80,12 @@ export default {
 
       quill = new Quill(editor.value, {
         modules: {
-          toolbar: props.toolbar
+          toolbar: {
+            container: props.toolbar,
+            handlers: {
+              image: imageHandler
+            }
+          }
         },
         placeholder: props.placeholder,
         theme: 'snow'
