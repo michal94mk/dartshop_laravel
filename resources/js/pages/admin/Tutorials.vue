@@ -150,6 +150,7 @@
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               required
             >
+            <p v-if="formErrors.title" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.title) ? formErrors.title[0] : formErrors.title }}</p>
           </div>
           
           <div>
@@ -161,6 +162,7 @@
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               required
             >
+            <p v-if="formErrors.slug" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.slug) ? formErrors.slug[0] : formErrors.slug }}</p>
           </div>
         </div>
         
@@ -173,6 +175,7 @@
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             required
           ></textarea>
+          <p v-if="formErrors.content" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.content) ? formErrors.content[0] : formErrors.content }}</p>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -185,6 +188,7 @@
               min="0"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             >
+            <p v-if="formErrors.order" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.order) ? formErrors.order[0] : formErrors.order }}</p>
           </div>
           
           <div>
@@ -198,6 +202,7 @@
               <option value="draft">Szkic</option>
               <option value="published">Opublikowany</option>
             </select>
+            <p v-if="formErrors.status" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.status) ? formErrors.status[0] : formErrors.status }}</p>
           </div>
         </div>
         
@@ -361,6 +366,7 @@ export default {
     })
     
     const form = ref({
+      id: null,
       title: '',
       slug: '',
       content: '',
@@ -368,6 +374,9 @@ export default {
       order: 0,
       status: 'draft'
     })
+    
+    // Form validation errors
+    const formErrors = ref({})
     
     // Image upload state
     const uploadingImage = ref(false)
@@ -422,6 +431,9 @@ export default {
     // Add new tutorial
     const addTutorial = async () => {
       try {
+        // Clear previous errors
+        formErrors.value = {}
+        
         const response = await axios.post('/api/admin/tutorials', form.value)
         // Refresh the list to get updated data
         fetchTutorials()
@@ -429,7 +441,14 @@ export default {
         closeForm()
       } catch (error) {
         console.error('Error adding tutorial:', error)
-        alertStore.error('Wystąpił błąd podczas dodawania poradnika.')
+        
+        if (error.response && error.response.data && error.response.data.errors) {
+          formErrors.value = error.response.data.errors
+        } else if (error.response && error.response.data && error.response.data.message) {
+          alertStore.error(`Błąd: ${error.response.data.message}`)
+        } else {
+          alertStore.error('Wystąpił błąd podczas dodawania poradnika.')
+        }
       }
     }
     
@@ -463,6 +482,9 @@ export default {
     // Update tutorial
     const updateTutorial = async () => {
       try {
+        // Clear previous errors
+        formErrors.value = {}
+        
         const response = await axios.put(`/api/admin/tutorials/${form.value.id}`, form.value)
         // Refresh the list to get updated data
         fetchTutorials()
@@ -470,7 +492,14 @@ export default {
         closeForm()
       } catch (error) {
         console.error('Error updating tutorial:', error)
-        alertStore.error('Wystąpił błąd podczas aktualizacji poradnika.')
+        
+        if (error.response && error.response.data && error.response.data.errors) {
+          formErrors.value = error.response.data.errors
+        } else if (error.response && error.response.data && error.response.data.message) {
+          alertStore.error(`Błąd: ${error.response.data.message}`)
+        } else {
+          alertStore.error('Wystąpił błąd podczas aktualizacji poradnika.')
+        }
       }
     }
     
@@ -510,6 +539,7 @@ export default {
     // Close form
     const closeForm = () => {
       form.value = {
+        id: null,
         title: '',
         slug: '',
         content: '',
@@ -517,8 +547,8 @@ export default {
         order: 0,
         status: 'draft'
       }
-      imageUploadError.value = ''
-      uploadingImage.value = false
+      // Clear form errors
+      formErrors.value = {}
       showAddForm.value = false
       showEditForm.value = false
     }
@@ -654,6 +684,7 @@ export default {
       tutorialToDelete,
       filters,
       form,
+      formErrors,
       sortOptions,
       uploadingImage,
       imageUploadError,

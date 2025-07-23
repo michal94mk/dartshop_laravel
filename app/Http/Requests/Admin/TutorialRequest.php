@@ -36,13 +36,14 @@ class TutorialRequest extends FormRequest
         }
         
         return [
-            'title' => 'required|string|max:255',
+            'title' => 'required|string|min:3|max:255',
             'slug' => [
                 'string',
+                'min:3',
                 'max:255',
                 Rule::unique('tutorials')->ignore($tutorialId),
             ],
-            'content' => 'required|string',
+            'content' => 'required|string|min:10',
             'image_url' => 'nullable|string',
             'order' => 'nullable|integer',
             'status' => 'required|string|in:draft,published',
@@ -57,12 +58,15 @@ class TutorialRequest extends FormRequest
         return [
             'title.required' => 'Tytuł jest wymagany.',
             'title.string' => 'Tytuł musi być tekstem.',
+            'title.min' => 'Tytuł musi mieć co najmniej 3 znaki.',
             'title.max' => 'Tytuł nie może być dłuższy niż 255 znaków.',
             'slug.string' => 'Slug musi być tekstem.',
+            'slug.min' => 'Slug musi mieć co najmniej 3 znaki.',
             'slug.max' => 'Slug nie może być dłuższy niż 255 znaków.',
             'slug.unique' => 'Ten slug już istnieje.',
             'content.required' => 'Treść jest wymagana.',
             'content.string' => 'Treść musi być tekstem.',
+            'content.min' => 'Treść musi mieć co najmniej 10 znaków.',
             'image_url.string' => 'URL obrazu musi być tekstem.',
             'order.integer' => 'Kolejność musi być liczbą całkowitą.',
             'status.required' => 'Status jest wymagany.',
