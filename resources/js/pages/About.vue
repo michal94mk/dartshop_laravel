@@ -181,7 +181,11 @@ export default {
       try {
         loading.value = true
         const response = await axios.get('/api/about')
-        aboutUs.value = response.data
+        if (response.data && response.data.success) {
+          aboutUs.value = response.data.data
+        } else {
+          aboutUs.value = null
+        }
       } catch (error) {
         console.error('Error fetching about page content:', error)
       } finally {

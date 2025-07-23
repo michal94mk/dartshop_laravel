@@ -185,7 +185,11 @@ export default {
       try {
         loading.value = true
         const response = await axios.get('/api/admin/about')
-        aboutUs.value = response.data.data
+        if (response.data && response.data.success) {
+          aboutUs.value = response.data.data
+        } else {
+          aboutUs.value = { title: '', content: '', header_style: 'text-3xl font-bold text-gray-900' }
+        }
         
         // Ustaw domyślne style jeśli nie zostały jeszcze ustawione
         if (!aboutUs.value.header_style) {
@@ -200,7 +204,7 @@ export default {
           headerOptions.value.contentLayout = aboutUs.value.content_layout
         }
         
-        originalAboutUs.value = JSON.parse(JSON.stringify(response.data.data))
+        originalAboutUs.value = JSON.parse(JSON.stringify(aboutUs.value))
       } catch (error) {
         console.error('Error fetching about page content:', error)
         alertStore.error('Nie udało się załadować danych strony')
@@ -220,8 +224,12 @@ export default {
         aboutUs.value.content_layout = headerOptions.value.contentLayout
         
         const response = await axios.put('/api/admin/about', aboutUs.value)
-        originalAboutUs.value = JSON.parse(JSON.stringify(response.data))
-        alertStore.success('Strona została zaktualizowana')
+        if (response.data && response.data.success) {
+          originalAboutUs.value = JSON.parse(JSON.stringify(response.data.data))
+          alertStore.success('Strona została zaktualizowana')
+        } else {
+          alertStore.error(response.data.message || 'Nie udało się zapisać zmian')
+        }
       } catch (error) {
         console.error('Error saving about page:', error)
         

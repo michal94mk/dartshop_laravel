@@ -33,18 +33,13 @@ class StripeCheckoutController extends BaseApiController
                 $request->getShippingData(),
                 $request->getShippingMethod()
             );
-
-            return response()->json($result);
-
+            return $this->successResponse($result);
         } catch (\Exception $e) {
             Log::error('Error creating checkout session', [
                 'error' => $e->getMessage(),
                 'user_id' => Auth::id()
             ]);
-
-            return response()->json([
-                'message' => 'Błąd podczas tworzenia sesji płatności: ' . $e->getMessage()
-            ], 500);
+            return $this->serverErrorResponse('Błąd podczas tworzenia sesji płatności: ' . $e->getMessage(), $e);
         }
     }
 
@@ -59,18 +54,13 @@ class StripeCheckoutController extends BaseApiController
                 $request->getShippingData(),
                 $request->getShippingMethod()
             );
-
-            return response()->json($result);
-
+            return $this->successResponse($result);
         } catch (\Exception $e) {
             Log::error('Error creating guest checkout session', [
                 'error' => $e->getMessage(),
                 'cart_items' => $request->getCartItems()
             ]);
-
-            return response()->json([
-                'message' => 'Błąd podczas tworzenia sesji płatności: ' . $e->getMessage()
-            ], 500);
+            return $this->serverErrorResponse('Błąd podczas tworzenia sesji płatności: ' . $e->getMessage(), $e);
         }
     }
 

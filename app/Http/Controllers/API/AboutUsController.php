@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
 use App\Models\AboutUs;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\AboutUsRequest;
 
-class AboutUsController extends Controller
+class AboutUsController extends BaseApiController
 {
     /**
      * Pobierz informacje o stronie "O nas".
@@ -21,13 +21,9 @@ class AboutUsController extends Controller
         $aboutUs = AboutUs::first();
         
         if (!$aboutUs) {
-            return response()->json([
-                'title' => 'O naszym sklepie',
-                'content' => 'Informacje o nas nie są jeszcze dostępne.'
-            ]);
+            return $this->errorResponse('Informacje o nas nie są jeszcze dostępne.', 404);
         }
-        
-        return response()->json($aboutUs);
+        return $this->successResponse($aboutUs);
     }
     
     /**
@@ -46,7 +42,7 @@ class AboutUsController extends Controller
         
         $aboutUs->save();
         
-        return response()->json($aboutUs);
+        return $this->successResponse($aboutUs);
     }
     
 

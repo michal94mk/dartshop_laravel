@@ -270,18 +270,28 @@ export default {
       try {
         const response = await axios.post('/api/contact', this.contactData);
         
-        if (response.data.success) {
+        if (response.data && response.data.success) {
           // Reset form after successful submission
           this.resetForm();
           this.formSuccess = true;
           this.formMessage = response.data.message || 'Wiadomość została wysłana pomyślnie!';
+        } else if (response.data && response.data.message) {
+          this.formSuccess = false;
+          this.formMessage = response.data.message;
+          if (response.data.errors) {
+            this.errors = response.data.errors;
+          }
         }
       } catch (error) {
-        this.formSuccess = false;
-        
-        if (error.response && error.response.data && error.response.data.errors) {
-          this.errors = error.response.data.errors;
-          this.formMessage = 'Proszę poprawić błędy w formularzu.';
+        if (error.response && error.response.data) {
+          if (error.response.data.errors) {
+            this.errors = error.response.data.errors;
+            this.formMessage = error.response.data.message || 'Proszę poprawić błędy w formularzu.';
+          } else if (error.response.data.message) {
+            this.formMessage = error.response.data.message;
+          } else {
+            this.formMessage = 'Wystąpił błąd podczas wysyłania wiadomości. Spróbuj ponownie później.';
+          }
         } else {
           this.formMessage = 'Wystąpił błąd podczas wysyłania wiadomości. Spróbuj ponownie później.';
         }

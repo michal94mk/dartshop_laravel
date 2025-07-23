@@ -588,14 +588,14 @@ export const useAuthStore = defineStore('auth', {
         // Get Google redirect URL
         const redirectResponse = await axios.get('/api/auth/google/redirect');
         
-        if (!redirectResponse.data.success || !redirectResponse.data.url) {
+        if (!redirectResponse.data.success || !redirectResponse.data.data?.url) {
           throw new Error('Failed to get Google redirect URL');
         }
         
-        console.log('Redirecting to Google auth:', redirectResponse.data.url);
+        console.log('Redirecting to Google auth:', redirectResponse.data.data.url);
         
         // Redirect to Google OAuth (without popup)
-        window.location.href = redirectResponse.data.url;
+        window.location.href = redirectResponse.data.data.url;
         
         // This function won't return a value because the page will be redirected
         return true;

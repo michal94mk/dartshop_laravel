@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
-class SocialAuthController extends Controller
+class SocialAuthController extends BaseApiController
 {
     public function __construct()
     {
@@ -27,16 +27,10 @@ class SocialAuthController extends Controller
         try {
             $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
             
-            return response()->json([
-                'success' => true,
-                'url' => $url
-            ]);
+            return $this->successResponse(['url' => $url]);
         } catch (\Exception $e) {
             Log::error('Google redirect error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Błąd podczas przekierowania do Google: ' . $e->getMessage()
-            ], 500);
+            return $this->serverErrorResponse('Błąd podczas przekierowania do Google: ' . $e->getMessage(), $e);
         }
     }
 
@@ -56,10 +50,7 @@ class SocialAuthController extends Controller
             // Check if we received authorization code
             if (!$request->has('code')) {
                 Log::error('Google OAuth callback: No authorization code');
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Brak kodu autoryzacyjnego od Google'
-                ], 400);
+                return $this->errorResponse('Brak kodu autoryzacyjnego od Google', 400);
             }
 
             // Force SSL configuration before calling Socialite
@@ -126,8 +117,7 @@ class SocialAuthController extends Controller
             $userData['permissions'] = $permissions;
             $userData['roles'] = method_exists($user, 'getRoleNames') ? $user->getRoleNames()->toArray() : [];
 
-            return response()->json([
-                'success' => true,
+            return $this->successResponse([
                 'message' => 'Successfully logged in with Google',
                 'user' => $userData,
                 'token' => $user->createToken('auth-token')->plainTextToken
@@ -136,10 +126,7 @@ class SocialAuthController extends Controller
         } catch (\Exception $e) {
             Log::error('Google OAuth error: ' . $e->getMessage());
             
-            return response()->json([
-                'success' => false,
-                'message' => 'Błąd podczas logowania przez Google: ' . $e->getMessage()
-            ], 500);
+            return $this->serverErrorResponse('Błąd podczas logowania przez Google: ' . $e->getMessage(), $e);
         }
     }
 
@@ -149,7 +136,7 @@ class SocialAuthController extends Controller
     public function loginWithGoogle(Request $request)
     {
         try {
-            $request->validate([
+            $validated = $request->validate([
                 'access_token' => 'required|string',
             ]);
 
@@ -157,10 +144,7 @@ class SocialAuthController extends Controller
             $googleUser = Socialite::driver('google')->userFromToken($request->access_token);
             
             if (!$googleUser || !$googleUser->getEmail()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Nie udało się pobrać danych z Google'
-                ], 400);
+                return $this->errorResponse('Nie udało się pobrać danych z Google', 400);
             }
 
             // Sprawdź czy użytkownik już istnieje
@@ -206,8 +190,7 @@ class SocialAuthController extends Controller
             $userData['permissions'] = $permissions;
             $userData['roles'] = method_exists($user, 'getRoleNames') ? $user->getRoleNames()->toArray() : [];
 
-            return response()->json([
-                'success' => true,
+            return $this->successResponse([
                 'message' => 'Pomyślnie zalogowano przez Google',
                 'user' => $userData
             ]);
@@ -215,10 +198,7 @@ class SocialAuthController extends Controller
         } catch (\Exception $e) {
             Log::error('Google login error: ' . $e->getMessage());
             
-            return response()->json([
-                'success' => false,
-                'message' => 'Błąd podczas logowania przez Google: ' . $e->getMessage()
-            ], 500);
+            return $this->serverErrorResponse('Błąd podczas logowania przez Google: ' . $e->getMessage(), $e);
         }
     }
 

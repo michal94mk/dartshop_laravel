@@ -92,12 +92,12 @@ export default {
         
         console.log('API Response:', response.data);
         
-        if (response.data.success && response.data.user) {
+        if (response.data.success && response.data.data?.user) {
           console.log('Google auth successful, updating auth store...');
           
           // Update store with user data
-          authStore.user = response.data.user;
-          authStore.permissions = response.data.user.permissions || [];
+          authStore.user = response.data.data.user;
+          authStore.permissions = response.data.data.user.permissions || [];
           authStore.authInitialized = true;
           authStore.hasError = false;
           authStore.errorMessage = '';

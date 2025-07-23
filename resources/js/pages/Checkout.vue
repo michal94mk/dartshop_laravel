@@ -464,8 +464,8 @@ export default {
               cart_total: cartTotal.value
             }
           })
-          shippingMethods.value = shippingResponse.data.methods || {}
-          freeShippingThreshold.value = shippingResponse.data.free_shipping_threshold || 0
+          shippingMethods.value = shippingResponse.data.data?.methods || {}
+          freeShippingThreshold.value = shippingResponse.data.data?.free_shipping_threshold || 0
           
           // Ustaw domyślną metodę wysyłki, jeśli nie jest jeszcze wybrana
           if (!selectedShippingMethod.value && Object.keys(shippingMethods.value).length > 0) {
@@ -508,8 +508,8 @@ export default {
                 cart_total: cartTotal.value
               }
             })
-            shippingMethods.value = shippingResponse.data.methods || {}
-            freeShippingThreshold.value = shippingResponse.data.free_shipping_threshold || 0
+            shippingMethods.value = shippingResponse.data.data?.methods || {}
+            freeShippingThreshold.value = shippingResponse.data.data?.free_shipping_threshold || 0
             
             // Ustaw domyślną metodę wysyłki, jeśli nie jest jeszcze wybrana
             if (!selectedShippingMethod.value && Object.keys(shippingMethods.value).length > 0) {
@@ -641,7 +641,7 @@ export default {
         const response = await axios.post(endpoint, payload)
         
         // Przekieruj do Stripe Checkout
-        window.location.href = response.data.checkout_url
+        window.location.href = response.data.data.checkout_url
         
       } catch (err) {
         console.error('Error creating Stripe checkout session:', err)
