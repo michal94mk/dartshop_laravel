@@ -13,8 +13,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Http\Controllers\Api\BaseApiController;
 
-class ProductController extends BaseAdminController
+class ProductController extends BaseApiController
 {
     /**
      * Clear all category-related cache

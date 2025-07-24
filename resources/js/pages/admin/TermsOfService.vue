@@ -105,12 +105,12 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="term in terms" :key="term.id">
+            <tr v-for="item in terms.data" :key="item.id">
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {{ term.title }}
+                {{ item.title }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <span v-if="term.is_active" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                <span v-if="item.is_active" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                   Aktywny
                 </span>
                 <span v-else class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
@@ -118,16 +118,16 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ formatDate(term.created_at) }}
+                {{ formatDate(item.created_at) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <action-buttons 
-                  :item="term" 
+                  :item="item" 
                   :show-details="true"
                   @details="viewTerm"
                   @edit="editTerm"
                   @delete="confirmDelete"
-                  :show-delete="!term.is_active"
+                  :show-delete="!item.is_active"
                   justify="end"
                 >
                   <template #status-buttons="{ item }">
@@ -347,7 +347,7 @@ export default {
     // State
     const loading = ref(true)
     const error = ref(null)
-    const terms = ref([])
+    const terms = ref({ data: [], meta: {} }) // Initialize with meta
     const stats = ref({
       total_users: 0,
       accepted_users: 0,
@@ -384,8 +384,13 @@ export default {
         loading.value = true
         error.value = null
         
-        const response = await axios.get('/api/admin/terms-of-service')
-        terms.value = response.data.data
+        const params = {
+          page: terms.value.meta?.current_page || 1,
+          per_page: terms.value.meta?.per_page || 10,
+          sort: 'created_at,desc' // Default sort
+        }
+        const response = await axios.get('/api/admin/terms-of-service', { params })
+        terms.value = response.data
       } catch (err) {
         error.value = 'Nie udało się załadować regulaminów'
         alertStore.error('Nie udało się załadować regulaminów')

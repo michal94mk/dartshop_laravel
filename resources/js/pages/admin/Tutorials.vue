@@ -398,7 +398,7 @@ export default {
         }
         
         const response = await axios.get('/api/admin/tutorials', { params })
-        tutorials.value = response.data.data
+        tutorials.value = response.data
       } catch (error) {
         console.error('Error fetching tutorials:', error)
         alertStore.error('Wystąpił błąd podczas pobierania poradników.')

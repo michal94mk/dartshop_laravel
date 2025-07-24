@@ -11,8 +11,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\Admin\OrderRequest;
 use App\Http\Requests\Admin\OrderStatusUpdateRequest;
+use App\Http\Controllers\Api\BaseApiController;
 
-class OrderController extends BaseAdminController
+class OrderController extends BaseApiController
 {
     /**
      * Display a listing of the orders.

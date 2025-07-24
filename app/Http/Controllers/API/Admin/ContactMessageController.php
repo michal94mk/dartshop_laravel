@@ -6,8 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\ContactMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\Api\BaseApiController;
 
-class ContactMessageController extends BaseAdminController
+class ContactMessageController extends BaseApiController
 {
     /**
      * Display a listing of the messages.

@@ -6,8 +6,9 @@ use App\Models\Brand;
 use App\Http\Requests\Admin\BrandRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Api\BaseApiController;
 
-class BrandController extends BaseAdminController
+class BrandController extends BaseApiController
 {
     /**
      * Get a paginated list of brands with optional filters.

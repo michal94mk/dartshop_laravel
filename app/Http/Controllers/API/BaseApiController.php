@@ -346,4 +346,16 @@ abstract class BaseApiController extends Controller
             ]);
         }
     }
+
+    /**
+     * Get per page value from request (for pagination)
+     *
+     * @param Request $request
+     * @return int
+     */
+    protected function getPerPage(Request $request): int
+    {
+        $perPage = (int) $request->get('per_page', 15);
+        return ($perPage > 0 && $perPage <= 100) ? $perPage : 15;
+    }
 } 

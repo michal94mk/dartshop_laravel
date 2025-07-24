@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Models\PrivacyPolicy;
 use App\Http\Requests\Admin\PrivacyPolicyRequest;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Api\BaseApiController;
 
-class PrivacyPolicyController extends BaseAdminController
+class PrivacyPolicyController extends BaseApiController
 {
     /**
      * Get a list of privacy policies.

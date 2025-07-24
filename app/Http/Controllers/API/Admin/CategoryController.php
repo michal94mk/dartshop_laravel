@@ -7,8 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
 use App\Http\Requests\Admin\CategoryRequest;
+use App\Http\Controllers\Api\BaseApiController;
 
-class CategoryController extends BaseAdminController
+class CategoryController extends BaseApiController
 {
     /**
      * Clear all category-related cache

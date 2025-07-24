@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Models\AboutUs;
 use App\Http\Requests\Admin\AboutPageRequest;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Api\BaseApiController;
 
-class AboutPageController extends BaseAdminController
+class AboutPageController extends BaseApiController
 {
     /**
      * Display the first about page data.

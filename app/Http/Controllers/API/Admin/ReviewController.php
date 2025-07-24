@@ -2,71 +2,45 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Models\Product;
-use App\Models\Review;
-use App\Models\User;
+use App\Http\Controllers\Api\BaseApiController;
+use App\Services\Admin\ReviewAdminService;
 use Illuminate\Http\Request;
 use App\Http\Requests\Admin\ReviewRequest;
+use App\Models\Review;
+use App\Models\User;
+use App\Models\Product;
 
-class ReviewController extends BaseAdminController
+/**
+ * API controller for admin review management.
+ * Handles requests for listing, creating, updating, deleting, approving, rejecting, and featuring reviews.
+ */
+class ReviewController extends BaseApiController
 {
     /**
-     * Display a listing of the reviews.
+     * @var ReviewAdminService
+     */
+    protected $reviewAdminService;
+
+    /**
+     * Inject the review admin service.
      *
+     * @param ReviewAdminService $reviewAdminService
+     */
+    public function __construct(ReviewAdminService $reviewAdminService)
+    {
+        $this->reviewAdminService = $reviewAdminService;
+    }
+
+    /**
+     * Get a paginated list of reviews with filters and sorting.
+     *
+     * @param Request $request
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
     {
-        try {
-            $query = Review::with(['product', 'user']);
-            
-            // Apply filters
-            if ($request->has('search') && !empty($request->search)) {
-                $search = $request->search;
-                $query->where(function($q) use ($search) {
-                    $q->where('title', 'like', "%{$search}%")
-                      ->orWhere('content', 'like', "%{$search}%")
-                      ->orWhereHas('user', function($uq) use ($search) {
-                          $uq->where('name', 'like', "%{$search}%");
-                      })
-                      ->orWhereHas('product', function($pq) use ($search) {
-                          $pq->where('name', 'like', "%{$search}%");
-                      });
-                });
-            }
-            
-            if ($request->has('rating') && !empty($request->rating)) {
-                $query->where('rating', $request->rating);
-            }
-            
-            if ($request->has('approved') && $request->approved !== null) {
-                $query->where('is_approved', $request->approved == 'true');
-            }
-            
-            if ($request->has('featured') && $request->featured !== null) {
-                $query->where('is_featured', $request->featured == 'true');
-            }
-            
-            // Apply sorting
-            $sortField = $request->sort_field ?? 'created_at';
-            $sortDirection = $request->sort_direction ?? 'desc';
-            
-            if ($sortField === 'product') {
-                $query->join('products', 'reviews.product_id', '=', 'products.id')
-                      ->orderBy('products.name', $sortDirection)
-                      ->select('reviews.*');
-            } else {
-                $query->orderBy($sortField, $sortDirection);
-            }
-            
-            // Paginate results
-            $perPage = $this->getPerPage($request);
-            $reviews = $query->paginate($perPage);
-            
-            return $this->successResponse('Recenzje pobrane pomyślnie', $reviews);
-        } catch (\Exception $e) {
-            return $this->errorResponse('Błąd podczas pobierania recenzji: ' . $e->getMessage(), 500);
-        }
+        $reviews = $this->reviewAdminService->getReviewsWithFilters($request);
+        return $this->paginatedResponse($reviews);
     }
 
     /**
@@ -293,4 +267,4 @@ class ReviewController extends BaseAdminController
             return $this->errorResponse('Błąd podczas pobierania liczby wyróżnionych: ' . $e->getMessage(), 500);
         }
     }
-} 
+}

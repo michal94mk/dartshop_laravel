@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\API\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Models\Promotion;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -11,8 +10,9 @@ use Illuminate\Support\Str;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
 use App\Http\Requests\Admin\PromotionRequest;
+use App\Http\Controllers\Api\BaseApiController;
 
-class PromotionController extends BaseAdminController
+class PromotionController extends BaseApiController
 {
     /**
      * Wyświetl listę promocji (publiczne API)

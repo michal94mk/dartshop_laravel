@@ -666,7 +666,10 @@ export default {
         
         const response = await axios.get('/api/admin/users', { params })
         console.log('Users API response:', response.data)
-        users.value = response.data.data
+        users.value = {
+          data: response.data.data,
+          pagination: response.data.pagination
+        }
       } catch (error) {
         console.error('Error fetching users:', error)
         console.error('Error details:', error.response?.data)

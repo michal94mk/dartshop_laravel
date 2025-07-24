@@ -6,8 +6,9 @@ use App\Models\NewsletterSubscription;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
+use App\Http\Controllers\Api\BaseApiController;
 
-class NewsletterController extends BaseAdminController
+class NewsletterController extends BaseApiController
 {
     /**
      * Display a listing of newsletter subscriptions

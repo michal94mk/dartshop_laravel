@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
+use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Review;
@@ -10,7 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class DashboardController extends BaseAdminController
+class DashboardController extends BaseApiController
 {
     public function index()
     {

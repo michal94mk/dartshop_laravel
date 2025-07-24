@@ -69,9 +69,8 @@ export default {
   },
   computed: {
     showPagination() {
-      return this.pagination && 
-             this.pagination.data && 
-             this.pagination.data.length > 0 && 
+      return this.pagination &&
+             this.pagination.total > 0 &&
              this.pagination.last_page > 1;
     },
     paginationPages() {

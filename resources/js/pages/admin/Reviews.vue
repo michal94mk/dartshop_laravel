@@ -129,7 +129,7 @@
               <!-- Product Column -->
               <td class="px-4 py-4">
                 <div class="text-sm font-medium text-gray-900">
-                  {{ item.product.name }}
+                  {{ item.product ? item.product.name : 'Brak produktu' }}
                 </div>
                 <div class="text-xs text-gray-500 mt-1" :title="item.title">
                   {{ item.title }}
@@ -206,7 +206,7 @@
     <!-- Pagination -->
     <pagination 
       v-if="!loading && reviews.data && reviews.data.length > 0" 
-      :pagination="reviews" 
+      :pagination="paginationComputed" 
       items-label="recenzji" 
       @page-change="goToPage" 
     />
@@ -755,12 +755,15 @@ export default {
     const loading = ref(true)
     const reviews = ref({
       data: [],
-      current_page: 1,
-      from: 1,
-      to: 0,
-      total: 0,
-      last_page: 1,
-      per_page: 10
+      pagination: {
+        current_page: 1,
+        from: 1,
+        to: 0,
+        total: 0,
+        last_page: 1,
+        per_page: 10
+      },
+      message: ''
     })
     const showDetailsModal = ref(false)
     const selectedReview = ref(null)
@@ -825,7 +828,23 @@ export default {
             sort_direction: filters.sort_direction
           }
         })
-        reviews.value = response.data.data
+        // Zabezpieczenie: zawsze przypisuj obiekt z data i pagination
+        if (response.data && Array.isArray(response.data.data) && response.data.pagination) {
+          reviews.value = response.data
+        } else {
+          reviews.value = {
+            data: [],
+            pagination: {
+              current_page: 1,
+              from: 1,
+              to: 0,
+              total: 0,
+              last_page: 1,
+              per_page: 10
+            },
+            message: ''
+          }
+        }
       } catch (error) {
         console.error('Error fetching reviews:', error)
         alertStore.error('Wystąpił błąd podczas pobierania recenzji.')
@@ -1381,6 +1400,19 @@ export default {
       }
     }
     
+    const paginationComputed = computed(() => {
+      return reviews.value && reviews.value.pagination
+        ? reviews.value.pagination
+        : {
+            current_page: 1,
+            from: 1,
+            to: 0,
+            total: 0,
+            last_page: 1,
+            per_page: 10
+          }
+    })
+    
     onMounted(() => {
       fetchReviews()
       fetchFeaturedCount()
@@ -1434,7 +1466,8 @@ export default {
       fetchFeaturedCount,
       formErrors,
       showErrorModal,
-      errorMessage
+      errorMessage,
+      paginationComputed
     }
   }
 }

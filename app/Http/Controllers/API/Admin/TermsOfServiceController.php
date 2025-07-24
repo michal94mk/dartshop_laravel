@@ -5,139 +5,126 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Models\TermsOfService;
 use App\Http\Requests\Admin\TermsOfServiceRequest;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Api\BaseApiController;
+use App\Services\Admin\TermsOfServiceAdminService;
 
-class TermsOfServiceController extends BaseAdminController
+class TermsOfServiceController extends BaseApiController
 {
+    protected $termsService;
+
+    public function __construct(TermsOfServiceAdminService $termsService)
+    {
+        $this->termsService = $termsService;
+    }
+
     /**
      * Display a listing of terms of service.
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
         try {
-            $terms = TermsOfService::orderBy('created_at', 'desc')->get();
-            
-            return $this->successResponse('Regulamin pobrany', $terms);
+            $terms = $this->termsService->getAll();
+            return $this->successResponse($terms, 'Regulamin pobrany');
         } catch (\Exception $e) {
-            Log::error('Failed to get terms of service', [
-                'error' => $e->getMessage(),
-                'method' => __METHOD__
-            ]);
-            
-            return $this->errorResponse('Błąd podczas pobierania regulaminu: ' . $e->getMessage(), 500);
+            return $this->handleException($e, 'Fetching terms of service');
         }
     }
 
     /**
      * Store a newly created terms of service.
+     *
+     * @param  \App\Http\Requests\Admin\TermsOfServiceRequest  $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(TermsOfServiceRequest $request)
     {
         try {
-            $terms = TermsOfService::create($request->validated());
-
-            // If this terms is set as active, deactivate others
-            if ($terms->is_active) {
-                $terms->setAsActive();
-            }
-
-            return $this->successResponse('Regulamin został utworzony', $terms, 201);
+            $terms = $this->termsService->create($request->validated());
+            return $this->createdResponse($terms, 'Regulamin został utworzony');
         } catch (\Exception $e) {
-            Log::error('Failed to create terms of service', [
-                'error' => $e->getMessage(),
-                'request_data' => $request->validated(),
-                'method' => __METHOD__
-            ]);
-            
-            return $this->errorResponse('Błąd podczas tworzenia regulaminu: ' . $e->getMessage(), 500);
+            return $this->handleException($e, 'Creating terms of service');
         }
     }
 
     /**
      * Display the specified terms of service.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show(TermsOfService $termsOfService)
+    public function show($id)
     {
         try {
-            return $this->successResponse('Regulamin pobrany', $termsOfService);
+            $terms = $this->termsService->getById($id);
+            if (!$terms) {
+                return $this->notFoundResponse('Terms of service not found');
+            }
+            return $this->successResponse($terms, 'Regulamin pobrany');
         } catch (\Exception $e) {
-            Log::error('Failed to get terms of service', [
-                'error' => $e->getMessage(),
-                'terms_id' => $termsOfService->id ?? null,
-                'method' => __METHOD__
-            ]);
-            
-            return $this->errorResponse('Błąd podczas pobierania regulaminu: ' . $e->getMessage(), 500);
+            return $this->handleException($e, 'Fetching terms of service by ID');
         }
     }
 
     /**
      * Update the specified terms of service.
+     *
+     * @param  \App\Http\Requests\Admin\TermsOfServiceRequest  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(TermsOfServiceRequest $request, TermsOfService $termsOfService)
+    public function update(TermsOfServiceRequest $request, $id)
     {
         try {
-            $termsOfService->update($request->validated());
-
-            // If this terms is set as active, deactivate others
-            if ($termsOfService->is_active) {
-                $termsOfService->setAsActive();
+            $terms = $this->termsService->getById($id);
+            if (!$terms) {
+                return $this->notFoundResponse('Terms of service not found');
             }
-
-            return $this->successResponse('Regulamin został zaktualizowany', $termsOfService);
+            $updated = $this->termsService->update($terms, $request->validated());
+            return $this->successResponse($updated, 'Regulamin został zaktualizowany');
         } catch (\Exception $e) {
-            Log::error('Failed to update terms of service', [
-                'error' => $e->getMessage(),
-                'terms_id' => $termsOfService->id,
-                'request_data' => $request->validated(),
-                'method' => __METHOD__
-            ]);
-            
-            return $this->errorResponse('Błąd podczas aktualizacji regulaminu: ' . $e->getMessage(), 500);
+            return $this->handleException($e, 'Updating terms of service');
         }
     }
 
     /**
      * Remove the specified terms of service.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(TermsOfService $termsOfService)
+    public function destroy($id)
     {
         try {
-            // Don't allow deletion of active terms
-            if ($termsOfService->is_active) {
-                return $this->errorResponse('Cannot delete active terms of service', 422);
+            $terms = $this->termsService->getById($id);
+            if (!$terms) {
+                return $this->notFoundResponse('Terms of service not found');
             }
-
-            $termsOfService->delete();
-
-            return $this->successResponse('Regulamin został usunięty');
+            $this->termsService->delete($terms);
+            return $this->successResponse(null, 'Regulamin został usunięty');
         } catch (\Exception $e) {
-            Log::error('Failed to delete terms of service', [
-                'error' => $e->getMessage(),
-                'terms_id' => $termsOfService->id,
-                'method' => __METHOD__
-            ]);
-            
-            return $this->errorResponse('Błąd podczas usuwania regulaminu: ' . $e->getMessage(), 500);
+            return $this->handleException($e, 'Deleting terms of service');
         }
     }
 
     /**
      * Set the specified terms of service as active.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function setActive(TermsOfService $termsOfService)
+    public function setActive($id)
     {
         try {
-            $termsOfService->setAsActive();
-
-            return $this->successResponse('Regulamin został ustawiony jako aktywny', $termsOfService->fresh());
+            $terms = $this->termsService->getById($id);
+            if (!$terms) {
+                return $this->notFoundResponse('Terms of service not found');
+            }
+            $active = $this->termsService->setActive($terms);
+            return $this->successResponse($active, 'Regulamin został ustawiony jako aktywny');
         } catch (\Exception $e) {
-            Log::error('Failed to set terms of service as active', [
-                'error' => $e->getMessage(),
-                'terms_id' => $termsOfService->id,
-                'method' => __METHOD__
-            ]);
-            
-            return $this->errorResponse('Błąd podczas ustawiania regulaminu jako aktywnego: ' . $e->getMessage(), 500);
+            return $this->handleException($e, 'Setting terms of service as active');
         }
     }
 
