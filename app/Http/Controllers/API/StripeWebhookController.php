@@ -4,18 +4,24 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
-use Stripe\Webhook;
-use Stripe\Exception\SignatureVerificationException;
-use App\Models\Order;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Exception;
+use App\Services\Payment\PaymentWebhookService;
 
 class StripeWebhookController extends BaseApiController
 {
+    protected $webhookService;
+
+    public function __construct(PaymentWebhookService $webhookService)
+    {
+        $this->webhookService = $webhookService;
+    }
     /**
-     * Obsługa webhooków Stripe
+     * Handle Stripe webhooks (payment and checkout events).
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function handleWebhook(Request $request): JsonResponse
     {
@@ -25,12 +31,12 @@ class StripeWebhookController extends BaseApiController
         $webhookSecret = config('services.stripe.webhook.secret');
 
         try {
-            $event = Webhook::constructEvent(
+            $event = \Stripe\Webhook::constructEvent(
                 $payload,
                 $sigHeader,
                 $webhookSecret
             );
-        } catch (SignatureVerificationException $e) {
+        } catch (\Stripe\Exception\SignatureVerificationException $e) {
             Log::error('Stripe webhook signature verification failed', [
                 'error' => $e->getMessage()
             ]);
@@ -47,13 +53,17 @@ class StripeWebhookController extends BaseApiController
         try {
             switch ($event->type) {
                 case 'payment_intent.succeeded':
-                    return $this->handlePaymentIntentSucceeded($event);
+                    $this->webhookService->handlePaymentIntentSucceeded($event->data->object);
+                    return $this->successResponse(['status' => 'success']);
                 case 'payment_intent.payment_failed':
-                    return $this->handlePaymentIntentFailed($event);
+                    $this->webhookService->handlePaymentIntentFailed($event->data->object);
+                    return $this->errorResponse('Payment failed', 400);
                 case 'checkout.session.completed':
-                    return $this->handleCheckoutSessionCompleted($event);
+                    $this->webhookService->handleCheckoutSessionCompleted($event->data->object);
+                    return $this->successResponse(['status' => 'session_completed']);
                 case 'payment_intent.processing':
-                    return $this->handlePaymentIntentProcessing($event);
+                    $this->webhookService->handlePaymentIntentProcessing($event->data->object);
+                    return $this->successResponse(['status' => 'processing']);
                 default:
                     Log::info('Unhandled Stripe webhook event', [
                         'type' => $event->type
@@ -63,84 +73,5 @@ class StripeWebhookController extends BaseApiController
         } catch (Exception $e) {
             return $this->handleException($e, 'Stripe webhook event handling');
         }
-    }
-
-    /**
-     * Obsługa udanej płatności
-     */
-    private function handlePaymentIntentSucceeded($event): JsonResponse
-    {
-        $paymentIntent = $event->data->object;
-        Log::info('Payment succeeded', [
-            'payment_intent_id' => $paymentIntent->id,
-            'amount' => $paymentIntent->amount,
-            'currency' => $paymentIntent->currency,
-            'payment_method' => $paymentIntent->payment_method_types[0] ?? 'unknown'
-        ]);
-        $order = Order::where('payment_intent_id', $paymentIntent->id)->first();
-        if ($order) {
-            $order->update([
-                'payment_status' => 'paid',
-                'status' => 'processing'
-            ]);
-            Log::info('Order updated after successful payment', [
-                'order_id' => $order->id,
-                'payment_intent_id' => $paymentIntent->id
-            ]);
-        }
-        return $this->successResponse(['status' => 'success']);
-    }
-
-    /**
-     * Obsługa nieudanej płatności
-     */
-    private function handlePaymentIntentFailed($event): JsonResponse
-    {
-        $paymentIntent = $event->data->object;
-        Log::error('Payment failed', [
-            'payment_intent_id' => $paymentIntent->id,
-            'last_payment_error' => $paymentIntent->last_payment_error ?? null
-        ]);
-        $order = Order::where('payment_intent_id', $paymentIntent->id)->first();
-        if ($order) {
-            $order->update([
-                'payment_status' => 'failed',
-                'status' => 'cancelled'
-            ]);
-        }
-        return $this->errorResponse('Payment failed', 400);
-    }
-
-    /**
-     * Obsługa przetwarzania płatności (dla Przelewy24)
-     */
-    private function handlePaymentIntentProcessing($event): JsonResponse
-    {
-        $paymentIntent = $event->data->object;
-        Log::info('Payment processing (Przelewy24)', [
-            'payment_intent_id' => $paymentIntent->id,
-            'payment_method' => $paymentIntent->payment_method_types[0] ?? 'unknown'
-        ]);
-        $order = Order::where('payment_intent_id', $paymentIntent->id)->first();
-        if ($order) {
-            $order->update([
-                'payment_status' => 'processing'
-            ]);
-        }
-        return $this->successResponse(['status' => 'processing']);
-    }
-
-    /**
-     * Obsługa ukończonej sesji checkout
-     */
-    private function handleCheckoutSessionCompleted($event): JsonResponse
-    {
-        $session = $event->data->object;
-        Log::info('Checkout session completed', [
-            'session_id' => $session->id,
-            'payment_intent_id' => $session->payment_intent,
-            'payment_status' => $session->payment_status
-        ]);
-        return $this->successResponse(['status' => 'session_completed']);
     }
 } 

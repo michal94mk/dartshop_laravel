@@ -12,7 +12,6 @@ use App\Http\Requests\Payment\CardValidationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Exception;
 
 class StripePaymentController extends BaseApiController
@@ -32,7 +31,9 @@ class StripePaymentController extends BaseApiController
     }
 
     /**
-     * Create payment intent for authenticated user
+     * Create payment intent for authenticated user.
+     *
+     * @return JsonResponse
      */
     public function createIntent(): JsonResponse
     {
@@ -46,7 +47,10 @@ class StripePaymentController extends BaseApiController
     }
 
     /**
-     * Create payment intent for guest user
+     * Create payment intent for guest user.
+     *
+     * @param PaymentIntentRequest $request
+     * @return JsonResponse
      */
     public function createGuestIntent(PaymentIntentRequest $request): JsonResponse
     {
@@ -62,7 +66,10 @@ class StripePaymentController extends BaseApiController
     }
 
     /**
-     * Confirm payment and create order for authenticated user
+     * Confirm payment and create order for authenticated or guest user.
+     *
+     * @param ConfirmPaymentRequest $request
+     * @return JsonResponse
      */
     public function confirmPayment(ConfirmPaymentRequest $request): JsonResponse
     {
@@ -105,7 +112,10 @@ class StripePaymentController extends BaseApiController
     }
 
     /**
-     * Check payment status
+     * Check payment status.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function checkStatus(Request $request): JsonResponse
     {
@@ -124,7 +134,10 @@ class StripePaymentController extends BaseApiController
     }
 
     /**
-     * Test card number validation
+     * Test card number validation.
+     *
+     * @param CardValidationRequest $request
+     * @return JsonResponse
      */
     public function testCardValidation(CardValidationRequest $request): JsonResponse
     {

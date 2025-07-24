@@ -9,8 +9,6 @@ use App\Http\Requests\Payment\CheckoutSessionRequest;
 use App\Http\Requests\Payment\GuestCheckoutSessionRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
 use Exception;
 
 class StripeCheckoutController extends BaseApiController
@@ -25,7 +23,10 @@ class StripeCheckoutController extends BaseApiController
     }
 
     /**
-     * Create checkout session for authenticated user
+     * Create checkout session for authenticated user.
+     *
+     * @param CheckoutSessionRequest $request
+     * @return JsonResponse
      */
     public function createSession(CheckoutSessionRequest $request): JsonResponse
     {
@@ -42,7 +43,10 @@ class StripeCheckoutController extends BaseApiController
     }
 
     /**
-     * Create checkout session for guest user
+     * Create checkout session for guest user.
+     *
+     * @param GuestCheckoutSessionRequest $request
+     * @return JsonResponse
      */
     public function createGuestSession(GuestCheckoutSessionRequest $request): JsonResponse
     {
@@ -60,7 +64,10 @@ class StripeCheckoutController extends BaseApiController
     }
 
     /**
-     * Handle successful checkout session completion
+     * Handle successful checkout session completion.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function handleSuccess(Request $request): JsonResponse
     {

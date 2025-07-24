@@ -5,7 +5,10 @@ namespace App\Services\Payment;
 class CardValidationService
 {
     /**
-     * Validate credit card number using Luhn algorithm
+     * Validate credit card number using the Luhn algorithm.
+     *
+     * @param string $cardNumber
+     * @return bool
      */
     public function validateCardNumber(string $cardNumber): bool
     {
@@ -47,7 +50,9 @@ class CardValidationService
     }
 
     /**
-     * Get test card numbers for different providers
+     * Get test card numbers for different providers.
+     *
+     * @return array
      */
     public function getTestCards(): array
     {
@@ -64,7 +69,10 @@ class CardValidationService
     }
 
     /**
-     * Detect card brand from number
+     * Detect card brand from number.
+     *
+     * @param string $cardNumber
+     * @return string|null
      */
     public function detectCardBrand(string $cardNumber): ?string
     {
@@ -89,7 +97,10 @@ class CardValidationService
     }
 
     /**
-     * Format card number with spaces for display
+     * Format card number with spaces for display.
+     *
+     * @param string $cardNumber
+     * @return string
      */
     public function formatCardNumber(string $cardNumber): string
     {
@@ -100,7 +111,10 @@ class CardValidationService
     }
 
     /**
-     * Mask card number for secure display
+     * Mask card number for secure display.
+     *
+     * @param string $cardNumber
+     * @return string
      */
     public function maskCardNumber(string $cardNumber): string
     {
