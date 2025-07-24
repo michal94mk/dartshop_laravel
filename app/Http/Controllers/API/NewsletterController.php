@@ -12,82 +12,48 @@ use Illuminate\Support\Facades\Log;
 use App\Mail\NewsletterVerificationMail;
 use App\Mail\NewsletterWelcomeMail;
 use Exception;
+use App\Services\NewsletterService;
 
 class NewsletterController extends BaseApiController
 {
+    protected $newsletterService;
+
+    public function __construct(NewsletterService $newsletterService)
+    {
+        $this->newsletterService = $newsletterService;
+    }
     /**
-     * Subscribe to newsletter
+     * Subscribe to the newsletter.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function subscribe(Request $request): JsonResponse
     {
         try {
-            // Debug logging
             Log::info('Newsletter subscribe endpoint hit', [
                 'request_data' => $request->all(),
                 'headers' => $request->headers->all(),
                 'method' => $request->method(),
                 'url' => $request->fullUrl()
             ]);
-
             $validator = Validator::make($request->all(), [
                 'email' => 'required|email|max:255'
             ]);
-
             if ($validator->fails()) {
                 return $this->validationErrorResponse($validator->errors()->toArray(), 'Nieprawidłowe dane');
             }
-
             $email = $request->email;
-
-            // Check if email already exists
-            $existingSubscription = NewsletterSubscription::where('email', $email)->first();
-
-            if ($existingSubscription) {
-                if ($existingSubscription->isActive()) {
-                    return $this->conflictResponse('Ten adres email jest już zapisany do newslettera');
-                }
-
-                if ($existingSubscription->isPending()) {
-                    // Resend verification email
-                    $token = $existingSubscription->generateVerificationToken();
-                    $this->sendVerificationEmail($existingSubscription, $token);
-
-                    return $this->successResponse(null, 'Link weryfikacyjny został ponownie wysłany na Twój adres email');
-                }
-
-                // If unsubscribed, reactivate
-                if ($existingSubscription->status === 'unsubscribed') {
-                    $existingSubscription->status = 'pending';
-                    $existingSubscription->unsubscribed_at = null;
-                    $existingSubscription->save();
-
-                    $token = $existingSubscription->generateVerificationToken();
-                    $this->sendVerificationEmail($existingSubscription, $token);
-
-                    return $this->successResponse(null, 'Sprawdź swoją skrzynkę email i kliknij link weryfikacyjny');
-                }
-            }
-
-            // Create new subscription
-            $subscription = NewsletterSubscription::create([
-                'email' => $email,
-                'status' => 'pending'
-            ]);
-
-            $token = $subscription->generateVerificationToken();
-            $this->sendVerificationEmail($subscription, $token);
-
+            $subscription = $this->newsletterService->subscribe($email);
             $response = [
                 'subscription' => $subscription,
                 'message' => 'Sprawdź swoją skrzynkę email i kliknij link weryfikacyjny'
             ];
-
             Log::info('Newsletter subscribe success response', [
                 'response' => $response,
                 'subscription_id' => $subscription->id,
                 'email' => $subscription->email
             ]);
-
             return $this->successResponse($response);
         } catch (Exception $e) {
             return $this->handleException($e, 'Newsletter subscription');
@@ -95,75 +61,54 @@ class NewsletterController extends BaseApiController
     }
 
     /**
-     * Verify email subscription
+     * Verify email subscription.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function verify(Request $request)
     {
-        try {
-            $validator = Validator::make($request->all(), [
-                'token' => 'required|string'
-            ]);
-
-            if ($validator->fails()) {
-                return redirect('/newsletter/verify?status=error');
-            }
-
-            $subscription = NewsletterSubscription::where('verification_token', $request->token)
-                ->where('status', 'pending')
-                ->first();
-
-            if (!$subscription) {
-                return redirect('/newsletter/verify?status=error');
-            }
-
-            $subscription->markAsVerified();
-
-            // Send welcome email
-            Mail::to($subscription->email)->queue(new NewsletterWelcomeMail($subscription));
-
-            // Przekieruj na stronę z podziękowaniem
-            return redirect('/newsletter/verified');
-        } catch (Exception $e) {
-            Log::error('Newsletter verification error', [
-                'exception' => $e->getMessage(),
-                'token' => $request->token ?? 'not provided'
-            ]);
+        $validator = Validator::make($request->all(), [
+            'token' => 'required|string'
+        ]);
+        if ($validator->fails()) {
             return redirect('/newsletter/verify?status=error');
         }
+        // Verification logic is handled in the service
+        $success = $this->newsletterService->verifySubscription($request->token);
+        if (!$success) {
+            return redirect('/newsletter/verify?status=error');
+        }
+        return redirect('/newsletter/verified');
     }
 
     /**
-     * Unsubscribe from newsletter
+     * Unsubscribe from the newsletter.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function unsubscribe(Request $request): JsonResponse
     {
-        try {
-            $validator = Validator::make($request->all(), [
-                'email' => 'required|email'
-            ]);
-
-            if ($validator->fails()) {
-                return $this->validationErrorResponse($validator->errors()->toArray(), 'Nieprawidłowy adres email');
-            }
-
-            $subscription = NewsletterSubscription::where('email', $request->email)
-                ->where('status', 'active')
-                ->first();
-
-            if (!$subscription) {
-                return $this->notFoundResponse('Nie znaleziono aktywnej subskrypcji dla tego adresu email');
-            }
-
-            $subscription->unsubscribe();
-
-            return $this->successResponse(null, 'Zostałeś pomyślnie wypisany z newslettera');
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Newsletter unsubscribe');
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email'
+        ]);
+        if ($validator->fails()) {
+            return $this->validationErrorResponse($validator->errors()->toArray(), 'Invalid email address');
         }
+        // Unsubscribe logic is handled in the service
+        $success = $this->newsletterService->unsubscribe($request->email);
+        if (!$success) {
+            return $this->notFoundResponse('No active subscription found for this email address');
+        }
+        return $this->successResponse(null, 'You have been unsubscribed from the newsletter');
     }
 
     /**
-     * Check subscription status
+     * Check newsletter subscription status.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function status(Request $request): JsonResponse
     {

@@ -3,13 +3,18 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\BaseApiController;
-use App\Models\Tutorial;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Exception;
+use App\Services\TutorialService;
 
 class TutorialController extends BaseApiController
 {
+    protected $tutorialService;
+
+    public function __construct(TutorialService $tutorialService)
+    {
+        $this->tutorialService = $tutorialService;
+    }
     /**
      * Display a listing of published tutorials.
      *
@@ -19,10 +24,7 @@ class TutorialController extends BaseApiController
     {
         try {
             $this->logApiRequest(request(), 'Fetch tutorials');
-            $tutorials = Tutorial::published()
-                ->orderBy('order', 'asc')
-                ->orderBy('created_at', 'desc')
-                ->get()
+            $tutorials = $this->tutorialService->getPublishedTutorials()
                 ->map(function ($tutorial) {
                     return [
                         'id' => $tutorial->id,
@@ -58,9 +60,7 @@ class TutorialController extends BaseApiController
     {
         try {
             $this->logApiRequest(request(), "Fetch tutorial for slug: {$slug}");
-            $tutorial = Tutorial::published()
-                ->where('slug', $slug)
-                ->first();
+            $tutorial = $this->tutorialService->getPublishedTutorialBySlug($slug);
             if (!$tutorial) {
                 return $this->notFoundResponse('Tutorial not found');
             }
