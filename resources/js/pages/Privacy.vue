@@ -131,7 +131,9 @@ export default {
         error.value = null
         
         const response = await axios.get('/api/privacy-policy')
-        privacyPolicy.value = response.data.privacy_policy
+        // Handle new API response format with BaseApiController
+        const responseData = response.data.success ? response.data.data : response.data
+        privacyPolicy.value = responseData.privacy_policy
       } catch (err) {
         error.value = 'Nie udało się załadować polityki prywatności'
         console.error('Error fetching privacy policy:', err)

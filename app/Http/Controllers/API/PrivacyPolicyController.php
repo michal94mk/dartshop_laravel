@@ -2,55 +2,60 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use App\Models\PrivacyPolicy;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\JsonResponse;
 
-class PrivacyPolicyController extends Controller
+class PrivacyPolicyController extends BaseApiController
 {
     /**
      * Display the current privacy policy.
      */
-    public function show()
+    public function show(): JsonResponse
     {
-        $privacyPolicy = PrivacyPolicy::getActive();
-        
-        if (!$privacyPolicy) {
-            // Return default policy if none exists
-            $privacyPolicy = $this->getDefaultPrivacyPolicy();
+        try {
+            $privacyPolicy = PrivacyPolicy::getActive();
+            
+            if (!$privacyPolicy) {
+                // Return default policy if none exists
+                $privacyPolicy = $this->getDefaultPrivacyPolicy();
+            }
+            
+            return $this->successResponse(['privacy_policy' => $privacyPolicy]);
+        } catch (\Exception $e) {
+            return $this->handleException($e, 'Wystąpił błąd podczas pobierania polityki prywatności');
         }
-        
-        return response()->json([
-            'privacy_policy' => $privacyPolicy
-        ]);
     }
 
     /**
      * Accept privacy policy for authenticated user.
      */
-    public function accept(Request $request)
+    public function accept(Request $request): JsonResponse
     {
-        /** @var User $user */
-        $user = Auth::user();
-        
-        if (!$user) {
-            return response()->json([
-                'message' => 'Unauthorized'
-            ], 401);
+        try {
+            /** @var User $user */
+            $user = Auth::user();
+            
+            if (!$user) {
+                return $this->errorResponse('Unauthorized', 401);
+            }
+
+            $user->update([
+                'privacy_policy_accepted' => true,
+                'privacy_policy_accepted_at' => now(),
+            ]);
+
+            return $this->successResponse([
+                'message' => 'Polityka prywatności została zaakceptowana',
+                'privacy_policy_accepted' => true,
+                'privacy_policy_accepted_at' => $user->privacy_policy_accepted_at
+            ]);
+        } catch (\Exception $e) {
+            return $this->handleException($e, 'Wystąpił błąd podczas akceptacji polityki prywatności');
         }
-
-        $user->update([
-            'privacy_policy_accepted' => true,
-            'privacy_policy_accepted_at' => now(),
-        ]);
-
-        return response()->json([
-            'message' => 'Polityka prywatności została zaakceptowana',
-            'privacy_policy_accepted' => true,
-            'privacy_policy_accepted_at' => $user->privacy_policy_accepted_at
-        ]);
     }
 
     /**

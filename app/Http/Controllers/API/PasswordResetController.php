@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
@@ -10,8 +10,9 @@ use Illuminate\Support\Str;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\JsonResponse;
 
-class PasswordResetController extends Controller
+class PasswordResetController extends BaseApiController
 {
     /**
      * Wysyłanie linku do resetowania hasła
@@ -19,23 +20,25 @@ class PasswordResetController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function forgotPassword(Request $request)
+    public function forgotPassword(Request $request): JsonResponse
     {
-        $request->validate([
-            'email' => 'required|email',
-        ]);
+        try {
+            $request->validate([
+                'email' => 'required|email',
+            ]);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+            $status = Password::sendResetLink(
+                $request->only('email')
+            );
 
-        if ($status === Password::RESET_LINK_SENT) {
-            return response()->json(['message' => __($status)]);
+            if ($status === Password::RESET_LINK_SENT) {
+                return $this->successResponse(['message' => __($status)]);
+            }
+
+            return $this->validationErrorResponse(['email' => [__($status)]]);
+        } catch (\Exception $e) {
+            return $this->handleException($e, 'Wystąpił błąd podczas wysyłania linku resetującego hasło');
         }
-
-        throw ValidationException::withMessages([
-            'email' => [__($status)],
-        ]);
     }
 
     /**
@@ -44,36 +47,36 @@ class PasswordResetController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function validateResetToken(Request $request)
+    public function validateResetToken(Request $request): JsonResponse
     {
-        $request->validate([
-            'token' => 'required|string',
-            'email' => 'required|email',
-        ]);
+        try {
+            $request->validate([
+                'token' => 'required|string',
+                'email' => 'required|email',
+            ]);
 
-        // Sprawdź czy token istnieje i nie wygasł w nowej tabeli
-        $resetRecord = DB::table('password_reset_tokens')
-            ->where('email', $request->email)
-            ->where('created_at', '>', now()->subMinutes(60))
-            ->first();
+            // Sprawdź czy token istnieje i nie wygasł w nowej tabeli
+            $resetRecord = DB::table('password_reset_tokens')
+                ->where('email', $request->email)
+                ->where('created_at', '>', now()->subMinutes(60))
+                ->first();
 
-        if (!$resetRecord) {
-            return response()->json([
-                'message' => 'Token jest nieprawidłowy lub wygasł.'
-            ], 422);
+            if (!$resetRecord) {
+                return $this->validationErrorResponse(['token' => ['Token jest nieprawidłowy lub wygasł.']]);
+            }
+
+            // Sprawdź czy token się zgadza (w nowej tabeli token jest hashowany)
+            if (!Hash::check($request->token, $resetRecord->token)) {
+                return $this->validationErrorResponse(['token' => ['Token jest nieprawidłowy lub wygasł.']]);
+            }
+
+            return $this->successResponse([
+                'message' => 'Token jest prawidłowy.',
+                'email' => $request->email
+            ]);
+        } catch (\Exception $e) {
+            return $this->handleException($e, 'Wystąpił błąd podczas walidacji tokenu resetowania hasła');
         }
-
-        // Sprawdź czy token się zgadza (w nowej tabeli token jest hashowany)
-        if (!Hash::check($request->token, $resetRecord->token)) {
-            return response()->json([
-                'message' => 'Token jest nieprawidłowy lub wygasł.'
-            ], 422);
-        }
-
-        return response()->json([
-            'message' => 'Token jest prawidłowy.',
-            'email' => $request->email
-        ]);
     }
 
     /**
@@ -82,32 +85,34 @@ class PasswordResetController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function resetPassword(Request $request)
+    public function resetPassword(Request $request): JsonResponse
     {
-        $request->validate([
-            'token' => 'required',
-            'email' => 'required|email',
-            'password' => 'required|min:8|confirmed',
-        ]);
+        try {
+            $request->validate([
+                'token' => 'required',
+                'email' => 'required|email',
+                'password' => 'required|min:8|confirmed',
+            ]);
 
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password),
-                    'remember_token' => Str::random(60),
-                ])->save();
+            $status = Password::reset(
+                $request->only('email', 'password', 'password_confirmation', 'token'),
+                function ($user, $password) {
+                    $user->forceFill([
+                        'password' => Hash::make($password),
+                        'remember_token' => Str::random(60),
+                    ])->save();
 
-                event(new PasswordReset($user));
+                    event(new PasswordReset($user));
+                }
+            );
+
+            if ($status === Password::PASSWORD_RESET) {
+                return $this->successResponse(['message' => __($status)]);
             }
-        );
 
-        if ($status === Password::PASSWORD_RESET) {
-            return response()->json(['message' => __($status)]);
+            return $this->validationErrorResponse(['email' => [__($status)]]);
+        } catch (\Exception $e) {
+            return $this->handleException($e, 'Wystąpił błąd podczas resetowania hasła');
         }
-
-        throw ValidationException::withMessages([
-            'email' => [__($status)],
-        ]);
     }
 } 
