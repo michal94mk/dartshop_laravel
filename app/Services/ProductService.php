@@ -15,7 +15,10 @@ use Illuminate\Http\Request;
 class ProductService
 {
     /**
-     * Get filtered and paginated products
+     * Get filtered and paginated products.
+     *
+     * @param Request $request
+     * @return \Illuminate\Pagination\LengthAwarePaginator
      */
     public function getProducts(Request $request)
     {
@@ -156,7 +159,10 @@ class ProductService
     }
 
     /**
-     * Get single product by ID
+     * Get single product by ID, with promotion and reviews if available.
+     *
+     * @param int $id
+     * @return Product
      */
     public function getProduct(int $id)
     {
@@ -174,7 +180,10 @@ class ProductService
     }
 
     /**
-     * Get latest products
+     * Get latest products with promotion info.
+     *
+     * @param int $limit
+     * @return \Illuminate\Support\Collection|Product[]
      */
     public function getLatestProducts(int $limit = 9)
     {
@@ -217,7 +226,10 @@ class ProductService
     }
 
     /**
-     * Add promotion information to product
+     * Add promotion information to product.
+     *
+     * @param Product $product
+     * @return Product
      */
     public function addPromotionInfo($product)
     {
@@ -242,7 +254,9 @@ class ProductService
     }
 
     /**
-     * Get available filters metadata
+     * Get available filters metadata for products.
+     *
+     * @return array
      */
     public function getFiltersMetadata(): array
     {

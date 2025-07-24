@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\JsonResponse;
 use Exception;

@@ -18,6 +18,12 @@ class ShippingController extends BaseApiController
         $this->shippingService = $shippingService;
     }
 
+    /**
+     * Get available shipping methods and free shipping threshold.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -36,6 +42,12 @@ class ShippingController extends BaseApiController
         }
     }
 
+    /**
+     * Get available shipping methods for the authenticated user.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function userShippingMethods(Request $request): JsonResponse
     {
         try {

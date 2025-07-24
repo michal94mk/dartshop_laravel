@@ -13,7 +13,9 @@ use Exception;
 class PrivacyPolicyController extends BaseApiController
 {
     /**
-     * Display the current privacy policy.
+     * Get the current privacy policy.
+     *
+     * @return JsonResponse
      */
     public function show(): JsonResponse
     {
@@ -34,7 +36,10 @@ class PrivacyPolicyController extends BaseApiController
     }
 
     /**
-     * Accept privacy policy for authenticated user.
+     * Accept the privacy policy for the authenticated user.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function accept(Request $request): JsonResponse
     {

@@ -6,7 +6,6 @@ use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
 use App\Services\ProductService;
 use Exception;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\JsonResponse;
 
@@ -20,7 +19,7 @@ class ProductController extends BaseApiController
     }
     
     /**
-     * Display a listing of products.
+     * Get a paginated list of products with filters and promotions.
      *
      * @param Request $request
      * @return JsonResponse
@@ -50,9 +49,9 @@ class ProductController extends BaseApiController
     }
     
     /**
-     * Display the specified product.
+     * Get details of a specific product.
      *
-     * @param  int  $id
+     * @param int $id
      * @return JsonResponse
      */
     public function show(int $id): JsonResponse
@@ -69,7 +68,7 @@ class ProductController extends BaseApiController
     }
     
     /**
-     * Display latest products.
+     * Get the latest products.
      *
      * @return JsonResponse
      */

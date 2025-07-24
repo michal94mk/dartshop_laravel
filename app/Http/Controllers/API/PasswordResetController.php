@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Exception;
@@ -16,9 +15,9 @@ use Exception;
 class PasswordResetController extends BaseApiController
 {
     /**
-     * Wysyłanie linku do resetowania hasła
+     * Send a password reset link to the user's email address.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function forgotPassword(Request $request): JsonResponse
@@ -45,9 +44,9 @@ class PasswordResetController extends BaseApiController
     }
 
     /**
-     * Walidacja tokenu resetowania hasła
+     * Validate the password reset token for the given email.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function validateResetToken(Request $request): JsonResponse
@@ -85,9 +84,9 @@ class PasswordResetController extends BaseApiController
     }
 
     /**
-     * Resetowanie hasła
+     * Reset the user's password using the provided token.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function resetPassword(Request $request): JsonResponse

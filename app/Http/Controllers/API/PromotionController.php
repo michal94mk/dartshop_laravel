@@ -12,7 +12,10 @@ use Exception;
 class PromotionController extends BaseApiController
 {
     /**
-     * Wyświetl listę promocji (publiczne API)
+     * Get a paginated list of public promotions.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function indexPublic(Request $request): JsonResponse
     {
@@ -55,7 +58,10 @@ class PromotionController extends BaseApiController
     }
 
     /**
-     * Wyświetl wyróżnione promocje (publiczne API)
+     * Get a list of featured promotions.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function featured(Request $request): JsonResponse
     {
@@ -94,7 +100,10 @@ class PromotionController extends BaseApiController
     }
 
     /**
-     * Pokaż szczegóły promocji (publiczne API)
+     * Get details of a specific promotion.
+     *
+     * @param Promotion $promotion
+     * @return JsonResponse
      */
     public function showPublic(Promotion $promotion): JsonResponse
     {
@@ -116,7 +125,11 @@ class PromotionController extends BaseApiController
     }
 
     /**
-     * Pobierz produkty z promocji (publiczne API)
+     * Get products for a specific promotion.
+     *
+     * @param Request $request
+     * @param Promotion $promotion
+     * @return JsonResponse
      */
     public function getPromotionProducts(Request $request, Promotion $promotion): JsonResponse
     {
@@ -176,7 +189,10 @@ class PromotionController extends BaseApiController
     }
 
     /**
-     * Sprawdź czy produkt ma aktywną promocję
+     * Check if a product has an active promotion.
+     *
+     * @param int $productId
+     * @return JsonResponse
      */
     public function checkProductPromotion(int $productId): JsonResponse
     {
