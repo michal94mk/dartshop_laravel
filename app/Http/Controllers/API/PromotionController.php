@@ -153,4 +153,41 @@ class PromotionController extends BaseApiController
 
         return response()->json($products);
     }
+
+    /**
+     * Sprawdź czy produkt ma aktywną promocję
+     */
+    public function checkProductPromotion($productId): JsonResponse
+    {
+        try {
+            $product = Product::with(['promotions' => function($query) {
+                $query->where('starts_at', '<=', now())
+                      ->where(function($q) {
+                          $q->whereNull('ends_at')
+                            ->orWhere('ends_at', '>=', now());
+                      });
+            }])->findOrFail($productId);
+
+            $activePromotion = $product->promotions->first();
+
+            if (!$activePromotion) {
+                return $this->successResponse([
+                    'has_promotion' => false,
+                    'product' => $product
+                ]);
+            }
+
+            return $this->successResponse([
+                'has_promotion' => true,
+                'product' => $product,
+                'promotion' => $activePromotion,
+                'promotional_price' => $activePromotion->calculatePromotionalPrice((float) $product->price),
+                'savings_amount' => (float) $product->price - $activePromotion->calculatePromotionalPrice((float) $product->price),
+                'savings_percentage' => $product->price > 0 ? 
+                    round((((float) $product->price - $activePromotion->calculatePromotionalPrice((float) $product->price)) / (float) $product->price) * 100, 1) : 0
+            ]);
+        } catch (\Exception $e) {
+            return $this->handleException($e, 'Wystąpił błąd podczas sprawdzania promocji produktu');
+        }
+    }
 } 
