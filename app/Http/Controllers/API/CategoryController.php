@@ -8,6 +8,7 @@ use App\Services\CategoryService;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\JsonResponse;
 
 class CategoryController extends BaseApiController
 {
@@ -21,14 +22,12 @@ class CategoryController extends BaseApiController
     /**
      * Display a listing of categories.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        Log::info('CategoryController@index called', [
-            'query_params' => $request->all(),
-        ]);
+        $this->logApiRequest($request, 'Fetch categories');
 
         try {
             $categories = $this->categoryService->getCategories($request);
@@ -38,25 +37,17 @@ class CategoryController extends BaseApiController
                 return $this->categoryService->transformCategoryData($category);
             });
 
-            Log::info('Categories fetched successfully', [
-                'count' => $categories->count(),
-                'cache_used' => Cache::has('categories_list_' . md5(json_encode($request->all()))),
-            ]);
+            $cacheKey = 'categories_list_' . md5(json_encode($request->all()));
+            $fromCache = Cache::has($cacheKey);
 
-            return $this->successResponse([
+            return $this->responseWithCache([
                 'data' => $categoriesData,
                 'meta' => [
                     'total' => $categories->count(),
-                    'cache_used' => Cache::has('categories_list_' . md5(json_encode($request->all()))),
                 ],
-            ]);
+            ], $fromCache, 'Categories fetched successfully');
 
         } catch (Exception $e) {
-            Log::error('Error fetching categories', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
             return $this->handleException($e, 'Fetching categories');
         }
     }
@@ -65,33 +56,19 @@ class CategoryController extends BaseApiController
      * Display the specified category.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function show($id)
+    public function show(int $id): JsonResponse
     {
-        Log::info('CategoryController@show called', [
-            'id' => $id,
-        ]);
+        $this->logApiRequest(request(), "Fetch category details for ID: {$id}");
 
         try {
             $categoryData = $this->categoryService->getCategory($id);
 
-            Log::info('Category details fetched', [
-                'category_id' => $categoryData['id'],
-                'category_name' => $categoryData['name'],
-                'products_count' => $categoryData['products_count'],
-            ]);
-
-            return $this->successResponse($categoryData);
+            return $this->successResponse($categoryData, 'Category details fetched successfully');
 
         } catch (Exception $e) {
-            Log::error('Error fetching category details', [
-                'id' => $id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return $this->handleException($e, 'Fetching category details');
+            return $this->handleException($e, "Fetching category details for ID: {$id}");
         }
     }
 
@@ -99,53 +76,37 @@ class CategoryController extends BaseApiController
      * Display products for the specified category.
      *
      * @param  int  $id
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param  Request  $request
+     * @return JsonResponse
      */
-    public function products($id, Request $request)
+    public function products(int $id, Request $request): JsonResponse
     {
-        Log::info('CategoryController@products called', [
-            'id' => $id,
-            'query_params' => $request->all(),
-        ]);
+        $this->logApiRequest($request, "Fetch products for category ID: {$id}");
 
         try {
             $products = $this->categoryService->getCategoryProducts($id, $request);
 
-            Log::info('Category products fetched', [
-                'category_id' => $id,
-                'products_count' => $products->total(),
-            ]);
-
-            return $this->successResponse($products);
+            return $this->successResponse($products, 'Category products fetched successfully');
 
         } catch (Exception $e) {
-            Log::error('Error fetching category products', [
-                'id' => $id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return $this->handleException($e, 'Fetching category products');
+            return $this->handleException($e, "Fetching category products for ID: {$id}");
         }
     }
 
     /**
      * Get category statistics for dashboard/admin
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function statistics()
+    public function statistics(): JsonResponse
     {
         try {
+            $this->logApiRequest(request(), 'Fetch category statistics');
+            
             $stats = $this->categoryService->getStatistics();
-            return $this->successResponse($stats);
+            return $this->successResponse($stats, 'Category statistics fetched successfully');
 
         } catch (Exception $e) {
-            Log::error('Error fetching category statistics', [
-                'error' => $e->getMessage(),
-            ]);
-
             return $this->handleException($e, 'Fetching category statistics');
         }
     }

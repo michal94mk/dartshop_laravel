@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Auth\Access\AuthorizationException;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 abstract class BaseApiController extends Controller
 {
@@ -19,7 +22,7 @@ abstract class BaseApiController extends Controller
      * @param int $code
      * @return JsonResponse
      */
-    protected function successResponse($data = null, ?string $message = null, int $code = 200): JsonResponse
+    protected function successResponse(mixed $data = null, ?string $message = null, int $code = 200): JsonResponse
     {
         $response = [
             'success' => true,
@@ -101,6 +104,28 @@ abstract class BaseApiController extends Controller
     }
 
     /**
+     * Send a conflict response (409)
+     *
+     * @param string $message
+     * @return JsonResponse
+     */
+    protected function conflictResponse(string $message = 'Conflict'): JsonResponse
+    {
+        return $this->errorResponse($message, 409);
+    }
+
+    /**
+     * Send a too many requests response (429)
+     *
+     * @param string $message
+     * @return JsonResponse
+     */
+    protected function tooManyRequestsResponse(string $message = 'Too many requests'): JsonResponse
+    {
+        return $this->errorResponse($message, 429);
+    }
+
+    /**
      * Send a server error response
      *
      * @param string $message
@@ -137,8 +162,17 @@ abstract class BaseApiController extends Controller
             'trace' => $exception->getTraceAsString()
         ]);
 
+        // Handle specific exceptions
         if ($exception instanceof ValidationException) {
             return $this->validationErrorResponse($exception->errors(), 'Validation failed');
+        }
+
+        if ($exception instanceof ModelNotFoundException) {
+            return $this->notFoundResponse('Resource not found');
+        }
+
+        if ($exception instanceof AuthorizationException) {
+            return $this->forbiddenResponse($exception->getMessage());
         }
 
         // In production, don't expose internal errors
@@ -152,11 +186,11 @@ abstract class BaseApiController extends Controller
     /**
      * Send a paginated response
      *
-     * @param mixed $data
+     * @param LengthAwarePaginator $data
      * @param string|null $message
      * @return JsonResponse
      */
-    protected function paginatedResponse($data, ?string $message = null): JsonResponse
+    protected function paginatedResponse(LengthAwarePaginator $data, ?string $message = null): JsonResponse
     {
         $response = [
             'success' => true,
@@ -168,6 +202,7 @@ abstract class BaseApiController extends Controller
                 'total' => $data->total(),
                 'from' => $data->firstItem(),
                 'to' => $data->lastItem(),
+                'has_more_pages' => $data->hasMorePages(),
             ]
         ];
 
@@ -179,24 +214,136 @@ abstract class BaseApiController extends Controller
     }
 
     /**
-     * Send a created response
+     * Send a created response (201)
      *
      * @param mixed $data
      * @param string|null $message
      * @return JsonResponse
      */
-    protected function createdResponse($data = null, ?string $message = null): JsonResponse
+    protected function createdResponse(mixed $data = null, ?string $message = null): JsonResponse
     {
         return $this->successResponse($data, $message, 201);
     }
 
     /**
-     * Send a no content response
+     * Send an accepted response (202)
+     *
+     * @param mixed $data
+     * @param string|null $message
+     * @return JsonResponse
+     */
+    protected function acceptedResponse(mixed $data = null, ?string $message = null): JsonResponse
+    {
+        return $this->successResponse($data, $message, 202);
+    }
+
+    /**
+     * Send a no content response (204)
      *
      * @return JsonResponse
      */
     protected function noContentResponse(): JsonResponse
     {
         return response()->json(null, 204);
+    }
+
+    /**
+     * Send a response with custom status code
+     *
+     * @param mixed $data
+     * @param int $code
+     * @param string|null $message
+     * @return JsonResponse
+     */
+    protected function customResponse(mixed $data, int $code, ?string $message = null): JsonResponse
+    {
+        return $this->successResponse($data, $message, $code);
+    }
+
+    /**
+     * Send a response with metadata
+     *
+     * @param mixed $data
+     * @param array $meta
+     * @param string|null $message
+     * @return JsonResponse
+     */
+    protected function responseWithMeta(mixed $data, array $meta, ?string $message = null): JsonResponse
+    {
+        $response = [
+            'success' => true,
+            'data' => $data,
+            'meta' => $meta,
+        ];
+
+        if ($message) {
+            $response['message'] = $message;
+        }
+
+        return response()->json($response);
+    }
+
+    /**
+     * Send a response with cache information
+     *
+     * @param mixed $data
+     * @param bool $fromCache
+     * @param string|null $message
+     * @return JsonResponse
+     */
+    protected function responseWithCache(mixed $data, bool $fromCache, ?string $message = null): JsonResponse
+    {
+        return $this->responseWithMeta($data, [
+            'cached' => $fromCache,
+            'timestamp' => now()->toISOString(),
+        ], $message);
+    }
+
+    /**
+     * Validate request and return validated data or throw exception
+     *
+     * @param Request $request
+     * @param array $rules
+     * @param array $messages
+     * @param array $attributes
+     * @return array
+     * @throws ValidationException
+     */
+    protected function validateRequest(Request $request, array $rules, array $messages = [], array $attributes = []): array
+    {
+        return $request->validate($rules, $messages, $attributes);
+    }
+
+    /**
+     * Check if user has permission and throw exception if not
+     *
+     * @param string $ability
+     * @param mixed $arguments
+     * @return void
+     * @throws AuthorizationException
+     */
+    protected function authorizeAction(string $ability, ...$arguments): void
+    {
+        $this->authorize($ability, $arguments);
+    }
+
+    /**
+     * Log API request for debugging
+     *
+     * @param Request $request
+     * @param string $context
+     * @return void
+     */
+    protected function logApiRequest(Request $request, string $context = 'API Request'): void
+    {
+        if (config('app.debug')) {
+            Log::info($context, [
+                'method' => $request->method(),
+                'url' => $request->fullUrl(),
+                'params' => $request->all(),
+                'user_id' => $request->user()?->id,
+                'ip' => $request->ip(),
+            ]);
+        }
     }
 } 

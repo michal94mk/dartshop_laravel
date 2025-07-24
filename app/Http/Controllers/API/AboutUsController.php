@@ -7,21 +7,21 @@ use Illuminate\Http\Request;
 use App\Models\AboutUs;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Requests\AboutUsRequest;
+use Illuminate\Http\JsonResponse;
 
 class AboutUsController extends BaseApiController
 {
     /**
      * Pobierz informacje o stronie "O nas".
      *
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function index()
+    public function index(): JsonResponse
     {
         $aboutUs = AboutUs::first();
         
         if (!$aboutUs) {
-            return $this->errorResponse('Informacje o nas nie są jeszcze dostępne.', 404);
+            return $this->notFoundResponse('Informacje o nas nie są jeszcze dostępne.');
         }
         return $this->successResponse($aboutUs);
     }
@@ -29,21 +29,25 @@ class AboutUsController extends BaseApiController
     /**
      * Aktualizuj informacje o stronie "O nas".
      *
-     * @param  \App\Http\Requests\AboutUsRequest  $request
-     * @return \Illuminate\Http\Response
+     * @param  Request  $request
+     * @return JsonResponse
      */
-    public function update(AboutUsRequest $request)
+    public function update(Request $request): JsonResponse
     {
+        $validated = $this->validateRequest($request, [
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
         // Znajdź lub utwórz rekord "O nas"
         $aboutUs = AboutUs::firstOrNew();
         
         // Aktualizuj dane
-        $aboutUs->fill($request->validated());
+        $aboutUs->fill($validated);
         
         $aboutUs->save();
         
-        return $this->successResponse($aboutUs);
+        return $this->successResponse($aboutUs, 'Informacje zostały zaktualizowane pomyślnie.');
     }
-    
-
 }

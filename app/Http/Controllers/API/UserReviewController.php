@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
 use App\Http\Requests\Frontend\UserReviewRequest;
 use App\Models\Review;
@@ -10,41 +10,47 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\JsonResponse;
-use App\Http\Controllers\Api\BaseApiController;
+use Exception;
 
 class UserReviewController extends BaseApiController
 {
     /**
      * Get all reviews for the authenticated user
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param  Request  $request
+     * @return JsonResponse
      */
-    public function myReviews(Request $request)
+    public function myReviews(Request $request): JsonResponse
     {
-        $user = Auth::user();
-        $reviews = Review::with('product')
-            ->where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
-        return $this->successResponse($reviews);
+        try {
+            $this->logApiRequest($request, 'Fetch user reviews');
+            $user = Auth::user();
+            $reviews = Review::with('product')
+                ->where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+            return $this->successResponse($reviews, 'User reviews fetched successfully');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Fetching user reviews');
+        }
     }
     
     /**
      * Get a specific review for the authenticated user
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function show($id)
+    public function show(int $id): JsonResponse
     {
         $user = Auth::user();
         try {
+            $this->logApiRequest(request(), "Fetch user review for ID: {$id}");
             $review = Review::with('product')
                 ->where('user_id', $user->id)
                 ->where('id', $id)
                 ->firstOrFail();
-            return $this->successResponse($review);
+            return $this->successResponse($review, 'User review fetched successfully');
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFoundResponse('Review not found');
         }
@@ -54,11 +60,12 @@ class UserReviewController extends BaseApiController
      * Get all reviews for a specific product with statistics
      *
      * @param  int  $productId
-     * @return \\Illuminate\\Http\\Response
+     * @return JsonResponse
      */
-    public function getProductReviews($productId)
+    public function getProductReviews(int $productId): JsonResponse
     {
         try {
+            $this->logApiRequest(request(), "Fetch product reviews for product ID: {$productId}");
             $product = Product::findOrFail($productId);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFoundResponse('Product not found');
@@ -97,19 +104,20 @@ class UserReviewController extends BaseApiController
         return $this->successResponse([
             'reviews' => $reviews,
             'statistics' => $statistics
-        ]);
+        ], 'Product reviews fetched successfully');
     }
 
     /**
      * Store a new review for a product
      *
-     * @param  \App\Http\Requests\Frontend\UserReviewRequest  $request
+     * @param  UserReviewRequest  $request
      * @param  int  $productId
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function store(UserReviewRequest $request, $productId): JsonResponse
+    public function store(UserReviewRequest $request, int $productId): JsonResponse
     {
         try {
+            $this->logApiRequest($request, "Store review for product ID: {$productId}");
             $product = Product::findOrFail($productId);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFoundResponse('Product not found');
@@ -130,14 +138,15 @@ class UserReviewController extends BaseApiController
     /**
      * Update user's review
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  Request  $request
      * @param  int  $reviewId
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function update(Request $request, $reviewId): JsonResponse
+    public function update(Request $request, int $reviewId): JsonResponse
     {
         $user = Auth::user();
         try {
+            $this->logApiRequest($request, "Update user review for ID: {$reviewId}");
             $review = Review::where('user_id', $user->id)->where('id', $reviewId)->firstOrFail();
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFoundResponse('Review not found');
@@ -150,12 +159,13 @@ class UserReviewController extends BaseApiController
      * Delete user's review
      *
      * @param  int  $reviewId
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function destroy($reviewId): JsonResponse
+    public function destroy(int $reviewId): JsonResponse
     {
         $user = Auth::user();
         try {
+            $this->logApiRequest(request(), "Delete user review for ID: {$reviewId}");
             $review = Review::where('user_id', $user->id)->where('id', $reviewId)->firstOrFail();
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFoundResponse('Review not found');
@@ -168,9 +178,9 @@ class UserReviewController extends BaseApiController
      * Check if authenticated user can review a product
      *
      * @param  int  $productId
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function canReview($productId): JsonResponse
+    public function canReview(int $productId): JsonResponse
     {
         $user = Auth::user();
         $hasReviewed = Review::where('user_id', $user->id)
@@ -178,22 +188,27 @@ class UserReviewController extends BaseApiController
             ->exists();
         return $this->successResponse([
             'can_review' => !$hasReviewed
-        ]);
+        ], 'Can review status fetched successfully');
     }
 
     /**
      * Get the latest approved reviews for the homepage
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param  Request  $request
+     * @return JsonResponse
      */
-    public function getLatestReviews(Request $request)
+    public function getLatestReviews(Request $request): JsonResponse
     {
-        $reviews = Review::with('user', 'product')
-            ->approved()
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
-        return $this->successResponse($reviews);
+        try {
+            $this->logApiRequest($request, 'Fetch latest approved reviews');
+            $reviews = Review::with('user', 'product')
+                ->approved()
+                ->orderBy('created_at', 'desc')
+                ->limit(10)
+                ->get();
+            return $this->successResponse($reviews, 'Latest approved reviews fetched successfully');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Fetching latest approved reviews');
+        }
     }
 } 

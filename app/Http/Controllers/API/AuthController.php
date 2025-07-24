@@ -13,6 +13,7 @@ use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Str;
 use Exception;
+use Illuminate\Http\JsonResponse;
 
 class AuthController extends BaseApiController
 {
@@ -23,15 +24,17 @@ class AuthController extends BaseApiController
         $this->cartService = $cartService;
     }
 
-    public function login(Request $request)
+    public function login(Request $request): JsonResponse
     {
         try {
-            $request->validate([
+            $this->logApiRequest($request, 'User login attempt');
+            
+            $validated = $this->validateRequest($request, [
                 'email' => 'required|email',
                 'password' => 'required',
             ]);
 
-            if (Auth::attempt($request->only('email', 'password'), true)) {
+            if (Auth::attempt($validated, true)) {
                 $user = Auth::user();
                 
                 // Also login via web guard for session-based auth
@@ -57,10 +60,12 @@ class AuthController extends BaseApiController
         }
     }
 
-    public function register(Request $request)
+    public function register(Request $request): JsonResponse
     {
         try {
-            $request->validate([
+            $this->logApiRequest($request, 'User registration attempt');
+            
+            $validated = $this->validateRequest($request, [
                 'name' => 'required|string|max:255',
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
@@ -71,13 +76,13 @@ class AuthController extends BaseApiController
             ]);
 
             $user = User::create([
-                'name' => $request->name,
-                'first_name' => $request->first_name,
-                'last_name' => $request->last_name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'privacy_policy_accepted' => $request->privacy_policy_accepted,
-                'privacy_policy_accepted_at' => $request->privacy_policy_accepted ? now() : null,
+                'name' => $validated['name'],
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'privacy_policy_accepted' => $validated['privacy_policy_accepted'],
+                'privacy_policy_accepted_at' => $validated['privacy_policy_accepted'] ? now() : null,
             ]);
 
             // Assign default user role
@@ -87,7 +92,7 @@ class AuthController extends BaseApiController
             $user->sendEmailVerificationNotification();
 
             // Handle newsletter subscription if consent was given
-            if ($request->newsletter_consent) {
+            if ($validated['newsletter_consent'] ?? false) {
                 // You might want to handle newsletter subscription here
             }
 
@@ -100,12 +105,11 @@ class AuthController extends BaseApiController
 
             $token = $user->createToken('auth_token')->plainTextToken;
 
-            // Nowy format odpowiedzi z BaseApiController
             return $this->createdResponse([
                 'token' => $token,
                 'user' => $this->getUserWithRolesAndPermissions($user),
                 'token_type' => 'Bearer'
-            ], 'User registered successfully');
+            ], 'Registration successful');
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors(), 'Validation failed');
         } catch (Exception $e) {
@@ -113,9 +117,11 @@ class AuthController extends BaseApiController
         }
     }
 
-    public function handleGoogleCallback(Request $request)
+    public function handleGoogleCallback(Request $request): JsonResponse
     {
         try {
+            $this->logApiRequest($request, 'Google authentication callback');
+            
             $googleUser = Socialite::driver('google')->user();
             
             // Find existing user or create new one
@@ -174,7 +180,7 @@ class AuthController extends BaseApiController
         }
     }
 
-    public function user(Request $request)
+    public function user(Request $request): JsonResponse
     {
         try {
             $user = $request->user();
@@ -184,7 +190,7 @@ class AuthController extends BaseApiController
         }
     }
 
-    public function logout(Request $request)
+    public function logout(Request $request): JsonResponse
     {
         try {
             // Handle token-based logout (API tokens)
@@ -206,7 +212,7 @@ class AuthController extends BaseApiController
         }
     }
 
-    protected function getUserWithRolesAndPermissions(User $user)
+    protected function getUserWithRolesAndPermissions(User $user): array
     {
         $userData = $user->toArray();
         $userData['roles'] = $user->getRoleNames();

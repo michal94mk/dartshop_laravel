@@ -11,19 +11,22 @@ use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
+use Exception;
 
 class PasswordResetController extends BaseApiController
 {
     /**
      * Wysyłanie linku do resetowania hasła
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param  Request  $request
+     * @return JsonResponse
      */
     public function forgotPassword(Request $request): JsonResponse
     {
         try {
-            $request->validate([
+            $this->logApiRequest($request, 'Send password reset link');
+            
+            $validated = $this->validateRequest($request, [
                 'email' => 'required|email',
             ]);
 
@@ -32,32 +35,34 @@ class PasswordResetController extends BaseApiController
             );
 
             if ($status === Password::RESET_LINK_SENT) {
-                return $this->successResponse(['message' => __($status)]);
+                return $this->successResponse(['message' => __($status)], 'Password reset link sent successfully');
             }
 
             return $this->validationErrorResponse(['email' => [__($status)]]);
-        } catch (\Exception $e) {
-            return $this->handleException($e, 'Wystąpił błąd podczas wysyłania linku resetującego hasło');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Sending password reset link');
         }
     }
 
     /**
      * Walidacja tokenu resetowania hasła
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param  Request  $request
+     * @return JsonResponse
      */
     public function validateResetToken(Request $request): JsonResponse
     {
         try {
-            $request->validate([
+            $this->logApiRequest($request, 'Validate password reset token');
+            
+            $validated = $this->validateRequest($request, [
                 'token' => 'required|string',
                 'email' => 'required|email',
             ]);
 
             // Sprawdź czy token istnieje i nie wygasł w nowej tabeli
             $resetRecord = DB::table('password_reset_tokens')
-                ->where('email', $request->email)
+                ->where('email', $validated['email'])
                 ->where('created_at', '>', now()->subMinutes(60))
                 ->first();
 
@@ -66,29 +71,31 @@ class PasswordResetController extends BaseApiController
             }
 
             // Sprawdź czy token się zgadza (w nowej tabeli token jest hashowany)
-            if (!Hash::check($request->token, $resetRecord->token)) {
+            if (!Hash::check($validated['token'], $resetRecord->token)) {
                 return $this->validationErrorResponse(['token' => ['Token jest nieprawidłowy lub wygasł.']]);
             }
 
             return $this->successResponse([
                 'message' => 'Token jest prawidłowy.',
-                'email' => $request->email
-            ]);
-        } catch (\Exception $e) {
-            return $this->handleException($e, 'Wystąpił błąd podczas walidacji tokenu resetowania hasła');
+                'email' => $validated['email']
+            ], 'Token validation successful');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Validating password reset token');
         }
     }
 
     /**
      * Resetowanie hasła
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param  Request  $request
+     * @return JsonResponse
      */
     public function resetPassword(Request $request): JsonResponse
     {
         try {
-            $request->validate([
+            $this->logApiRequest($request, 'Reset password');
+            
+            $validated = $this->validateRequest($request, [
                 'token' => 'required',
                 'email' => 'required|email',
                 'password' => 'required|min:8|confirmed',
@@ -107,12 +114,12 @@ class PasswordResetController extends BaseApiController
             );
 
             if ($status === Password::PASSWORD_RESET) {
-                return $this->successResponse(['message' => __($status)]);
+                return $this->successResponse(['message' => __($status)], 'Password reset successful');
             }
 
             return $this->validationErrorResponse(['email' => [__($status)]]);
-        } catch (\Exception $e) {
-            return $this->handleException($e, 'Wystąpił błąd podczas resetowania hasła');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Resetting password');
         }
     }
 } 

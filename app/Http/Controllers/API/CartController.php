@@ -30,6 +30,8 @@ class CartController extends BaseApiController
     public function index(): JsonResponse
     {
         try {
+            $this->logApiRequest(request(), 'Fetch cart items');
+            
             $cartItems = $this->cartService->getCartItems();
             
             // Add promotion information to each cart item
@@ -57,7 +59,9 @@ class CartController extends BaseApiController
     public function store(Request $request): JsonResponse
     {
         try {
-            $validated = $request->validate([
+            $this->logApiRequest($request, 'Add item to cart');
+            
+            $validated = $this->validateRequest($request, [
                 'product_id' => 'required|exists:products,id',
                 'quantity' => 'required|integer|min:1',
             ]);
@@ -79,7 +83,9 @@ class CartController extends BaseApiController
     public function update(Request $request, CartItem $cartItem): JsonResponse
     {
         try {
-            $validated = $request->validate([
+            $this->logApiRequest($request, 'Update cart item');
+            
+            $validated = $this->validateRequest($request, [
                 'quantity' => 'required|integer|min:1',
             ]);
 
@@ -104,11 +110,15 @@ class CartController extends BaseApiController
     public function destroy(CartItem $cartItem): JsonResponse
     {
         try {
+            $this->logApiRequest(request(), 'Remove cart item');
+            
             // Check if cart item belongs to current user
             if ($cartItem->user_id !== Auth::id()) {
                 return $this->forbiddenResponse('Unauthorized access to cart item');
             }
+
             $cartItem->delete();
+
             return $this->successResponse(null, 'Cart item removed successfully');
         } catch (Exception $e) {
             return $this->handleException($e, 'Removing cart item');
@@ -116,12 +126,15 @@ class CartController extends BaseApiController
     }
 
     /**
-     * Clear the cart.
+     * Clear the entire cart.
      */
     public function clear(): JsonResponse
     {
         try {
+            $this->logApiRequest(request(), 'Clear cart');
+            
             $this->cartService->clearCart();
+
             return $this->successResponse(null, 'Cart cleared successfully');
         } catch (Exception $e) {
             return $this->handleException($e, 'Clearing cart');
@@ -129,28 +142,32 @@ class CartController extends BaseApiController
     }
 
     /**
-     * Sync the cart items.
+     * Sync cart items from frontend.
      */
     public function sync(Request $request): JsonResponse
     {
         try {
-            $validated = $request->validate([
+            $this->logApiRequest($request, 'Sync cart items');
+            
+            $validated = $this->validateRequest($request, [
                 'items' => 'required|array',
                 'items.*.product_id' => 'required|exists:products,id',
                 'items.*.quantity' => 'required|integer|min:1',
             ]);
+
             $this->cartService->clearCart();
             foreach ($validated['items'] as $item) {
                 $product = Product::findOrFail($item['product_id']);
                 $this->cartService->addToCart($product, $item['quantity']);
             }
+            
             return $this->successResponse([
                 'items' => $this->cartService->getCartItems(),
             ], 'Cart synchronized successfully');
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors(), 'Validation error');
         } catch (Exception $e) {
-            return $this->handleException($e, 'Syncing cart');
+            return $this->handleException($e, 'Synchronizing cart');
         }
     }
 } 

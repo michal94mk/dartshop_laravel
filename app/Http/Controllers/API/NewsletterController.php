@@ -44,7 +44,7 @@ class NewsletterController extends BaseApiController
 
             if ($existingSubscription) {
                 if ($existingSubscription->isActive()) {
-                    return $this->errorResponse('Ten adres email jest już zapisany do newslettera', 409);
+                    return $this->conflictResponse('Ten adres email jest już zapisany do newslettera');
                 }
 
                 if ($existingSubscription->isPending()) {

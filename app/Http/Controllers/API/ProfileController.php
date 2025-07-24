@@ -8,21 +8,24 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\JsonResponse;
+use Exception;
 
 class ProfileController extends BaseApiController
 {
     /**
      * Update user profile
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param  Request  $request
+     * @return JsonResponse
      */
     public function update(Request $request): JsonResponse
     {
         try {
+            $this->logApiRequest($request, 'Update user profile');
+            
             $user = $request->user();
 
-            $validated = $request->validate([
+            $validated = $this->validateRequest($request, [
                 'name' => 'required|string|max:255',
                 'email' => [
                     'required',
@@ -46,7 +49,7 @@ class ProfileController extends BaseApiController
                 return $this->successResponse([
                     'message' => 'Profil został zaktualizowany. Ponieważ zmieniłeś adres e-mail, musisz go ponownie zweryfikować. Link weryfikacyjny został wysłany.',
                     'user' => $user
-                ]);
+                ], 'Profile updated successfully');
             }
 
             $user->update($validated);
@@ -54,31 +57,33 @@ class ProfileController extends BaseApiController
             return $this->successResponse([
                 'message' => 'Profil został pomyślnie zaktualizowany.',
                 'user' => $user
-            ]);
-        } catch (\Exception $e) {
-            return $this->handleException($e, 'Wystąpił błąd podczas aktualizacji profilu');
+            ], 'Profile updated successfully');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Updating user profile');
         }
     }
 
     /**
      * Update user password
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param  Request  $request
+     * @return JsonResponse
      */
     public function updatePassword(Request $request): JsonResponse
     {
         try {
+            $this->logApiRequest($request, 'Update user password');
+            
             $user = $request->user();
             
             // Prevent password change for Google OAuth users
             if (!empty($user->google_id)) {
                 return $this->validationErrorResponse([
                     'password' => ['Użytkownicy zalogowani przez Google OAuth nie mogą zmieniać hasła w tej aplikacji. Aby zmienić hasło, przejdź do ustawień Google.']
-                ]);
+                ], 'Google OAuth users cannot change password');
             }
 
-            $validated = $request->validate([
+            $validated = $this->validateRequest($request, [
                 'current_password' => 'required',
                 'password' => 'required|min:8|confirmed',
             ]);
@@ -87,7 +92,7 @@ class ProfileController extends BaseApiController
             if (!Hash::check($validated['current_password'], $user->password)) {
                 return $this->validationErrorResponse([
                     'current_password' => ['Podane aktualne hasło jest nieprawidłowe.']
-                ]);
+                ], 'Current password is incorrect');
             }
 
             $user->update([
@@ -96,9 +101,9 @@ class ProfileController extends BaseApiController
 
             return $this->successResponse([
                 'message' => 'Hasło zostało pomyślnie zmienione.'
-            ]);
-        } catch (\Exception $e) {
-            return $this->handleException($e, 'Wystąpił błąd podczas zmiany hasła');
+            ], 'Password updated successfully');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Updating user password');
         }
     }
 } 

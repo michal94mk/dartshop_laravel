@@ -14,6 +14,8 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\JsonResponse;
+use Exception;
 
 class GuestCheckoutController extends BaseApiController
 {
@@ -28,29 +30,18 @@ class GuestCheckoutController extends BaseApiController
         $this->cartService = $cartService;
     }
 
-    public function __invoke(CheckoutRequest $request)
+    public function __invoke(CheckoutRequest $request): JsonResponse
     {
         try {
-            Log::info('Rozpoczęcie procesu checkoutu dla gościa', [
-                'request_data' => $request->all()
-            ]);
+            $this->logApiRequest($request, 'Process guest checkout');
 
             // Get validated data
             $validated = $request->validated();
 
-            Log::info('Walidacja danych przeszła pomyślnie', [
-                'validated_data' => $validated
-            ]);
-
             // Pobierz koszyk
             $cartItems = $this->cartService->getGuestCartItems();
-            Log::info('Pobrano przedmioty z koszyka gościa', [
-                'cart_items_count' => count($cartItems),
-                'cart_items' => $cartItems
-            ]);
 
             if (empty($cartItems)) {
-                Log::warning('Próba utworzenia zamówienia z pustym koszykiem');
                 return $this->errorResponse('Koszyk jest pusty', 400);
             }
 
@@ -65,22 +56,9 @@ class GuestCheckoutController extends BaseApiController
                         return $item['quantity'] * $item['product']->getPromotionalPrice();
                     });
 
-                    Log::info('Obliczono koszty', [
-                        'subtotal' => $subtotal,
-                        'shipping_method' => $validated['shipping_method']
-                    ]);
-
                     $shippingCost = $validated['shipping_method'] === 'express' ? 20.00 : 15.00;
                     $discount = 0;
                     $total = $subtotal + $shippingCost - $discount;
-
-                    Log::info('Tworzenie zamówienia dla gościa', [
-                        'shipping_data' => $shippingData,
-                        'total' => $total,
-                        'subtotal' => $subtotal,
-                        'shipping_cost' => $shippingCost,
-                        'discount' => $discount
-                    ]);
 
                     // Utwórz zamówienie
                     $order = Order::create([
@@ -105,10 +83,6 @@ class GuestCheckoutController extends BaseApiController
                         'country' => 'PL' // Domyślnie Polska
                     ]);
 
-                    Log::info('Zamówienie utworzone', [
-                        'order_id' => $order->id
-                    ]);
-
                     // Dodaj produkty do zamówienia
                     foreach ($cartItems as $item) {
                         OrderItem::create([
@@ -121,42 +95,22 @@ class GuestCheckoutController extends BaseApiController
                         ]);
                     }
 
-                    Log::info('Dodano produkty do zamówienia', [
-                        'order_id' => $order->id,
-                        'items_count' => count($cartItems)
-                    ]);
-
                     // Wyczyść koszyk gościa
                     $this->cartService->clearGuestCart();
-
-                    Log::info('Zamówienie gościa zakończone sukcesem', [
-                        'order_id' => $order->id
-                    ]);
 
                     // Zwróć utworzone zamówienie
                     $order->load('items');
                     return $this->createdResponse([
                         'order' => $order
-                    ], 'Zamówienie zostało utworzone');
+                    ], 'Zamówienie zostało utworzone pomyślnie');
 
-                } catch (\Exception $e) {
-                    Log::error('Błąd w transakcji DB podczas tworzenia zamówienia gościa', [
-                        'error' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString()
-                    ]);
-                    throw $e;
+                } catch (Exception $e) {
+                    return $this->handleException($e, 'Creating guest order in transaction');
                 }
             });
 
-        } catch (\Exception $e) {
-            Log::error('Błąd podczas przetwarzania zamówienia gościa', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return $this->errorResponse('Wystąpił błąd podczas tworzenia zamówienia: ' . $e->getMessage(), 500);
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Processing guest checkout');
         }
     }
-
-
 } 

@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Http\JsonResponse;
+use Exception;
 
 class CheckoutController extends BaseApiController
 {
@@ -29,31 +31,19 @@ class CheckoutController extends BaseApiController
         $this->reservationService = $reservationService;
     }
 
-    public function store(CheckoutRequest $request)
+    public function store(CheckoutRequest $request): JsonResponse
     {
         try {
-            Log::info('Rozpoczęcie procesu checkoutu', [
-                'user_id' => Auth::id(),
-                'request_data' => $request->all()
-            ]);
+            $this->logApiRequest($request, 'Process checkout');
 
             // Get validated data
             $validated = $request->validated();
 
-            Log::info('Walidacja danych przeszła pomyślnie', [
-                'validated_data' => $validated
-            ]);
-
             // Pobierz koszyk
             $cartItems = $this->cartService->getCartItems();
-            Log::info('Pobrano przedmioty z koszyka', [
-                'cart_items_count' => $cartItems->count(),
-                'cart_items' => $cartItems->toArray()
-            ]);
 
             if ($cartItems->isEmpty()) {
-                Log::warning('Próba utworzenia zamówienia z pustym koszykiem');
-                return response()->json(['message' => 'Koszyk jest pusty'], 400);
+                return $this->errorResponse('Koszyk jest pusty', 400);
             }
 
             // Rozpocznij transakcję
@@ -61,13 +51,8 @@ class CheckoutController extends BaseApiController
                 try {
                     // Zarezerwuj produkty
                     foreach ($cartItems as $item) {
-                        Log::info('Próba rezerwacji produktu', [
-                            'product_id' => $item->product_id,
-                            'quantity' => $item->quantity
-                        ]);
-
                         if (!$this->reservationService->reserveProduct($item->product, $item->quantity)) {
-                            throw new \Exception("Produkt {$item->product->name} jest niedostępny w żądanej ilości.");
+                            throw new Exception("Produkt {$item->product->name} jest niedostępny w żądanej ilości.");
                         }
                     }
 
@@ -79,20 +64,8 @@ class CheckoutController extends BaseApiController
                         return $item->quantity * $item->product->getPromotionalPrice();
                     });
 
-                    Log::info('Obliczono koszty', [
-                        'subtotal' => $subtotal,
-                        'shipping_method' => $validated['shipping_method']
-                    ]);
-
                     $shippingCost = (float) ($validated['shipping_method'] === 'express' ? 20.00 : 15.00);
                     $total = (float) ($subtotal + $shippingCost);
-
-                    Log::info('Tworzenie zamówienia', [
-                        'shipping_data' => $shippingData,
-                        'total' => $total,
-                        'subtotal' => $subtotal,
-                        'shipping_cost' => $shippingCost
-                    ]);
 
                     // Utwórz zamówienie
                     $order = Order::create([
@@ -116,10 +89,6 @@ class CheckoutController extends BaseApiController
                         'country' => 'PL' // Domyślnie Polska
                     ]);
 
-                    Log::info('Zamówienie utworzone', [
-                        'order_id' => $order->id
-                    ]);
-
                     // Dodaj produkty do zamówienia
                     foreach ($cartItems as $item) {
                         OrderItem::create([
@@ -132,38 +101,20 @@ class CheckoutController extends BaseApiController
                         ]);
                     }
 
-                    Log::info('Dodano produkty do zamówienia', [
-                        'order_id' => $order->id,
-                        'items_count' => $cartItems->count()
-                    ]);
-
                     // Wyczyść koszyk
                     $this->cartService->clearCart();
 
-                    Log::info('Zamówienie zakończone sukcesem', [
-                        'order_id' => $order->id
-                    ]);
-
                     // Zwróć utworzone zamówienie
-                    return response()->json([
-                        'message' => 'Zamówienie zostało utworzone',
+                    return $this->createdResponse([
                         'order' => $order->load('items')
-                    ], 201);
+                    ], 'Zamówienie zostało utworzone pomyślnie');
 
-                } catch (\Exception $e) {
-                    Log::error('Błąd w transakcji DB podczas tworzenia zamówienia', [
-                        'error' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString()
-                    ]);
-                    throw $e;
+                } catch (Exception $e) {
+                    return $this->handleException($e, 'Creating order in transaction');
                 }
             });
-        } catch (\Exception $e) {
-            Log::error('Błąd podczas tworzenia zamówienia', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return $this->errorResponse('Wystąpił błąd podczas tworzenia zamówienia: ' . $e->getMessage(), 500);
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Processing checkout');
         }
     }
 
@@ -171,14 +122,18 @@ class CheckoutController extends BaseApiController
      * Show order details
      *
      * @param string|int $orderId
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function showOrder($orderId)
+    public function showOrder($orderId): JsonResponse
     {
-        $order = Order::with(['items', 'items.product'])->findOrFail($orderId);
+        try {
+            $this->logApiRequest(request(), "Fetch order details for ID: {$orderId}");
+            
+            $order = Order::with(['items', 'items.product'])->findOrFail($orderId);
 
-        return $this->successResponse(['order' => $order]);
+            return $this->successResponse(['order' => $order], 'Order details fetched successfully');
+        } catch (Exception $e) {
+            return $this->handleException($e, "Fetching order details for ID: {$orderId}");
+        }
     }
-
-
 } 

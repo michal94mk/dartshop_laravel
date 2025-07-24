@@ -8,6 +8,7 @@ use App\Services\ProductService;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\JsonResponse;
 
 class ProductController extends BaseApiController
 {
@@ -16,46 +17,33 @@ class ProductController extends BaseApiController
     public function __construct(ProductService $productService)
     {
         $this->productService = $productService;
-        Log::info('ProductController initialized');
     }
     
     /**
      * Display a listing of products.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         try {
-            Log::info('ProductController@index called with parameters', [
-                'query_params' => $request->all(),
-                'user_agent' => $request->header('User-Agent'),
-            ]);
+            $this->logApiRequest($request, 'Fetch products');
+            
             $products = $this->productService->getProducts($request);
             $products->getCollection()->transform(function ($product) {
                 return $this->productService->addPromotionInfo($product);
             });
+            
             $cacheKey = 'products_list_' . md5(json_encode($request->all()));
-            $cacheUsed = Cache::has($cacheKey);
-            Log::info('Products query successful', [
-                'total' => $products->total(),
-                'per_page' => $products->perPage(),
-                'current_page' => $products->currentPage(),
-                'last_page' => $products->lastPage(),
-                'cache_hit' => $cacheUsed,
-                'cache_key' => $cacheKey,
-                'filters_applied' => array_intersect_key($request->all(), array_flip([
-                    'category_id', 'brand_id', 'search', 'price_min', 'price_max', 
-                    'featured_only', 'in_stock_only', 'on_promotion_only', 'sort_by', 'sort_direction'
-                ]))
-            ]);
+            $fromCache = Cache::has($cacheKey);
+            
             $response = $products->toArray();
             $response['meta'] = array_merge($response['meta'] ?? [], [
-                'cache_hit' => $cacheUsed,
-                'cache_key' => substr($cacheKey, 0, 20) . '...',
                 'filters_available' => $this->productService->getFiltersMetadata()
             ]);
-            return $this->successResponse($response);
+            
+            return $this->responseWithCache($response, $fromCache, 'Products fetched successfully');
         } catch (Exception $e) {
             return $this->handleException($e, 'Fetching products');
         }
@@ -65,24 +53,16 @@ class ProductController extends BaseApiController
      * Display the specified product.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function show($id)
+    public function show(int $id): JsonResponse
     {
         try {
-            Log::info('ProductController@show called with ID', [
-                'product_id' => $id
-            ]);
+            $this->logApiRequest(request(), "Fetch product details for ID: {$id}");
+            
             $product = $this->productService->getProduct($id);
-            Log::info('Product detail response', [
-                'product_id' => $id,
-                'product_name' => $product->name,
-                'product_columns' => array_keys($product->toArray()),
-                'has_category' => $product->category ? true : false,
-                'has_brand' => $product->brand ? true : false,
-                'has_reviews' => $product->reviews !== null
-            ]);
-            return $this->successResponse($product);
+            
+            return $this->successResponse($product, 'Product details fetched successfully');
         } catch (Exception $e) {
             return $this->handleException($e, "Fetching product with ID: {$id}");
         }
@@ -91,29 +71,23 @@ class ProductController extends BaseApiController
     /**
      * Display latest products.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function latest()
+    public function latest(): JsonResponse
     {
         try {
-            Log::info('ProductController@latest called');
+            $this->logApiRequest(request(), 'Fetch latest products');
+            
             $products = $this->productService->getLatestProducts();
             $cacheKey = 'latest_products';
-            $cacheUsed = Cache::has($cacheKey);
-            Log::info('Latest products response', [
-                'count' => $products->count(),
-                'columns' => $products->count() > 0 ? array_keys($products->first()->toArray()) : [],
-                'cache_hit' => $cacheUsed,
-                'cache_key' => $cacheKey,
-            ]);
-            return $this->successResponse([
+            $fromCache = Cache::has($cacheKey);
+            
+            return $this->responseWithCache([
                 'data' => $products,
                 'meta' => [
                     'count' => $products->count(),
-                    'cache_hit' => $cacheUsed,
-                    'cache_key' => $cacheKey,
                 ]
-            ]);
+            ], $fromCache, 'Latest products fetched successfully');
         } catch (Exception $e) {
             return $this->handleException($e, 'Fetching latest products');
         }

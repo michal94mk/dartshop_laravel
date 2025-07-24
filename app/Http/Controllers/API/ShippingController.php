@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Services\ShippingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\JsonResponse;
+use Exception;
 
 class ShippingController extends BaseApiController
 {
@@ -16,30 +18,42 @@ class ShippingController extends BaseApiController
         $this->shippingService = $shippingService;
     }
 
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'cart_total' => 'required|numeric|min:0'
-        ]);
-        $cartTotal = (float) $request->query('cart_total', 0);
-        return $this->successResponse([
-            'methods' => $this->shippingService->getShippingMethodsWithCosts($cartTotal),
-            'free_shipping_threshold' => $this->shippingService->getFreeShippingThreshold()
-        ]);
+        try {
+            $this->logApiRequest($request, 'Fetch shipping methods');
+            
+            $validated = $this->validateRequest($request, [
+                'cart_total' => 'required|numeric|min:0'
+            ]);
+            $cartTotal = (float) $validated['cart_total'];
+            return $this->successResponse([
+                'methods' => $this->shippingService->getShippingMethodsWithCosts($cartTotal),
+                'free_shipping_threshold' => $this->shippingService->getFreeShippingThreshold()
+            ], 'Shipping methods fetched successfully');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Fetching shipping methods');
+        }
     }
 
-    public function userShippingMethods(Request $request)
+    public function userShippingMethods(Request $request): JsonResponse
     {
-        $user = Auth::user();
-        $cartTotal = (float) $request->query('cart_total', 0);
+        try {
+            $this->logApiRequest($request, 'Fetch user shipping methods');
+            
+            $user = Auth::user();
+            $cartTotal = (float) $request->query('cart_total', 0);
 
-        $methods = $this->shippingService->getShippingMethodsWithCosts($cartTotal);
-        $freeShippingThreshold = $this->shippingService->getFreeShippingThreshold();
+            $methods = $this->shippingService->getShippingMethodsWithCosts($cartTotal);
+            $freeShippingThreshold = $this->shippingService->getFreeShippingThreshold();
 
-        return $this->successResponse([
-            'methods' => $methods,
-            'free_shipping_threshold' => $freeShippingThreshold,
-            'cart_qualifies_for_free_shipping' => $cartTotal >= $freeShippingThreshold
-        ]);
+            return $this->successResponse([
+                'methods' => $methods,
+                'free_shipping_threshold' => $freeShippingThreshold,
+                'cart_qualifies_for_free_shipping' => $cartTotal >= $freeShippingThreshold
+            ], 'User shipping methods fetched successfully');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Fetching user shipping methods');
+        }
     }
 } 

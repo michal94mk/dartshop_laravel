@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
+use Exception;
 
 class PrivacyPolicyController extends BaseApiController
 {
@@ -17,6 +18,8 @@ class PrivacyPolicyController extends BaseApiController
     public function show(): JsonResponse
     {
         try {
+            $this->logApiRequest(request(), 'Fetch privacy policy');
+            
             $privacyPolicy = PrivacyPolicy::getActive();
             
             if (!$privacyPolicy) {
@@ -24,9 +27,9 @@ class PrivacyPolicyController extends BaseApiController
                 $privacyPolicy = $this->getDefaultPrivacyPolicy();
             }
             
-            return $this->successResponse(['privacy_policy' => $privacyPolicy]);
-        } catch (\Exception $e) {
-            return $this->handleException($e, 'Wystąpił błąd podczas pobierania polityki prywatności');
+            return $this->successResponse(['privacy_policy' => $privacyPolicy], 'Privacy policy fetched successfully');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Fetching privacy policy');
         }
     }
 
@@ -36,11 +39,13 @@ class PrivacyPolicyController extends BaseApiController
     public function accept(Request $request): JsonResponse
     {
         try {
+            $this->logApiRequest($request, 'Accept privacy policy');
+            
             /** @var User $user */
             $user = Auth::user();
             
             if (!$user) {
-                return $this->errorResponse('Unauthorized', 401);
+                return $this->unauthorizedResponse('Unauthorized');
             }
 
             $user->update([
@@ -52,16 +57,16 @@ class PrivacyPolicyController extends BaseApiController
                 'message' => 'Polityka prywatności została zaakceptowana',
                 'privacy_policy_accepted' => true,
                 'privacy_policy_accepted_at' => $user->privacy_policy_accepted_at
-            ]);
-        } catch (\Exception $e) {
-            return $this->handleException($e, 'Wystąpił błąd podczas akceptacji polityki prywatności');
+            ], 'Privacy policy accepted successfully');
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Accepting privacy policy');
         }
     }
 
     /**
      * Get default privacy policy content.
      */
-    private function getDefaultPrivacyPolicy()
+    private function getDefaultPrivacyPolicy(): object
     {
         return (object) [
             'id' => null,
@@ -75,7 +80,7 @@ class PrivacyPolicyController extends BaseApiController
     /**
      * Get default privacy policy content.
      */
-    private function getDefaultContent()
+    private function getDefaultContent(): string
     {
         return '
 <h2>1. Informacje ogólne</h2>
