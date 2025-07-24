@@ -4,15 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\BaseApiController;
 use App\Models\NewsletterSubscription;
+use App\Services\NewsletterService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\NewsletterVerificationMail;
-use App\Mail\NewsletterWelcomeMail;
 use Exception;
-use App\Services\NewsletterService;
 
 class NewsletterController extends BaseApiController
 {

@@ -5,22 +5,19 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Http\JsonResponse;
 use Exception;
 
 class EmailVerificationController extends BaseApiController
 {
     /**
-     * Mark user's email as verified
+     * Verify the user's email address using the verification link.
      *
-     * @param  Request  $request
-     * @param  int  $id
-     * @param  string  $hash
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
+     * @param int $id
+     * @param string $hash
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function verify(Request $request, int $id, string $hash)
     {
@@ -54,9 +51,9 @@ class EmailVerificationController extends BaseApiController
     }
 
     /**
-     * Resend verification email
+     * Resend the email verification link to the authenticated user.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function sendVerificationEmail(Request $request): JsonResponse

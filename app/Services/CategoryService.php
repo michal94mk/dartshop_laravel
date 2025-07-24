@@ -11,7 +11,10 @@ use Illuminate\Database\Eloquent\Builder;
 class CategoryService
 {
     /**
-     * Get categories list with optional filters
+     * Get categories list with optional filters.
+     *
+     * @param Request $request
+     * @return \Illuminate\Support\Collection|Category[]
      */
     public function getCategories(Request $request)
     {
@@ -33,7 +36,10 @@ class CategoryService
     }
 
     /**
-     * Transform category data for API response
+     * Transform category data for API response.
+     *
+     * @param Category $category
+     * @return array
      */
     public function transformCategoryData($category)
     {
@@ -56,7 +62,10 @@ class CategoryService
     }
 
     /**
-     * Get single category by ID
+     * Get single category by ID.
+     *
+     * @param int $id
+     * @return array
      */
     public function getCategory($id)
     {
@@ -78,7 +87,11 @@ class CategoryService
     }
 
     /**
-     * Get products for category with filters
+     * Get products for category with filters.
+     *
+     * @param int $categoryId
+     * @param Request $request
+     * @return \Illuminate\Pagination\LengthAwarePaginator
      */
     public function getCategoryProducts($categoryId, Request $request)
     {
@@ -138,7 +151,9 @@ class CategoryService
     }
 
     /**
-     * Get category statistics
+     * Get category statistics for dashboard/admin.
+     *
+     * @return array
      */
     public function getStatistics()
     {

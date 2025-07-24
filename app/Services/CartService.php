@@ -6,12 +6,13 @@ use App\Models\CartItem;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Collection;
 
 class CartService
 {
     /**
-     * Get cart items
+     * Get cart items for the current user (authenticated or guest).
+     *
+     * @return \Illuminate\Support\Collection|CartItem[]
      */
     public function getCartItems()
     {
@@ -37,7 +38,9 @@ class CartService
     }
 
     /**
-     * Get cart items for guest user
+     * Get cart items for guest user.
+     *
+     * @return \Illuminate\Support\Collection|object[]
      */
     public function getGuestCartItems()
     {
@@ -60,7 +63,11 @@ class CartService
     }
 
     /**
-     * Add item to cart
+     * Add item to cart for the current user.
+     *
+     * @param Product $product
+     * @param int $quantity
+     * @return CartItem|null
      */
     public function addToCart(Product $product, int $quantity = 1): ?CartItem
     {
@@ -117,7 +124,11 @@ class CartService
     }
 
     /**
-     * Update cart item quantity
+     * Update cart item quantity for the current user.
+     *
+     * @param int $productId
+     * @param int $quantity
+     * @return CartItem|null
      */
     public function updateQuantity(int $productId, int $quantity): ?CartItem
     {
@@ -164,7 +175,10 @@ class CartService
     }
 
     /**
-     * Remove item from cart
+     * Remove item from cart for the current user.
+     *
+     * @param int $productId
+     * @return bool
      */
     public function removeFromCart(int $productId): bool
     {
@@ -201,7 +215,9 @@ class CartService
     }
 
     /**
-     * Clear cart for the current user
+     * Clear cart for the current user.
+     *
+     * @return void
      */
     public function clearCart(): void
     {
@@ -213,7 +229,9 @@ class CartService
     }
 
     /**
-     * Clear cart for guest user
+     * Clear cart for guest user.
+     *
+     * @return void
      */
     public function clearGuestCart(): void
     {
@@ -221,7 +239,9 @@ class CartService
     }
 
     /**
-     * Get cart total
+     * Get cart total value.
+     *
+     * @return float
      */
     public function getCartTotal(): float
     {
@@ -231,7 +251,9 @@ class CartService
     }
 
     /**
-     * Get cart items count
+     * Get total number of items in the cart.
+     *
+     * @return int
      */
     public function getCartItemsCount(): int
     {
@@ -239,7 +261,9 @@ class CartService
     }
 
     /**
-     * Migrate cart items from session to database after user login
+     * Migrate cart items from session to database after user login.
+     *
+     * @return void
      */
     public function migrateSessionCartToDatabase(): void
     {

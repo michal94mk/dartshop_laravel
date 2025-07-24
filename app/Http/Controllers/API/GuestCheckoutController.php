@@ -3,17 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\BaseApiController;
-use Illuminate\Http\Request;
 use App\Http\Requests\Frontend\CheckoutRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
 use App\Services\ShippingService;
 use App\Services\CartService;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
 use Exception;
 
@@ -30,28 +27,31 @@ class GuestCheckoutController extends BaseApiController
         $this->cartService = $cartService;
     }
 
+    /**
+     * Handle guest checkout and create an order for a guest user.
+     *
+     * @param CheckoutRequest $request
+     * @return JsonResponse
+     */
     public function __invoke(CheckoutRequest $request): JsonResponse
     {
         try {
             $this->logApiRequest($request, 'Process guest checkout');
 
-            // Get validated data
             $validated = $request->validated();
 
-            // Pobierz koszyk
             $cartItems = $this->cartService->getGuestCartItems();
 
             if (empty($cartItems)) {
-                return $this->errorResponse('Koszyk jest pusty', 400);
+                return $this->errorResponse('Cart is empty', 400);
             }
 
-            // Rozpocznij transakcję
+            // Start transaction for guest order creation
             return DB::transaction(function () use ($validated, $cartItems) {
                 try {
-                    // Przygotuj dane adresowe
                     $shippingData = $validated['shipping_address'];
 
-                    // Oblicz koszty
+                    // Calculate order costs
                     $subtotal = collect($cartItems)->sum(function ($item) {
                         return $item['quantity'] * $item['product']->getPromotionalPrice();
                     });
@@ -60,9 +60,9 @@ class GuestCheckoutController extends BaseApiController
                     $discount = 0;
                     $total = $subtotal + $shippingCost - $discount;
 
-                    // Utwórz zamówienie
+                    // Create guest order
                     $order = Order::create([
-                        'user_id' => null, // Zamówienie gościa
+                        'user_id' => null,
                         'order_number' => Order::generateOrderNumber(),
                         'status' => OrderStatus::Pending,
                         'payment_status' => PaymentStatus::Pending,
@@ -80,10 +80,10 @@ class GuestCheckoutController extends BaseApiController
                         'total' => $total,
                         'payment_method' => $validated['payment_method'],
                         'shipping_method' => $validated['shipping_method'],
-                        'country' => 'PL' // Domyślnie Polska
+                        'country' => 'PL'
                     ]);
 
-                    // Dodaj produkty do zamówienia
+                    // Add products to the order
                     foreach ($cartItems as $item) {
                         OrderItem::create([
                             'order_id' => $order->id,
@@ -95,14 +95,12 @@ class GuestCheckoutController extends BaseApiController
                         ]);
                     }
 
-                    // Wyczyść koszyk gościa
                     $this->cartService->clearGuestCart();
 
-                    // Zwróć utworzone zamówienie
                     $order->load('items');
                     return $this->createdResponse([
                         'order' => $order
-                    ], 'Zamówienie zostało utworzone pomyślnie');
+                    ], 'Order created successfully');
 
                 } catch (Exception $e) {
                     return $this->handleException($e, 'Creating guest order in transaction');

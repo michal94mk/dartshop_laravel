@@ -25,7 +25,9 @@ class CartController extends BaseApiController
     }
 
     /**
-     * Display the cart contents.
+     * Get the contents of the cart for the current user.
+     *
+     * @return JsonResponse
      */
     public function index(): JsonResponse
     {
@@ -54,7 +56,10 @@ class CartController extends BaseApiController
     }
 
     /**
-     * Store a new cart item.
+     * Add a new item to the cart.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function store(Request $request): JsonResponse
     {
@@ -78,7 +83,11 @@ class CartController extends BaseApiController
     }
 
     /**
-     * Update the specified cart item.
+     * Update the quantity of a specific cart item.
+     *
+     * @param Request $request
+     * @param CartItem $cartItem
+     * @return JsonResponse
      */
     public function update(Request $request, CartItem $cartItem): JsonResponse
     {
@@ -105,7 +114,10 @@ class CartController extends BaseApiController
     }
 
     /**
-     * Remove the specified cart item.
+     * Remove a specific item from the cart.
+     *
+     * @param CartItem $cartItem
+     * @return JsonResponse
      */
     public function destroy(CartItem $cartItem): JsonResponse
     {
@@ -126,7 +138,9 @@ class CartController extends BaseApiController
     }
 
     /**
-     * Clear the entire cart.
+     * Clear all items from the cart.
+     *
+     * @return JsonResponse
      */
     public function clear(): JsonResponse
     {
@@ -142,7 +156,10 @@ class CartController extends BaseApiController
     }
 
     /**
-     * Sync cart items from frontend.
+     * Sync the cart with the provided items from the frontend.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function sync(Request $request): JsonResponse
     {

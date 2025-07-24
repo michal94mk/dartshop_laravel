@@ -12,8 +12,8 @@ use App\Services\CartService;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Str;
-use Exception;
 use Illuminate\Http\JsonResponse;
+use Exception;
 
 class AuthController extends BaseApiController
 {

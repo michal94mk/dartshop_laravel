@@ -17,7 +17,11 @@ class ReservationService
     const RESERVATION_DURATION = 15;
 
     /**
-     * Reserve a product
+     * Reserve a product for the current user or session.
+     *
+     * @param Product $product
+     * @param int $quantity
+     * @return ProductReservation|null
      */
     public function reserveProduct(Product $product, int $quantity): ?ProductReservation
     {
@@ -78,7 +82,9 @@ class ReservationService
     }
 
     /**
-     * Remove expired reservations
+     * Remove expired product reservations.
+     *
+     * @return void
      */
     public function clearExpiredReservations(): void
     {
@@ -100,7 +106,10 @@ class ReservationService
     }
 
     /**
-     * Extend reservation
+     * Extend a product reservation.
+     *
+     * @param ProductReservation $reservation
+     * @return bool
      */
     public function extendReservation(ProductReservation $reservation): bool
     {
@@ -139,7 +148,10 @@ class ReservationService
     }
 
     /**
-     * Cancel reservation
+     * Cancel a product reservation.
+     *
+     * @param ProductReservation $reservation
+     * @return bool
      */
     public function cancelReservation(ProductReservation $reservation): bool
     {
@@ -167,7 +179,9 @@ class ReservationService
     }
 
     /**
-     * Get active reservations for user or session
+     * Get active reservations for the current user or session.
+     *
+     * @return \Illuminate\Support\Collection|ProductReservation[]
      */
     public function getUserReservations()
     {
@@ -201,7 +215,9 @@ class ReservationService
     }
 
     /**
-     * Convert session reservations to user after login
+     * Convert session reservations to user after login.
+     *
+     * @return void
      */
     public function convertSessionReservationsToUser(): void
     {

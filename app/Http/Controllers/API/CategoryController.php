@@ -5,10 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
 use App\Services\CategoryService;
-use Exception;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\JsonResponse;
+use Exception;
 
 class CategoryController extends BaseApiController
 {
@@ -20,7 +19,7 @@ class CategoryController extends BaseApiController
     }
 
     /**
-     * Display a listing of categories.
+     * Get a list of categories with optional filters and preview products.
      *
      * @param Request $request
      * @return JsonResponse
@@ -53,9 +52,9 @@ class CategoryController extends BaseApiController
     }
 
     /**
-     * Display the specified category.
+     * Get details of a specific category.
      *
-     * @param  int  $id
+     * @param int $id
      * @return JsonResponse
      */
     public function show(int $id): JsonResponse
@@ -73,10 +72,10 @@ class CategoryController extends BaseApiController
     }
 
     /**
-     * Display products for the specified category.
+     * Get products for a specific category with filters.
      *
-     * @param  int  $id
-     * @param  Request  $request
+     * @param int $id
+     * @param Request $request
      * @return JsonResponse
      */
     public function products(int $id, Request $request): JsonResponse
@@ -94,7 +93,7 @@ class CategoryController extends BaseApiController
     }
 
     /**
-     * Get category statistics for dashboard/admin
+     * Get category statistics for dashboard/admin.
      *
      * @return JsonResponse
      */

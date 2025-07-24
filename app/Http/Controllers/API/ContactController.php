@@ -3,15 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\BaseApiController;
-use App\Models\ContactMessage;
-use App\Mail\ContactMessageNotification;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator;
+use App\Services\ContactService;
 use App\Http\Requests\Frontend\ContactRequest;
 use Illuminate\Http\JsonResponse;
 use Exception;
-use App\Services\ContactService;
 
 class ContactController extends BaseApiController
 {

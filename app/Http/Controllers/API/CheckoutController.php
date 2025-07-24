@@ -10,11 +10,8 @@ use App\Services\ReservationService;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Http\Requests\Frontend\CheckoutRequest;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Illuminate\Http\JsonResponse;
 use Exception;
 
@@ -31,6 +28,12 @@ class CheckoutController extends BaseApiController
         $this->reservationService = $reservationService;
     }
 
+    /**
+     * Handle checkout and create an order for the authenticated user.
+     *
+     * @param CheckoutRequest $request
+     * @return JsonResponse
+     */
     public function store(CheckoutRequest $request): JsonResponse
     {
         try {
@@ -119,7 +122,7 @@ class CheckoutController extends BaseApiController
     }
 
     /**
-     * Show order details
+     * Show order details for a given order ID.
      *
      * @param string|int $orderId
      * @return JsonResponse

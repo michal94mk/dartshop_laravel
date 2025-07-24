@@ -4,14 +4,18 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Product;
-use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Exception;
 
 class FavoriteProductController extends BaseApiController
 {
+    /**
+     * Toggle favorite status for a product for the authenticated user.
+     *
+     * @param Product $product
+     * @return JsonResponse
+     */
     public function toggle(Product $product): JsonResponse
     {
         try {
@@ -44,6 +48,11 @@ class FavoriteProductController extends BaseApiController
         }
     }
     
+    /**
+     * Get all favorite products for the authenticated user.
+     *
+     * @return JsonResponse
+     */
     public function index(): JsonResponse
     {
         try {
@@ -76,6 +85,12 @@ class FavoriteProductController extends BaseApiController
         }
     }
     
+    /**
+     * Check if a product is in the authenticated user's favorites.
+     *
+     * @param Product $product
+     * @return JsonResponse
+     */
     public function check(Product $product): JsonResponse
     {
         try {
