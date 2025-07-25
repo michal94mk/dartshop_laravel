@@ -2,80 +2,76 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Models\AboutUs;
-use App\Http\Requests\Admin\AboutPageRequest;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Api\BaseApiController;
+use App\Http\Requests\Admin\AboutPageRequest;
+use App\Services\Admin\AboutPageAdminService;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Http\JsonResponse;
 
 class AboutPageController extends BaseApiController
 {
+    private AboutPageAdminService $aboutPageAdminService;
+
+    public function __construct(AboutPageAdminService $aboutPageAdminService)
+    {
+        $this->aboutPageAdminService = $aboutPageAdminService;
+    }
+
     /**
      * Display the first about page data.
      *
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function index()
+    public function index(): JsonResponse
     {
         try {
-            // Get the first about page record or create a new one if none exists
-            $aboutPage = AboutUs::first();
-            
-            if (!$aboutPage) {
-                $aboutPage = new AboutUs();
-                $aboutPage->title = 'O nas';
-                $aboutPage->content = 'Dodaj treść strony O nas.';
-                $aboutPage->save();
-            }
-            
-            return $this->successResponse('Dane strony O nas pobrane pomyślnie', $aboutPage);
+            $aboutPage = $this->aboutPageAdminService->getFirstOrCreate();
+            return $this->successResponse($aboutPage, 'Dane strony O nas pobrane pomyślnie');
         } catch (\Exception $e) {
             Log::error('Failed to get about page data', [
                 'error' => $e->getMessage(),
                 'method' => __METHOD__
             ]);
-            
             return $this->errorResponse('Błąd podczas pobierania danych strony O nas: ' . $e->getMessage(), 500);
         }
     }
-    
+
     /**
      * Display all about pages.
      *
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function all()
+    public function all(): JsonResponse
     {
         try {
-            $aboutPages = AboutUs::orderBy('created_at')->get();
-            return $this->successResponse('Wszystkie strony O nas pobrane pomyślnie', $aboutPages);
+            $aboutPages = $this->aboutPageAdminService->getAll();
+            return $this->successResponse($aboutPages, 'Wszystkie strony O nas pobrane pomyślnie');
         } catch (\Exception $e) {
             Log::error('Failed to get all about pages', [
                 'error' => $e->getMessage(),
                 'method' => __METHOD__
             ]);
-            
             return $this->errorResponse('Błąd podczas pobierania wszystkich stron O nas: ' . $e->getMessage(), 500);
         }
     }
-    
+
     /**
      * Display the specified about page.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function show($id)
+    public function show($id): JsonResponse
     {
         try {
-            $aboutPage = AboutUs::findOrFail($id);
-            return $this->successResponse('Strona O nas pobrana pomyślnie', $aboutPage);
+            $aboutPage = $this->aboutPageAdminService->getById($id);
+            return $this->successResponse($aboutPage, 'Strona O nas pobrana pomyślnie');
         } catch (\Exception $e) {
             Log::error('Failed to get about page', [
                 'error' => $e->getMessage(),
                 'id' => $id,
                 'method' => __METHOD__
             ]);
-            
             return $this->errorResponse('Nie znaleziono strony O nas', 404);
         }
     }
@@ -83,25 +79,20 @@ class AboutPageController extends BaseApiController
     /**
      * Create a new about page.
      *
-     * @param  \App\Http\Requests\Admin\AboutPageRequest  $request
-     * @return \Illuminate\Http\Response
+     * @param  AboutPageRequest  $request
+     * @return JsonResponse
      */
-    public function create(AboutPageRequest $request)
+    public function create(AboutPageRequest $request): JsonResponse
     {
         try {
-            $aboutPage = new AboutUs();
-            $aboutPage->fill($request->validated());
-            
-            $aboutPage->save();
-            
-            return $this->successResponse('Strona O nas została utworzona', $aboutPage, 201);
+            $aboutPage = $this->aboutPageAdminService->create($request->validated());
+            return $this->successResponse($aboutPage, 'Strona O nas została utworzona', 201);
         } catch (\Exception $e) {
             Log::error('Failed to create about page', [
                 'error' => $e->getMessage(),
                 'request_data' => $request->validated(),
                 'method' => __METHOD__
             ]);
-            
             return $this->errorResponse('Błąd podczas tworzenia strony O nas: ' . $e->getMessage(), 500);
         }
     }
@@ -109,29 +100,20 @@ class AboutPageController extends BaseApiController
     /**
      * Update the first about page.
      *
-     * @param  \App\Http\Requests\Admin\AboutPageRequest  $request
-     * @return \Illuminate\Http\Response
+     * @param  AboutPageRequest  $request
+     * @return JsonResponse
      */
-    public function update(AboutPageRequest $request)
+    public function update(AboutPageRequest $request): JsonResponse
     {
         try {
-            $aboutPage = AboutUs::first();
-            
-            if (!$aboutPage) {
-                $aboutPage = new AboutUs();
-            }
-            
-            $aboutPage->fill($request->validated());
-            $aboutPage->save();
-            
-            return $this->successResponse('Strona O nas została zaktualizowana', $aboutPage);
+            $aboutPage = $this->aboutPageAdminService->updateFirst($request->validated());
+            return $this->successResponse($aboutPage, 'Strona O nas została zaktualizowana');
         } catch (\Exception $e) {
             Log::error('Failed to update about page', [
                 'error' => $e->getMessage(),
                 'request_data' => $request->validated(),
                 'method' => __METHOD__
             ]);
-            
             return $this->errorResponse('Błąd podczas aktualizacji strony O nas: ' . $e->getMessage(), 500);
         }
     }
@@ -139,18 +121,15 @@ class AboutPageController extends BaseApiController
     /**
      * Update the specified about page.
      *
-     * @param  \App\Http\Requests\Admin\AboutPageRequest  $request
+     * @param  AboutPageRequest  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function updateById(AboutPageRequest $request, $id)
+    public function updateById(AboutPageRequest $request, $id): JsonResponse
     {
         try {
-            $aboutPage = AboutUs::findOrFail($id);
-            $aboutPage->fill($request->validated());
-            $aboutPage->save();
-            
-            return $this->successResponse('Strona O nas została zaktualizowana', $aboutPage);
+            $aboutPage = $this->aboutPageAdminService->updateById($id, $request->validated());
+            return $this->successResponse($aboutPage, 'Strona O nas została zaktualizowana');
         } catch (\Exception $e) {
             Log::error('Failed to update about page by ID', [
                 'error' => $e->getMessage(),
@@ -158,7 +137,6 @@ class AboutPageController extends BaseApiController
                 'request_data' => $request->validated(),
                 'method' => __METHOD__
             ]);
-            
             return $this->errorResponse('Błąd podczas aktualizacji strony O nas: ' . $e->getMessage(), 500);
         }
     }
@@ -167,22 +145,19 @@ class AboutPageController extends BaseApiController
      * Remove the specified about page from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function destroy($id)
+    public function destroy($id): JsonResponse
     {
         try {
-            $aboutPage = AboutUs::findOrFail($id);
-            $aboutPage->delete();
-            
-            return $this->successResponse('Strona O nas została usunięta', null, 204);
+            $this->aboutPageAdminService->deleteById($id);
+            return $this->successResponse(null, 'Strona O nas została usunięta', 204);
         } catch (\Exception $e) {
             Log::error('Failed to delete about page', [
                 'error' => $e->getMessage(),
                 'id' => $id,
                 'method' => __METHOD__
             ]);
-            
             return $this->errorResponse('Błąd podczas usuwania strony O nas: ' . $e->getMessage(), 500);
         }
     }

@@ -195,6 +195,7 @@
             :data="stats.sales_data" 
             :chart-type="chartType" 
             :metric="salesMetric"
+            :key="`chart-${stats.sales_data.length}-${chartType}-${salesMetric}`"
           />
         </div>
       </div>
@@ -362,18 +363,26 @@ export default {
         
         if (dateRange.value === 'custom') {
           params = {
+            period: 'custom',
             start_date: customDateRange.value.from,
             end_date: customDateRange.value.to
           }
         }
         
         console.log('Fetching dashboard data with params:', params)
+        console.log('Date range:', dateRange.value)
         console.log('Current user:', authStore.user)
         console.log('Is admin:', authStore.isAdmin)
         console.log('Is logged in:', authStore.isLoggedIn)
         
         const response = await axios.get('/api/admin/dashboard', { params })
+        console.log('Dashboard API response:', response.data)
         stats.value = response.data.data
+        console.log('Stats after assignment:', stats.value)
+        console.log('Sales data:', stats.value.sales_data)
+        console.log('Sales data length:', stats.value.sales_data?.length)
+        console.log('Sales data type:', typeof stats.value.sales_data)
+        console.log('First sales data item:', stats.value.sales_data?.[0])
         
         // Add fallback data for testing if no real data exists
         if (!stats.value.sales_data || stats.value.sales_data.length === 0) {
@@ -402,6 +411,12 @@ export default {
         
         // After loading data, update chart data for the selected metric
         updateChartData()
+        
+        // Force reactivity update
+        nextTick(() => {
+          console.log('Dashboard: After nextTick - sales data:', stats.value.sales_data)
+          console.log('Dashboard: After nextTick - sales data length:', stats.value.sales_data?.length)
+        })
       } catch (error) {
         console.error('Error fetching dashboard data:', error)
         console.error('Error response:', error.response)

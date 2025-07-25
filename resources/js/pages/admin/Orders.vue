@@ -484,6 +484,18 @@
       @close="closeEditModal"
     >
         <form @submit.prevent="handleSubmit" class="space-y-4">
+          <div v-if="isEditBlocked" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800">Nie można edytować zamówienia po jego realizacji (zrealizowane, wysłane lub dostarczone).</h3>
+              </div>
+            </div>
+          </div>
           <!-- Add validation errors display -->
           <div v-if="validationErrors.length > 0" class="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
             <div class="flex">
@@ -508,6 +520,7 @@
             <label class="block text-sm font-medium text-gray-700">Użytkownik</label>
             <select
               v-model="editedOrder.user_id"
+              :disabled="showEditModal"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             >
               <option value="">Wybierz użytkownika</option>
@@ -515,6 +528,10 @@
                 {{ user.name }} ({{ user.email }}){{ user.is_admin ? ' [ADMIN]' : '' }}
               </option>
             </select>
+            <p v-if="showEditModal" class="text-xs text-yellow-600 mt-1">
+              Nie można zmienić użytkownika dla istniejącego zamówienia.
+            </p>
+            <p v-if="formErrors.user_id" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.user_id) ? formErrors.user_id[0] : formErrors.user_id }}</p>
           </div>
 
           <!-- Customer details always needed -->
@@ -526,14 +543,17 @@
                   type="text"
                   v-model="editedOrder.first_name"
                   required
+                  :disabled="isEditBlocked"
+                  ref="firstNameInput"
                   :class="[
                     'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
-                    formErrors.first_name 
-                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    (formErrors.first_name || firstNameError)
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                       : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
                   ]"
                 />
                 <p v-if="formErrors.first_name" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.first_name) ? formErrors.first_name[0] : formErrors.first_name }}</p>
+                <p v-else-if="firstNameError" class="mt-1 text-sm text-red-600">{{ firstNameError }}</p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700">Nazwisko <span class="text-red-500">*</span></label>
@@ -541,14 +561,17 @@
                   type="text"
                   v-model="editedOrder.last_name"
                   required
+                  :disabled="isEditBlocked"
+                  ref="lastNameInput"
                   :class="[
                     'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
-                    formErrors.last_name 
-                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                    (formErrors.last_name || lastNameError)
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                       : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
                   ]"
                 />
                 <p v-if="formErrors.last_name" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.last_name) ? formErrors.last_name[0] : formErrors.last_name }}</p>
+                <p v-else-if="lastNameError" class="mt-1 text-sm text-red-600">{{ lastNameError }}</p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700">Email <span class="text-red-500">*</span></label>
@@ -556,14 +579,16 @@
                   type="email"
                   v-model="editedOrder.email"
                   required
+                  :disabled="isEditBlocked"
                   :class="[
                     'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
-                    formErrors.email 
+                    (formErrors.email || emailError) 
                       ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
                       : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
                   ]"
                 />
                 <p v-if="formErrors.email" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.email) ? formErrors.email[0] : formErrors.email }}</p>
+                <p v-else-if="emailError" class="mt-1 text-sm text-red-600">{{ emailError }}</p>
                 <p v-else class="text-xs text-gray-500">Format: nazwa@domena.pl</p>
               </div>
               <div>
@@ -571,6 +596,7 @@
                 <input
                   type="text"
                   v-model="editedOrder.phone"
+                  :disabled="isEditBlocked"
                   :class="[
                     'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                     formErrors.phone 
@@ -590,6 +616,7 @@
               <input
                 type="text"
                 v-model="editedOrder.address"
+                :disabled="isEditBlocked"
                 :class="[
                   'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                   formErrors.address 
@@ -605,6 +632,7 @@
                 <input
                   type="text"
                   v-model="editedOrder.postal_code"
+                  :disabled="isEditBlocked"
                   :class="[
                     'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                     formErrors.postal_code 
@@ -619,6 +647,7 @@
                 <input
                   type="text"
                   v-model="editedOrder.city"
+                  :disabled="isEditBlocked"
                   :class="[
                     'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                     formErrors.city 
@@ -633,6 +662,7 @@
                 <input
                   type="text"
                   v-model="editedOrder.country"
+                  :disabled="isEditBlocked"
                   :class="[
                     'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                     formErrors.country 
@@ -680,6 +710,7 @@
             >
               Dodaj produkt
             </button>
+            <p v-if="productError" class="mt-2 text-sm text-red-600">{{ productError }}</p>
           </div>
 
           <!-- Status and shipping -->
@@ -688,6 +719,7 @@
               <label class="block text-sm font-medium text-gray-700">Status</label>
               <select
                 v-model="editedOrder.status"
+                :disabled="isEditBlocked"
                 :class="[
                   'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                   formErrors.status 
@@ -709,6 +741,7 @@
               <label class="block text-sm font-medium text-gray-700">Metoda wysyłki</label>
               <select
                 v-model="editedOrder.shipping_method"
+                :disabled="isEditBlocked"
                 :class="[
                   'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                   formErrors.shipping_method 
@@ -730,6 +763,7 @@
               <label class="block text-sm font-medium text-gray-700">Metoda płatności</label>
               <select
                 v-model="editedOrder.payment_method"
+                :disabled="isEditBlocked"
                 :class="[
                   'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                   formErrors.payment_method 
@@ -748,6 +782,7 @@
               <label class="block text-sm font-medium text-gray-700">Status płatności</label>
               <select
                 v-model="editedOrder.payment_status"
+                :disabled="isEditBlocked"
                 :class="[
                   'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                   formErrors.payment_status 
@@ -771,6 +806,7 @@
               step="0.01"
               min="0"
               v-model="editedOrder.discount"
+              :disabled="isEditBlocked"
               :class="[
                 'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                 formErrors.discount 
@@ -788,6 +824,7 @@
             <textarea
               v-model="editedOrder.notes"
               rows="3"
+              :disabled="isEditBlocked"
               :class="[
                 'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                 formErrors.notes 
@@ -800,21 +837,35 @@
         </form>
       
       <template #footer>
-        <admin-button-group justify="end" spacing="sm">
-          <admin-button
-            @click="closeEditModal"
-            variant="secondary"
-            outline
-          >
-            Anuluj
-          </admin-button>
-          <admin-button
-            @click="handleSubmit"
-            variant="primary"
-          >
-            {{ showEditModal ? 'Zapisz zmiany' : 'Dodaj zamówienie' }}
-          </admin-button>
-        </admin-button-group>
+        <div class="w-full">
+          <div v-if="submitError" class="mb-4 bg-red-50 border-l-4 border-red-400 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-red-700">{{ submitError }}</p>
+              </div>
+            </div>
+          </div>
+          <admin-button-group justify="end" spacing="sm">
+            <admin-button
+              @click="closeEditModal"
+              variant="secondary"
+              outline
+            >
+              Anuluj
+            </admin-button>
+            <admin-button
+              @click="handleSubmit"
+              variant="primary"
+            >
+              {{ showEditModal ? 'Zapisz zmiany' : 'Dodaj zamówienie' }}
+            </admin-button>
+          </admin-button-group>
+        </div>
       </template>
     </admin-modal>
 
@@ -1005,6 +1056,14 @@ export default {
     const orderToDelete = ref(null)
     const validationErrors = ref([])
     const formErrors = ref({})
+    const productError = ref('')
+    const emailError = ref('')
+    const firstNameError = ref('')
+    const lastNameError = ref('')
+    const submitError = ref('')
+    // Add refs for input fields
+    const firstNameInput = ref(null)
+    const lastNameInput = ref(null)
     
     // Methods
     const fetchOrders = async () => {
@@ -1452,9 +1511,12 @@ export default {
 
     const handleSubmit = async () => {
       try {
-        // Reset validation errors at the beginning
-        validationErrors.value = []
-        formErrors.value = {}
+        validationErrors.value = [] // Reset validation errors
+        productError.value = '' // Reset product error
+        emailError.value = '' // Reset email error
+        firstNameError.value = '' // Reset first name error
+        lastNameError.value = '' // Reset last name error
+        submitError.value = '' // Reset submit error
         
         // Special handling for edit case - fetch user details if needed
         if (showEditModal.value && editedOrder.value.user_id && (!editedOrder.value.email || !editedOrder.value.first_name)) {
@@ -1490,14 +1552,13 @@ export default {
 
         // Check if the order has at least one item
         if (editedOrder.value.items.length === 0) {
-          alertStore.error('Dodaj co najmniej jeden produkt do zamówienia')
+          productError.value = 'Dodaj co najmniej jeden produkt do zamówienia'
           return
         }
 
         // Check if email is empty and user_id is not set, add required field indicator
         if (!editedOrder.value.user_id && (!editedOrder.value.email || !editedOrder.value.email.trim())) {
-          alertStore.error('Adres email jest wymagany')
-          validationErrors.value.push('Adres email jest wymagany')
+          emailError.value = 'Adres email jest wymagany'
           return
         }
 
@@ -1506,20 +1567,28 @@ export default {
           editedOrder.value.email = editedOrder.value.email.trim()
         }
 
-                  // Validate email format if not a registered user
-          if (!editedOrder.value.user_id) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-            if (!emailRegex.test(editedOrder.value.email)) {
-              alertStore.error('Wprowadź prawidłowy adres email')
-              validationErrors.value.push('Nieprawidłowy format adresu email')
-              return
-            }
-          
+        // Validate email format if not a registered user
+        if (!editedOrder.value.user_id) {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+          if (!emailRegex.test(editedOrder.value.email)) {
+            emailError.value = 'Nieprawidłowy format adresu email'
+            return
+          }
+        
           // Additional validation for unregistered users
           if (!editedOrder.value.first_name || !editedOrder.value.last_name) {
-            alertStore.error('Dla niezarejestrowanego użytkownika, imię i nazwisko są wymagane')
-            if (!editedOrder.value.first_name) validationErrors.value.push('Imię jest wymagane')
-            if (!editedOrder.value.last_name) validationErrors.value.push('Nazwisko jest wymagane')
+            if (!editedOrder.value.first_name) firstNameError.value = 'Imię jest wymagane'
+            if (!editedOrder.value.last_name) lastNameError.value = 'Nazwisko jest wymagane'
+            // Scroll to the first missing field
+            setTimeout(() => {
+              if (!editedOrder.value.first_name && firstNameInput.value) {
+                firstNameInput.value.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                firstNameInput.value.focus()
+              } else if (!editedOrder.value.last_name && lastNameInput.value) {
+                lastNameInput.value.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                lastNameInput.value.focus()
+              }
+            }, 100)
             return
           }
         }
@@ -1672,54 +1741,67 @@ export default {
           })
         }
 
-        // Submit the order
-        if (showEditModal.value && editedOrder.value.id) {
-          console.log('Updating order with ID:', editedOrder.value.id, 'Type:', typeof editedOrder.value.id)
+        // API call logic
+        const url = showEditModal.value 
+          ? `/api/admin/orders/${editedOrder.value.id}` 
+          : '/api/admin/orders'
+        
+        const method = showEditModal.value ? 'PUT' : 'POST'
+        
+        const response = await axios({
+          method,
+          url,
+          data: formattedOrderData
+        })
+        
+        if (response.data.success) {
+          alertStore.success(showEditModal.value ? 'Zamówienie zostało zaktualizowane' : 'Zamówienie zostało utworzone')
+          closeEditModal()
+          await fetchOrders()
+        }
+      } catch (error) {
+        console.error('Error saving order:', error)
+        
+        if (error.response?.data?.errors) {
+          // Handle field-specific errors
+          formErrors.value = error.response.data.errors
           
-          // Ensure ID is a number
-          const orderId = parseInt(editedOrder.value.id)
-          if (isNaN(orderId)) {
-            alertStore.error('Nieprawidłowe ID zamówienia')
-            return
+          // Check for specific errors and move them to appropriate variables
+          if (error.response.data.errors.email) {
+            emailError.value = Array.isArray(error.response.data.errors.email) 
+              ? error.response.data.errors.email[0] 
+              : error.response.data.errors.email
           }
           
-          await axios.put(`/api/admin/orders/${orderId}`, formattedOrderData)
-          alertStore.success(response.data.message || 'Zamówienie zostało zaktualizowane')
-        } else {
-          // Log the full request for debugging
-          console.log('Submit URL: /api/admin/orders')
-          console.log('Submit data:', {
-            user_id: formattedOrderData.user_id,
-            first_name: formattedOrderData.first_name,
-            last_name: formattedOrderData.last_name,
-            email: formattedOrderData.email
-          })
+          if (error.response.data.errors.first_name) {
+            firstNameError.value = Array.isArray(error.response.data.errors.first_name) 
+              ? error.response.data.errors.first_name[0] 
+              : error.response.data.errors.first_name
+          }
           
-          const response = await axios.post('/api/admin/orders', formattedOrderData)
-          console.log('Server response:', response.data)
-          alertStore.success(response.data.message || 'Zamówienie zostało utworzone')
-        }
-        
-        // Close modal and refresh orders list
-        closeEditModal()
-        fetchOrders()
-      } catch (error) {
-        console.error('Error saving order:', error.response?.data || error)
-        let errorMessage = 'Wystąpił błąd podczas zapisywania zamówienia'
-        
-        validationErrors.value = [] // Reset validation errors
-        
-        if (error.response?.status === 422 && error.response?.data?.errors) {
-          // Store validation errors for individual field display
-          formErrors.value = error.response.data.errors
-          console.log('Validation errors:', error.response.data.errors)
-        } else if (error.response?.status === 404) {
-          errorMessage = 'Zamówienie nie zostało znalezione'
+          if (error.response.data.errors.last_name) {
+            lastNameError.value = Array.isArray(error.response.data.errors.last_name) 
+              ? error.response.data.errors.last_name[0] 
+              : error.response.data.errors.last_name
+          }
+          
+          // Add other validation errors to validationErrors
+          Object.keys(error.response.data.errors).forEach(field => {
+            if (!['email', 'first_name', 'last_name'].includes(field) && !validationErrors.value.includes(error.response.data.errors[field])) {
+              if (Array.isArray(error.response.data.errors[field])) {
+                validationErrors.value.push(...error.response.data.errors[field])
+              } else {
+                validationErrors.value.push(error.response.data.errors[field])
+              }
+            }
+          })
         } else if (error.response?.data?.message) {
-          errorMessage += ': ' + error.response.data.message
+          // Handle general error message
+          submitError.value = error.response.data.message
+        } else {
+          // Handle unexpected errors
+          submitError.value = 'Wystąpił nieoczekiwany błąd podczas zapisywania zamówienia'
         }
-        
-        alertStore.error(errorMessage)
       }
     }
     
@@ -1883,6 +1965,16 @@ export default {
       }, 500)
     })
     
+    // Add computed property for disabling user_id
+    const isUserIdDisabled = computed(() => showEditModal.value)
+    
+    const blockedStatuses = ['completed', 'shipped', 'delivered']
+    const isEditBlocked = computed(() => showEditModal.value && selectedOrder.value && blockedStatuses.includes(selectedOrder.value.status))
+    
+    // Helper to check if error is field-specific (no longer needed for product error)
+    const isFieldSpecificError = (error) => false
+    const hasProductError = computed(() => !!productError.value)
+    
     return {
       loading,
       orders,
@@ -1904,6 +1996,13 @@ export default {
       orderToDelete,
       validationErrors,
       formErrors,
+      productError,
+      emailError,
+      firstNameError,
+      lastNameError,
+      submitError,
+      firstNameInput,
+      lastNameInput,
       paginationPages,
       fetchOrders,
       goToPage,
@@ -1931,7 +2030,11 @@ export default {
       getStatusClasses,
       getStatusShort,
       translatePaymentMethod,
-      translateShippingMethod
+      translateShippingMethod,
+      isUserIdDisabled,
+      isEditBlocked,
+      isFieldSpecificError,
+      hasProductError
     }
   }
 }

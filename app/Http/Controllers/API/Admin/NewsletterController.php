@@ -2,87 +2,39 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Models\NewsletterSubscription;
+use App\Http\Controllers\Api\BaseApiController;
+use App\Services\Admin\NewsletterAdminService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
-use App\Http\Controllers\Api\BaseApiController;
 
 class NewsletterController extends BaseApiController
 {
+    private NewsletterAdminService $newsletterAdminService;
+
+    public function __construct(NewsletterAdminService $newsletterAdminService)
+    {
+        $this->newsletterAdminService = $newsletterAdminService;
+    }
+
     /**
      * Display a listing of newsletter subscriptions
      */
     public function index(Request $request): JsonResponse
     {
-        $query = NewsletterSubscription::query();
-
-        // Apply search filter
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where('email', 'like', '%' . $search . '%');
-        }
-
-        // Apply status filter
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Apply date range filters
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
-
-        // Apply sorting
-        $sortField = $request->sort_field ?? 'created_at';
-        $sortDirection = $request->sort_direction ?? 'desc';
-        
-        // Validate sort field to prevent SQL injection
-        $allowedSortFields = ['created_at', 'email', 'status', 'verified_at', 'unsubscribed_at'];
-        if (!in_array($sortField, $allowedSortFields)) {
-            $sortField = 'created_at';
-        }
-
-        $query->orderBy($sortField, $sortDirection);
-
-        // Get stats
-        $stats = [
-            'active' => NewsletterSubscription::where('status', 'active')->count(),
-            'pending' => NewsletterSubscription::where('status', 'pending')->count(),
-            'unsubscribed' => NewsletterSubscription::where('status', 'unsubscribed')->count(),
-            'total' => NewsletterSubscription::count(),
-        ];
-
-        // Paginate results
+        $filters = $request->all();
         $perPage = $request->get('per_page', 15);
-        $subscriptions = $query->paginate($perPage);
-
-        return $this->successResponse('Subskrybenci newslettera pobrani pomyślnie', [
-            'data' => $subscriptions->items(),
-            'pagination' => [
-                'current_page' => $subscriptions->currentPage(),
-                'last_page' => $subscriptions->lastPage(),
-                'per_page' => $subscriptions->perPage(),
-                'total' => $subscriptions->total(),
-                'from' => $subscriptions->firstItem(),
-                'to' => $subscriptions->lastItem(),
-            ],
-            'stats' => $stats
-        ]);
+        $result = $this->newsletterAdminService->getSubscriptionsWithFilters($filters, $perPage);
+        return $this->successResponse($result, 'Subskrybenci newslettera pobrani pomyślnie');
     }
 
     /**
      * Remove the specified newsletter subscription
      */
-    public function destroy(NewsletterSubscription $newsletter): JsonResponse
+    public function destroy($id): JsonResponse
     {
-        $newsletter->delete();
-
-        return $this->successResponse('Subskrypcja została usunięta');
+        $this->newsletterAdminService->deleteById($id);
+        return $this->successResponse(null, 'Subskrypcja została usunięta');
     }
 
     /**
@@ -90,47 +42,9 @@ class NewsletterController extends BaseApiController
      */
     public function export(Request $request)
     {
-        $query = NewsletterSubscription::query();
-
-        // Apply same filters as index
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('search')) {
-            $query->where('email', 'like', '%' . $request->search . '%');
-        }
-
-        $subscriptions = $query->orderBy('created_at', 'desc')->get();
-
-        $csvData = [];
-        $csvData[] = ['Email', 'Status', 'Data subskrypcji', 'Data weryfikacji', 'Data wypisania'];
-
-        foreach ($subscriptions as $subscription) {
-            $csvData[] = [
-                $subscription->email,
-                $subscription->status,
-                $subscription->created_at->format('Y-m-d H:i:s'),
-                $subscription->verified_at ? $subscription->verified_at->format('Y-m-d H:i:s') : '',
-                $subscription->unsubscribed_at ? $subscription->unsubscribed_at->format('Y-m-d H:i:s') : '',
-            ];
-        }
-
+        $filters = $request->all();
+        $csv = $this->newsletterAdminService->exportToCsv($filters);
         $filename = 'newsletter-subscriptions-' . date('Y-m-d') . '.csv';
-        
-        $handle = fopen('php://temp', 'w+');
-        
-        // Add BOM for proper UTF-8 encoding in Excel
-        fwrite($handle, "\xEF\xBB\xBF");
-        
-        foreach ($csvData as $row) {
-            fputcsv($handle, $row, ';'); // Use semicolon for better Excel compatibility
-        }
-        
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
-
         return Response::make($csv, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
@@ -142,14 +56,7 @@ class NewsletterController extends BaseApiController
      */
     public function stats(): JsonResponse
     {
-        $stats = [
-            'total' => NewsletterSubscription::count(),
-            'active' => NewsletterSubscription::where('status', 'active')->count(),
-            'pending' => NewsletterSubscription::where('status', 'pending')->count(),
-            'unsubscribed' => NewsletterSubscription::where('status', 'unsubscribed')->count(),
-            'recent' => NewsletterSubscription::where('created_at', '>=', now()->subDays(7))->count(),
-        ];
-
+        $stats = $this->newsletterAdminService->getStats();
         return response()->json($stats);
     }
 }

@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -67,8 +67,9 @@ export default {
         return
       }
       
-      if (!props.data.length) {
-        console.log('SalesChart: No data provided')
+      if (!props.data || !props.data.length) {
+        console.log('SalesChart: No data provided or empty array')
+        console.log('Props data:', props.data)
         return
       }
 
@@ -83,7 +84,12 @@ export default {
       // Prepare data based on metric
       const labels = props.data.map(item => {
         const date = new Date(item.date)
-        return date.toLocaleDateString('pl-PL', { month: 'short', day: 'numeric' })
+        // Check if the date includes time (hourly data)
+        if (item.date.includes(' ')) {
+          return date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+        } else {
+          return date.toLocaleDateString('pl-PL', { month: 'short', day: 'numeric' })
+        }
       })
       
       let dataValues = []
@@ -199,16 +205,38 @@ export default {
     }
 
     // Watch for changes in props
-    watch([() => props.data, () => props.chartType, () => props.metric], () => {
+    watch([() => props.data, () => props.chartType, () => props.metric], (newValues, oldValues) => {
+      console.log('SalesChart: Props changed', {
+        newData: newValues[0],
+        oldData: oldValues?.[0],
+        chartType: newValues[1],
+        metric: newValues[2]
+      })
+      
+      // Force chart recreation
+      if (chartInstance) {
+        console.log('SalesChart: Destroying existing chart before recreation')
+        chartInstance.destroy()
+        chartInstance = null
+      }
+      
       nextTick(() => {
         createChart()
       })
-    }, { deep: true })
+    }, { deep: true, immediate: true })
 
     onMounted(() => {
       nextTick(() => {
         createChart()
       })
+    })
+
+    onUnmounted(() => {
+      if (chartInstance) {
+        console.log('SalesChart: Destroying chart on unmount')
+        chartInstance.destroy()
+        chartInstance = null
+      }
     })
 
     return {

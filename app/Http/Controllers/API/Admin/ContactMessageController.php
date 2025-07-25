@@ -2,58 +2,36 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\ContactMessage;
+use App\Http\Controllers\Api\BaseApiController;
+use App\Services\Admin\ContactMessageAdminService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Controllers\Api\BaseApiController;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Http\JsonResponse;
+use App\Http\Requests\Admin\ContactMessageRespondRequest;
 
 class ContactMessageController extends BaseApiController
 {
+    private ContactMessageAdminService $contactMessageAdminService;
+
+    public function __construct(ContactMessageAdminService $contactMessageAdminService)
+    {
+        $this->contactMessageAdminService = $contactMessageAdminService;
+    }
+
     /**
      * Display a listing of the messages.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param  Request  $request
+     * @return JsonResponse
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         try {
-            $query = ContactMessage::query();
-            
-            // Apply search filter
-            if ($request->has('search') && !empty($request->search)) {
-                $search = $request->search;
-                $query->where(function($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhere('subject', 'like', "%{$search}%")
-                      ->orWhere('message', 'like', "%{$search}%");
-                });
-            }
-            
-            // Apply status filter
-            if ($request->has('status') && !empty($request->status)) {
-                $query->where('status', $request->status);
-            }
-            
-            // Apply sorting
-            $sortField = $request->sort_field ?? 'created_at';
-            $sortDirection = $request->sort_direction ?? 'desc';
-            
-            // Validate sort field to prevent SQL injection
-            $allowedSortFields = ['created_at', 'name', 'email', 'subject', 'status'];
-            if (!in_array($sortField, $allowedSortFields)) {
-                $sortField = 'created_at';
-            }
-            
-            $query->orderBy($sortField, $sortDirection);
-            
-            // Paginate results
+            $filters = $request->all();
             $perPage = $this->getPerPage($request);
-            $messages = $query->paginate($perPage);
-            
-            return $this->successResponse('Wiadomości kontaktowe pobrane pomyślnie', $messages);
+            $messages = $this->contactMessageAdminService->getMessagesWithFilters($filters, $perPage);
+            return $this->successResponse($messages, 'Wiadomości kontaktowe pobrane pomyślnie');
         } catch (\Exception $e) {
             return $this->errorResponse('Błąd podczas pobierania wiadomości kontaktowych: ' . $e->getMessage(), 500);
         }
@@ -63,22 +41,22 @@ class ContactMessageController extends BaseApiController
      * Display the specified message.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function show($id)
+    public function show($id): JsonResponse
     {
-        $message = ContactMessage::findOrFail($id);
-        return $this->successResponse('Wiadomość kontaktowa pobrana pomyślnie', $message);
+        $message = $this->contactMessageAdminService->getById($id);
+        return $this->successResponse($message, 'Wiadomość kontaktowa pobrana pomyślnie');
     }
 
     /**
      * Update the message status.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function updateStatus(Request $request, $id)
+    public function updateStatus(Request $request, $id): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'status' => 'required|string|in:unread,read,replied',
@@ -88,39 +66,30 @@ class ContactMessageController extends BaseApiController
             return $this->validationError($validator->errors());
         }
 
-        $message = ContactMessage::findOrFail($id);
-        $message->status = $request->status;
-        $message->save();
-
-        return $this->successResponse('Wiadomość została zaktualizowana', $message);
+        $message = $this->contactMessageAdminService->updateStatus($id, $request->status);
+        return $this->successResponse($message, 'Wiadomość została zaktualizowana');
     }
 
     /**
      * Mark a message as read.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function markAsRead($id)
+    public function markAsRead($id): JsonResponse
     {
-        $message = ContactMessage::findOrFail($id);
-        
-        if ($message->status === 'unread') {
-            $message->status = 'read';
-            $message->save();
-        }
-
-        return response()->json($message);
+        $message = $this->contactMessageAdminService->markAsRead($id);
+        return $this->successResponse($message, 'Wiadomość oznaczona jako przeczytana');
     }
 
     /**
      * Update the message notes.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function updateNotes(Request $request, $id)
+    public function updateNotes(Request $request, $id): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'notes' => 'nullable|string',
@@ -130,45 +99,34 @@ class ContactMessageController extends BaseApiController
             return $this->validationError($validator->errors());
         }
 
-        $message = ContactMessage::findOrFail($id);
-        $message->notes = $request->notes;
-        $message->save();
-
-        return $this->successResponse('Wiadomość została zaktualizowana', $message);
+        $message = $this->contactMessageAdminService->updateNotes($id, $request->notes);
+        return $this->successResponse($message, 'Wiadomość została zaktualizowana');
     }
 
     /**
      * Remove the specified message from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function destroy($id)
+    public function destroy($id): JsonResponse
     {
-        $message = ContactMessage::findOrFail($id);
-        $message->delete();
-
-        return $this->successResponse('Wiadomość została usunięta', null, 204);
+        $this->contactMessageAdminService->deleteById($id);
+        return $this->successResponse(null, 'Wiadomość została usunięta', 204);
     }
 
     /**
      * Send a response to the contact message.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  ContactMessageRespondRequest  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function respond(ContactMessageRespondRequest $request, $id)
+    public function respond(ContactMessageRespondRequest $request, $id): JsonResponse
     {
-        $contactMessage = ContactMessage::findOrFail($id);
-        
         try {
-            // Here you would typically send an email to the contact
-            // For now, we'll just store the reply
-            $contactMessage->reply = $request->message;
-            $contactMessage->save();
-            
-            return $this->successResponse('Odpowiedź została wysłana');
+            $message = $this->contactMessageAdminService->respond($id, $request->message);
+            return $this->successResponse($message, 'Odpowiedź została wysłana');
         } catch (\Exception $e) {
             return $this->errorResponse('Błąd podczas wysyłania odpowiedzi: ' . $e->getMessage(), 500);
         }
