@@ -64,7 +64,7 @@ class PromotionController extends BaseApiController
             return $promotion;
         });
 
-        return response()->json($promotions);
+        return $this->paginatedResponse($promotions);
     }
 
     /**
@@ -97,7 +97,7 @@ class PromotionController extends BaseApiController
             return $promotion;
         });
 
-        return response()->json($promotions);
+        return $this->successResponse($promotions, 'Featured promotions fetched successfully');
     }
 
     /**
@@ -113,7 +113,7 @@ class PromotionController extends BaseApiController
             $query->with(['category:id,name', 'brand:id,name']);
         }]);
         
-        return response()->json($promotion);
+        return $this->successResponse($promotion, 'Promotion details fetched successfully');
     }
 
     /**
@@ -167,7 +167,7 @@ class PromotionController extends BaseApiController
             return $product;
         });
 
-        return response()->json($products);
+        return $this->paginatedResponse($products);
     }
 
     /**
@@ -276,7 +276,7 @@ class PromotionController extends BaseApiController
     public function getAvailableProducts(Request $request): JsonResponse
     {
         $products = $this->promotionAdminService->getAvailableProducts($request);
-        return response()->json($products);
+        return $this->successResponse($products, 'Available products fetched successfully');
     }
 
     /**

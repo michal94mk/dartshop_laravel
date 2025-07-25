@@ -90,7 +90,7 @@ class ReviewController extends BaseApiController
     {
         try {
             $review = Review::with(['product', 'user'])->findOrFail($id);
-            return $this->successResponse('Recenzja pobrana', $review);
+            return $this->successResponse($review, 'Recenzja pobrana');
         } catch (\Exception $e) {
             return $this->errorResponse('Recenzja nie została znaleziona', 404);
         }
@@ -124,7 +124,7 @@ class ReviewController extends BaseApiController
             }
             
             $review->update($validated);
-            return $this->successResponse('Recenzja została zaktualizowana', $review);
+            return $this->successResponse($review, 'Recenzja została zaktualizowana');
         } catch (\Illuminate\Database\QueryException $e) {
             // Handle duplicate key error
             if ($e->getCode() == 23000 && strpos($e->getMessage(), 'reviews_user_id_product_id_unique') !== false) {
@@ -165,7 +165,7 @@ class ReviewController extends BaseApiController
             $review = Review::findOrFail($id);
             $review->is_approved = true;
             $review->save();
-            return $this->successResponse('Recenzja została zatwierdzona', $review);
+            return $this->successResponse($review, 'Recenzja została zatwierdzona');
         } catch (\Exception $e) {
             return $this->errorResponse('Błąd podczas zatwierdzania recenzji: ' . $e->getMessage(), 500);
         }
@@ -183,7 +183,7 @@ class ReviewController extends BaseApiController
             $review = Review::findOrFail($id);
             $review->is_approved = false;
             $review->save();
-            return $this->successResponse('Recenzja została odrzucona', $review);
+            return $this->successResponse($review, 'Recenzja została odrzucona');
         } catch (\Exception $e) {
             return $this->errorResponse('Błąd podczas odrzucania recenzji: ' . $e->getMessage(), 500);
         }
@@ -220,10 +220,7 @@ class ReviewController extends BaseApiController
                 ? 'Recenzja została wyróżniona.' 
                 : 'Recenzja została usunięta z wyróżnienia.';
                 
-            return response()->json([
-                'review' => $review,
-                'message' => $message
-            ]);
+            return $this->successResponse(['review' => $review], $message);
         } catch (\Exception $e) {
             return $this->errorResponse('Błąd podczas przełączania statusu wyróżnienia: ' . $e->getMessage(), 500);
         }
@@ -240,10 +237,10 @@ class ReviewController extends BaseApiController
             $users = User::select('id', 'name', 'email')->get();
             $products = Product::select('id', 'name')->get();
             
-            return response()->json([
+            return $this->successResponse([
                 'users' => $users,
                 'products' => $products
-            ]);
+            ], 'Form data fetched successfully');
         } catch (\Exception $e) {
             return $this->errorResponse('Błąd podczas pobierania danych formularza: ' . $e->getMessage(), 500);
         }
@@ -259,10 +256,10 @@ class ReviewController extends BaseApiController
         try {
             $featuredCount = Review::approvedAndFeatured()->count();
             
-            return response()->json([
+            return $this->successResponse([
                 'featured_count' => $featuredCount,
                 'max_featured' => 6
-            ]);
+            ], 'Featured reviews count fetched successfully');
         } catch (\Exception $e) {
             return $this->errorResponse('Błąd podczas pobierania liczby wyróżnionych: ' . $e->getMessage(), 500);
         }

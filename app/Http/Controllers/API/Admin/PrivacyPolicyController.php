@@ -19,7 +19,7 @@ class PrivacyPolicyController extends BaseApiController
         try {
             $policies = PrivacyPolicy::orderBy('created_at', 'desc')->get();
             
-            return $this->successResponse('Polityki prywatności pobrane pomyślnie', $policies);
+            return $this->successResponse($policies, 'Polityki prywatności pobrane pomyślnie');
         } catch (\Exception $e) {
             Log::error('Failed to get privacy policies', [
                 'error' => $e->getMessage(),
@@ -46,7 +46,7 @@ class PrivacyPolicyController extends BaseApiController
                 $policy->setAsActive();
             }
 
-            return $this->successResponse('Polityka prywatności została utworzona', $policy);
+            return $this->successResponse($policy, 'Polityka prywatności została utworzona');
         } catch (\Exception $e) {
             Log::error('Failed to create privacy policy', [
                 'error' => $e->getMessage(),
@@ -67,7 +67,7 @@ class PrivacyPolicyController extends BaseApiController
     public function show(PrivacyPolicy $privacyPolicy)
     {
         try {
-            return $this->successResponse('Polityka prywatności pobrana pomyślnie', $privacyPolicy);
+            return $this->successResponse($privacyPolicy, 'Polityka prywatności pobrana pomyślnie');
         } catch (\Exception $e) {
             Log::error('Failed to get privacy policy', [
                 'error' => $e->getMessage(),
@@ -96,7 +96,7 @@ class PrivacyPolicyController extends BaseApiController
                 $privacyPolicy->setAsActive();
             }
 
-            return $this->successResponse('Polityka prywatności została zaktualizowana', $privacyPolicy);
+            return $this->successResponse($privacyPolicy, 'Polityka prywatności została zaktualizowana');
         } catch (\Exception $e) {
             Log::error('Failed to update privacy policy', [
                 'error' => $e->getMessage(),
@@ -148,7 +148,7 @@ class PrivacyPolicyController extends BaseApiController
         try {
             $privacyPolicy->setAsActive();
 
-            return $this->successResponse('Polityka prywatności została ustawiona jako aktywna', $privacyPolicy->fresh());
+            return $this->successResponse($privacyPolicy->fresh(), 'Polityka prywatności została ustawiona jako aktywna');
         } catch (\Exception $e) {
             Log::error('Failed to set privacy policy as active', [
                 'error' => $e->getMessage(),

@@ -57,6 +57,6 @@ class NewsletterController extends BaseApiController
     public function stats(): JsonResponse
     {
         $stats = $this->newsletterAdminService->getStats();
-        return response()->json($stats);
+        return $this->successResponse($stats, 'Newsletter statistics fetched successfully');
     }
 }

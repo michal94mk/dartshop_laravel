@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Models\TermsOfService;
 use App\Http\Requests\Admin\TermsOfServiceRequest;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Services\Admin\TermsOfServiceAdminService;
 
@@ -139,7 +137,7 @@ class TermsOfServiceController extends BaseApiController
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        return response()->json($users);
+        return $this->paginatedResponse($users);
     }
 
     /**
@@ -158,12 +156,12 @@ class TermsOfServiceController extends BaseApiController
             ->where('terms_of_service_accepted_at', '>=', now()->subDays(30))
             ->count();
 
-        return response()->json([
+        return $this->successResponse([
             'total_users' => $totalUsers,
             'accepted_users' => $acceptedUsers,
             'not_accepted_users' => $notAcceptedUsers,
             'acceptance_rate' => $acceptanceRate,
             'recent_acceptances' => $recentAcceptances
-        ]);
+        ], 'Terms of service acceptance stats fetched successfully');
     }
 } 

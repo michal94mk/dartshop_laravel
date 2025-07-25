@@ -53,7 +53,7 @@ class UserController extends BaseApiController
         if (!$user) {
             return $this->notFoundResponse('User not found');
         }
-        return $this->successResponse('User fetched', $user);
+        return $this->successResponse($user, 'User fetched');
     }
 
     /**
