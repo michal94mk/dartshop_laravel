@@ -672,9 +672,19 @@ export default {
         console.log('Auth state:', authStore.$state);
         
         const response = await axios.get('/api/admin/products', { params });
-        products.value = response.data.data || { data: [], current_page: 1, last_page: 1, per_page: 15, total: 0 };
+        const pag = response.data.pagination || {};
+        products.value = {
+          data: response.data.data || [],
+          current_page: pag.current_page ?? 1,
+          last_page: pag.last_page ?? 1,
+          per_page: pag.per_page ?? 15,
+          total: pag.total ?? 0,
+          from: pag.from ?? 0,
+          to: pag.to ?? 0
+        };
         
         console.log('Products API response:', response.data);
+        console.log('products.value:', products.value);
         // Usuń logowanie z .map, bo products.data nie jest tablicą na tym poziomie
         // if (response.data.data) {
         //   console.log('Product image URLs:', response.data.data.map(p => ({

@@ -64,7 +64,7 @@
     <!-- Content -->
     <div class="bg-white shadow rounded-lg">
       <loading-spinner v-if="loading" />
-      <div v-if="!loading && promotions.length > 0" class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
+      <div v-if="!loading && Array.isArray(promotions) && promotions.length > 0" class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
         <div class="overflow-x-auto -mx-6 px-6" style="scrollbar-width: thin; scrollbar-color: #d1d5db #f3f4f6;">
           <table class="min-w-full divide-y divide-gray-200 whitespace-nowrap">
             <thead class="bg-gray-50">
@@ -79,7 +79,7 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="promotion in promotions" :key="promotion.id" class="hover:bg-gray-50">
+              <tr v-for="promotion in (Array.isArray(promotions) ? promotions : [])" :key="promotion.id" class="hover:bg-gray-50">
                 <!-- Title -->
                 <td class="px-4 py-4">
                   <div class="flex items-center">
@@ -105,8 +105,8 @@
                 <!-- Products -->
                 <td class="px-3 py-4 text-center">
                   <div class="flex flex-wrap gap-1 justify-center">
-                    <span v-for="product in promotion.products.slice(0, 2)" :key="product.id" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ product.name }}</span>
-                    <span v-if="promotion.products.length > 2" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">+{{ promotion.products.length - 2 }} więcej</span>
+                    <span v-for="product in (Array.isArray(promotion.products) ? promotion.products : []).slice(0, 2)" :key="product.id" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ product.name }}</span>
+                    <span v-if="(Array.isArray(promotion.products) ? promotion.products : []).length > 2" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">+{{ (Array.isArray(promotion.products) ? promotion.products : []).length - 2 }} więcej</span>
                   </div>
                 </td>
                 <!-- Dates -->
@@ -132,7 +132,7 @@
         </div>
       </div>
       <no-data-message 
-        v-if="!loading && (!promotions || promotions.length === 0)" 
+        v-if="!loading && (!Array.isArray(promotions) || promotions.length === 0)" 
         message="Brak promocji do wyświetlenia" 
       />
     </div>
@@ -287,7 +287,7 @@ export default {
     const alertStore = useAlertStore()
     
     const loading = ref(false)
-    const promotions = ref([])
+    const promotions = ref(null)
     const showModal = ref(false)
     const selectedPromotion = ref(null)
     const showDeleteModal = ref(false)
@@ -347,7 +347,6 @@ export default {
       loading.value = true
       try {
         const params = new URLSearchParams({
-          page: pagination.current_page,
           per_page: pagination.per_page
         })
 
@@ -360,15 +359,24 @@ export default {
 
         const response = await window.axios.get(`/api/admin/promotions?${params}`)
         
-        promotions.value = response.data.data.data || []
+        console.log('API Response:', response.data)
+        console.log('Promotions data:', response.data.data)
+        console.log('Pagination data:', response.data.pagination)
+        
+        promotions.value = response.data.data || []
         Object.assign(pagination, {
-          current_page: response.data.data.current_page,
-          last_page: response.data.data.last_page,
-          per_page: response.data.data.per_page,
-          total: response.data.data.total,
-          from: response.data.data.from,
-          to: response.data.data.to
+          current_page: response.data.pagination.current_page,
+          last_page: response.data.pagination.last_page,
+          per_page: response.data.pagination.per_page,
+          total: response.data.pagination.total,
+          from: response.data.pagination.from,
+          to: response.data.pagination.to
         })
+        // Synchronizuj filters.page z pagination.current_page
+        filters.page = response.data.pagination.current_page
+        
+        console.log('Promotions after assignment:', promotions.value)
+        console.log('Pagination after assignment:', pagination)
       } catch (error) {
         console.error('Błąd podczas pobierania promocji:', error)
         alertStore.error('Błąd podczas pobierania promocji')
@@ -378,8 +386,9 @@ export default {
     }
 
     const changePage = (page) => {
-      if (page >= 1 && page <= pagination.last_page) {
+      if (page >= 1) {
         pagination.current_page = page
+        filters.page = page
         fetchPromotions()
       }
     }

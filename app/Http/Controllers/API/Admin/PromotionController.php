@@ -3,19 +3,35 @@
 namespace App\Http\Controllers\API\Admin;
 
 use App\Models\Promotion;
-use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Validation\Rule;
 use App\Http\Requests\Admin\PromotionRequest;
 use App\Http\Controllers\Api\BaseApiController;
+use App\Services\Admin\PromotionAdminService;
 
+/**
+ * API controller for promotion management.
+ * Handles both public promotion endpoints and admin management operations.
+ */
 class PromotionController extends BaseApiController
 {
     /**
-     * Wyświetl listę promocji (publiczne API)
+     * @var PromotionAdminService
+     */
+    protected $promotionAdminService;
+
+    /**
+     * Inject the promotion admin service.
+     *
+     * @param PromotionAdminService $promotionAdminService
+     */
+    public function __construct(PromotionAdminService $promotionAdminService)
+    {
+        $this->promotionAdminService = $promotionAdminService;
+    }
+
+    /**
+     * Display a listing of promotions (public API).
      */
     public function indexPublic(Request $request): JsonResponse
     {
@@ -23,14 +39,14 @@ class PromotionController extends BaseApiController
                           ->active()
                           ->ordered();
 
-        // Filtrowanie dla publicznego API
+        // Filtering for public API
         if ($request->has('featured')) {
             $query->featured();
         }
 
         $promotions = $query->paginate($request->get('per_page', 10));
 
-        // Dodaj informacje o promocji do każdego produktu w każdej promocji
+        // Add promotion information to each product in each promotion
         $promotions->getCollection()->transform(function ($promotion) {
             $promotion->products->transform(function ($product) use ($promotion) {
                 $product->promotion_price = $promotion->calculateDiscountedPrice($product->price);
@@ -52,7 +68,7 @@ class PromotionController extends BaseApiController
     }
 
     /**
-     * Wyświetl wyróżnione promocje (publiczne API)
+     * Display featured promotions (public API).
      */
     public function featured(Request $request): JsonResponse
     {
@@ -63,7 +79,7 @@ class PromotionController extends BaseApiController
                               ->limit($request->get('limit', 5))
                               ->get();
 
-        // Dodaj informacje o promocji do każdego produktu w każdej promocji
+        // Add promotion information to each product in each promotion
         $promotions->transform(function ($promotion) {
             $promotion->products->transform(function ($product) use ($promotion) {
                 $product->promotion_price = $promotion->calculateDiscountedPrice($product->price);
@@ -85,7 +101,7 @@ class PromotionController extends BaseApiController
     }
 
     /**
-     * Pokaż szczegóły promocji (publiczne API)
+     * Show promotion details (public API).
      */
     public function showPublic(Promotion $promotion): JsonResponse
     {
@@ -101,7 +117,7 @@ class PromotionController extends BaseApiController
     }
 
     /**
-     * Pobierz produkty z promocji (publiczne API)
+     * Get products from promotion (public API).
      */
     public function getPromotionProducts(Request $request, Promotion $promotion): JsonResponse
     {
@@ -112,7 +128,7 @@ class PromotionController extends BaseApiController
         $query = $promotion->products()
                           ->with(['category:id,name', 'brand:id,name']);
 
-        // Filtrowanie
+        // Filtering
         if ($request->has('category_id')) {
             $query->where('category_id', $request->category_id);
         }
@@ -125,7 +141,7 @@ class PromotionController extends BaseApiController
             });
         }
 
-        // Sortowanie
+        // Sorting
         $sortBy = $request->get('sort_by', 'name');
         $sortDirection = $request->get('sort_direction', 'asc');
         
@@ -136,7 +152,7 @@ class PromotionController extends BaseApiController
 
         $products = $query->paginate($request->get('per_page', 12));
 
-        // Dodaj informacje o promocji do każdego produktu
+        // Add promotion information to each product
         $products->getCollection()->transform(function ($product) use ($promotion) {
             $product->promotion_price = $promotion->calculateDiscountedPrice($product->price);
             $product->savings = $promotion->getDiscountAmount($product->price);
@@ -155,195 +171,145 @@ class PromotionController extends BaseApiController
     }
 
     /**
-     * Wyświetl listę promocji (admin)
+     * Display a listing of promotions (admin).
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Promotion::with(['products:id,name,price,image_url'])
-                          ->ordered();
-
-        // Filtrowanie
-        if ($request->has('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->has('is_active')) {
-            $query->where('is_active', $request->boolean('is_active'));
-        }
-
-        if ($request->has('discount_type')) {
-            $query->where('discount_type', $request->discount_type);
-        }
-
-        if ($request->has('is_featured')) {
-            $query->where('is_featured', $request->boolean('is_featured'));
-        }
-
-        $promotions = $query->paginate($request->get('per_page', 15));
-
-        // Dodaj informacje o liczbie produktów dla każdej promocji
-        $promotions->getCollection()->transform(function ($promotion) {
-            $promotion->products_count = $promotion->products->count();
-            return $promotion;
-        });
-
-        return $this->successResponse('Promocje pobrane pomyślnie', $promotions);
+        $promotions = $this->promotionAdminService->getPromotionsWithFilters($request);
+        return $this->paginatedResponse($promotions);
     }
 
     /**
-     * Pokaż szczegóły promocji (admin)
+     * Show promotion details (admin).
+     *
+     * @param Promotion $promotion
+     * @return JsonResponse
      */
     public function show(Promotion $promotion): JsonResponse
     {
-        $promotion->load(['products:id,name,price,image_url']);
-        $promotion->products_count = $promotion->products->count();
-        return $this->successResponse('Promocja pobrana', $promotion);
+        $promotion = $this->promotionAdminService->getPromotionWithDetails($promotion);
+        return $this->successResponse($promotion, 'Promocja pobrana');
     }
 
     /**
-     * Utwórz nową promocję
+     * Create a new promotion.
+     *
+     * @param PromotionRequest $request
+     * @return JsonResponse
      */
     public function store(PromotionRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $promotion = Promotion::create($validated);
-        if (isset($validated['product_ids'])) {
-            $promotion->products()->sync($validated['product_ids']);
-        }
-        $promotion->load('products:id,name,price,image_url');
-        $promotion->products_count = $promotion->products->count();
-        return $this->successResponse('Promocja została utworzona', $promotion, 201);
+        $promotion = $this->promotionAdminService->createPromotion($validated);
+        return $this->successResponse($promotion, 'Promocja została utworzona', 201);
     }
 
     /**
-     * Zaktualizuj promocję
+     * Update an existing promotion.
+     *
+     * @param PromotionRequest $request
+     * @param Promotion $promotion
+     * @return JsonResponse
      */
     public function update(PromotionRequest $request, Promotion $promotion): JsonResponse
     {
         $validated = $request->validated();
-        $promotion->update($validated);
-        if (isset($validated['product_ids'])) {
-            $promotion->products()->sync($validated['product_ids']);
-        }
-        $promotion->load('products:id,name,price,image_url');
-        $promotion->products_count = $promotion->products->count();
-        return $this->successResponse('Promocja została zaktualizowana', $promotion);
+        $promotion = $this->promotionAdminService->updatePromotion($promotion, $validated);
+        return $this->successResponse($promotion, 'Promocja została zaktualizowana');
     }
 
     /**
-     * Usuń promocję
+     * Delete a promotion.
+     *
+     * @param Promotion $promotion
+     * @return JsonResponse
      */
     public function destroy(Promotion $promotion): JsonResponse
     {
-        $promotion->products()->detach();
-        $promotion->delete();
+        $this->promotionAdminService->deletePromotion($promotion);
         return $this->successResponse('Promocja została usunięta');
     }
 
     /**
-     * Przypisz produkty do promocji
+     * Attach products to a promotion.
+     *
+     * @param Request $request
+     * @param int $id
+     * @return JsonResponse
      */
     public function attachProducts(Request $request, $id): JsonResponse
     {
-        $promotion = Promotion::findOrFail($id);
         $validated = $request->validate([
             'product_ids' => 'required|array',
             'product_ids.*' => 'exists:products,id'
         ]);
-        $promotion->products()->syncWithoutDetaching($validated['product_ids']);
-        $promotion->load('products:id,name,price,image_url');
-        $promotion->products_count = $promotion->products->count();
-        return $this->successResponse('Produkty zostały przypisane do promocji', $promotion);
+        $promotion = $this->promotionAdminService->attachProducts($id, $validated['product_ids']);
+        return $this->successResponse($promotion, 'Produkty zostały przypisane do promocji');
     }
 
     /**
-     * Usuń produkty z promocji
+     * Detach products from a promotion.
+     *
+     * @param Request $request
+     * @param int $id
+     * @return JsonResponse
      */
     public function detachProducts(Request $request, $id): JsonResponse
     {
-        $promotion = Promotion::findOrFail($id);
         $validated = $request->validate([
             'product_ids' => 'required|array',
             'product_ids.*' => 'exists:products,id'
         ]);
-        $promotion->products()->detach($validated['product_ids']);
-        $promotion->load('products:id,name,price,image_url');
-        $promotion->products_count = $promotion->products->count();
-        return $this->successResponse('Produkty zostały usunięte z promocji', $promotion);
+        $promotion = $this->promotionAdminService->detachProducts($id, $validated['product_ids']);
+        return $this->successResponse($promotion, 'Produkty zostały usunięte z promocji');
     }
 
     /**
-     * Pobierz dostępne produkty (nie przypisane do żadnej aktywnej promocji)
+     * Get available products (not assigned to any active promotion).
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function getAvailableProducts(Request $request): JsonResponse
     {
-        $search = $request->get('search', '');
-        $excludePromotionId = $request->get('exclude_promotion_id');
-
-        $query = Product::with(['category:id,name', 'brand:id,name', 'promotions:id,title,name']);
-
-        // Wyszukiwanie
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        // Wykluczenie produktów już przypisanych do innych aktywnych promocji
-        // (ale pozwalamy na produkty z edytowanej promocji)
-        $query->whereDoesntHave('promotions', function ($q) use ($excludePromotionId) {
-            $q->where('is_active', true)
-              ->where('starts_at', '<=', now())
-              ->where(function ($subQ) {
-                  $subQ->whereNull('ends_at')
-                        ->orWhere('ends_at', '>=', now());
-              });
-            if ($excludePromotionId) {
-                $q->where('promotions.id', '!=', $excludePromotionId);
-            }
-        });
-
-        $products = $query->paginate($request->get('per_page', 20));
-
-        // Dodaj informacje o liczbie promocji dla każdego produktu
-        $products->getCollection()->transform(function ($product) {
-            $product->promotions_count = $product->promotions->count();
-            return $product;
-        });
-
+        $products = $this->promotionAdminService->getAvailableProducts($request);
         return response()->json($products);
     }
 
     /**
-     * Przełącz status aktywności promocji
+     * Toggle promotion active status.
+     *
+     * @param Promotion $promotion
+     * @return JsonResponse
      */
     public function toggleActive(Promotion $promotion): JsonResponse
     {
-        $promotion->update(['is_active' => !$promotion->is_active]);
-        $promotion->load('products:id,name,price,image_url');
-        $promotion->products_count = $promotion->products->count();
-        return $this->successResponse($promotion->is_active ? 'Promocja została aktywowana' : 'Promocja została dezaktywowana', $promotion);
+        $promotion = $this->promotionAdminService->toggleActive($promotion);
+        $message = $promotion->is_active ? 'Promocja została aktywowana' : 'Promocja została dezaktywowana';
+        return $this->successResponse($promotion, $message);
     }
 
     /**
-     * Przełącz status wyróżnienia promocji
+     * Toggle promotion featured status.
+     *
+     * @param Promotion $promotion
+     * @return JsonResponse
      */
     public function toggleFeatured(Promotion $promotion): JsonResponse
     {
-        $promotion->update(['is_featured' => !$promotion->is_featured]);
-        $promotion->load('products:id,name,price,image_url');
-        $promotion->products_count = $promotion->products->count();
-        return $this->successResponse($promotion->is_featured ? 'Promocja została wyróżniona' : 'Promocja została usunięta z wyróżnionych', $promotion);
+        $promotion = $this->promotionAdminService->toggleFeatured($promotion);
+        $message = $promotion->is_featured ? 'Promocja została wyróżniona' : 'Promocja została usunięta z wyróżnionych';
+        return $this->successResponse($promotion, $message);
     }
 
     /**
-     * Zaktualizuj kolejność wyświetlania promocji
+     * Update promotion display order.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function updateOrder(Request $request): JsonResponse
     {
@@ -352,10 +318,18 @@ class PromotionController extends BaseApiController
             'promotions.*.id' => 'required|exists:promotions,id',
             'promotions.*.display_order' => 'required|integer|min:0'
         ]);
-        foreach ($validated['promotions'] as $promotionData) {
-            Promotion::where('id', $promotionData['id'])
-                    ->update(['display_order' => $promotionData['display_order']]);
-        }
+        $this->promotionAdminService->updateOrder($validated['promotions']);
         return $this->successResponse('Kolejność promocji została zaktualizowana');
+    }
+
+    /**
+     * Get form data for promotion creation/editing.
+     *
+     * @return JsonResponse
+     */
+    public function getFormData(): JsonResponse
+    {
+        $formData = $this->promotionAdminService->getFormData();
+        return $this->successResponse($formData, 'Dane formularza pobrane');
     }
 } 

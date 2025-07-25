@@ -324,7 +324,16 @@ export default {
         }
         
         const response = await axios.get('/api/admin/categories', { params })
-        categories.value = response.data.data
+        const pag = response.data.pagination || {};
+        categories.value = {
+          data: response.data.data || [],
+          current_page: pag.current_page ?? 1,
+          last_page: pag.last_page ?? 1,
+          per_page: pag.per_page ?? 15,
+          total: pag.total ?? 0,
+          from: pag.from ?? 0,
+          to: pag.to ?? 0
+        };
       } catch (error) {
         console.error('Error fetching categories:', error);
         

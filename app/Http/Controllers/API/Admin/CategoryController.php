@@ -4,178 +4,100 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Cache;
 use App\Http\Requests\Admin\CategoryRequest;
 use App\Http\Controllers\Api\BaseApiController;
+use App\Services\Admin\CategoryAdminService;
 
+/**
+ * API controller for admin category management.
+ * Handles requests for listing, creating, updating, deleting categories.
+ */
 class CategoryController extends BaseApiController
 {
     /**
-     * Clear all category-related cache
+     * @var CategoryAdminService
      */
-    private function clearCategoriesCache()
+    protected $categoryAdminService;
+
+    /**
+     * Inject the category admin service.
+     *
+     * @param CategoryAdminService $categoryAdminService
+     */
+    public function __construct(CategoryAdminService $categoryAdminService)
     {
-        // Get all cache keys that might contain category data
-        $patterns = [
-            'categories_list_*',
-            'category_detail_*'
-        ];
-        
-        // Clear cache by pattern (Laravel doesn't have built-in pattern clearing, so we'll clear common ones)
-        $commonKeys = [
-            'categories_list_' . md5('[]'),
-            'categories_list_' . md5('{}'),
-            'categories_list_' . md5('{"with_products_only":true}'),
-            'categories_list_' . md5('{"with_products_only":false}'),
-        ];
-        
-        foreach ($commonKeys as $key) {
-            Cache::forget($key);
-        }
+        $this->categoryAdminService = $categoryAdminService;
     }
 
     /**
      * Display a listing of the categories.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
     {
-        try {
-            $query = Category::withCount('products');
-            
-            // Apply search filter
-            if ($request->has('search') && !empty($request->search)) {
-                $search = $request->search;
-                $query->where('name', 'like', "%{$search}%");
-            }
-            
-            // Apply sorting
-            $sortField = $request->sort_field ?? 'created_at';
-            $sortDirection = $request->sort_direction ?? 'desc';
-            
-            // Handle special case for products_count which is not a direct database column
-            if ($sortField === 'products_count') {
-                $query->orderBy('products_count', $sortDirection);
-            } else {
-                // Make sure the column exists in the categories table to prevent SQL errors
-                if (in_array($sortField, ['id', 'name', 'created_at', 'updated_at'])) {
-                    $query->orderBy($sortField, $sortDirection);
-                } else {
-                    $query->orderBy('created_at', 'desc'); // Default fallback
-                }
-            }
-            
-            // Paginate results
-            $perPage = $request->per_page ?? 10;
-            $categories = $query->paginate($perPage);
-            
-            return $this->successResponse('Kategorie pobrane pomyślnie', $categories);
-        } catch (\Exception $e) {
-            return $this->errorResponse('Błąd podczas pobierania kategorii: ' . $e->getMessage(), 500);
-        }
+        $categories = $this->categoryAdminService->getCategoriesWithFilters($request);
+        return $this->paginatedResponse($categories);
     }
 
     /**
      * Store a newly created category in storage.
      *
-     * @param  \App\Http\Requests\Admin\CategoryRequest  $request
+     * @param CategoryRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(CategoryRequest $request)
     {
-        try {
-            $category = Category::create($request->validated());
-
-            // Clear all categories cache
-            $this->clearCategoriesCache();
-
-            return $this->successResponse('Kategoria została utworzona', $category, 201);
-        } catch (\Exception $e) {
-            return $this->errorResponse('Błąd podczas tworzenia kategorii: ' . $e->getMessage(), 500);
-        }
+        $category = $this->categoryAdminService->createCategory($request->validated());
+        return $this->successResponse($category, 'Kategoria została utworzona', 201);
     }
 
     /**
      * Display the specified category.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
-        try {
-            $category = Category::with('products')->findOrFail($id);
-            return $this->successResponse('Kategoria pobrana pomyślnie', $category);
-        } catch (\Exception $e) {
-            return $this->errorResponse('Błąd podczas pobierania kategorii: ' . $e->getMessage(), 404);
+        $category = $this->categoryAdminService->getCategoryWithDetails($id);
+        if (!$category) {
+            return $this->errorResponse('Category not found', 404);
         }
+        return $this->successResponse($category, 'Category retrieved');
     }
 
     /**
      * Update the specified category in storage.
      *
-     * @param  \App\Http\Requests\Admin\CategoryRequest  $request
-     * @param  int  $id
+     * @param CategoryRequest $request
+     * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function update(CategoryRequest $request, $id)
     {
-        try {
-            $category = Category::findOrFail($id);
-
-            $category->update($request->validated());
-
-            // Clear all categories cache
-            $this->clearCategoriesCache();
-            Cache::forget('category_detail_' . $id);
-
-            return $this->successResponse('Kategoria została zaktualizowana', $category);
-        } catch (\Exception $e) {
-            return $this->errorResponse('Błąd podczas aktualizacji kategorii: ' . $e->getMessage(), 500);
+        $category = Category::find($id);
+        if (!$category) {
+            return $this->errorResponse('Category not found', 404);
         }
+        $category = $this->categoryAdminService->updateCategory($category, $request->validated());
+        return $this->successResponse($category, 'Kategoria została zaktualizowana');
     }
 
     /**
      * Remove the specified category from storage.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {
-        try {
-            $category = Category::findOrFail($id);
-            
-            // Update all products with this category to have null category_id
-            if ($category->products()->count() > 0) {
-                $affectedProductsCount = $category->products()->count();
-                $category->products()->update(['category_id' => null]);
-                
-                // Clear all categories cache since product relationships changed
-                $this->clearCategoriesCache();
-                
-                $category->delete();
-                
-                Cache::forget('category_detail_' . $id);
-                
-                return $this->successResponse(
-                    "Kategoria \"{$category->name}\" została usunięta. " .
-                    "{$affectedProductsCount} produktów zostało odłączonych od tej kategorii i może być teraz filtrowanych jako 'Bez kategorii'."
-                );
-            }
-            
-            $category->delete();
-            
-            // Clear all categories cache
-            $this->clearCategoriesCache();
-            Cache::forget('category_detail_' . $id);
-            
-            return $this->successResponse('Kategoria została usunięta');
-        } catch (\Exception $e) {
-            return $this->errorResponse('Błąd podczas usuwania kategorii: ' . $e->getMessage(), 500);
+        $category = Category::find($id);
+        if (!$category) {
+            return $this->errorResponse('Category not found', 404);
         }
+        $result = $this->categoryAdminService->deleteCategory($category);
+        return $this->successResponse('Kategoria została usunięta');
     }
 } 

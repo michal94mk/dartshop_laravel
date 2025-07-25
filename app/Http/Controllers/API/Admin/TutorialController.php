@@ -61,7 +61,7 @@ class TutorialController extends BaseApiController
     {
         try {
             $tutorial = $this->tutorialAdminService->createTutorial($request->validated());
-            return $this->createdResponse($tutorial, 'Tutorial created successfully');
+            return $this->successResponse($tutorial, 'Poradnik został utworzony', 201);
         } catch (\Exception $e) {
             return $this->handleException($e, 'Creating tutorial');
         }
@@ -81,8 +81,8 @@ class TutorialController extends BaseApiController
             if (!$tutorial) {
                 return $this->notFoundResponse('Tutorial not found');
             }
-            $updated = $this->tutorialAdminService->updateTutorial($tutorial, $request->validated());
-            return $this->successResponse($updated, 'Tutorial updated successfully');
+            $tutorial = $this->tutorialAdminService->updateTutorial($tutorial, $request->validated());
+            return $this->successResponse($tutorial, 'Poradnik został zaktualizowany');
         } catch (\Exception $e) {
             return $this->handleException($e, 'Updating tutorial');
         }
@@ -101,8 +101,8 @@ class TutorialController extends BaseApiController
             if (!$tutorial) {
                 return $this->notFoundResponse('Tutorial not found');
             }
-            $this->tutorialAdminService->deleteTutorial($tutorial);
-            return $this->successResponse(null, 'Tutorial deleted successfully');
+            $result = $this->tutorialAdminService->deleteTutorial($tutorial);
+            return $this->successResponse('Poradnik został usunięty');
         } catch (\Exception $e) {
             return $this->handleException($e, 'Deleting tutorial');
         }

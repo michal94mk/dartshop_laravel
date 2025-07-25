@@ -260,7 +260,21 @@ export default {
       try {
         loading.value = true
         const response = await axios.get('/api/admin/brands', { params: filters })
-        brands.value = response.data.data
+        console.log('Raw API response for brands:', response.data)
+        
+        // Assign data and pagination from the response
+        brands.value = {
+          data: response.data.data,
+          current_page: response.data.pagination.current_page,
+          last_page: response.data.pagination.last_page,
+          per_page: response.data.pagination.per_page,
+          total: response.data.pagination.total,
+          from: response.data.pagination.from,
+          to: response.data.pagination.to
+        }
+        
+        // Synchronize filters with pagination
+        filters.page = response.data.pagination.current_page
       } catch (error) {
         console.error('Error fetching brands:', error)
         
