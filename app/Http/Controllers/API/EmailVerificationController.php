@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
-use Exception;
 
 class EmailVerificationController extends BaseApiController
 {
@@ -58,25 +57,21 @@ class EmailVerificationController extends BaseApiController
      */
     public function sendVerificationEmail(Request $request): JsonResponse
     {
-        try {
-            $this->logApiRequest($request, 'Resend verification email');
-            
-            $user = $request->user();
+        $this->logApiRequest($request, 'Resend verification email');
+        
+        $user = $request->user();
 
-            // Prevent email verification for Google OAuth users
-            if (!empty($user->google_id)) {
-                return $this->errorResponse('Użytkownicy zalogowani przez Google OAuth mają już zweryfikowany email.', 400);
-            }
-
-            if ($user->hasVerifiedEmail()) {
-                return $this->successResponse(null, 'Adres e-mail jest już zweryfikowany.');
-            }
-
-            $user->sendEmailVerificationNotification();
-
-            return $this->successResponse(null, 'Link weryfikacyjny został wysłany ponownie.');
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Sending verification email');
+        // Prevent email verification for Google OAuth users
+        if (!empty($user->google_id)) {
+            return $this->errorResponse('Użytkownicy zalogowani przez Google OAuth mają już zweryfikowany email.', 400);
         }
+
+        if ($user->hasVerifiedEmail()) {
+            return $this->successResponse(null, 'Adres e-mail jest już zweryfikowany.');
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return $this->successResponse(null, 'Link weryfikacyjny został wysłany ponownie.');
     }
 } 

@@ -16,18 +16,9 @@ class PrivacyPolicyController extends BaseApiController
      */
     public function index()
     {
-        try {
-            $policies = PrivacyPolicy::orderBy('created_at', 'desc')->get();
-            
-            return $this->successResponse($policies, 'Polityki prywatności pobrane pomyślnie');
-        } catch (\Exception $e) {
-            Log::error('Failed to get privacy policies', [
-                'error' => $e->getMessage(),
-                'method' => __METHOD__
-            ]);
-            
-            return $this->errorResponse('Błąd podczas pobierania polityk prywatności: ' . $e->getMessage(), 500);
-        }
+        $policies = PrivacyPolicy::orderBy('created_at', 'desc')->get();
+        
+        return $this->successResponse($policies, 'Polityki prywatności pobrane pomyślnie');
     }
 
     /**
@@ -38,126 +29,79 @@ class PrivacyPolicyController extends BaseApiController
      */
     public function store(PrivacyPolicyRequest $request)
     {
-        try {
-            $policy = PrivacyPolicy::create($request->validated());
+        $policy = PrivacyPolicy::create($request->validated());
 
-            // If this policy is set as active, deactivate others
-            if ($policy->is_active) {
-                $policy->setAsActive();
-            }
-
-            return $this->successResponse($policy, 'Polityka prywatności została utworzona');
-        } catch (\Exception $e) {
-            Log::error('Failed to create privacy policy', [
-                'error' => $e->getMessage(),
-                'request_data' => $request->validated(),
-                'method' => __METHOD__
-            ]);
-            
-            return $this->errorResponse('Błąd podczas tworzenia polityki prywatności: ' . $e->getMessage(), 500);
+        // If this policy is set as active, deactivate others
+        if ($policy->is_active) {
+            $policy->setAsActive();
         }
+
+        return $this->successResponse($policy, 'Polityka prywatności została utworzona');
     }
 
     /**
      * Display the specified privacy policy.
      *
-     * @param PrivacyPolicy $privacyPolicy
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show(PrivacyPolicy $privacyPolicy)
+    public function show($id)
     {
-        try {
-            return $this->successResponse($privacyPolicy, 'Polityka prywatności pobrana pomyślnie');
-        } catch (\Exception $e) {
-            Log::error('Failed to get privacy policy', [
-                'error' => $e->getMessage(),
-                'policy_id' => $privacyPolicy->id ?? null,
-                'method' => __METHOD__
-            ]);
-            
-            return $this->errorResponse('Błąd podczas pobierania polityki prywatności: ' . $e->getMessage(), 500);
-        }
+        $privacyPolicy = PrivacyPolicy::findOrFail($id);
+        return $this->successResponse($privacyPolicy, 'Polityka prywatności pobrana pomyślnie');
     }
 
     /**
      * Update the specified privacy policy.
      *
-     * @param PrivacyPolicyRequest $request
-     * @param PrivacyPolicy $privacyPolicy
+     * @param  PrivacyPolicyRequest  $request
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(PrivacyPolicyRequest $request, PrivacyPolicy $privacyPolicy)
+    public function update(PrivacyPolicyRequest $request, $id)
     {
-        try {
-            $privacyPolicy->update($request->validated());
+        $privacyPolicy = PrivacyPolicy::findOrFail($id);
+        $privacyPolicy->update($request->validated());
 
-            // If this policy is set as active, deactivate others
-            if ($privacyPolicy->is_active) {
-                $privacyPolicy->setAsActive();
-            }
-
-            return $this->successResponse($privacyPolicy, 'Polityka prywatności została zaktualizowana');
-        } catch (\Exception $e) {
-            Log::error('Failed to update privacy policy', [
-                'error' => $e->getMessage(),
-                'policy_id' => $privacyPolicy->id,
-                'request_data' => $request->validated(),
-                'method' => __METHOD__
-            ]);
-            
-            return $this->errorResponse('Błąd podczas aktualizacji polityki prywatności: ' . $e->getMessage(), 500);
+        // If this policy is set as active, deactivate others
+        if ($privacyPolicy->is_active) {
+            $privacyPolicy->setAsActive();
         }
+
+        return $this->successResponse($privacyPolicy, 'Polityka prywatności została zaktualizowana');
     }
 
     /**
      * Remove the specified privacy policy.
      *
-     * @param PrivacyPolicy $privacyPolicy
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(PrivacyPolicy $privacyPolicy)
+    public function destroy($id)
     {
-        try {
-            // Don't allow deletion of active policy
-            if ($privacyPolicy->is_active) {
-                return $this->errorResponse('Nie można usunąć aktywnej polityki prywatności', 422);
-            }
-
-            $privacyPolicy->delete();
-
-            return $this->successResponse('Polityka prywatności została usunięta');
-        } catch (\Exception $e) {
-            Log::error('Failed to delete privacy policy', [
-                'error' => $e->getMessage(),
-                'policy_id' => $privacyPolicy->id,
-                'method' => __METHOD__
-            ]);
-            
-            return $this->errorResponse('Błąd podczas usuwania polityki prywatności: ' . $e->getMessage(), 500);
+        $privacyPolicy = PrivacyPolicy::findOrFail($id);
+        
+        // Don't allow deletion of active policy
+        if ($privacyPolicy->is_active) {
+            return $this->errorResponse('Nie można usunąć aktywnej polityki prywatności', 422);
         }
+        
+        $privacyPolicy->delete();
+        return $this->successResponse(null, 'Polityka prywatności została usunięta');
     }
 
     /**
      * Set the specified privacy policy as active.
      *
-     * @param PrivacyPolicy $privacyPolicy
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function setActive(PrivacyPolicy $privacyPolicy)
+    public function setActive($id)
     {
-        try {
-            $privacyPolicy->setAsActive();
+        $privacyPolicy = PrivacyPolicy::findOrFail($id);
+        $privacyPolicy->setAsActive();
 
-            return $this->successResponse($privacyPolicy->fresh(), 'Polityka prywatności została ustawiona jako aktywna');
-        } catch (\Exception $e) {
-            Log::error('Failed to set privacy policy as active', [
-                'error' => $e->getMessage(),
-                'policy_id' => $privacyPolicy->id,
-                'method' => __METHOD__
-            ]);
-            
-            return $this->errorResponse('Błąd podczas ustawiania polityki prywatności jako aktywnej: ' . $e->getMessage(), 500);
-        }
+        return $this->successResponse($privacyPolicy->fresh(), 'Polityka prywatności została ustawiona jako aktywna');
     }
 
     /**

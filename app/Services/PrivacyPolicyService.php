@@ -1,33 +1,31 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Services;
 
 use App\Models\PrivacyPolicy;
-use Illuminate\Http\Request;
 
-class PrivacyPolicyController extends Controller
+class PrivacyPolicyService
 {
     /**
-     * Display the current privacy policy.
+     * Get the current privacy policy or default one if none exists.
+     *
+     * @return object
      */
-    public function show()
+    public function getPrivacyPolicy(): object
     {
         $privacyPolicy = PrivacyPolicy::getActive();
         
         if (!$privacyPolicy) {
-            // Return default policy if none exists
-            $privacyPolicy = $this->getDefaultPrivacyPolicy();
+            return $this->getDefaultPrivacyPolicy();
         }
         
-        return response()->json([
-            'privacy_policy' => $privacyPolicy
-        ]);
+        return $privacyPolicy;
     }
 
     /**
      * Get default privacy policy content.
      */
-    private function getDefaultPrivacyPolicy()
+    private function getDefaultPrivacyPolicy(): object
     {
         return (object) [
             'id' => null,
@@ -41,7 +39,7 @@ class PrivacyPolicyController extends Controller
     /**
      * Get default privacy policy content.
      */
-    private function getDefaultContent()
+    private function getDefaultContent(): string
     {
         return '
 <h2>1. Informacje ogólne</h2>
@@ -113,4 +111,4 @@ class PrivacyPolicyController extends Controller
 <p><strong>Data ostatniej aktualizacji:</strong> ' . date('d.m.Y') . '</p>
         ';
     }
-}
+} 

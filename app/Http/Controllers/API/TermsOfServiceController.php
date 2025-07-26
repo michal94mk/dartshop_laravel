@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
-use Exception;
 use App\Services\TermsOfServiceService;
 
 class TermsOfServiceController extends BaseApiController
@@ -23,13 +22,9 @@ class TermsOfServiceController extends BaseApiController
      */
     public function show(): JsonResponse
     {
-        try {
-            $this->logApiRequest(request(), 'Fetch terms of service');
-            $termsOfService = $this->termsService->getActiveTerms();
-            return $this->successResponse($termsOfService, 'Terms of service fetched successfully');
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Fetching terms of service');
-        }
+        $this->logApiRequest(request(), 'Fetch terms of service');
+        $termsOfService = $this->termsService->getActiveTerms();
+        return $this->successResponse($termsOfService, 'Terms of service fetched successfully');
     }
 
     /**
@@ -37,20 +32,16 @@ class TermsOfServiceController extends BaseApiController
      */
     public function accept(Request $request): JsonResponse
     {
-        try {
-            $this->logApiRequest($request, 'Accept terms of service');
-            /** @var User $user */
-            $user = Auth::user();
-            if (!$user) {
-                return $this->unauthorizedResponse();
-            }
-            $this->termsService->acceptTerms($user);
-            return $this->successResponse([
-                'terms_of_service_accepted' => true,
-                'terms_of_service_accepted_at' => $user->terms_of_service_accepted_at
-            ], 'Regulamin został zaakceptowany');
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Accepting terms of service');
+        $this->logApiRequest($request, 'Accept terms of service');
+        /** @var User $user */
+        $user = Auth::user();
+        if (!$user) {
+            return $this->unauthorizedResponse();
         }
+        $this->termsService->acceptTerms($user);
+        return $this->successResponse([
+            'terms_of_service_accepted' => true,
+            'terms_of_service_accepted_at' => $user->terms_of_service_accepted_at
+        ], 'Regulamin został zaakceptowany');
     }
 } 

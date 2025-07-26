@@ -6,7 +6,6 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Services\Admin\ContactMessageAdminService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
 use App\Http\Requests\Admin\ContactMessageRespondRequest;
 
@@ -27,14 +26,10 @@ class ContactMessageController extends BaseApiController
      */
     public function index(Request $request): JsonResponse
     {
-        try {
-            $filters = $request->all();
-            $perPage = $this->getPerPage($request);
-            $messages = $this->contactMessageAdminService->getMessagesWithFilters($filters, $perPage);
-            return $this->successResponse($messages, 'Wiadomości kontaktowe pobrane pomyślnie');
-        } catch (\Exception $e) {
-            return $this->errorResponse('Błąd podczas pobierania wiadomości kontaktowych: ' . $e->getMessage(), 500);
-        }
+        $filters = $request->all();
+        $perPage = $this->getPerPage($request);
+        $messages = $this->contactMessageAdminService->getMessagesWithFilters($filters, $perPage);
+        return $this->successResponse($messages, 'Wiadomości kontaktowe pobrane pomyślnie');
     }
 
     /**
@@ -50,28 +45,32 @@ class ContactMessageController extends BaseApiController
     }
 
     /**
-     * Update the message status.
+     * Update the specified message.
      *
      * @param  Request  $request
      * @param  int  $id
      * @return JsonResponse
      */
-    public function updateStatus(Request $request, $id): JsonResponse
+    public function update(Request $request, $id): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'required|string|in:unread,read,replied',
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|max:255',
+            'subject' => 'sometimes|string|max:255',
+            'message' => 'sometimes|string',
+            'is_read' => 'sometimes|boolean',
         ]);
 
         if ($validator->fails()) {
             return $this->validationError($validator->errors());
         }
 
-        $message = $this->contactMessageAdminService->updateStatus($id, $request->status);
+        $message = $this->contactMessageAdminService->update($id, $request->all());
         return $this->successResponse($message, 'Wiadomość została zaktualizowana');
     }
 
     /**
-     * Mark a message as read.
+     * Mark message as read.
      *
      * @param  int  $id
      * @return JsonResponse
@@ -83,40 +82,7 @@ class ContactMessageController extends BaseApiController
     }
 
     /**
-     * Update the message notes.
-     *
-     * @param  Request  $request
-     * @param  int  $id
-     * @return JsonResponse
-     */
-    public function updateNotes(Request $request, $id): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'notes' => 'nullable|string',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationError($validator->errors());
-        }
-
-        $message = $this->contactMessageAdminService->updateNotes($id, $request->notes);
-        return $this->successResponse($message, 'Wiadomość została zaktualizowana');
-    }
-
-    /**
-     * Remove the specified message from storage.
-     *
-     * @param  int  $id
-     * @return JsonResponse
-     */
-    public function destroy($id): JsonResponse
-    {
-        $this->contactMessageAdminService->deleteById($id);
-        return $this->successResponse(null, 'Wiadomość została usunięta', 204);
-    }
-
-    /**
-     * Send a response to the contact message.
+     * Respond to a contact message.
      *
      * @param  ContactMessageRespondRequest  $request
      * @param  int  $id
@@ -124,11 +90,28 @@ class ContactMessageController extends BaseApiController
      */
     public function respond(ContactMessageRespondRequest $request, $id): JsonResponse
     {
-        try {
-            $message = $this->contactMessageAdminService->respond($id, $request->message);
-            return $this->successResponse($message, 'Odpowiedź została wysłana');
-        } catch (\Exception $e) {
-            return $this->errorResponse('Błąd podczas wysyłania odpowiedzi: ' . $e->getMessage(), 500);
+        $validator = Validator::make($request->all(), [
+            'response_message' => 'required|string|min:10',
+            'send_email' => 'sometimes|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator->errors());
         }
+
+        $message = $this->contactMessageAdminService->respond($id, $request->all());
+        return $this->successResponse($message, 'Odpowiedź została wysłana');
+    }
+
+    /**
+     * Remove the specified message.
+     *
+     * @param  int  $id
+     * @return JsonResponse
+     */
+    public function destroy($id): JsonResponse
+    {
+        $this->contactMessageAdminService->delete($id);
+        return $this->successResponse(null, 'Wiadomość została usunięta', 204);
     }
 } 

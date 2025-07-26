@@ -76,38 +76,37 @@ class Handler extends ExceptionHandler
     {
         $response = [
             'success' => false,
-            'message' => 'Wystąpił błąd serwera',
-            'errors' => []
+            'message' => 'Internal server error',
         ];
 
         if ($e instanceof ValidationException) {
-            $response['message'] = 'Błędy walidacji';
+            $response['message'] = 'Validation failed';
             $response['errors'] = $e->errors();
             return response()->json($response, 422);
         }
 
         if ($e instanceof ModelNotFoundException) {
-            $response['message'] = 'Zasób nie został znaleziony';
+            $response['message'] = 'Resource not found';
             return response()->json($response, 404);
         }
 
         if ($e instanceof NotFoundHttpException) {
-            $response['message'] = 'Endpoint nie został znaleziony';
+            $response['message'] = 'Endpoint not found';
             return response()->json($response, 404);
         }
 
         if ($e instanceof MethodNotAllowedHttpException) {
-            $response['message'] = 'Metoda HTTP nie jest dozwolona';
+            $response['message'] = 'Method not allowed';
             return response()->json($response, 405);
         }
 
         if ($e instanceof AuthenticationException) {
-            $response['message'] = 'Wymagana autoryzacja';
+            $response['message'] = 'Unauthenticated';
             return response()->json($response, 401);
         }
 
         if ($e instanceof AuthorizationException) {
-            $response['message'] = 'Brak uprawnień';
+            $response['message'] = 'Forbidden';
             return response()->json($response, 403);
         }
 
@@ -120,6 +119,7 @@ class Handler extends ExceptionHandler
             'url' => $request->fullUrl(),
             'method' => $request->method(),
             'ip' => $request->ip(),
+            'user_id' => $request->user()?->id,
         ]);
 
         // Don't expose internal errors in production

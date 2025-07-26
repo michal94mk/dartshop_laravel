@@ -12,7 +12,6 @@ use App\Http\Requests\Payment\CardValidationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Exception;
 
 class StripePaymentController extends BaseApiController
 {
@@ -37,13 +36,9 @@ class StripePaymentController extends BaseApiController
      */
     public function createIntent(): JsonResponse
     {
-        try {
-            $this->logApiRequest(request(), 'Create Stripe payment intent (user)');
-            $result = $this->paymentService->createPaymentIntent();
-            return $this->successResponse($result, 'Stripe payment intent created successfully');
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Creating Stripe payment intent (user)');
-        }
+        $this->logApiRequest(request(), 'Create Stripe payment intent (user)');
+        $result = $this->paymentService->createPaymentIntent();
+        return $this->successResponse($result, 'Stripe payment intent created successfully');
     }
 
     /**
@@ -54,15 +49,11 @@ class StripePaymentController extends BaseApiController
      */
     public function createGuestIntent(PaymentIntentRequest $request): JsonResponse
     {
-        try {
-            $this->logApiRequest($request, 'Create Stripe payment intent (guest)');
-            $result = $this->paymentService->createGuestPaymentIntent(
-                $request->getCartItems()
-            );
-            return $this->successResponse($result, 'Stripe guest payment intent created successfully');
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Creating Stripe payment intent (guest)');
-        }
+        $this->logApiRequest($request, 'Create Stripe payment intent (guest)');
+        $result = $this->paymentService->createGuestPaymentIntent(
+            $request->getCartItems()
+        );
+        return $this->successResponse($result, 'Stripe guest payment intent created successfully');
     }
 
     /**
@@ -73,42 +64,38 @@ class StripePaymentController extends BaseApiController
      */
     public function confirmPayment(ConfirmPaymentRequest $request): JsonResponse
     {
-        try {
-            $this->logApiRequest($request, 'Confirm Stripe payment');
-            $paymentIntentId = $request->getPaymentIntentId();
-            $existingOrder = $this->orderService->orderExistsByPaymentIntent($paymentIntentId);
-            if ($existingOrder) {
-                return $this->successResponse([
-                    'message' => 'Zamówienie już istnieje',
-                    'order' => $existingOrder->load('items')
-                ], 'Order already exists');
-            }
-            $paymentIntent = $this->paymentService->getPaymentIntent($paymentIntentId);
-            if ($paymentIntent->status !== 'succeeded') {
-                return $this->errorResponse('Płatność nie została potwierdzona', 400);
-            }
-            if ($request->isGuestPayment()) {
-                $order = $this->orderService->createOrderFromGuestCart(
-                    $request->getCartItems(),
-                    $request->getShippingData(),
-                    $request->getShippingMethod(),
-                    $paymentIntentId
-                );
-            } else {
-                $order = $this->orderService->createOrderFromCart(
-                    Auth::user(),
-                    $request->getShippingData(),
-                    $request->getShippingMethod(),
-                    $paymentIntentId
-                );
-            }
+        $this->logApiRequest($request, 'Confirm Stripe payment');
+        $paymentIntentId = $request->getPaymentIntentId();
+        $existingOrder = $this->orderService->orderExistsByPaymentIntent($paymentIntentId);
+        if ($existingOrder) {
             return $this->successResponse([
-                'message' => 'Zamówienie zostało utworzone pomyślnie',
-                'order' => $order->load('items')
-            ], 'Order created successfully');
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Confirming Stripe payment');
+                'message' => 'Zamówienie już istnieje',
+                'order' => $existingOrder->load('items')
+            ], 'Order already exists');
         }
+        $paymentIntent = $this->paymentService->getPaymentIntent($paymentIntentId);
+        if ($paymentIntent->status !== 'succeeded') {
+            return $this->errorResponse('Płatność nie została potwierdzona', 400);
+        }
+        if ($request->isGuestPayment()) {
+            $order = $this->orderService->createOrderFromGuestCart(
+                $request->getCartItems(),
+                $request->getShippingData(),
+                $request->getShippingMethod(),
+                $paymentIntentId
+            );
+        } else {
+            $order = $this->orderService->createOrderFromCart(
+                Auth::user(),
+                $request->getShippingData(),
+                $request->getShippingMethod(),
+                $paymentIntentId
+            );
+        }
+        return $this->successResponse([
+            'message' => 'Zamówienie zostało utworzone pomyślnie',
+            'order' => $order->load('items')
+        ], 'Order created successfully');
     }
 
     /**
@@ -119,18 +106,14 @@ class StripePaymentController extends BaseApiController
      */
     public function checkStatus(Request $request): JsonResponse
     {
-        try {
-            $this->logApiRequest($request, 'Check Stripe payment status');
-            $validated = $this->validateRequest($request, [
-                'payment_intent_id' => 'required|string',
-            ]);
-            $result = $this->paymentService->checkPaymentStatus(
-                $validated['payment_intent_id']
-            );
-            return $this->successResponse($result, 'Payment status checked successfully');
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Checking Stripe payment status');
-        }
+        $this->logApiRequest($request, 'Check Stripe payment status');
+        $validated = $this->validateRequest($request, [
+            'payment_intent_id' => 'required|string',
+        ]);
+        $result = $this->paymentService->checkPaymentStatus(
+            $validated['payment_intent_id']
+        );
+        return $this->successResponse($result, 'Payment status checked successfully');
     }
 
     /**
@@ -141,20 +124,16 @@ class StripePaymentController extends BaseApiController
      */
     public function testCardValidation(CardValidationRequest $request): JsonResponse
     {
-        try {
-            $this->logApiRequest($request, 'Test card validation');
-            $cardNumber = $request->getCardNumber();
-            $isValid = $this->cardValidationService->validateCardNumber($cardNumber);
-            $cardBrand = $this->cardValidationService->detectCardBrand($cardNumber);
-            return $this->successResponse([
-                'card_number' => $this->cardValidationService->maskCardNumber($cardNumber),
-                'is_valid' => $isValid,
-                'card_brand' => $cardBrand,
-                'message' => $isValid ? 'Numer karty jest prawidłowy' : 'Numer karty jest nieprawidłowy',
-                'test_cards' => $this->cardValidationService->getTestCards()
-            ], 'Card validation tested successfully');
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Testing card validation');
-        }
+        $this->logApiRequest($request, 'Test card validation');
+        $cardNumber = $request->getCardNumber();
+        $isValid = $this->cardValidationService->validateCardNumber($cardNumber);
+        $cardBrand = $this->cardValidationService->detectCardBrand($cardNumber);
+        return $this->successResponse([
+            'card_number' => $this->cardValidationService->maskCardNumber($cardNumber),
+            'is_valid' => $isValid,
+            'card_brand' => $cardBrand,
+            'message' => $isValid ? 'Numer karty jest prawidłowy' : 'Numer karty jest nieprawidłowy',
+            'test_cards' => $this->cardValidationService->getTestCards()
+        ], 'Card validation tested successfully');
     }
 } 

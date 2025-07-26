@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
-use Exception;
 use App\Services\UserOrderService;
 
 class UserOrderController extends BaseApiController
@@ -23,30 +22,22 @@ class UserOrderController extends BaseApiController
      */
     public function myOrders(Request $request): JsonResponse
     {
-        try {
-            $this->logApiRequest($request, 'Fetch user orders');
-            $user = Auth::user();
-            $orders = $this->userOrderService->getUserOrders($user);
-            return $this->successResponse($orders, 'User orders fetched successfully');
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Fetching user orders');
-        }
+        $this->logApiRequest($request, 'Fetch user orders');
+        $user = Auth::user();
+        $orders = $this->userOrderService->getUserOrders($user);
+        return $this->successResponse($orders, 'User orders fetched successfully');
     }
     /**
      * Get a specific order for the authenticated user
      */
     public function show(int $id): JsonResponse
     {
-        try {
-            $this->logApiRequest(request(), "Fetch user order for ID: {$id}");
-            $user = Auth::user();
-            $order = $this->userOrderService->getUserOrder($user, $id);
-            if (!$order) {
-                return $this->notFoundResponse('Order not found');
-            }
-            return $this->successResponse($order, 'User order fetched successfully');
-        } catch (Exception $e) {
-            return $this->handleException($e, "Fetching user order for ID: {$id}");
+        $this->logApiRequest(request(), "Fetch user order for ID: {$id}");
+        $user = Auth::user();
+        $order = $this->userOrderService->getUserOrder($user, $id);
+        if (!$order) {
+            return $this->notFoundResponse('Order not found');
         }
+        return $this->successResponse($order, 'User order fetched successfully');
     }
 } 

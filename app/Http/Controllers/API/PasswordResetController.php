@@ -10,7 +10,6 @@ use Illuminate\Support\Str;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
-use Exception;
 
 class PasswordResetController extends BaseApiController
 {
@@ -22,25 +21,21 @@ class PasswordResetController extends BaseApiController
      */
     public function forgotPassword(Request $request): JsonResponse
     {
-        try {
-            $this->logApiRequest($request, 'Send password reset link');
-            
-            $validated = $this->validateRequest($request, [
-                'email' => 'required|email',
-            ]);
+        $this->logApiRequest($request, 'Send password reset link');
+        
+        $validated = $this->validateRequest($request, [
+            'email' => 'required|email',
+        ]);
 
-            $status = Password::sendResetLink(
-                $request->only('email')
-            );
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
 
-            if ($status === Password::RESET_LINK_SENT) {
-                return $this->successResponse(['message' => __($status)], 'Password reset link sent successfully');
-            }
-
-            return $this->validationErrorResponse(['email' => [__($status)]]);
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Sending password reset link');
+        if ($status === Password::RESET_LINK_SENT) {
+            return $this->successResponse(['message' => __($status)], 'Password reset link sent successfully');
         }
+
+        return $this->validationErrorResponse(['email' => [__($status)]]);
     }
 
     /**
@@ -51,36 +46,32 @@ class PasswordResetController extends BaseApiController
      */
     public function validateResetToken(Request $request): JsonResponse
     {
-        try {
-            $this->logApiRequest($request, 'Validate password reset token');
-            
-            $validated = $this->validateRequest($request, [
-                'token' => 'required|string',
-                'email' => 'required|email',
-            ]);
+        $this->logApiRequest($request, 'Validate password reset token');
+        
+        $validated = $this->validateRequest($request, [
+            'token' => 'required|string',
+            'email' => 'required|email',
+        ]);
 
-            // Sprawdź czy token istnieje i nie wygasł w nowej tabeli
-            $resetRecord = DB::table('password_reset_tokens')
-                ->where('email', $validated['email'])
-                ->where('created_at', '>', now()->subMinutes(60))
-                ->first();
+        // Check if token exists and hasn't expired in the new table
+        $resetRecord = DB::table('password_reset_tokens')
+            ->where('email', $validated['email'])
+            ->where('created_at', '>', now()->subMinutes(60))
+            ->first();
 
-            if (!$resetRecord) {
-                return $this->validationErrorResponse(['token' => ['Token jest nieprawidłowy lub wygasł.']]);
-            }
-
-            // Sprawdź czy token się zgadza (w nowej tabeli token jest hashowany)
-            if (!Hash::check($validated['token'], $resetRecord->token)) {
-                return $this->validationErrorResponse(['token' => ['Token jest nieprawidłowy lub wygasł.']]);
-            }
-
-            return $this->successResponse([
-                'message' => 'Token jest prawidłowy.',
-                'email' => $validated['email']
-            ], 'Token validation successful');
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Validating password reset token');
+        if (!$resetRecord) {
+            return $this->validationErrorResponse(['token' => ['Token is invalid or expired.']]);
         }
+
+        // Check if token matches (in new table token is hashed)
+        if (!Hash::check($validated['token'], $resetRecord->token)) {
+            return $this->validationErrorResponse(['token' => ['Token is invalid or expired.']]);
+        }
+
+        return $this->successResponse([
+            'message' => 'Token is valid.',
+            'email' => $validated['email']
+        ], 'Token validation successful');
     }
 
     /**
@@ -91,34 +82,30 @@ class PasswordResetController extends BaseApiController
      */
     public function resetPassword(Request $request): JsonResponse
     {
-        try {
-            $this->logApiRequest($request, 'Reset password');
-            
-            $validated = $this->validateRequest($request, [
-                'token' => 'required',
-                'email' => 'required|email',
-                'password' => 'required|min:8|confirmed',
-            ]);
+        $this->logApiRequest($request, 'Reset password');
+        
+        $validated = $this->validateRequest($request, [
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:8|confirmed',
+        ]);
 
-            $status = Password::reset(
-                $request->only('email', 'password', 'password_confirmation', 'token'),
-                function ($user, $password) {
-                    $user->forceFill([
-                        'password' => Hash::make($password),
-                        'remember_token' => Str::random(60),
-                    ])->save();
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                    'remember_token' => Str::random(60),
+                ])->save();
 
-                    event(new PasswordReset($user));
-                }
-            );
-
-            if ($status === Password::PASSWORD_RESET) {
-                return $this->successResponse(['message' => __($status)], 'Password reset successful');
+                event(new PasswordReset($user));
             }
+        );
 
-            return $this->validationErrorResponse(['email' => [__($status)]]);
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Resetting password');
+        if ($status === Password::PASSWORD_RESET) {
+            return $this->successResponse(['message' => __($status)], 'Password reset successful');
         }
+
+        return $this->validationErrorResponse(['email' => [__($status)]]);
     }
 } 

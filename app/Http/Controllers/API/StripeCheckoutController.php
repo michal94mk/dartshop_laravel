@@ -9,7 +9,6 @@ use App\Http\Requests\Payment\CheckoutSessionRequest;
 use App\Http\Requests\Payment\GuestCheckoutSessionRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Exception;
 
 class StripeCheckoutController extends BaseApiController
 {
@@ -30,16 +29,12 @@ class StripeCheckoutController extends BaseApiController
      */
     public function createSession(CheckoutSessionRequest $request): JsonResponse
     {
-        try {
-            $this->logApiRequest($request, 'Create Stripe checkout session (user)');
-            $result = $this->paymentService->createCheckoutSession(
-                $request->getShippingData(),
-                $request->getShippingMethod()
-            );
-            return $this->successResponse($result, 'Stripe checkout session created successfully');
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Creating Stripe checkout session (user)');
-        }
+        $this->logApiRequest($request, 'Create Stripe checkout session (user)');
+        $result = $this->paymentService->createCheckoutSession(
+            $request->getShippingData(),
+            $request->getShippingMethod()
+        );
+        return $this->successResponse($result, 'Stripe checkout session created successfully');
     }
 
     /**
@@ -50,17 +45,13 @@ class StripeCheckoutController extends BaseApiController
      */
     public function createGuestSession(GuestCheckoutSessionRequest $request): JsonResponse
     {
-        try {
-            $this->logApiRequest($request, 'Create Stripe checkout session (guest)');
-            $result = $this->paymentService->createGuestCheckoutSession(
-                $request->getCartItems(),
-                $request->getShippingData(),
-                $request->getShippingMethod()
-            );
-            return $this->successResponse($result, 'Stripe guest checkout session created successfully');
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Creating Stripe checkout session (guest)');
-        }
+        $this->logApiRequest($request, 'Create Stripe checkout session (guest)');
+        $result = $this->paymentService->createGuestCheckoutSession(
+            $request->getCartItems(),
+            $request->getShippingData(),
+            $request->getShippingMethod()
+        );
+        return $this->successResponse($result, 'Stripe guest checkout session created successfully');
     }
 
     /**
@@ -71,31 +62,27 @@ class StripeCheckoutController extends BaseApiController
      */
     public function handleSuccess(Request $request): JsonResponse
     {
-        try {
-            $this->logApiRequest($request, 'Handle Stripe checkout success');
-            $validated = $this->validateRequest($request, [
-                'session_id' => 'required|string',
-            ]);
-            $sessionId = $validated['session_id'];
-            $existingOrder = $this->orderService->orderExistsByStripeSession($sessionId);
-            if ($existingOrder) {
-                return $this->successResponse([
-                    'message' => 'Zamówienie już istnieje',
-                    'order' => $existingOrder->load('items')
-                ], 'Order already exists');
-            }
-            $session = $this->paymentService->getCheckoutSession($sessionId);
-            if ($session->payment_status !== 'paid') {
-                return $this->errorResponse('Płatność nie została potwierdzona', 400);
-            }
-            $order = $this->createOrderFromSession($session);
+        $this->logApiRequest($request, 'Handle Stripe checkout success');
+        $validated = $this->validateRequest($request, [
+            'session_id' => 'required|string',
+        ]);
+        $sessionId = $validated['session_id'];
+        $existingOrder = $this->orderService->orderExistsByStripeSession($sessionId);
+        if ($existingOrder) {
             return $this->successResponse([
-                'message' => 'Zamówienie zostało utworzone pomyślnie',
-                'order' => $order->load('items')
-            ], 'Order created successfully');
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Handling Stripe checkout success');
+                'message' => 'Zamówienie już istnieje',
+                'order' => $existingOrder->load('items')
+            ], 'Order already exists');
         }
+        $session = $this->paymentService->getCheckoutSession($sessionId);
+        if ($session->payment_status !== 'paid') {
+            return $this->errorResponse('Płatność nie została potwierdzona', 400);
+        }
+        $order = $this->createOrderFromSession($session);
+        return $this->successResponse([
+            'message' => 'Zamówienie zostało utworzone pomyślnie',
+            'order' => $order->load('items')
+        ], 'Order created successfully');
     }
 
     /**

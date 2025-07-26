@@ -6,7 +6,6 @@ use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
-use Exception;
 use App\Services\Payment\PaymentWebhookService;
 
 class StripeWebhookController extends BaseApiController
@@ -41,8 +40,6 @@ class StripeWebhookController extends BaseApiController
                 'error' => $e->getMessage()
             ]);
             return $this->errorResponse('Invalid signature', 400);
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Stripe webhook signature verification');
         }
 
         Log::info('Stripe webhook received', [
@@ -50,28 +47,24 @@ class StripeWebhookController extends BaseApiController
             'id' => $event->id
         ]);
 
-        try {
-            switch ($event->type) {
-                case 'payment_intent.succeeded':
-                    $this->webhookService->handlePaymentIntentSucceeded($event->data->object);
-                    return $this->successResponse(['status' => 'success']);
-                case 'payment_intent.payment_failed':
-                    $this->webhookService->handlePaymentIntentFailed($event->data->object);
-                    return $this->errorResponse('Payment failed', 400);
-                case 'checkout.session.completed':
-                    $this->webhookService->handleCheckoutSessionCompleted($event->data->object);
-                    return $this->successResponse(['status' => 'session_completed']);
-                case 'payment_intent.processing':
-                    $this->webhookService->handlePaymentIntentProcessing($event->data->object);
-                    return $this->successResponse(['status' => 'processing']);
-                default:
-                    Log::info('Unhandled Stripe webhook event', [
-                        'type' => $event->type
-                    ]);
-                    return $this->noContentResponse();
-            }
-        } catch (Exception $e) {
-            return $this->handleException($e, 'Stripe webhook event handling');
+        switch ($event->type) {
+            case 'payment_intent.succeeded':
+                $this->webhookService->handlePaymentIntentSucceeded($event->data->object);
+                return $this->successResponse(['status' => 'success']);
+            case 'payment_intent.payment_failed':
+                $this->webhookService->handlePaymentIntentFailed($event->data->object);
+                return $this->errorResponse('Payment failed', 400);
+            case 'checkout.session.completed':
+                $this->webhookService->handleCheckoutSessionCompleted($event->data->object);
+                return $this->successResponse(['status' => 'session_completed']);
+            case 'payment_intent.processing':
+                $this->webhookService->handlePaymentIntentProcessing($event->data->object);
+                return $this->successResponse(['status' => 'processing']);
+            default:
+                Log::info('Unhandled Stripe webhook event', [
+                    'type' => $event->type
+                ]);
+                return $this->noContentResponse();
         }
     }
 } 
