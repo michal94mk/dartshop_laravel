@@ -5,9 +5,13 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CartController;
-use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\Auth\LoginController;
+use App\Http\Controllers\Api\Auth\RegisterController;
+use App\Http\Controllers\Api\Auth\PasswordController;
+use App\Http\Controllers\Api\Auth\SocialAuthController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\EmailVerificationController;
+
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\UserOrderController;
 use App\Http\Controllers\Api\UserReviewController;
@@ -39,21 +43,9 @@ use App\Http\Controllers\API\StripeWebhookController;
 use App\Http\Controllers\Api\NewsletterController;
 use App\Http\Controllers\API\PrivacyPolicyController;
 use App\Http\Controllers\API\TermsOfServiceController;
-use App\Http\Controllers\API\SocialAuthController;
-use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\Api\ShippingController;
 
-
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
+// API Routes
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -85,16 +77,14 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Auth API
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/register', [RegisterController::class, 'register']);
 
 // Social Auth API
-Route::get('/auth/google/redirect', [SocialAuthController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
-Route::post('/auth/google/login', [SocialAuthController::class, 'loginWithGoogle']);
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', [AuthController::class, 'user']);
+    Route::post('/logout', [LoginController::class, 'logout']);
+    Route::get('/user', [LoginController::class, 'user']);
     
     // User orders
     Route::get('/orders/my-orders', [UserOrderController::class, 'myOrders']);
@@ -132,19 +122,29 @@ Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword
 Route::post('/validate-reset-token', [PasswordResetController::class, 'validateResetToken']);
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
 
-// Email Verification API - use web middleware for session sharing
+// Email Verification API
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
     ->middleware(['web', 'signed', 'throttle:6,1'])
     ->name('api.verification.verify');
 
+// API Email Verification (for SPA)
+Route::get('/email/verify-api/{id}/{hash}', [EmailVerificationController::class, 'verifyApi'])
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('api.verification.verify-api');
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/email/verification-notification', [EmailVerificationController::class, 'sendVerificationEmail']);
+    
+    // Password confirmation
+    Route::post('/confirm-password', [PasswordController::class, 'confirmPassword']);
+    
+    // Password update
+    Route::put('/user/password', [PasswordController::class, 'updatePassword']);
 });
 
 // User Profile API
 Route::middleware('auth:sanctum')->group(function () {
     Route::put('/user/profile', [ProfileController::class, 'update']);
-    Route::put('/user/password', [ProfileController::class, 'updatePassword']);
 });
 
 // Tutorial routes

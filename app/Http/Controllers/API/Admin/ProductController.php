@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Models\Product;
 use App\Http\Requests\Admin\ProductRequest;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Services\Admin\ProductAdminService;
 
@@ -14,28 +15,14 @@ use App\Services\Admin\ProductAdminService;
  */
 class ProductController extends BaseApiController
 {
-    /**
-     * @var ProductAdminService
-     */
-    protected $productAdminService;
-
-    /**
-     * Inject the product admin service.
-     *
-     * @param ProductAdminService $productAdminService
-     */
-    public function __construct(ProductAdminService $productAdminService)
-    {
-        $this->productAdminService = $productAdminService;
-    }
+    public function __construct(
+        private ProductAdminService $productAdminService
+    ) {}
 
     /**
      * Display a listing of the products.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $products = $this->productAdminService->getProductsWithFilters($request);
         return $this->paginatedResponse($products);
@@ -43,11 +30,8 @@ class ProductController extends BaseApiController
 
     /**
      * Store a newly created product in storage.
-     *
-     * @param ProductRequest $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(ProductRequest $request)
+    public function store(ProductRequest $request): JsonResponse
     {
         $productData = $request->validated();
         $imageFile = $request->file('image');
@@ -57,32 +41,22 @@ class ProductController extends BaseApiController
 
     /**
      * Display the specified product.
-     *
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id)
+    public function show(int $id): JsonResponse
     {
         $product = $this->productAdminService->getProductWithDetails($id);
         if (!$product) {
-            return $this->errorResponse('Product not found', 404);
+            return $this->notFoundResponse('Product not found');
         }
         return $this->successResponse($product, 'Product retrieved');
     }
 
     /**
      * Update the specified product in storage.
-     *
-     * @param ProductRequest $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(ProductRequest $request, $id)
+    public function update(ProductRequest $request, int $id): JsonResponse
     {
-        $product = Product::find($id);
-        if (!$product) {
-            return $this->errorResponse('Product not found', 404);
-        }
+        $product = Product::findOrFail($id);
         $productData = $request->validated();
         $imageFile = $request->file('image');
         $product = $this->productAdminService->updateProduct($product, $productData, $imageFile);
@@ -91,16 +65,10 @@ class ProductController extends BaseApiController
 
     /**
      * Remove the specified product from storage.
-     *
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy($id)
+    public function destroy(int $id): JsonResponse
     {
-        $product = Product::find($id);
-        if (!$product) {
-            return $this->errorResponse('Product not found', 404);
-        }
+        $product = Product::findOrFail($id);
         $result = $this->productAdminService->deleteProduct($product);
         if ($result['success']) {
             return $this->successResponse('Produkt został usunięty');
@@ -110,10 +78,8 @@ class ProductController extends BaseApiController
 
     /**
      * Get all categories and brands for product form.
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function getFormData()
+    public function getFormData(): JsonResponse
     {
         $formData = $this->productAdminService->getFormData();
         return $this->successResponse($formData, 'Form data retrieved');

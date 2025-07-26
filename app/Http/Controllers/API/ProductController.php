@@ -4,24 +4,18 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use App\Services\ProductService;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Http\JsonResponse;
 
 class ProductController extends BaseApiController
 {
-    protected $productService;
-
-    public function __construct(ProductService $productService)
-    {
-        $this->productService = $productService;
-    }
+    public function __construct(
+        private ProductService $productService
+    ) {}
     
     /**
      * Get a paginated list of products with filters and promotions.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
@@ -45,9 +39,6 @@ class ProductController extends BaseApiController
     
     /**
      * Get details of a specific product.
-     *
-     * @param int $id
-     * @return JsonResponse
      */
     public function show(int $id): JsonResponse
     {
@@ -60,8 +51,6 @@ class ProductController extends BaseApiController
     
     /**
      * Get the latest products.
-     *
-     * @return JsonResponse
      */
     public function latest(): JsonResponse
     {

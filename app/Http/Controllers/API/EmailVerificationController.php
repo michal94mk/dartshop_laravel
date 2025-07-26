@@ -50,6 +50,40 @@ class EmailVerificationController extends BaseApiController
     }
 
     /**
+     * Verify the user's email address via API.
+     *
+     * @param Request $request
+     * @param int $id
+     * @param string $hash
+     * @return JsonResponse
+     */
+    public function verifyApi(Request $request, int $id, string $hash): JsonResponse
+    {
+        $this->logApiRequest($request, "API Email verification attempt for user ID: {$id}");
+
+        if (!$request->hasValidSignature()) {
+            return $this->errorResponse('Link weryfikacyjny jest nieprawidłowy lub wygasł.', 400);
+        }
+
+        $user = \App\Models\User::findOrFail($id);
+
+        // Verify the hash matches the user's email
+        if (! hash_equals(sha1($user->getEmailForVerification()), $hash)) {
+            return $this->errorResponse('Link weryfikacyjny jest nieprawidłowy.', 400);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return $this->successResponse(null, 'Adres e-mail jest już zweryfikowany.');
+        }
+        
+        if ($user->markEmailAsVerified()) {
+            event(new Verified($user));
+        }
+
+        return $this->successResponse(null, 'Adres e-mail został pomyślnie zweryfikowany.');
+    }
+
+    /**
      * Resend the email verification link to the authenticated user.
      *
      * @param Request $request
