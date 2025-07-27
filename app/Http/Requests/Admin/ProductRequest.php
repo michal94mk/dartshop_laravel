@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Product validation request
@@ -35,8 +34,8 @@ class ProductRequest extends FormRequest
             'image' => 'nullable|image|max:2048',
             'is_featured' => 'boolean',
             'is_active' => 'boolean',
-            'brand_id' => 'required|exists:brands,id',
-            'category_id' => 'required|exists:categories,id',
+            'brand_id' => 'nullable|exists:brands,id',
+            'category_id' => 'nullable|exists:categories,id',
             'weight' => 'nullable|numeric|min:0',
         ];
     }
@@ -61,9 +60,7 @@ class ProductRequest extends FormRequest
             'weight.numeric' => 'Waga musi być liczbą.',
             'weight.min' => 'Waga nie może być ujemna.',
             'is_active.boolean' => 'Pole aktywne musi być prawdą lub fałszem.',
-            'brand_id.required' => 'Marka jest wymagana.',
             'brand_id.exists' => 'Wybrana marka nie istnieje.',
-            'category_id.required' => 'Kategoria jest wymagana.',
             'category_id.exists' => 'Wybrana kategoria nie istnieje.',
         ];
     }

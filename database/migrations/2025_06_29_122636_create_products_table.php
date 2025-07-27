@@ -19,8 +19,8 @@ return new class extends Migration
             $table->string('image_url')->nullable();
             $table->boolean('is_featured')->default(false);
             $table->boolean('is_active')->default(true);
-            $table->foreignId('brand_id')->constrained()->onDelete('cascade');
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
+            $table->foreignId('brand_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('category_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }
