@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\BaseApiController;
 use App\Services\ShippingService;
+use App\Http\Requests\Frontend\ShippingMethodsRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
@@ -20,17 +21,14 @@ class ShippingController extends BaseApiController
     /**
      * Get available shipping methods and free shipping threshold.
      *
-     * @param Request $request
+     * @param ShippingMethodsRequest $request
      * @return JsonResponse
      */
-    public function index(Request $request): JsonResponse
+    public function index(ShippingMethodsRequest $request): JsonResponse
     {
         $this->logApiRequest($request, 'Fetch shipping methods');
         
-        $validated = $this->validateRequest($request, [
-            'cart_total' => 'required|numeric|min:0'
-        ]);
-        $cartTotal = (float) $validated['cart_total'];
+        $cartTotal = (float) $request->validated()['cart_total'];
         return $this->successResponse([
             'methods' => $this->shippingService->getShippingMethodsWithCosts($cartTotal),
             'free_shipping_threshold' => $this->shippingService->getFreeShippingThreshold()

@@ -101,11 +101,11 @@ class UserReviewController extends BaseApiController
     /**
      * Update user's review
      */
-    public function update(Request $request, int $reviewId): JsonResponse
+    public function update(UserReviewRequest $request, int $reviewId): JsonResponse
     {
         $user = Auth::user();
         // Review update logic is handled in the service
-        $review = $this->userReviewService->updateUserReview($user, $reviewId, $request->all());
+        $review = $this->userReviewService->updateUserReview($user, $reviewId, $request->validated());
         return $this->successResponse($review, 'Review updated successfully');
     }
 

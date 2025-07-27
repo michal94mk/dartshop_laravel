@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Requests\Admin\PromotionRequest;
 use App\Http\Requests\Admin\AttachProductsRequest;
-use App\Http\Requests\Admin\UpdateOrderRequest;
+use App\Http\Requests\Admin\PromotionOrderRequest;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Services\Admin\PromotionAdminService;
 
@@ -160,7 +160,7 @@ class PromotionController extends BaseApiController
     /**
      * Update promotion display order.
      */
-    public function updateOrder(UpdateOrderRequest $request): JsonResponse
+    public function updateOrder(PromotionOrderRequest $request): JsonResponse
     {
         $this->promotionAdminService->updateOrder($request->validated()['promotions']);
         return $this->successResponse('Kolejność promocji została zaktualizowana');

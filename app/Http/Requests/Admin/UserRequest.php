@@ -2,25 +2,45 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 
-class UserStoreRequest extends FormRequest
+/**
+ * User validation request
+ * 
+ * Handles validation rules for user management in admin panel.
+ * Used by Admin\UserController for creating and updating users.
+ */
+class UserRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     */
     public function authorize(): bool
     {
         return auth()->check() && auth()->user()->is_admin;
     }
 
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
+     */
     public function rules(): array
     {
-        return [
+        $rules = [
             'name' => 'required|string|max:255',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => [
+            'role' => 'required|in:admin,user',
+            'verified' => 'boolean',
+        ];
+
+        // Email validation - different for store vs update
+        if ($this->isMethod('POST')) {
+            // Store - email must be unique
+            $rules['email'] = [
                 'required',
                 'string',
                 'email',
@@ -32,13 +52,31 @@ class UserStoreRequest extends FormRequest
                         $fail('Konto z tym adresem e-mail już istnieje, ale nie zostało zweryfikowane. Możesz ponownie wysłać link weryfikacyjny z poziomu panelu użytkownika.');
                     }
                 },
-            ],
-            'password' => 'required|string|min:8',
-            'role' => 'required|in:admin,user',
-            'verified' => 'boolean',
-        ];
+            ];
+            $rules['password'] = 'required|string|min:8';
+        } else {
+            // Update - email must be unique except for current user
+            $userId = $this->route('user');
+            if (is_object($userId)) {
+                $userId = $userId->id;
+            }
+            
+            $rules['email'] = [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore($userId)
+            ];
+            $rules['password'] = 'nullable|string|min:8';
+        }
+
+        return $rules;
     }
 
+    /**
+     * Get custom error messages for validator errors.
+     */
     public function messages(): array
     {
         return [
@@ -65,6 +103,9 @@ class UserStoreRequest extends FormRequest
         ];
     }
 
+    /**
+     * Get custom attributes for validator errors.
+     */
     public function attributes(): array
     {
         return [

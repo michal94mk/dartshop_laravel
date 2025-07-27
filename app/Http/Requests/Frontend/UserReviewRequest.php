@@ -27,11 +27,21 @@ class UserReviewRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'rating' => 'required|integer|min:1|max:5',
-            'title' => 'required|string|max:255|min:3',
-            'content' => 'required|string|max:1000|min:10',
-        ];
+        if ($this->isMethod('POST')) {
+            // Store - all fields required
+            return [
+                'rating' => 'required|integer|min:1|max:5',
+                'title' => 'required|string|max:255|min:3',
+                'content' => 'required|string|max:1000|min:10',
+            ];
+        } else {
+            // Update - all fields optional
+            return [
+                'title' => 'sometimes|string|max:255|min:3',
+                'content' => 'sometimes|string|min:10|max:2000',
+                'rating' => 'sometimes|integer|min:1|max:5',
+            ];
+        }
     }
 
     /**
@@ -52,6 +62,9 @@ class UserReviewRequest extends FormRequest
             'content.string' => 'Treść musi być tekstem.',
             'content.max' => 'Treść może mieć maksymalnie 1000 znaków.',
             'content.min' => 'Treść musi mieć co najmniej 10 znaków.',
+            'title.sometimes' => 'Tytuł jest opcjonalny przy aktualizacji.',
+            'content.sometimes' => 'Treść jest opcjonalna przy aktualizacji.',
+            'rating.sometimes' => 'Ocena jest opcjonalna przy aktualizacji.',
         ];
     }
 

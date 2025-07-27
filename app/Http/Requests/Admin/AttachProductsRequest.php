@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class AttachProductsRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class AttachProductsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return auth()->check() && auth()->user()->is_admin;
     }
 
     /**

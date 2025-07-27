@@ -5,9 +5,8 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Services\Admin\ContactMessageAdminService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\JsonResponse;
-use App\Http\Requests\Admin\ContactMessageRespondRequest;
+use App\Http\Requests\Admin\ContactMessageRequest;
 
 class ContactMessageController extends BaseApiController
 {
@@ -47,25 +46,13 @@ class ContactMessageController extends BaseApiController
     /**
      * Update the specified message.
      *
-     * @param  Request  $request
+     * @param  ContactMessageRequest  $request
      * @param  int  $id
      * @return JsonResponse
      */
-    public function update(Request $request, $id): JsonResponse
+    public function update(ContactMessageRequest $request, $id): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|max:255',
-            'subject' => 'sometimes|string|max:255',
-            'message' => 'sometimes|string',
-            'is_read' => 'sometimes|boolean',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationError($validator->errors());
-        }
-
-        $message = $this->contactMessageAdminService->update($id, $request->all());
+        $message = $this->contactMessageAdminService->update($id, $request->validated());
         return $this->successResponse($message, 'Wiadomość została zaktualizowana');
     }
 
@@ -84,22 +71,13 @@ class ContactMessageController extends BaseApiController
     /**
      * Respond to a contact message.
      *
-     * @param  ContactMessageRespondRequest  $request
+     * @param  ContactMessageRequest  $request
      * @param  int  $id
      * @return JsonResponse
      */
-    public function respond(ContactMessageRespondRequest $request, $id): JsonResponse
+    public function respond(ContactMessageRequest $request, $id): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'response_message' => 'required|string|min:10',
-            'send_email' => 'sometimes|boolean',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationError($validator->errors());
-        }
-
-        $message = $this->contactMessageAdminService->respond($id, $request->all());
+        $message = $this->contactMessageAdminService->respond($id, $request->validated());
         return $this->successResponse($message, 'Odpowiedź została wysłana');
     }
 

@@ -3,8 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use Illuminate\Http\Request;
-use App\Http\Requests\Admin\UserUpdateRequest;
-use App\Http\Requests\Admin\UserStoreRequest;
+use App\Http\Requests\Admin\UserRequest;
 use App\Services\Admin\UserAdminService;
 use App\Http\Controllers\Api\BaseApiController;
 
@@ -32,10 +31,10 @@ class UserController extends BaseApiController
     /**
      * Store a newly created user in storage.
      *
-     * @param  \App\Http\Requests\Admin\UserStoreRequest  $request
+     * @param  \App\Http\Requests\Admin\UserRequest  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(UserStoreRequest $request)
+    public function store(UserRequest $request)
     {
         $user = $this->userAdminService->createUser($request->validated());
         return $this->createdResponse($user);
@@ -59,11 +58,11 @@ class UserController extends BaseApiController
     /**
      * Update the specified user in storage.
      *
-     * @param  \App\Http\Requests\Admin\UserUpdateRequest  $request
+     * @param  \App\Http\Requests\Admin\UserRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(UserUpdateRequest $request, $id)
+    public function update(UserRequest $request, $id)
     {
         $user = $this->userAdminService->findUserOrFail($id);
         $updatedUser = $this->userAdminService->updateUser($user, $request->validated());

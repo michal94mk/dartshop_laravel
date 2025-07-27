@@ -5,12 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Models\NewsletterSubscription;
 use App\Services\NewsletterService;
+use App\Http\Requests\Frontend\NewsletterRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use App\Mail\NewsletterVerificationMail;
 
 class NewsletterController extends BaseApiController
 {
@@ -23,10 +21,10 @@ class NewsletterController extends BaseApiController
     /**
      * Subscribe to the newsletter.
      *
-     * @param Request $request
+     * @param NewsletterRequest $request
      * @return JsonResponse
      */
-    public function subscribe(Request $request): JsonResponse
+    public function subscribe(NewsletterRequest $request): JsonResponse
     {
         Log::info('Newsletter subscribe endpoint hit', [
             'request_data' => $request->all(),
@@ -34,13 +32,8 @@ class NewsletterController extends BaseApiController
             'method' => $request->method(),
             'url' => $request->fullUrl()
         ]);
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|max:255'
-        ]);
-        if ($validator->fails()) {
-            return $this->validationErrorResponse($validator->errors()->toArray(), 'Invalid data');
-        }
-        $email = $request->email;
+        
+        $email = $request->validated()['email'];
         $subscription = $this->newsletterService->subscribe($email);
         $response = [
             'subscription' => $subscription,
@@ -62,14 +55,12 @@ class NewsletterController extends BaseApiController
      */
     public function verify(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $validated = $request->validate([
             'token' => 'required|string'
         ]);
-        if ($validator->fails()) {
-            return redirect('/newsletter/verify?status=error');
-        }
+        
         // Verification logic is handled in the service
-        $success = $this->newsletterService->verifySubscription($request->token);
+        $success = $this->newsletterService->verifySubscription($validated['token']);
         if (!$success) {
             return redirect('/newsletter/verify?status=error');
         }
@@ -79,19 +70,13 @@ class NewsletterController extends BaseApiController
     /**
      * Unsubscribe from the newsletter.
      *
-     * @param Request $request
+     * @param NewsletterRequest $request
      * @return JsonResponse
      */
-    public function unsubscribe(Request $request): JsonResponse
+    public function unsubscribe(NewsletterRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email'
-        ]);
-        if ($validator->fails()) {
-            return $this->validationErrorResponse($validator->errors()->toArray(), 'Invalid email address');
-        }
         // Unsubscribe logic is handled in the service
-        $success = $this->newsletterService->unsubscribe($request->email);
+        $success = $this->newsletterService->unsubscribe($request->validated()['email']);
         if (!$success) {
             return $this->notFoundResponse('No active subscription found for this email address');
         }
@@ -101,20 +86,12 @@ class NewsletterController extends BaseApiController
     /**
      * Check newsletter subscription status.
      *
-     * @param Request $request
+     * @param NewsletterRequest $request
      * @return JsonResponse
      */
-    public function status(Request $request): JsonResponse
+    public function status(NewsletterRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email'
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationErrorResponse($validator->errors()->toArray(), 'Invalid email address');
-        }
-
-        $subscription = NewsletterSubscription::where('email', $request->email)->first();
+        $subscription = NewsletterSubscription::where('email', $request->validated()['email'])->first();
 
         if (!$subscription) {
             return $this->successResponse([
