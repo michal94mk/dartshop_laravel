@@ -7,9 +7,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\Order;
-use App\Models\Product;
 use PHPUnit\Framework\Attributes\Test;
-use App\Models\User as UserModel;
 
 class DashboardControllerTest extends TestCase
 {

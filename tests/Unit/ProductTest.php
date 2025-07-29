@@ -2,14 +2,10 @@
 
 namespace Tests\Unit;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
-use Database\Factories\ProductFactory;
-use Illuminate\Support\Facades\Validator;
 
 class ProductTest extends TestCase
 {
