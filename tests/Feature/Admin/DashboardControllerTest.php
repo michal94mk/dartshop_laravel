@@ -8,6 +8,7 @@ use Tests\TestCase;
 use App\Models\User;
 use App\Models\Order;
 use App\Models\Product;
+use PHPUnit\Framework\Attributes\Test;
 use App\Models\User as UserModel;
 
 class DashboardControllerTest extends TestCase
@@ -34,7 +35,7 @@ class DashboardControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_view_dashboard()
     {
         $response = $this->actingAs($this->admin)
@@ -42,20 +43,24 @@ class DashboardControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJsonStructure([
-            'counts' => [
-                'products',
-                'users',
-                'orders',
-                'reviews'
+            'success',
+            'data' => [
+                'counts' => [
+                    'products',
+                    'users',
+                    'orders',
+                    'reviews'
+                ],
+                'recent_orders',
+                'sales_data',
+                'top_products',
+                'categories_data'
             ],
-            'recent_orders',
-            'sales_data',
-            'top_products',
-            'categories_data'
+            'message'
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_view_recent_orders()
     {
         // Create some orders
@@ -66,18 +71,22 @@ class DashboardControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJsonStructure([
-            'recent_orders' => [
-                '*' => [
-                    'id',
-                    'total',
-                    'status',
-                    'created_at'
+            'success',
+            'data' => [
+                'recent_orders' => [
+                    '*' => [
+                        'id',
+                        'total',
+                        'status',
+                        'created_at'
+                    ]
                 ]
-            ]
+            ],
+            'message'
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_view_sales_data()
     {
         $response = $this->actingAs($this->admin)
@@ -85,17 +94,21 @@ class DashboardControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJsonStructure([
-            'sales_data' => [
-                '*' => [
-                    'date',
-                    'total_sales',
-                    'order_count'
+            'success',
+            'data' => [
+                'sales_data' => [
+                    '*' => [
+                        'date',
+                        'total_sales',
+                        'order_count'
+                    ]
                 ]
-            ]
+            ],
+            'message'
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function non_admin_cannot_access_dashboard()
     {
         $response = $this->actingAs($this->user)

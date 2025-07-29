@@ -28,7 +28,7 @@ class AuthenticationTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        $response->assertJsonStructure(['user', 'token']);
+        $response->assertJsonStructure(['success', 'data' => ['user', 'token']]);
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void
@@ -40,7 +40,9 @@ class AuthenticationTest extends TestCase
             'password' => 'wrong-password',
         ]);
 
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['email']);
+        $response->assertStatus(401);
+        $response->assertJson([
+            'message' => 'The provided credentials are incorrect.'
+        ]);
     }
 }

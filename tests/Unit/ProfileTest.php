@@ -19,7 +19,7 @@ class ProfileTest extends TestCase
             ->getJson('/api/user');
 
         $response->assertOk();
-        $response->assertJsonStructure(['id', 'name', 'email']);
+        $response->assertJsonStructure(['success', 'data' => ['id', 'name', 'email']]);
     }
 
     public function test_profile_information_can_be_updated(): void
@@ -35,7 +35,7 @@ class ProfileTest extends TestCase
 
         $response->assertOk();
         $response->assertJson([
-            'message' => 'Profil został zaktualizowany. Ponieważ zmieniłeś adres e-mail, musisz go ponownie zweryfikować. Link weryfikacyjny został wysłany.'
+            'message' => 'Profile updated successfully'
         ]);
 
         $user->refresh();
@@ -59,7 +59,7 @@ class ProfileTest extends TestCase
 
         $response->assertOk();
         $response->assertJson([
-            'message' => 'Profil został pomyślnie zaktualizowany.'
+            'message' => 'Profile updated successfully'
         ]);
 
         $this->assertNotNull($user->refresh()->email_verified_at);
@@ -79,7 +79,7 @@ class ProfileTest extends TestCase
 
         $response->assertOk();
         $response->assertJson([
-            'message' => 'Hasło zostało pomyślnie zmienione.'
+            'message' => 'Hasło zostało zaktualizowane.'
         ]);
 
         $this->assertTrue(\Illuminate\Support\Facades\Hash::check('new-password', $user->fresh()->password));

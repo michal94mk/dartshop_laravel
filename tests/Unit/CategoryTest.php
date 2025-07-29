@@ -54,9 +54,18 @@ class CategoryTest extends TestCase
     {
         $existingCategory = Category::factory()->create();
         
-        // Simulate update request
-        $request = new CategoryRequest();
-        $request->merge(['category' => $existingCategory]);
+        // Create a mock request with route parameter
+        $request = CategoryRequest::create('/api/admin/categories/' . $existingCategory->id, 'PUT');
+        $request->setRouteResolver(function () use ($existingCategory) {
+            $route = new class {
+                public function parameter($param, $default = null) {
+                    return $this->category;
+                }
+                public $category;
+            };
+            $route->category = $existingCategory;
+            return $route;
+        });
         $rules = $request->rules();
         
         $validator = Validator::make(['name' => $existingCategory->name], $rules);

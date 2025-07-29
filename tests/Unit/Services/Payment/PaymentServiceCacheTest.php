@@ -9,6 +9,7 @@ use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Mockery;
+use PHPUnit\Framework\Attributes\Test;
 
 class PaymentServiceCacheTest extends TestCase
 {
@@ -32,7 +33,7 @@ class PaymentServiceCacheTest extends TestCase
         parent::tearDown();
     }
 
-    /** @test */
+    #[Test]
     public function it_caches_payment_methods()
     {
         // First call should cache the result
@@ -45,20 +46,24 @@ class PaymentServiceCacheTest extends TestCase
         $this->assertTrue(Cache::has('stripe_payment_methods'));
     }
 
-    /** @test */
+    #[Test]
     public function it_caches_stripe_configuration()
     {
         // Mock configuration
         config(['services.stripe.secret' => 'sk_test_123']);
         
+        // Clear any existing cache
+        Cache::forget('stripe_secret_key');
+        
         // This should trigger cache storage during initialization
         $service = new PaymentService($this->shippingServiceMock);
         
         $this->assertTrue(Cache::has('stripe_secret_key'));
+        // Check that the cached value matches the config value
         $this->assertEquals('sk_test_123', Cache::get('stripe_secret_key'));
     }
 
-    /** @test */
+    #[Test]
     public function it_caches_products_for_guest_cart()
     {
         $product = Product::factory()->create([
@@ -89,7 +94,7 @@ class PaymentServiceCacheTest extends TestCase
         $this->assertEquals($lineItems1, $lineItems2);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_clear_payment_cache()
     {
         // Populate cache
@@ -109,7 +114,7 @@ class PaymentServiceCacheTest extends TestCase
         $this->assertFalse(Cache::has('stripe_secret_key'));
     }
 
-    /** @test */
+    #[Test]
     public function it_can_clear_specific_product_cache()
     {
         $product = Product::factory()->create();
@@ -126,7 +131,7 @@ class PaymentServiceCacheTest extends TestCase
         $this->assertFalse(Cache::has($cacheKey));
     }
 
-    /** @test */
+    #[Test]
     public function it_can_clear_all_product_cache()
     {
         // Create multiple products and cache them
@@ -148,7 +153,7 @@ class PaymentServiceCacheTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function it_provides_cache_statistics()
     {
         // Populate some cache
@@ -165,7 +170,7 @@ class PaymentServiceCacheTest extends TestCase
         $this->assertEquals(config('cache.default'), $stats['cache_driver']);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_cache_miss_gracefully()
     {
         // Clear cache first
@@ -179,7 +184,7 @@ class PaymentServiceCacheTest extends TestCase
         $this->assertContains('blik', $methods);
     }
 
-    /** @test */
+    #[Test]
     public function it_respects_cache_ttl()
     {
         // Test that cache has appropriate TTL
@@ -194,7 +199,7 @@ class PaymentServiceCacheTest extends TestCase
         $this->assertTrue(Cache::has('stripe_payment_methods'));
     }
 
-    /** @test */
+    #[Test]
     public function it_caches_different_products_separately()
     {
         $product1 = Product::factory()->create(['name' => 'Product 1']);

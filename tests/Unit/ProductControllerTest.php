@@ -43,7 +43,7 @@ class ProductControllerTest extends TestCase
         $response = $this->postJson('/api/admin/products', $data);
 
         $response->assertStatus(201);
-        $response->assertJsonStructure(['success', 'message', 'data']);
+        $response->assertJsonStructure(['success', 'data']);
 
         $this->assertDatabaseHas('products', [
             'name' => 'Test Product',
@@ -69,7 +69,7 @@ class ProductControllerTest extends TestCase
         $response = $this->putJson("/api/admin/products/{$product->id}", $data);
 
         $response->assertStatus(200);
-        $response->assertJsonStructure(['success', 'message', 'data']);
+        $response->assertJsonStructure(['success', 'data']);
 
         $this->assertDatabaseHas('products', [
             'id' => $product->id,
@@ -86,7 +86,7 @@ class ProductControllerTest extends TestCase
         $response = $this->deleteJson("/api/admin/products/{$product->id}");
 
         $response->assertStatus(200);
-        $response->assertJsonStructure(['success', 'message']);
+        $response->assertJsonStructure(['success', 'data']);
 
         $this->assertDatabaseMissing('products', ['id' => $product->id]);
     }

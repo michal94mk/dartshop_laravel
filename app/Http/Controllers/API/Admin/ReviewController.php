@@ -8,8 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Requests\Admin\ReviewRequest;
 use App\Models\Review;
-use App\Models\User;
-use App\Models\Product;
+
 
 /**
  * API controller for admin review management.
@@ -121,13 +120,17 @@ class ReviewController extends BaseApiController
      */
     public function toggleFeatured(int $id): JsonResponse
     {
-        $review = $this->reviewAdminService->toggleFeaturedReview($id);
-        
-        $message = $review->is_featured 
-            ? 'Recenzja została wyróżniona.' 
-            : 'Recenzja została usunięta z wyróżnienia.';
+        try {
+            $review = $this->reviewAdminService->toggleFeaturedReview($id);
             
-        return $this->successResponse(['review' => $review], $message);
+            $message = $review->is_featured 
+                ? 'Recenzja została wyróżniona.' 
+                : 'Recenzja została usunięta z wyróżnienia.';
+                
+            return $this->successResponse(['review' => $review], $message);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 422);
+        }
     }
 
     /**

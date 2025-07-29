@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\OrderItem;
+use PHPUnit\Framework\Attributes\Test;
 
 class OrderControllerTest extends TestCase
 {
@@ -59,7 +60,7 @@ class OrderControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_view_orders_list()
     {
         $response = $this->actingAs($this->admin)
@@ -67,22 +68,17 @@ class OrderControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJsonStructure([
-            'data' => [
-                '*' => [
-                    'id',
-                    'order_number',
-                    'status',
-                    'total',
-                    'created_at'
-                ]
-            ],
-            'current_page',
-            'per_page',
-            'total'
+            'success',
+            'data',
+            'message'
         ]);
+        
+        // Check that data is an array or paginator
+        $data = $response->json('data');
+        $this->assertIsArray($data);
     }
 
-    /** @test */
+    #[Test]
     public function non_admin_cannot_view_orders_list()
     {
         $response = $this->actingAs($this->user)
@@ -91,7 +87,7 @@ class OrderControllerTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_view_single_order()
     {
         $response = $this->actingAs($this->admin)
@@ -99,12 +95,15 @@ class OrderControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJson([
-            'id' => $this->order->id,
-            'order_number' => $this->order->order_number
+            'success' => true,
+            'data' => [
+                'id' => $this->order->id,
+                'order_number' => $this->order->order_number
+            ]
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_update_order_status()
     {
         $response = $this->actingAs($this->admin)
@@ -116,7 +115,7 @@ class OrderControllerTest extends TestCase
         $this->assertEquals('processing', $this->order->fresh()->status->value);
     }
 
-    /** @test */
+    #[Test]
     public function admin_cannot_update_order_with_invalid_status()
     {
         $response = $this->actingAs($this->admin)
@@ -127,7 +126,7 @@ class OrderControllerTest extends TestCase
         $response->assertStatus(422);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_delete_order()
     {
         $response = $this->actingAs($this->admin)

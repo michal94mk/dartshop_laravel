@@ -7,31 +7,37 @@ use App\Models\User;
 use App\Models\Product;
 use App\Models\Review;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 
 class ReviewControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $admin;
-    protected $user;
-    protected $product;
+    protected User $admin;
+    protected User $user;
+    protected Product $product;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
+        // Create roles first
+        $adminRole = \Spatie\Permission\Models\Role::create(['name' => 'admin']);
+        $userRole = \Spatie\Permission\Models\Role::create(['name' => 'user']);
+
         // Create admin user
         $this->admin = User::factory()->create([
             'email' => 'admin@example.com',
             'is_admin' => true
         ]);
-        
+        $this->admin->assignRole('admin');
+
         // Create regular user
         $this->user = User::factory()->create([
-            'email' => 'user@example.com',
-            'is_admin' => false
+            'email' => 'user@example.com'
         ]);
-        
+        $this->user->assignRole('user');
+
         // Create product
         $this->product = Product::factory()->create([
             'name' => 'Test Product',
@@ -39,7 +45,7 @@ class ReviewControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_prevents_creating_more_than_6_featured_reviews()
     {
         // Create 6 approved featured reviews
@@ -68,14 +74,14 @@ class ReviewControllerTest extends TestCase
 
         $response->assertStatus(422);
         $response->assertJson([
-            'message' => 'Można wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji przed dodaniem nowego.'
+            'message' => 'Możesz wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji, aby dodać nową.'
         ]);
 
         // Verify only 6 featured reviews exist
         $this->assertEquals(6, Review::where('is_featured', true)->count());
     }
 
-    /** @test */
+    #[Test]
     public function it_prevents_toggling_to_featured_when_limit_reached()
     {
         // Create 6 approved featured reviews
@@ -104,14 +110,14 @@ class ReviewControllerTest extends TestCase
 
         $response->assertStatus(422);
         $response->assertJson([
-            'message' => 'Można wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji przed dodaniem nowego.'
+            'message' => 'Możesz wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji, aby dodać nową.'
         ]);
 
         // Verify the review is still not featured
         $this->assertEquals(0, $review->fresh()->is_featured);
     }
 
-    /** @test */
+    #[Test]
     public function it_allows_toggling_featured_when_under_limit()
     {
         // Create 5 approved featured reviews
@@ -144,10 +150,10 @@ class ReviewControllerTest extends TestCase
         ]);
 
         // Verify the review is now featured from API response
-        $this->assertTrue($response->json('review.is_featured'));
+        $this->assertTrue($response->json('data.review.is_featured'));
     }
 
-    /** @test */
+    #[Test]
     public function it_allows_removing_featured_status()
     {
         // Create a featured review
@@ -165,14 +171,14 @@ class ReviewControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJson([
-            'message' => 'Recenzja została usunięta z wyróżnionych.'
+            'message' => 'Recenzja została usunięta z wyróżnienia.'
         ]);
 
         // Verify the review is no longer featured from API response
-        $this->assertFalse($response->json('review.is_featured'));
+        $this->assertFalse($response->json('data.review.is_featured'));
     }
 
-    /** @test */
+    #[Test]
     public function it_prevents_updating_to_featured_when_limit_reached()
     {
         // Create 6 approved featured reviews
@@ -209,14 +215,14 @@ class ReviewControllerTest extends TestCase
 
         $response->assertStatus(422);
         $response->assertJson([
-            'message' => 'Można wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji przed dodaniem nowego.'
+            'message' => 'Możesz wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji, aby dodać nową.'
         ]);
 
         // Verify the review is still not featured
         $this->assertEquals(0, $review->fresh()->is_featured);
     }
 
-    /** @test */
+    #[Test]
     public function it_prevents_featuring_unapproved_review()
     {
         // Create an unapproved review
@@ -233,14 +239,14 @@ class ReviewControllerTest extends TestCase
 
         $response->assertStatus(422);
         $response->assertJson([
-            'message' => 'Recenzja musi być zatwierdzona, aby mogła być wyróżniona.'
+            'message' => 'Recenzja musi być zatwierdzona, aby ją wyróżnić.'
         ]);
 
         // Verify the review is still not featured
         $this->assertEquals(0, $review->fresh()->is_featured);
     }
 
-    /** @test */
+    #[Test]
     public function it_prevents_creating_featured_unapproved_review()
     {
         // Try to create a featured but unapproved review
@@ -257,7 +263,7 @@ class ReviewControllerTest extends TestCase
 
         $response->assertStatus(422);
         $response->assertJson([
-            'message' => 'Recenzja musi być zatwierdzona, aby mogła być wyróżniona.'
+            'message' => 'Recenzja musi być zatwierdzona, aby ją wyróżnić.'
         ]);
     }
 } 

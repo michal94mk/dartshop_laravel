@@ -175,11 +175,11 @@ class ReviewAdminService
         if (!$review->is_featured) {
             // To feature, review must be approved and featured limit not exceeded
             if (!$review->is_approved) {
-                throw new \Exception('Review must be approved to be featured.');
+                throw new \Exception('Recenzja musi być zatwierdzona, aby ją wyróżnić.');
             }
             $featuredCount = Review::approvedAndFeatured()->where('id', '!=', $review->id)->count();
             if ($featuredCount >= 6) {
-                throw new \Exception('You can feature up to 6 reviews. Remove feature from another review to add a new one.');
+                throw new \Exception('Możesz wyróżnić maksymalnie 6 recenzji. Usuń wyróżnienie z innej recenzji, aby dodać nową.');
             }
             $review->is_featured = true;
         } else {
@@ -212,5 +212,30 @@ class ReviewAdminService
     public function getFeaturedCount(): int
     {
         return Review::approvedAndFeatured()->count();
+    }
+
+    /**
+     * Get a review with details (product and user).
+     *
+     * @param int $id
+     * @return Review
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function getReviewWithDetails(int $id): Review
+    {
+        return Review::with(['product', 'user'])->findOrFail($id);
+    }
+
+    /**
+     * Toggle featured status of a review by ID.
+     *
+     * @param int $id
+     * @return Review
+     * @throws \Exception
+     */
+    public function toggleFeaturedReview(int $id): Review
+    {
+        $review = Review::findOrFail($id);
+        return $this->toggleFeatured($review);
     }
 }

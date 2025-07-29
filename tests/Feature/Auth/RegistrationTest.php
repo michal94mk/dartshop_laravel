@@ -38,8 +38,8 @@ class RegistrationTest extends TestCase
             'privacy_policy_accepted' => true,
         ]);
 
-        $response->assertStatus(200);
-        $response->assertJsonStructure(['user', 'token']);
+        $response->assertStatus(201);
+        $response->assertJsonStructure(['success', 'data' => ['user', 'token']]);
         $this->assertDatabaseHas('users', ['email' => 'test@example.com']);
     }
 }

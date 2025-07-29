@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Models\User;
+use PHPUnit\Framework\Attributes\Test;
 
 class UserControllerTest extends TestCase
 {
@@ -31,7 +32,7 @@ class UserControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_view_users_list()
     {
         $response = $this->actingAs($this->admin)
@@ -50,7 +51,7 @@ class UserControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_view_single_user()
     {
         $response = $this->actingAs($this->admin)
@@ -58,12 +59,15 @@ class UserControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJson([
-            'id' => $this->user->id,
-            'email' => $this->user->email
+            'success' => true,
+            'data' => [
+                'id' => $this->user->id,
+                'email' => $this->user->email
+            ]
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_update_user()
     {
         $updateData = [
@@ -81,17 +85,17 @@ class UserControllerTest extends TestCase
         $this->assertEquals('Updated Name', $this->user->fresh()->name);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_delete_user()
     {
         $response = $this->actingAs($this->admin)
             ->deleteJson("/api/admin/users/{$this->user->id}");
 
-        $response->assertStatus(200);
+        $response->assertStatus(204);
         $this->assertDatabaseMissing('users', ['id' => $this->user->id]);
     }
 
-    /** @test */
+    #[Test]
     public function non_admin_cannot_access_users()
     {
         $response = $this->actingAs($this->user)

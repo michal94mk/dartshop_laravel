@@ -30,7 +30,7 @@ class PasswordResetTest extends TestCase
 
         $response = $this->postJson('/api/forgot-password', ['email' => $user->email]);
         $response->assertOk();
-        $response->assertJson(['message' => 'We have emailed your password reset link!']);
+        $response->assertJson(['message' => 'Password reset link sent successfully']);
         Notification::assertSentTo($user, QueuedResetPasswordNotification::class);
     }
 

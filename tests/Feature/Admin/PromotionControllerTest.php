@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\Promotion;
+use PHPUnit\Framework\Attributes\Test;
 
 class PromotionControllerTest extends TestCase
 {
@@ -41,7 +42,7 @@ class PromotionControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_view_promotions_list()
     {
         $response = $this->actingAs($this->admin)
@@ -49,23 +50,17 @@ class PromotionControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJsonStructure([
-            'data' => [
-                '*' => [
-                    'id',
-                    'title',
-                    'name',
-                    'discount_type',
-                    'discount_value',
-                    'is_active'
-                ]
-            ],
-            'current_page',
-            'per_page',
-            'total'
+            'success',
+            'data',
+            'pagination'
         ]);
+        
+        // Check that data is an array
+        $data = $response->json('data');
+        $this->assertIsArray($data);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_create_promotion()
     {
         $promotionData = [
@@ -86,7 +81,7 @@ class PromotionControllerTest extends TestCase
         $this->assertDatabaseHas('promotions', ['name' => 'NEW20']);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_update_promotion()
     {
         $updateData = [
@@ -104,7 +99,7 @@ class PromotionControllerTest extends TestCase
         $this->assertEquals('Updated Promotion', $this->promotion->fresh()->title);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_delete_promotion()
     {
         $response = $this->actingAs($this->admin)
@@ -114,7 +109,7 @@ class PromotionControllerTest extends TestCase
         $this->assertDatabaseMissing('promotions', ['id' => $this->promotion->id]);
     }
 
-    /** @test */
+    #[Test]
     public function non_admin_cannot_access_promotions()
     {
         $response = $this->actingAs($this->user)

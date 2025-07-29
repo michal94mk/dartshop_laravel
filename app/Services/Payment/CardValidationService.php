@@ -12,8 +12,8 @@ class CardValidationService
      */
     public function validateCardNumber(string $cardNumber): bool
     {
-        // Remove spaces and dashes
-        $cardNumber = preg_replace('/[\s\-]/', '', $cardNumber);
+        // Remove all non-digit characters
+        $cardNumber = preg_replace('/[^0-9]/', '', $cardNumber);
         
         // Check length (13-19 digits)
         if (!preg_match('/^[0-9]{13,19}$/', $cardNumber)) {
@@ -31,12 +31,11 @@ class CardValidationService
     {
         $sum = 0;
         $length = strlen($cardNumber);
-        $parity = $length % 2;
         
-        for ($i = 0; $i < $length; $i++) {
+        for ($i = $length - 1; $i >= 0; $i--) {
             $digit = (int) $cardNumber[$i];
             
-            if ($i % 2 == $parity) {
+            if (($length - $i) % 2 == 0) {
                 $digit *= 2;
                 if ($digit > 9) {
                     $digit -= 9;
@@ -76,14 +75,14 @@ class CardValidationService
      */
     public function detectCardBrand(string $cardNumber): ?string
     {
-        $cardNumber = preg_replace('/[\s\-]/', '', $cardNumber);
+        $cardNumber = preg_replace('/[^0-9]/', '', $cardNumber);
         
         $patterns = [
             'visa' => '/^4[0-9]{12}(?:[0-9]{3})?$/',
             'mastercard' => '/^5[1-5][0-9]{14}$/',
             'amex' => '/^3[47][0-9]{13}$/',
             'discover' => '/^6(?:011|5[0-9]{2})[0-9]{12}$/',
-            'diners' => '/^3[0689][0-9]{11}$/',
+            'diners' => '/^3[0689][0-9]{11,12}$/',
             'jcb' => '/^(?:2131|1800|35\d{3})\d{11}$/'
         ];
 
@@ -104,10 +103,10 @@ class CardValidationService
      */
     public function formatCardNumber(string $cardNumber): string
     {
-        $cardNumber = preg_replace('/[\s\-]/', '', $cardNumber);
+        $cardNumber = preg_replace('/[^0-9]/', '', $cardNumber);
         
-        // Add spaces every 4 digits
-        return chunk_split($cardNumber, 4, ' ');
+        // Add spaces every 4 digits and trim trailing space
+        return rtrim(chunk_split($cardNumber, 4, ' '));
     }
 
     /**
@@ -118,7 +117,7 @@ class CardValidationService
      */
     public function maskCardNumber(string $cardNumber): string
     {
-        $cardNumber = preg_replace('/[\s\-]/', '', $cardNumber);
+        $cardNumber = preg_replace('/[^0-9]/', '', $cardNumber);
         
         if (strlen($cardNumber) < 4) {
             return str_repeat('*', strlen($cardNumber));
@@ -127,6 +126,7 @@ class CardValidationService
         $lastFour = substr($cardNumber, -4);
         $masked = str_repeat('*', strlen($cardNumber) - 4) . $lastFour;
         
-        return $this->formatCardNumber($masked);
+        // Format the masked number with spaces
+        return rtrim(chunk_split($masked, 4, ' '));
     }
 } 

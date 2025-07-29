@@ -25,7 +25,7 @@ class PasswordUpdateTest extends TestCase
 
         $response->assertOk();
         $response->assertJson([
-            'message' => 'Hasło zostało pomyślnie zmienione.'
+            'message' => 'Hasło zostało zaktualizowane.'
         ]);
 
         $this->assertTrue(Hash::check('new-password', $user->refresh()->password));

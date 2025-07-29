@@ -30,7 +30,7 @@ class CategoryControllerTest extends TestCase
     {
         $response = $this->getJson('/api/admin/categories');
         $response->assertStatus(200);
-        $response->assertJsonStructure(['data', 'current_page', 'total']);
+        $response->assertJsonStructure(['success', 'data', 'pagination' => ['current_page', 'total']]);
     }
 
     public function testCreateCategory()
@@ -39,7 +39,7 @@ class CategoryControllerTest extends TestCase
             'name' => 'New Category Name',
         ]);
         $response->assertStatus(201);
-        $response->assertJsonStructure(['success', 'message', 'data']);
+        $response->assertJsonStructure(['success', 'data']);
         $this->assertDatabaseHas('categories', [
             'name' => 'New Category Name',
         ]);
@@ -50,9 +50,8 @@ class CategoryControllerTest extends TestCase
         $category = Category::factory()->create();
         $response = $this->getJson("/api/admin/categories/{$category->id}");
         $response->assertStatus(200);
-        $response->assertJsonStructure(['id', 'name']);
+        $response->assertJsonStructure(['success', 'data' => ['id', 'name']]);
     }
-
 
     public function testUpdateCategory()
     {
@@ -61,7 +60,7 @@ class CategoryControllerTest extends TestCase
             'name' => 'Updated Category Name',
         ]);
         $response->assertStatus(200);
-        $response->assertJsonStructure(['success', 'message', 'data']);
+        $response->assertJsonStructure(['success', 'data']);
         $this->assertDatabaseHas('categories', [
             'id' => $category->id,
             'name' => 'Updated Category Name',
@@ -73,7 +72,7 @@ class CategoryControllerTest extends TestCase
         $category = Category::factory()->create();
         $response = $this->deleteJson("/api/admin/categories/{$category->id}");
         $response->assertStatus(200);
-        $response->assertJsonStructure(['success', 'message']);
+        $response->assertJsonStructure(['success', 'data']);
         $this->assertDatabaseMissing('categories', [
             'id' => $category->id,
         ]);

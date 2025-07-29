@@ -27,7 +27,7 @@ class BrandControllerTest extends TestCase
     {
         $response = $this->getJson('/api/admin/brands');
         $response->assertStatus(200);
-        $response->assertJsonStructure(['data', 'current_page', 'total']);
+        $response->assertJsonStructure(['success', 'data', 'pagination' => ['current_page', 'total']]);
     }
 
     public function testCreateBrand()
@@ -47,7 +47,7 @@ class BrandControllerTest extends TestCase
         $brand = Brand::factory()->create();
         $response = $this->getJson("/api/admin/brands/{$brand->id}");
         $response->assertStatus(200);
-        $response->assertJsonStructure(['id', 'name']);
+        $response->assertJsonStructure(['success', 'data' => ['id', 'name']]);
     }
 
     public function testUpdateBrand()
@@ -69,7 +69,7 @@ class BrandControllerTest extends TestCase
         $brand = Brand::factory()->create();
         $response = $this->deleteJson("/api/admin/brands/{$brand->id}");
         $response->assertStatus(200);
-        $response->assertJsonStructure(['success', 'message']);
+        $response->assertJsonStructure(['success', 'data']);
         $this->assertDatabaseMissing('brands', [
             'id' => $brand->id,
         ]);

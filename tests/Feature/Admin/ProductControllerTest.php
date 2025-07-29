@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
+use PHPUnit\Framework\Attributes\Test;
 
 class ProductControllerTest extends TestCase
 {
@@ -38,7 +39,9 @@ class ProductControllerTest extends TestCase
         
         // Create category and brand
         $this->category = Category::factory()->create();
-        $this->brand = Brand::factory()->create();
+        $this->brand = Brand::factory()->create([
+            'name' => 'Test Brand ' . uniqid()
+        ]);
         
         // Create product
         $this->product = Product::factory()->create([
@@ -49,7 +52,7 @@ class ProductControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_view_products_list()
     {
         $response = $this->actingAs($this->admin)
@@ -69,7 +72,7 @@ class ProductControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_create_product()
     {
         $productData = [
@@ -89,7 +92,7 @@ class ProductControllerTest extends TestCase
         $this->assertDatabaseHas('products', ['name' => 'New Product']);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_update_product()
     {
         $updateData = [
@@ -104,7 +107,7 @@ class ProductControllerTest extends TestCase
         $this->assertEquals('Updated Product', $this->product->fresh()->name);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_delete_product()
     {
         $response = $this->actingAs($this->admin)
@@ -114,7 +117,7 @@ class ProductControllerTest extends TestCase
         $this->assertDatabaseMissing('products', ['id' => $this->product->id]);
     }
 
-    /** @test */
+    #[Test]
     public function non_admin_cannot_access_products()
     {
         $response = $this->actingAs($this->user)
