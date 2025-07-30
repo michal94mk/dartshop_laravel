@@ -436,12 +436,30 @@ export default {
           return;
         }
         
+        // Don't show error if it's a network timeout or connection issue
+        if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+          console.log('Dashboard: Network timeout, not showing error alert');
+          return;
+        }
+        
+        // Don't show error if it's a network error (no response)
+        if (!error.response && error.request) {
+          console.log('Dashboard: Network error, not showing error alert');
+          return;
+        }
+        
         if (error.response?.status === 401) {
-          alertStore.error('Brak autoryzacji. Zaloguj się ponownie.')
+          console.log('Dashboard: Unauthorized - user needs to login again')
+          // Don't show alert for 401 as it's handled by auth system
         } else if (error.response?.status === 403) {
-          alertStore.error('Brak uprawnień administratora.')
+          console.log('Dashboard: Forbidden - user is not admin')
+          // Don't show alert for 403 as it's handled by auth system
         } else {
-          alertStore.error('Nie udało się pobrać danych dla panelu administracyjnego')
+          console.log('Dashboard: Other error occurred:', error.message)
+          // Only show alert for actual server errors, not auth issues
+          if (error.response?.status >= 500) {
+            alertStore.error('Nie udało się pobrać danych dla panelu administracyjnego')
+          }
         }
       } finally {
         loading.value = false
@@ -488,6 +506,9 @@ export default {
         console.log('Dashboard: Auth not initialized, waiting...')
         await authStore.initAuth()
       }
+      
+      // Dodaj małe opóźnienie, aby upewnić się, że auth state jest w pełni załadowany
+      await new Promise(resolve => setTimeout(resolve, 100))
       
       // Sprawdź czy użytkownik może dostać się do dashboardu
       if (authStore.isLoggedIn && authStore.isAdmin) {
