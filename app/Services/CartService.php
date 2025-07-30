@@ -246,7 +246,7 @@ class CartService
     public function getCartTotal(): float
     {
         return $this->getCartItems()->sum(function ($item) {
-            return $item['quantity'] * $item['product']->getPromotionalPrice();
+            return $item->quantity * $item->product->getPromotionalPrice();
         });
     }
 

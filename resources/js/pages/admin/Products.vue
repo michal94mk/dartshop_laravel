@@ -293,51 +293,57 @@
                   
                   <div>
                     <label class="block text-sm font-medium text-gray-700">Zdjęcie produktu</label>
-                    <div class="mt-1 flex items-center">
-                      <span v-if="currentProduct.image_url && !isFileObject(currentProduct.image_url)" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
-                        <img 
-                          :src="getProductImageUrl(currentProduct.image_url, currentProduct.name, 48, 48)" 
-                          class="h-full w-full object-cover modal-product-image" 
-                          @error="(e) => handleImageError(e, currentProduct.name, 48, 48)" 
-                          :alt="currentProduct.name"
+                    <div class="mt-1 flex items-center space-x-4">
+                      <div class="flex-shrink-0 h-40 w-40 bg-gray-100 rounded-md overflow-hidden">
+                        <img v-if="currentProduct.image_url && !isFileObject(currentProduct.image_url)" 
+                          :src="getProductImageUrl(currentProduct.image_url, currentProduct.name, 160, 160)" 
+                          alt="Product image" 
+                          class="h-40 w-40 object-cover"
+                          @error="(e) => handleImageError(e, currentProduct.name, 160, 160)"
                           loading="lazy"
                           crossorigin="anonymous"
                         />
-                      </span>
-                      <span v-else-if="currentProduct.image_url && isFileObject(currentProduct.image_url)" class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
-                        <img 
+                        <img v-else-if="currentProduct.image_url && isFileObject(currentProduct.image_url)" 
                           :src="getImagePreviewUrl(currentProduct.image_url)" 
-                          class="h-full w-full object-cover"
-                          alt="Uploaded image"
+                          alt="Product image" 
+                          class="h-40 w-40 object-cover"
                         />
-                      </span>
-                      <span v-else class="inline-block h-12 w-12 rounded-md overflow-hidden bg-gray-100">
-                        <svg class="h-full w-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                      </span>
-                      <input
-                        type="file"
-                        id="file-upload"
-                        class="hidden"
-                        accept="image/*"
-                        @change="handleFileChange"
-                      />
-                      <button 
-                        type="button"
-                        @click="triggerFileUpload"
-                        class="ml-5 bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        {{ currentProduct.image_url ? 'Zmień zdjęcie' : 'Dodaj zdjęcie' }}
-                      </button>
-                      <button 
-                        v-if="currentProduct.image_url"
-                        type="button"
-                        @click="removeImage"
-                        class="ml-2 bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-red-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                      >
-                        Usuń
-                      </button>
+                        <div v-else class="h-40 w-40 flex items-center justify-center text-gray-400">
+                          <svg class="h-12 w-12" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div class="flex-1">
+                        <input
+                          type="file"
+                          id="file-upload"
+                          ref="fileInput"
+                          @change="handleFileChange"
+                          accept="image/*"
+                          class="sr-only"
+                        />
+                        <div class="space-y-2">
+                          <label
+                            for="file-upload"
+                            class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
+                          >
+                            {{ currentProduct.image_url ? 'Zmień zdjęcie' : 'Wybierz plik' }}
+                          </label>
+                          <p v-if="currentProduct.image_url" class="text-sm text-gray-500">
+                            <span class="truncate block max-w-xs">
+                              {{ isFileObject(currentProduct.image_url) ? currentProduct.image_url.name : currentProduct.image_url.split('/').pop() }}
+                            </span>
+                            <button 
+                              type="button" 
+                              @click="removeImage" 
+                              class="ml-2 mt-1 text-red-600 hover:text-red-800 text-xs font-medium"
+                            >
+                              Usuń
+                            </button>
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -749,9 +755,8 @@ export default {
     }
     
     const triggerFileUpload = () => {
-      const fileInputElement = document.getElementById('file-upload');
-      if (fileInputElement) {
-        fileInputElement.click();
+      if (fileInput.value) {
+        fileInput.value.click();
       }
     }
     
@@ -767,10 +772,9 @@ export default {
       currentProduct.value.image_url = null;
       
       // Reset the file input safely
-      const fileInputElement = document.getElementById('file-upload');
-      if (fileInputElement) {
+      if (fileInput.value) {
         try {
-          fileInputElement.value = '';
+          fileInput.value.value = '';
         } catch (e) {
           console.error('Error resetting file input:', e);
         }
@@ -1061,6 +1065,7 @@ export default {
       submitting,
       productImage,
       productToDelete,
+      fileInput,
       fetchProducts,
       debouncedFetchProducts,
       goToPage,

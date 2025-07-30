@@ -38,7 +38,9 @@ class ProductControllerTest extends TestCase
         ]);
         
         // Create category and brand
-        $this->category = Category::factory()->create();
+        $this->category = Category::factory()->create([
+            'name' => 'Test Category ' . uniqid()
+        ]);
         $this->brand = Brand::factory()->create([
             'name' => 'Test Brand ' . uniqid()
         ]);
