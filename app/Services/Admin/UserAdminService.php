@@ -135,14 +135,31 @@ class UserAdminService
     }
 
     /**
-     * Get a user by ID with orders relation.
+     * Get a user by ID with orders relation and default shipping address.
      *
      * @param int $id
      * @return User|null
      */
     public function getUserWithOrders(int $id): ?User
     {
-        return User::with('orders')->find($id);
+        $user = User::with(['orders', 'shippingAddresses' => function($query) {
+            $query->where('is_default', true)->first();
+        }])->find($id);
+        
+        if ($user) {
+            // Get default shipping address
+            $defaultAddress = $user->shippingAddresses()->where('is_default', true)->first();
+            
+            // Add address data to user object for easy access
+            if ($defaultAddress) {
+                $user->address = $defaultAddress->address_line_1;
+                $user->city = $defaultAddress->city;
+                $user->postal_code = $defaultAddress->postal_code;
+                $user->phone = $defaultAddress->phone;
+            }
+        }
+        
+        return $user;
     }
 
     /**

@@ -1430,52 +1430,49 @@ export default {
       if (newUserId) {
         try {
           const response = await axios.get(`/api/admin/users/${newUserId}`)
-          const userData = response.data
           
-          // Only fill in data if we're not editing an existing order
-          if (!showEditModal.value) {
-            // Fill in email from user data - ensuring it's a valid string
-            editedOrder.value.email = userData.email || ''
-            
-            // Use first_name and last_name if available, otherwise parse name
-            if (userData.first_name && userData.last_name) {
-              editedOrder.value.first_name = userData.first_name
-              editedOrder.value.last_name = userData.last_name
-            } else if (userData.first_name) {
-              // If only first_name is available
-              editedOrder.value.first_name = userData.first_name
-              editedOrder.value.last_name = userData.last_name || ''
-            } else if (userData.name) {
-              // Parse from name field
-              const nameParts = userData.name.split(' ')
-              if (nameParts.length > 1) {
-                editedOrder.value.first_name = nameParts[0]
-                editedOrder.value.last_name = nameParts.slice(1).join(' ')
-              } else {
-                editedOrder.value.first_name = userData.name
-                editedOrder.value.last_name = ''
-              }
+          // Check if data is nested in response.data.data
+          const userData = response.data.data || response.data
+          
+          // Fill in email from user data - ensuring it's a valid string
+          editedOrder.value.email = userData.email || ''
+          
+          // Use first_name and last_name if available, otherwise parse name
+          if (userData.first_name && userData.last_name) {
+            editedOrder.value.first_name = userData.first_name
+            editedOrder.value.last_name = userData.last_name
+          } else if (userData.first_name) {
+            // If only first_name is available
+            editedOrder.value.first_name = userData.first_name
+            editedOrder.value.last_name = userData.last_name || ''
+          } else if (userData.name) {
+            // Parse from name field
+            const nameParts = userData.name.split(' ')
+            if (nameParts.length > 1) {
+              editedOrder.value.first_name = nameParts[0]
+              editedOrder.value.last_name = nameParts.slice(1).join(' ')
             } else {
-              // Fallback - clear fields if no name data available
-              editedOrder.value.first_name = ''
+              editedOrder.value.first_name = userData.name
               editedOrder.value.last_name = ''
             }
+          } else {
+            // Fallback - clear fields if no name data available
+            editedOrder.value.first_name = ''
+            editedOrder.value.last_name = ''
           }
           
-          // Also prefill address data if available (only when not editing)
-          if (!showEditModal.value) {
-            if (userData.address) {
-              editedOrder.value.address = userData.address
-            }
-            if (userData.city) {
-              editedOrder.value.city = userData.city
-            }
-            if (userData.postal_code) {
-              editedOrder.value.postal_code = userData.postal_code
-            }
-            if (userData.phone) {
-              editedOrder.value.phone = userData.phone
-            }
+          // Also prefill address data if available
+          if (userData.address) {
+            editedOrder.value.address = userData.address
+          }
+          if (userData.city) {
+            editedOrder.value.city = userData.city
+          }
+          if (userData.postal_code) {
+            editedOrder.value.postal_code = userData.postal_code
+          }
+          if (userData.phone) {
+            editedOrder.value.phone = userData.phone
           }
           
           console.log('Loaded user data:', userData)
@@ -1484,16 +1481,14 @@ export default {
           alertStore.error('Nie udało się pobrać danych użytkownika')
         }
       } else {
-        // Only clear form fields when no user is selected AND we're not editing an existing order
-        if (!showEditModal.value) {
-          editedOrder.value.email = ''
-          editedOrder.value.first_name = ''
-          editedOrder.value.last_name = ''
-          editedOrder.value.phone = ''
-          editedOrder.value.address = ''
-          editedOrder.value.city = ''
-          editedOrder.value.postal_code = ''
-        }
+        // Clear form fields when no user is selected
+        editedOrder.value.email = ''
+        editedOrder.value.first_name = ''
+        editedOrder.value.last_name = ''
+        editedOrder.value.phone = ''
+        editedOrder.value.address = ''
+        editedOrder.value.city = ''
+        editedOrder.value.postal_code = ''
       }
     })
 
