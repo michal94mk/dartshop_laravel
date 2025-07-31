@@ -46,7 +46,7 @@
       :default-filters="defaultFilters"
       search-label="Wyszukaj"
       search-placeholder="Szukaj recenzji..."
-      @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; }"
+      @update:filters="(newFilters) => { Object.assign(filters, newFilters); filters.page = 1; fetchReviews(); }"
       @filter-change="fetchReviews"
       @reset-filters="resetFilters"
     >
@@ -845,6 +845,9 @@ export default {
             message: ''
           }
         }
+        
+        // Refresh featured count to ensure it's up to date
+        await fetchFeaturedCount()
       } catch (error) {
         console.error('Error fetching reviews:', error)
         alertStore.error('Wystąpił błąd podczas pobierania recenzji.')
@@ -1394,7 +1397,7 @@ export default {
     const fetchFeaturedCount = async () => {
       try {
         const response = await axios.get('/api/admin/reviews/featured-count')
-        featuredReviewsCount.value = response.data.featured_count
+        featuredReviewsCount.value = response.data.data.featured_count
       } catch (error) {
         console.error('Error fetching featured count:', error)
       }
