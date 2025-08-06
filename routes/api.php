@@ -193,10 +193,10 @@ Route::get('/orders/{order}', [CheckoutController::class, 'showOrder']);
 
 // Public Promotions API
 Route::prefix('promotions')->group(function () {
-Route::get('/', [PromotionController::class, 'indexPublic']);
-Route::get('/featured', [PromotionController::class, 'featured']);
-Route::get('/{promotion}', [PromotionController::class, 'showPublic']);
-Route::get('/{promotion}/products', [PromotionController::class, 'getPromotionProducts']);
+    Route::get('/', [PromotionController::class, 'indexPublic']);
+    Route::get('/featured', [PromotionController::class, 'featured']);
+    Route::get('/{promotion}', [PromotionController::class, 'showPublic']);
+    Route::get('/{promotion}/products', [PromotionController::class, 'getPromotionProducts']);
 });
 
 // Product promotion check
