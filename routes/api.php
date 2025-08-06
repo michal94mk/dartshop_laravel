@@ -15,7 +15,6 @@ use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\UserOrderController;
 use App\Http\Controllers\Api\UserReviewController;
-use App\Http\Controllers\Api\Admin\BaseAdminController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Api\Admin\CategoryController as AdminCategoryController;
