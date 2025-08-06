@@ -30,6 +30,8 @@ use App\Http\Controllers\Api\Admin\ContactMessageController as AdminContactMessa
 use App\Http\Controllers\Api\Admin\AboutPageController;
 use App\Http\Controllers\Api\Admin\NewsletterController as AdminNewsletterController;
 use App\Http\Controllers\Api\Admin\ContentImageUploadController;
+use App\Http\Controllers\Api\Admin\PrivacyPolicyController as AdminPrivacyPolicyController;
+use App\Http\Controllers\Api\Admin\TermsOfServiceController as AdminTermsOfServiceController;
 
 use App\Http\Controllers\Api\AboutUsController;
 use App\Http\Controllers\Api\ContactController;
@@ -204,13 +206,8 @@ Route::get('/products/{productId}/promotion', [PromotionController::class, 'chec
 
 // Admin API Routes
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
-
-    
     // Dashboard statistics
     Route::get('/dashboard', [DashboardController::class, 'index']);
-    
-    // Image uploads
-    
     
     // Products management - custom routes must be defined BEFORE the resource route
     Route::get('/products/form-data', [AdminProductController::class, 'getFormData']);
@@ -271,16 +268,16 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/newsletter/stats', [AdminNewsletterController::class, 'stats']);
     
     // Privacy Policy management
-    Route::apiResource('/privacy-policies', \App\Http\Controllers\Api\Admin\PrivacyPolicyController::class);
-    Route::post('/privacy-policies/{privacyPolicy}/set-active', [\App\Http\Controllers\Api\Admin\PrivacyPolicyController::class, 'setActive']);
-    Route::get('/privacy-policies/users/without-acceptance', [\App\Http\Controllers\Api\Admin\PrivacyPolicyController::class, 'getUsersWithoutAcceptance']);
-    Route::get('/privacy-policies/stats/acceptance', [\App\Http\Controllers\Api\Admin\PrivacyPolicyController::class, 'getAcceptanceStats']);
+    Route::apiResource('/privacy-policies', AdminPrivacyPolicyController::class);
+    Route::post('/privacy-policies/{privacyPolicy}/set-active', [AdminPrivacyPolicyController::class, 'setActive']);
+    Route::get('/privacy-policies/users/without-acceptance', [AdminPrivacyPolicyController::class, 'getUsersWithoutAcceptance']);
+    Route::get('/privacy-policies/stats/acceptance', [AdminPrivacyPolicyController::class, 'getAcceptanceStats']);
     
     // Terms of Service management
-    Route::apiResource('/terms-of-service', \App\Http\Controllers\Api\Admin\TermsOfServiceController::class);
-    Route::post('/terms-of-service/{termsOfService}/set-active', [\App\Http\Controllers\Api\Admin\TermsOfServiceController::class, 'setActive']);
-    Route::get('/terms-of-service/users/without-acceptance', [\App\Http\Controllers\Api\Admin\TermsOfServiceController::class, 'getUsersWithoutAcceptance']);
-    Route::get('/terms-of-service/stats/acceptance', [\App\Http\Controllers\Api\Admin\TermsOfServiceController::class, 'getAcceptanceStats']);
+    Route::apiResource('/terms-of-service', AdminTermsOfServiceController::class);
+    Route::post('/terms-of-service/{termsOfService}/set-active', [AdminTermsOfServiceController::class, 'setActive']);
+    Route::get('/terms-of-service/users/without-acceptance', [AdminTermsOfServiceController::class, 'getUsersWithoutAcceptance']);
+    Route::get('/terms-of-service/stats/acceptance', [AdminTermsOfServiceController::class, 'getAcceptanceStats']);
 });
 
 // Privacy Policy API
