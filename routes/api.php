@@ -168,9 +168,7 @@ Route::prefix('newsletter')->group(function () {
 });
 
 // Guest Checkout API (for non-authenticated users)
-Route::middleware(['web'])->group(function () {
-    Route::post('/guest-checkout', GuestCheckoutController::class);
-});
+Route::post('/guest-checkout', GuestCheckoutController::class);
 
 // Shipping methods API - public access
 Route::get('/shipping-methods', [ShippingController::class, 'index']);
