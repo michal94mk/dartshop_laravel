@@ -23,13 +23,13 @@ use App\Http\Controllers\Api\Admin\BrandController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\OrderController;
 use App\Http\Controllers\Api\Admin\ReviewController as AdminReviewController;
-use App\Http\Controllers\API\Admin\PromotionController as AdminPromotionController;
-use App\Http\Controllers\API\PromotionController;
+use App\Http\Controllers\Api\Admin\PromotionController as AdminPromotionController;
+use App\Http\Controllers\Api\PromotionController;
 use App\Http\Controllers\Api\Admin\TutorialController as AdminTutorialController;
 use App\Http\Controllers\Api\Admin\ContactMessageController as AdminContactMessageController;
 use App\Http\Controllers\Api\Admin\AboutPageController;
 use App\Http\Controllers\Api\Admin\NewsletterController as AdminNewsletterController;
-use App\Http\Controllers\API\Admin\ContentImageUploadController;
+use App\Http\Controllers\Api\Admin\ContentImageUploadController;
 
 use App\Http\Controllers\Api\AboutUsController;
 use App\Http\Controllers\Api\ContactController;
@@ -37,12 +37,12 @@ use App\Http\Controllers\Api\FavoriteProductController;
 use App\Http\Controllers\Api\TutorialController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\GuestCheckoutController;
-use App\Http\Controllers\API\StripeCheckoutController;
-use App\Http\Controllers\API\StripePaymentController;
-use App\Http\Controllers\API\StripeWebhookController;
+use App\Http\Controllers\Api\StripeCheckoutController;
+use App\Http\Controllers\Api\StripePaymentController;
+use App\Http\Controllers\Api\StripeWebhookController;
 use App\Http\Controllers\Api\NewsletterController;
-use App\Http\Controllers\API\PrivacyPolicyController;
-use App\Http\Controllers\API\TermsOfServiceController;
+use App\Http\Controllers\Api\PrivacyPolicyController;
+use App\Http\Controllers\Api\TermsOfServiceController;
 use App\Http\Controllers\Api\ShippingController;
 
 // API Routes
@@ -273,16 +273,16 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/newsletter/stats', [AdminNewsletterController::class, 'stats']);
     
     // Privacy Policy management
-    Route::apiResource('/privacy-policies', \App\Http\Controllers\API\Admin\PrivacyPolicyController::class);
-    Route::post('/privacy-policies/{privacyPolicy}/set-active', [\App\Http\Controllers\API\Admin\PrivacyPolicyController::class, 'setActive']);
-    Route::get('/privacy-policies/users/without-acceptance', [\App\Http\Controllers\API\Admin\PrivacyPolicyController::class, 'getUsersWithoutAcceptance']);
-    Route::get('/privacy-policies/stats/acceptance', [\App\Http\Controllers\API\Admin\PrivacyPolicyController::class, 'getAcceptanceStats']);
+    Route::apiResource('/privacy-policies', \App\Http\Controllers\Api\Admin\PrivacyPolicyController::class);
+    Route::post('/privacy-policies/{privacyPolicy}/set-active', [\App\Http\Controllers\Api\Admin\PrivacyPolicyController::class, 'setActive']);
+    Route::get('/privacy-policies/users/without-acceptance', [\App\Http\Controllers\Api\Admin\PrivacyPolicyController::class, 'getUsersWithoutAcceptance']);
+    Route::get('/privacy-policies/stats/acceptance', [\App\Http\Controllers\Api\Admin\PrivacyPolicyController::class, 'getAcceptanceStats']);
     
     // Terms of Service management
-    Route::apiResource('/terms-of-service', \App\Http\Controllers\API\Admin\TermsOfServiceController::class);
-    Route::post('/terms-of-service/{termsOfService}/set-active', [\App\Http\Controllers\API\Admin\TermsOfServiceController::class, 'setActive']);
-    Route::get('/terms-of-service/users/without-acceptance', [\App\Http\Controllers\API\Admin\TermsOfServiceController::class, 'getUsersWithoutAcceptance']);
-    Route::get('/terms-of-service/stats/acceptance', [\App\Http\Controllers\API\Admin\TermsOfServiceController::class, 'getAcceptanceStats']);
+    Route::apiResource('/terms-of-service', \App\Http\Controllers\Api\Admin\TermsOfServiceController::class);
+    Route::post('/terms-of-service/{termsOfService}/set-active', [\App\Http\Controllers\Api\Admin\TermsOfServiceController::class, 'setActive']);
+    Route::get('/terms-of-service/users/without-acceptance', [\App\Http\Controllers\Api\Admin\TermsOfServiceController::class, 'getUsersWithoutAcceptance']);
+    Route::get('/terms-of-service/stats/acceptance', [\App\Http\Controllers\Api\Admin\TermsOfServiceController::class, 'getAcceptanceStats']);
 });
 
 // Privacy Policy API
