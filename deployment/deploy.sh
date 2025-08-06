@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-PROJECT_DIR="/var/www/dartshop_laravel"
+PROJECT_DIR="/var/www/html/dartshop_laravel"
 BACKUP_DIR="/var/backups/dartshop"
 PHP_VERSION="8.2"
 NODE_VERSION="20"
