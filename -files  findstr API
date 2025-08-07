@@ -1,5 +1,0 @@
-[33mb768573[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m fix: rename API directory to Api for PSR-4 compliance
-[33m57326ac[m fix: clean up API routes formatting and imports
-[33m26a1629[m fix: update project directory path in deploy script
-[33m04b5fe5[m fix: restore GuestCheckoutController route with proper import
-[33mbdfc049[m fix: remove web middleware from API route
