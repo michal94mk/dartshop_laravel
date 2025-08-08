@@ -1,48 +1,54 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 
-// Import page components
+// Import critical components directly (for better UX)
 import Home from '../pages/Home.vue';
-import ProductList from '../pages/ProductList.vue';
-import ProductDetails from '../pages/ProductDetails.vue';
-import Cart from '../pages/Cart.vue';
-import Checkout from '../pages/Checkout.vue';
-import PaymentSuccess from '../pages/PaymentSuccess.vue';
-import About from '../pages/About.vue';
-import Contact from '../pages/Contact.vue';
-import Privacy from '../pages/Privacy.vue';
-import Terms from '../pages/Terms.vue';
-import Promotions from '../pages/Promotions.vue';
-import Tutorials from '../pages/Tutorials.vue';
-import Tutorial from '../pages/Tutorial.vue';
 import NotFound from '../pages/NotFound.vue';
-// Import auth components
-import Login from '../pages/Login.vue';
-import Register from '../pages/Register.vue';
-import Profile from '../pages/Profile.vue';
-import ForgotPassword from '../pages/ForgotPassword.vue';
-import ResetPassword from '../pages/ResetPassword.vue';
-import VerifyEmail from '../pages/VerifyEmail.vue';
-import NewsletterVerification from '../pages/NewsletterVerification.vue';
-import GoogleCallback from '../pages/GoogleCallback.vue';
-import AutoLogin from '../pages/AutoLogin.vue';
-// Import admin components
+
+// Lazy load all other page components
+const ProductList = () => import(/* webpackChunkName: "products" */ '../pages/ProductList.vue');
+const ProductDetails = () => import(/* webpackChunkName: "products" */ '../pages/ProductDetails.vue');
+const Cart = () => import(/* webpackChunkName: "shopping" */ '../pages/Cart.vue');
+const Checkout = () => import(/* webpackChunkName: "shopping" */ '../pages/Checkout.vue');
+const PaymentSuccess = () => import(/* webpackChunkName: "shopping" */ '../pages/PaymentSuccess.vue');
+
+// Content pages
+const About = () => import(/* webpackChunkName: "content" */ '../pages/About.vue');
+const Contact = () => import(/* webpackChunkName: "content" */ '../pages/Contact.vue');
+const Privacy = () => import(/* webpackChunkName: "content" */ '../pages/Privacy.vue');
+const Terms = () => import(/* webpackChunkName: "content" */ '../pages/Terms.vue');
+const Promotions = () => import(/* webpackChunkName: "content" */ '../pages/Promotions.vue');
+const Tutorials = () => import(/* webpackChunkName: "content" */ '../pages/Tutorials.vue');
+const Tutorial = () => import(/* webpackChunkName: "content" */ '../pages/Tutorial.vue');
+
+// Auth components
+const Login = () => import(/* webpackChunkName: "auth" */ '../pages/Login.vue');
+const Register = () => import(/* webpackChunkName: "auth" */ '../pages/Register.vue');
+const Profile = () => import(/* webpackChunkName: "auth" */ '../pages/Profile.vue');
+const ForgotPassword = () => import(/* webpackChunkName: "auth" */ '../pages/ForgotPassword.vue');
+const ResetPassword = () => import(/* webpackChunkName: "auth" */ '../pages/ResetPassword.vue');
+const VerifyEmail = () => import(/* webpackChunkName: "auth" */ '../pages/VerifyEmail.vue');
+const NewsletterVerification = () => import(/* webpackChunkName: "auth" */ '../pages/NewsletterVerification.vue');
+const GoogleCallback = () => import(/* webpackChunkName: "auth" */ '../pages/GoogleCallback.vue');
+const AutoLogin = () => import(/* webpackChunkName: "auth" */ '../pages/AutoLogin.vue');
+// Keep AdminLayout as direct import (needed for route structure)
 import AdminLayout from '../components/layouts/AdminLayout.vue';
-import AdminDashboard from '../pages/admin/Dashboard.vue';
-import AdminProducts from '../pages/admin/Products.vue';
-import AdminCategories from '../pages/admin/Categories.vue';
-import AdminUsers from '../pages/admin/Users.vue';
-import AdminOrders from '../pages/admin/Orders.vue';
-// Import remaining admin components
-import AdminBrands from '../pages/admin/Brands.vue';
-import AdminReviews from '../pages/admin/Reviews.vue';
-import AdminPromotions from '../pages/admin/Promotions.vue';
-import AdminTutorials from '../pages/admin/Tutorials.vue';
-import AdminContactMessages from '../pages/admin/ContactMessages.vue';
-import AdminAbout from '../pages/admin/About.vue';
-import AdminNewsletter from '../pages/admin/Newsletter.vue';
-import AdminPrivacyPolicies from '../pages/admin/PrivacyPolicies.vue';
-import AdminTermsOfService from '../pages/admin/TermsOfService.vue';
+
+// Lazy load admin components
+const AdminDashboard = () => import(/* webpackChunkName: "admin" */ '../pages/admin/Dashboard.vue');
+const AdminProducts = () => import(/* webpackChunkName: "admin" */ '../pages/admin/Products.vue');
+const AdminCategories = () => import(/* webpackChunkName: "admin" */ '../pages/admin/Categories.vue');
+const AdminUsers = () => import(/* webpackChunkName: "admin" */ '../pages/admin/Users.vue');
+const AdminOrders = () => import(/* webpackChunkName: "admin" */ '../pages/admin/Orders.vue');
+const AdminBrands = () => import(/* webpackChunkName: "admin" */ '../pages/admin/Brands.vue');
+const AdminReviews = () => import(/* webpackChunkName: "admin" */ '../pages/admin/Reviews.vue');
+const AdminPromotions = () => import(/* webpackChunkName: "admin" */ '../pages/admin/Promotions.vue');
+const AdminTutorials = () => import(/* webpackChunkName: "admin" */ '../pages/admin/Tutorials.vue');
+const AdminContactMessages = () => import(/* webpackChunkName: "admin" */ '../pages/admin/ContactMessages.vue');
+const AdminAbout = () => import(/* webpackChunkName: "admin" */ '../pages/admin/About.vue');
+const AdminNewsletter = () => import(/* webpackChunkName: "admin" */ '../pages/admin/Newsletter.vue');
+const AdminPrivacyPolicies = () => import(/* webpackChunkName: "admin" */ '../pages/admin/PrivacyPolicies.vue');
+const AdminTermsOfService = () => import(/* webpackChunkName: "admin" */ '../pages/admin/TermsOfService.vue');
 
 const routes = [
   {

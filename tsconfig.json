@@ -1,0 +1,49 @@
+{
+
+  "include": [
+    "env.d.ts",
+    "resources/js/**/*",
+    "resources/js/**/*.vue"
+  ],
+  "exclude": [
+    "node_modules",
+    "vendor",
+    "storage",
+    "bootstrap/cache"
+  ],
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "allowJs": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+
+    /* Linting */
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+
+    /* Path mapping */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./resources/js/*"],
+      "@/components/*": ["./resources/js/components/*"],
+      "@/pages/*": ["./resources/js/pages/*"],
+      "@/stores/*": ["./resources/js/stores/*"],
+      "@/composables/*": ["./resources/js/composables/*"],
+      "@/services/*": ["./resources/js/services/*"],
+      "@/utils/*": ["./resources/js/utils/*"],
+      "@/types/*": ["./resources/js/types/*"]
+    }
+  }
+}

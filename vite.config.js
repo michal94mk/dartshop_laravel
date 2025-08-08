@@ -29,9 +29,33 @@ export default defineConfig({
         sourcemap: true,
         // Clear the output directory on each build
         emptyOutDir: true,
-        // Remove console.log in production
+        // Optimize chunk size
+        chunkSizeWarningLimit: 1000,
         rollupOptions: {
             output: {
+                // Custom chunk splitting for better caching
+                manualChunks: {
+                    // Vendor chunks
+                    'vendor-vue': ['vue', 'vue-router', 'pinia'],
+                    'vendor-ui': ['vue-toastification', '@heroicons/vue'],
+                    'vendor-http': ['axios'],
+                    'vendor-utils': ['lodash', 'dompurify', 'marked'],
+                    'vendor-charts': ['chart.js', 'vue-chartjs'],
+                    'vendor-editor': ['quill'],
+                    'vendor-stripe': ['@stripe/stripe-js'],
+                    
+                    // Feature chunks (these will be combined with lazy-loaded routes)
+                    'admin-shared': [
+                        './resources/js/components/admin/ui/index.js',
+                        './resources/js/components/admin/ActionButtons.vue',
+                        './resources/js/components/admin/LoadingSpinner.vue'
+                    ]
+                },
+                // Better file naming
+                entryFileNames: 'assets/[name]-[hash].js',
+                chunkFileNames: 'assets/[name]-[hash].js',
+                assetFileNames: 'assets/[name]-[hash].[ext]',
+                
                 // Remove console.log statements in production
                 plugins: process.env.NODE_ENV === 'production' ? [
                     {
@@ -51,6 +75,14 @@ export default defineConfig({
     resolve: {
         alias: {
             vue: 'vue/dist/vue.esm-bundler.js',
+            '@': '/resources/js',
+            '@/components': '/resources/js/components',
+            '@/pages': '/resources/js/pages',
+            '@/stores': '/resources/js/stores',
+            '@/composables': '/resources/js/composables',
+            '@/services': '/resources/js/services',
+            '@/utils': '/resources/js/utils',
+            '@/types': '/resources/js/types',
         },
     },
     server: {
