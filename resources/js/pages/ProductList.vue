@@ -605,7 +605,6 @@ import FavoriteButton from '../components/ui/FavoriteButton.vue';
 import StarRating from '../components/ui/StarRating.vue';
 import { getProductImageUrl, handleImageError } from '../utils/imageHelpers';
 import axios from 'axios';
-import api from '../services/api';
 
 export default {
   name: 'ProductList',

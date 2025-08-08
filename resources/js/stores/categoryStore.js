@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import api from '../services/api';
+import { productApi } from '../services';
 
 export const useCategoryStore = defineStore('category', {
   state: () => ({
@@ -32,7 +32,7 @@ export const useCategoryStore = defineStore('category', {
       this.error = null;
       
       try {
-        const response = await api.getCategories();
+        const response = await productApi.getCategories();
         console.log('CategoryStore: API response:', response.data);
         
         // Handle new API response format (BaseApiController)
@@ -74,7 +74,7 @@ export const useCategoryStore = defineStore('category', {
       
       try {
         // Add a timestamp to bypass cache
-        const response = await api.getCategories({ _t: Date.now() });
+        const response = await productApi.getCategories({ _t: Date.now() });
         console.log('CategoryStore: Force refresh API response:', response.data);
         
         // Handle new API response format (BaseApiController)
@@ -113,7 +113,7 @@ export const useCategoryStore = defineStore('category', {
       this.error = null;
       
       try {
-        const response = await api.getCategory(id);
+        const response = await productApi.getCategory(id);
         this.currentCategory = response.data;
         
         // Also update the category in the categories array if it exists

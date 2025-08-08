@@ -113,8 +113,17 @@ axios.interceptors.response.use(
     return response;
   },
   async error => {
-    // Handle session/CSRF token expiration (419) or authorization errors (401)
-    if (error.response && (error.response.status === 419 || error.response.status === 401) && !error.config._retry) {
+    const status = error?.response?.status;
+    const url = error?.config?.url || '';
+
+    // For GET /api/user 401/419, do not retry or spam logs. Let callers handle guest state gracefully.
+    const isUserEndpoint = typeof url === 'string' && url.includes('/api/user');
+    if ((status === 401 || status === 419) && isUserEndpoint) {
+      return Promise.reject(error);
+    }
+
+    // Handle session/CSRF token expiration (419) or other 401 (excluding /api/user)
+    if (error.response && (status === 419 || status === 401) && !error.config._retry) {
       if (!isRefreshing) {
         console.log('Session expired or CSRF token mismatch. Refreshing...');
         isRefreshing = true;
@@ -142,22 +151,20 @@ axios.interceptors.response.use(
       }
     }
     
-    // Standard error logging
-    console.error('Global axios error:', error);
-    
-    // More detailed error logging
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      console.error('Error Data:', error.response.data);
-      console.error('Error Status:', error.response.status);
-      console.error('Error Headers:', error.response.headers);
-    } else if (error.request) {
-      // The request was made but no response was received
-      console.error('Error Request:', error.request);
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      console.error('Error Message:', error.message);
+    // Standard error logging (suppress for expected 401 guest on /api/user)
+    if (!(status === 401 && isUserEndpoint)) {
+      console.error('Global axios error:', error);
+      
+      // More detailed error logging
+      if (error.response) {
+        console.error('Error Data:', error.response.data);
+        console.error('Error Status:', error.response.status);
+        console.error('Error Headers:', error.response.headers);
+      } else if (error.request) {
+        console.error('Error Request:', error.request);
+      } else {
+        console.error('Error Message:', error.message);
+      }
     }
     
     return Promise.reject(error);

@@ -92,7 +92,7 @@ export function useAuth() {
   }
 
   const requireAdmin = async (): Promise<boolean> => {
-    if (!(await requireAuth())) return false
+    if (!await requireAuth()) return false
     
     if (!isAdmin.value) {
       await router.push('/')

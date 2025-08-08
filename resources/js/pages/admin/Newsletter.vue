@@ -227,7 +227,7 @@
 
 <script>
 import { ref, reactive, onMounted, watch } from 'vue';
-import api from '../../services/api';
+import { apiService } from '../../services';
 import SearchFilters from '../../components/admin/SearchFilters.vue';
 import AdminTable from '../../components/admin/ui/AdminTable.vue';
 import AdminButtonGroup from '../../components/admin/ui/AdminButtonGroup.vue';
@@ -311,7 +311,7 @@ export default {
         console.log('Request params:', params);
         // Try using the dedicated method first
         console.log('Trying dedicated API method...');
-        const response = await api.getAdminNewsletter(params);
+        const response = await apiService.get('/admin/newsletter', params);
         console.log('Newsletter API response:', response.data);
         
         subscriptions.value = response.data.data.data || [];
@@ -416,7 +416,7 @@ export default {
 
     const confirmDelete = async () => {
       try {
-        await api.deleteNewsletterSubscription(subscriptionToDelete.value.id);
+        await apiService.delete(`/admin/newsletter/${subscriptionToDelete.value.id}`);
         showDeleteModal.value = false;
         await loadSubscriptions(pagination.current_page);
       } catch (error) {

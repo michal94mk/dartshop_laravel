@@ -54,23 +54,16 @@ export default defineConfig({
                 // Better file naming
                 entryFileNames: 'assets/[name]-[hash].js',
                 chunkFileNames: 'assets/[name]-[hash].js',
-                assetFileNames: 'assets/[name]-[hash].[ext]',
-                
-                // Remove console.log statements in production
-                plugins: process.env.NODE_ENV === 'production' ? [
-                    {
-                        name: 'remove-console',
-                        generateBundle(options, bundle) {
-                            Object.keys(bundle).forEach(id => {
-                                if (bundle[id].code) {
-                                    bundle[id].code = bundle[id].code.replace(/console\.log\([^)]*\);?/g, '');
-                                }
-                            });
-                        }
-                    }
-                ] : []
+                assetFileNames: 'assets/[name]-[hash].[ext]'
             }
-        }
+        },
+        // Safely remove console/debugger in production using esbuild
+        minify: 'esbuild',
+        esbuild: process.env.NODE_ENV === 'production' ? {
+            drop: ['console', 'debugger'],
+            // Also treat these calls as pure to ensure removal even if assigned
+            pure: ['console.log', 'console.info', 'console.debug', 'console.warn', 'console.error']
+        } : undefined
     },
     resolve: {
         alias: {
