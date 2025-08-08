@@ -1,42 +1,4 @@
-import axios from 'axios';
-
-// Create a specific API instance for newsletter
-const createNewsletterAPI = () => {
-  const api = axios.create({
-    baseURL: '/api',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest',
-      'Accept': 'application/json'
-    },
-    timeout: 10000
-  });
-
-  // Add request interceptor for CSRF token
-  api.interceptors.request.use(config => {
-    const token = document.head.querySelector('meta[name="csrf-token"]');
-    if (token) {
-      config.headers['X-CSRF-TOKEN'] = token.content;
-    }
-    return config;
-  }, error => {
-    return Promise.reject(error);
-  });
-
-  // Add response interceptor
-  api.interceptors.response.use(
-    response => {
-      return response;
-    },
-    error => {
-      return Promise.reject(error);
-    }
-  );
-
-  return api;
-};
-
-const api = createNewsletterAPI();
+import { apiService } from './index';
 
 export const newsletterService = {
   /**
@@ -44,16 +6,9 @@ export const newsletterService = {
    */
   async subscribe(email) {
     try {
-      const response = await api.post('/newsletter/subscribe', {
-        email
-      });
-      
-      return response.data;
+      return await apiService.post('/newsletter/subscribe', { email });
     } catch (error) {
-      if (error.response && error.response.data) {
-        return error.response.data;
-      }
-      
+      if (error.response && error.response.data) return error.response.data;
       throw error;
     }
   },
@@ -63,14 +18,9 @@ export const newsletterService = {
    */
   async verify(token) {
     try {
-      const response = await api.get(`/newsletter/verify?token=${encodeURIComponent(token)}`);
-      
-      return response.data;
+      return await apiService.get('/newsletter/verify', { token: token });
     } catch (error) {
-      if (error.response && error.response.data) {
-        return error.response.data;
-      }
-      
+      if (error.response && error.response.data) return error.response.data;
       throw error;
     }
   },
@@ -80,16 +30,9 @@ export const newsletterService = {
    */
   async unsubscribe(email) {
     try {
-      const response = await api.post('/newsletter/unsubscribe', {
-        email
-      });
-      
-      return response.data;
+      return await apiService.post('/newsletter/unsubscribe', { email });
     } catch (error) {
-      if (error.response && error.response.data) {
-        return error.response.data;
-      }
-      
+      if (error.response && error.response.data) return error.response.data;
       throw error;
     }
   },
@@ -99,16 +42,9 @@ export const newsletterService = {
    */
   async checkStatus(email) {
     try {
-      const response = await api.post('/newsletter/status', {
-        email
-      });
-      
-      return response.data;
+      return await apiService.post('/newsletter/status', { email });
     } catch (error) {
-      if (error.response && error.response.data) {
-        return error.response.data;
-      }
-      
+      if (error.response && error.response.data) return error.response.data;
       throw error;
     }
   }

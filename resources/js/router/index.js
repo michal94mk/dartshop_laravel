@@ -270,13 +270,8 @@ const routes = [
     }
   },
   {
-    path: '/newsletter/verify',
-    name: 'newsletter-verify-error',
-    component: () => import('../pages/NewsletterVerify.vue'),
-    meta: {
-      layout: 'default',
-      title: 'Błąd weryfikacji newslettera'
-    }
+    // Removed duplicate '/newsletter/verify' route to avoid path collision
+    // If a dedicated error view is required, map it to a unique path like '/newsletter/verify/error'
   },
   {
     path: '/newsletter/unsubscribe',
