@@ -57,12 +57,11 @@ export default defineConfig({
                 assetFileNames: 'assets/[name]-[hash].[ext]'
             }
         },
-        // Safely remove console/debugger in production using esbuild
+        // Safely remove console.debug/info/log in production, keep console.error/warn
         minify: 'esbuild',
         esbuild: process.env.NODE_ENV === 'production' ? {
-            drop: ['console', 'debugger'],
-            // Also treat these calls as pure to ensure removal even if assigned
-            pure: ['console.log', 'console.info', 'console.debug', 'console.warn', 'console.error']
+            drop: ['debugger'],
+            pure: ['console.log', 'console.info', 'console.debug']
         } : undefined
     },
     resolve: {

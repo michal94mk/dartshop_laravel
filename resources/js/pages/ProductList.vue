@@ -604,7 +604,7 @@ import { useAlertStore } from '../stores/alertStore';
 import FavoriteButton from '../components/ui/FavoriteButton.vue';
 import StarRating from '../components/ui/StarRating.vue';
 import { getProductImageUrl, handleImageError } from '../utils/imageHelpers';
-import axios from 'axios';
+// axios not needed here
 
 export default {
   name: 'ProductList',
@@ -664,13 +664,8 @@ export default {
       await loadProducts();
     });
     
-    // Watch for route changes to refresh categories
-    watch(
-      () => route.query,
-      async () => {
-        await categoryStore.fetchCategories()
-      }
-    )
+    // Debounce timer for product loading
+    let loadProductsTimer = null
 
     // Watch for auth state changes
     watch(() => authStore.isLoggedIn, async (newValue, oldValue) => {
@@ -726,8 +721,11 @@ export default {
         // Only load products if filters actually changed
         if (filtersChanged) {
           console.log('🔍 WATCHER: Store filters AFTER changes:', { ...productStore.filters });
-          console.log('🔍 WATCHER: loading products due to filter changes');
-          await loadProducts();
+          console.log('🔍 WATCHER: debounced load due to filter changes');
+          if (loadProductsTimer) clearTimeout(loadProductsTimer)
+          loadProductsTimer = setTimeout(() => {
+            loadProducts()
+          }, 250)
         } else {
           console.log('🔍 WATCHER: no filter changes, skipping load');
           console.log('🔍 WATCHER: Store filters UNCHANGED:', { ...productStore.filters });

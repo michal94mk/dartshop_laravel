@@ -23,8 +23,8 @@ export const productApi = {
   },
 
   // Categories
-  async getCategories(): Promise<Category[]> {
-    return apiService.get<Category[]>('/categories')
+  async getCategories(params?: any): Promise<Category[]> {
+    return apiService.get<Category[]>('/categories', params)
   },
 
   async getCategory(id: number): Promise<Category> {
