@@ -80,6 +80,8 @@ class ApiService {
 
   private async handleResponseError(error: AxiosError): Promise<never> {
     const { response } = error
+    const originalUrl = (error.config as any)?.url as string | undefined
+    const originalMethod = ((error.config as any)?.method || '').toString().toLowerCase()
 
     if (import.meta.env.DEV) {
       console.error('❌ Response Error:', error)
@@ -88,6 +90,10 @@ class ApiService {
     // Handle specific status codes
     switch (response?.status) {
       case 401:
+        // Do not redirect for expected guest check on GET /user
+        if (originalMethod === 'get' && typeof originalUrl === 'string' && /\/?user(\?|$)/.test(originalUrl)) {
+          break
+        }
         await this.handle401Error()
         break
       case 403:
@@ -121,15 +127,14 @@ class ApiService {
   }
 
   private async handle401Error(): Promise<void> {
-    // Clear auth state and redirect to login
-    const { useAuthStore } = await import('@/stores/authStore')
-    const authStore = useAuthStore()
-    
-    await authStore.forceLogout()
-    
-    // Redirect to login if not already there
-    if (!window.location.pathname.includes('/login')) {
-      window.location.href = '/login?expired=1'
+    // Avoid dynamic import to silence Vite warnings; handle softly
+    try {
+      // Use location redirect without importing stores to prevent circular/static-dynamic mix
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login?expired=1'
+      }
+    } catch (e) {
+      // no-op
     }
   }
 

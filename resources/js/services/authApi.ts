@@ -1,4 +1,5 @@
 import apiService from './apiService'
+import axios from 'axios'
 import type { User, LoginCredentials, RegisterData } from '@/types'
 
 /**
@@ -11,29 +12,13 @@ export const authApi = {
   },
 
   // Login
-  async login(credentials: LoginCredentials): Promise<{
-    user: User
-    token: string
-    token_type: string
-  }> {
-    return apiService.post<{
-      user: User
-      token: string
-      token_type: string
-    }>('/login', credentials)
+  async login(credentials: LoginCredentials): Promise<{ user: User; token: string; token_type: string }> {
+    return apiService.post('/login', credentials)
   },
 
   // Register
-  async register(data: RegisterData): Promise<{
-    user: User
-    token: string
-    token_type: string
-  }> {
-    return apiService.post<{
-      user: User
-      token: string
-      token_type: string
-    }>('/register', data)
+  async register(data: RegisterData): Promise<{ user: User; token: string; token_type: string }> {
+    return apiService.post('/register', data)
   },
 
   // Logout
@@ -43,7 +28,8 @@ export const authApi = {
 
   // Refresh CSRF cookie
   async refreshCSRF(): Promise<void> {
-    return apiService.get<void>('/sanctum/csrf-cookie', undefined, { suppressErrorToast: true })
+    // Use global axios to avoid baseURL '/api' prefix
+    await axios.get('/sanctum/csrf-cookie')
   },
 
   // Google OAuth

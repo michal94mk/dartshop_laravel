@@ -25,8 +25,8 @@ export default defineConfig({
         force: true
     },
     build: {
-        // Generate source maps for easier debugging
-        sourcemap: true,
+        // Disable source maps in production to reduce asset size
+        sourcemap: false,
         // Clear the output directory on each build
         emptyOutDir: true,
         // Optimize chunk size

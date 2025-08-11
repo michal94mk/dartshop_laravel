@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
+import apiService from '@/services/apiService';
 import { useCartStore } from './cartStore';
 
 // Note: Global axios interceptor is handled in app.js to avoid duplication
@@ -107,7 +108,7 @@ export const useAuthStore = defineStore('auth', {
         console.log('CSRF token refreshed before auth check');
         
         // Check user status on server regardless of localStorage data
-        const response = await axios.get('/api/user');
+        const response = await apiService.get('/user', undefined, { suppressErrorToast: true });
         console.log('User API response:', response);
         
         // Handle new API response format
@@ -193,20 +194,20 @@ export const useAuthStore = defineStore('auth', {
         }
         
         // Perform login
-        const response = await axios.post('/api/login', {
-            email,
-            password
-        }, { headers, withCredentials: true });
+        const response = await apiService.post('/login', { email, password });
+        // Normalize response to { success, data: { user, token, token_type } } or direct shape
+        const payload = response && response.success ? response.data : response
         
         // Handle new API response format
-        if (response.data.success && response.data.data) {
-            // New format: { success: true, data: { user, token, token_type } }
-            this.user = response.data.data.user;
-            this.token = response.data.data.token;
+        if (payload && (payload.user || (payload.data && payload.data.user))) {
+            // Support both new and old shapes
+            const data = payload.data ? payload.data : payload
+            this.user = data.user;
+            this.token = data.token;
             
             // Save permissions if they exist
-            if (response.data.data.user.permissions) {
-                this.permissions = response.data.data.user.permissions;
+            if (this.user && this.user.permissions) {
+                this.permissions = this.user.permissions;
             }
             
             // Save data to localStorage
@@ -266,7 +267,7 @@ export const useAuthStore = defineStore('auth', {
         await axios.get('/sanctum/csrf-cookie');
         
         // Perform registration
-        const response = await axios.post('/api/register', {
+        const response = await apiService.post('/register', {
           name,
           first_name: firstName,
           last_name: lastName,
@@ -364,22 +365,8 @@ export const useAuthStore = defineStore('auth', {
         
                   // Call logout API and wait for response
         try {
-          const response = await fetch('/api/logout', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-TOKEN': csrfToken,
-              'Accept': 'application/json',
-              'X-Requested-With': 'XMLHttpRequest'
-            },
-            credentials: 'same-origin'
-          });
-          
-          if (!response.ok) {
-            throw new Error(`Logout failed with status: ${response.status}`);
-          }
-          
-          console.log('Logout API success:', await response.json());
+          const response = await apiService.post('/logout');
+          console.log('Logout API success:', response);
         } catch (apiError) {
           console.error('Logout API error:', apiError);
           // Don't stop logout process if API fails
@@ -483,7 +470,7 @@ export const useAuthStore = defineStore('auth', {
         await axios.get('/sanctum/csrf-cookie');
         
         // Then get current user data
-        const response = await axios.get('/api/user');
+        const response = await apiService.get('/user', undefined, { suppressErrorToast: true });
         
         if (response.data) {
           this.user = response.data;
@@ -674,7 +661,7 @@ export const useAuthStore = defineStore('auth', {
           // Try to refresh CSRF token and retry once
           try {
             await axios.get('/sanctum/csrf-cookie');
-            const retryResponse = await axios.get('/api/user');
+            const retryResponse = await apiService.get('/user', undefined, { suppressErrorToast: true });
             
             // Handle new API response format for retry
             const retryUserData = retryResponse.data.success ? retryResponse.data.data : retryResponse.data;
@@ -707,7 +694,7 @@ export const useAuthStore = defineStore('auth', {
         await axios.get('/sanctum/csrf-cookie');
         
         // Send update profile request
-        const response = await axios.put('/api/user/profile', userData);
+        const response = await apiService.put('/user/profile', userData);
         
         // Update user data in store
         this.user = response.data.user;
@@ -734,7 +721,7 @@ export const useAuthStore = defineStore('auth', {
         await axios.get('/sanctum/csrf-cookie');
         
         // Send password change request
-        const response = await axios.put('/api/user/password', {
+        const response = await apiService.put('/user/password', {
           current_password: currentPassword,
           password: newPassword,
           password_confirmation: newPasswordConfirmation
