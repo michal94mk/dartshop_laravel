@@ -133,7 +133,10 @@ export const useAuthStore = defineStore('auth', {
         this.errorMessage = '';
         return this.user;
       } catch (error) {
-        console.error('Failed to initialize auth state:', error);
+        // Log only non-401 errors to keep guest startup clean
+        if (!(error?.response && error.response.status === 401)) {
+          console.error('Failed to initialize auth state:', error);
+        }
         
         // Set error only if it's not 401 Unauthorized (user not logged in)
         if (error.response && error.response.status !== 401) {
@@ -502,6 +505,10 @@ export const useAuthStore = defineStore('auth', {
     
     // Method to initialize auth state with retry
     async initAuthWithRetry(maxRetries = 3, retryDelay = 1000) {
+      // Skip if already initialized to avoid duplicate calls/logs
+      if (this.authInitialized) {
+        return this.user;
+      }
       let retries = 0;
       
       while (retries < maxRetries) {
