@@ -482,24 +482,17 @@ router.beforeEach(async (to, from, next) => {
     return;
   }
   
-  // Lazy auth init: only initialize on routes that require auth/admin/verified
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
-  const requiresVerified = to.matched.some(record => record.meta.requiresVerified)
-
-  if (!authStore.authInitialized && (requiresAuth || requiresAdmin || requiresVerified)) {
+  // Always wait for auth state initialization before making redirect decisions
+  if (!authStore.authInitialized) {
     try {
       await authStore.initAuth();
     } catch (error) {
       console.error('Failed to initialize auth:', error);
     }
-  } else if (!authStore.authInitialized && !requiresAuth && !requiresAdmin && !requiresVerified) {
-    // Mark as initialized for public routes to avoid unnecessary /api/user checks
-    authStore.authInitialized = true
   }
   
   // Check if route requires authorization
-  if (requiresAuth) {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
     // Check if user is logged in
     if (!authStore.isLoggedIn) {
       // Special handling for email verification success
@@ -542,7 +535,7 @@ router.beforeEach(async (to, from, next) => {
     }
     
     // Check if route requires admin permissions
-    if (requiresAdmin) {
+    if (to.matched.some(record => record.meta.requiresAdmin)) {
       if (!authStore.isAdmin) {
         // Redirect to home page if user is not admin
         next({ path: '/' });
@@ -554,7 +547,7 @@ router.beforeEach(async (to, from, next) => {
     }
     
     // Check if user has verified email (if required)
-    if (requiresVerified && 
+    if (to.matched.some(record => record.meta.requiresVerified) && 
         authStore.user && !authStore.user.email_verified_at) {
       next({ path: '/email/verify' });
       return;

@@ -33,11 +33,13 @@ window.debug = function(...args) {
     }
 };
 
-// Override console.log for production
+// Override console logs for production (suppress non-critical)
 if (process.env.NODE_ENV === 'production') {
-    console.log = function() {};
-    console.debug = function() {};
-    console.info = function() {};
+    const noop = function() {};
+    console.log = noop;
+    console.debug = noop;
+    console.info = noop;
+    // Keep console.warn/error for real issues
 }
 
 // Global interceptor for Axios
@@ -119,6 +121,16 @@ axios.interceptors.response.use(
     // For GET /api/user 401/419, do not retry or spam logs. Let callers handle guest state gracefully.
     const isUserEndpoint = typeof url === 'string' && url.includes('/api/user');
     if ((status === 401 || status === 419) && isUserEndpoint) {
+      return Promise.reject(error);
+    }
+
+    // Suppress global logging for validation errors; let forms handle 422 locally
+    if (status === 422) {
+      return Promise.reject(error);
+    }
+
+    // Suppress logs for blocked admin requests (expected during redirects or guest state)
+    if (error?.message === 'Unauthorized admin request blocked') {
       return Promise.reject(error);
     }
 

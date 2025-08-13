@@ -89,13 +89,15 @@ class ApiService {
 
     // Handle specific status codes
     switch (response?.status) {
-      case 401:
-        // Do not redirect for expected guest check on GET /user
-        if (originalMethod === 'get' && typeof originalUrl === 'string' && /\/?user(\?|$)/.test(originalUrl)) {
+      case 401: {
+        const isUserGet = originalMethod === 'get' && typeof originalUrl === 'string' && (/\/user(\?|$)/.test(originalUrl) || originalUrl === '/user')
+        if (isUserGet) {
+          // Let caller handle guest state without forcing logout/redirect
           break
         }
         await this.handle401Error()
         break
+      }
       case 403:
         this.toast.error('Brak uprawnień do wykonania tej operacji')
         break
@@ -127,14 +129,15 @@ class ApiService {
   }
 
   private async handle401Error(): Promise<void> {
-    // Avoid dynamic import to silence Vite warnings; handle softly
-    try {
-      // Use location redirect without importing stores to prevent circular/static-dynamic mix
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login?expired=1'
-      }
-    } catch (e) {
-      // no-op
+    // Clear auth state and redirect to login
+    const { useAuthStore } = await import('@/stores/authStore')
+    const authStore = useAuthStore()
+    
+    await authStore.forceLogout()
+    
+    // Redirect to login if not already there
+    if (!window.location.pathname.includes('/login')) {
+      window.location.href = '/login?expired=1'
     }
   }
 

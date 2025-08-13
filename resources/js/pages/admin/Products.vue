@@ -701,8 +701,10 @@ export default {
         //   })));
         // }
       } catch (error) {
-        console.error('Error fetching products:', error);
-        console.error('Error details:', error.response?.data);
+        if (import.meta.env.DEV) {
+          console.error('Error fetching products:', error);
+          console.error('Error details:', error.response?.data);
+        }
         
         // Don't show error if user is logging out or not on admin page
         if (error.message === 'Unauthorized admin request blocked') {
@@ -914,8 +916,12 @@ export default {
         showModal.value = false;
         await fetchProducts();
       } catch (error) {
-        console.error('Error saving product:', error);
-        console.error('Error details:', error.response?.data);
+        if (!(error?.response && error.response.status === 422)) {
+          if (import.meta.env.DEV) {
+            console.error('Error saving product:', error);
+            console.error('Error details:', error.response?.data);
+          }
+        }
         
         if (error.response && error.response.status === 422) {
           // Validation errors
@@ -968,8 +974,10 @@ export default {
         productToDelete.value = null
         await fetchProducts()
       } catch (error) {
-        console.error('Error deleting product:', error)
-        console.error('Error details:', error.response?.data)
+        if (import.meta.env.DEV) {
+          console.error('Error deleting product:', error)
+          console.error('Error details:', error.response?.data)
+        }
         
         // Handle different error cases
         if (error.response?.status === 404) {

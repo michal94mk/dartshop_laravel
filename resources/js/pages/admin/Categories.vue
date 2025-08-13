@@ -335,7 +335,9 @@ export default {
           to: pag.to ?? 0
         };
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        if (import.meta.env.DEV) {
+          console.error('Error fetching categories:', error);
+        }
         
         // Don't show error if user is logging out or not on admin page
         if (error.message === 'Unauthorized admin request blocked') {
@@ -402,7 +404,11 @@ export default {
         await categoryStore.refreshCategories()
         
       } catch (error) {
-        console.error('Error saving category:', error)
+        if (!(error?.response && error.response.status === 422)) {
+          if (import.meta.env.DEV) {
+            console.error('Error saving category:', error)
+          }
+        }
         if (error.response && error.response.status === 422) {
           // Validation errors
           if (error.response.data.errors) {
@@ -434,7 +440,9 @@ export default {
         // Refresh categories in the store
         await categoryStore.refreshCategories()
       } catch (error) {
-        console.error('Error deleting category:', error)
+        if (import.meta.env.DEV) {
+          console.error('Error deleting category:', error)
+        }
         if (error.response && error.response.data && error.response.data.message) {
           alertStore.error(error.response.data.message)
         } else {

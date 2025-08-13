@@ -111,8 +111,8 @@ export const useAuthStore = defineStore('auth', {
         const response = await apiService.get('/user', undefined, { suppressErrorToast: true });
         console.log('User API response:', response);
         
-        // Handle new API response format
-        const userData = response.data.success ? response.data.data : response.data;
+        // apiService returns the actual data payload already
+        const userData = response;
         
         if (userData) {
           this.user = userData;
@@ -505,10 +505,7 @@ export const useAuthStore = defineStore('auth', {
     
     // Method to initialize auth state with retry
     async initAuthWithRetry(maxRetries = 3, retryDelay = 1000) {
-      // Skip if already initialized to avoid duplicate calls/logs
-      if (this.authInitialized) {
-        return this.user;
-      }
+      // keep retry behavior as before
       let retries = 0;
       
       while (retries < maxRetries) {
