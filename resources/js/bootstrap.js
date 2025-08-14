@@ -37,12 +37,12 @@ const setCsrfToken = () => {
     
     if (token) {
         axios.defaults.headers.common['X-XSRF-TOKEN'] = decodeURIComponent(token);
-        console.log('CSRF token set from cookie:', token);
+        if (import.meta.env.DEV) console.log('CSRF token set from cookie:', token);
     }
     
     if (metaToken) {
         axios.defaults.headers.common['X-CSRF-TOKEN'] = metaToken;
-        console.log('CSRF token set from meta tag:', metaToken);
+        if (import.meta.env.DEV) console.log('CSRF token set from meta tag:', metaToken);
     }
 };
 
@@ -63,19 +63,19 @@ axios.interceptors.request.use(
 // Add response interceptor to handle CSRF token errors
 axios.interceptors.response.use(
     response => {
-        console.log('Response:', response);
+        if (import.meta.env.DEV) console.log('Response:', response);
         return response;
     },
     async error => {
         if (error.response?.status === 419) {
-            console.log('CSRF token mismatch detected, refreshing token...');
+            if (import.meta.env.DEV) console.log('CSRF token mismatch detected, refreshing token...');
             try {
                 await axios.get('/sanctum/csrf-cookie');
                 setCsrfToken();
                 // Retry the original request
                 return axios(error.config);
             } catch (refreshError) {
-                console.error('Failed to refresh CSRF token:', refreshError);
+                if (import.meta.env.DEV) console.error('Failed to refresh CSRF token:', refreshError);
             }
         }
         return Promise.reject(error);

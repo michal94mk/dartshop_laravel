@@ -17,10 +17,10 @@ axios.defaults.withCredentials = true; // Very important for cookies
 
 // Make sure axios uses full URLs to avoid cookie issues
 const baseApiUrl = window.location.protocol + '//' + window.location.host;
-console.log('Base API URL:', baseApiUrl);
+if (import.meta.env.DEV) console.log('Base API URL:', baseApiUrl);
 
 // Add debugging
-console.log('Axios defaults set:', {
+if (import.meta.env.DEV) console.log('Axios defaults set:', {
   baseURL: axios.defaults.baseURL,
   headers: axios.defaults.headers.common,
   withCredentials: axios.defaults.withCredentials
@@ -44,7 +44,7 @@ if (process.env.NODE_ENV === 'production') {
 
 // Global interceptor for Axios
 axios.interceptors.request.use(config => {
-  console.log('Axios Request:', config);
+  if (import.meta.env.DEV) console.log('Axios Request:', config);
   
   // Check admin API requests
   if (config.url && config.url.includes('/api/admin/')) {
@@ -92,9 +92,9 @@ axios.interceptors.request.use(config => {
   const token = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)');
   if (token) {
     config.headers['X-XSRF-TOKEN'] = decodeURIComponent(token[2]);
-    console.log('XSRF Token found and added to headers');
+    if (import.meta.env.DEV) console.log('XSRF Token found and added to headers');
   } else {
-    console.warn('No XSRF Token found in cookies');
+    if (import.meta.env.DEV) console.warn('No XSRF Token found in cookies');
   }
   
   return config;
@@ -105,10 +105,10 @@ let isRefreshing = false;
 
 axios.interceptors.response.use(
   response => {
-    console.log('Axios Response:', response);
+    if (import.meta.env.DEV) console.log('Axios Response:', response);
     
     // Debug the raw response for API calls
-    if (response.config.url.includes('/api/')) {
+    if (import.meta.env.DEV && response.config.url.includes('/api/')) {
       console.log('Raw API response for', response.config.url.split('/').pop(), ':', response);
     }
     
