@@ -312,11 +312,13 @@ export default {
         // Try using the dedicated method first
         console.log('Trying dedicated API method...');
         const response = await apiService.get('/admin/newsletter', params);
-        console.log('Newsletter API response:', response.data);
+        console.log('Newsletter API response:', response);
         
-        subscriptions.value = response.data.data.data || [];
-        Object.assign(pagination, response.data.data.pagination || {});
-        Object.assign(stats, response.data.data.stats || {});
+        // apiService extracts the 'data' field from: { success: true, data: {...} }
+        // So response = { data: [...], pagination: {...}, stats: {...} }
+        subscriptions.value = response.data || [];
+        Object.assign(pagination, response.pagination || {});
+        Object.assign(stats, response.stats || {});
         
         console.log('Subscriptions loaded:', subscriptions.value.length);
         console.log('Stats:', stats);
@@ -429,36 +431,36 @@ export default {
     const route = useRoute();
 
     onMounted(async () => {
-      // Check if user is logged in and is admin before fetching data
-      if (!authStore.isLoggedIn || !authStore.isAdmin) {
-        console.log('User not logged in or not admin, skipping data fetch');
-        return;
+      // If already authorized, load immediately; otherwise wait for auth watcher
+      if (authStore.isLoggedIn && authStore.isAdmin) {
+        await loadSubscriptions()
       }
-      
-      await loadSubscriptions()
     });
 
-    // Watch for auth state changes (logout)
-    watch(() => authStore.isLoggedIn, (newValue) => {
-      console.log('Newsletter: Auth state changed, isLoggedIn:', newValue)
-      if (!newValue) {
-        console.log('Newsletter: User logged out, clearing data')
-        loading.value = false
-        // Clear data when user logs out
-        subscriptions.value = []
-        pagination.value = {
-          current_page: 1,
-          last_page: 1,
-          per_page: 10,
-          total: 0
-        }
-        stats.value = {
-          total_subscriptions: 0,
-          verified_subscriptions: 0,
-          unverified_subscriptions: 0
+    // Watch for auth state changes
+    watch(
+      [() => authStore.isLoggedIn, () => authStore.isAdmin],
+      async ([isLoggedIn, isAdmin]) => {
+        if (isLoggedIn && isAdmin) {
+          await loadSubscriptions(pagination.current_page)
+        } else if (!isLoggedIn) {
+          loading.value = false
+          // Clear data when user logs out
+          subscriptions.value = []
+          pagination.value = {
+            current_page: 1,
+            last_page: 1,
+            per_page: 10,
+            total: 0
+          }
+          stats.value = {
+            total_subscriptions: 0,
+            verified_subscriptions: 0,
+            unverified_subscriptions: 0
+          }
         }
       }
-    })
+    )
     
     // Watch for route changes to prevent data fetching when not on admin page
     watch(() => route.path, (newPath) => {
