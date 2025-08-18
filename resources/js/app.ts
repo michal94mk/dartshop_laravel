@@ -1,22 +1,71 @@
 import './bootstrap';
-import { createApp } from 'vue';
-import { createPinia } from 'pinia';
+import { createApp, type App as VueApp } from 'vue';
+import { createPinia, type Pinia } from 'pinia';
 import App from './App.vue';
 import router from './router';
-import axios from 'axios';
+import axios, { type AxiosInstance, type InternalAxiosRequestConfig, type AxiosResponse, type AxiosError } from 'axios';
 
 // Import Vue Toastification
-import Toast from "vue-toastification";
+import Toast, { type PluginOptions } from "vue-toastification";
 import "vue-toastification/dist/index.css";
 
+// Import FontAwesome
+import '@fortawesome/fontawesome-free/css/all.css';
+
+// Import admin components
+import SearchFilters from './components/admin/SearchFilters.vue';
+import LoadingSpinner from './components/admin/LoadingSpinner.vue';
+import Pagination from './components/admin/Pagination.vue';
+import ActionButtons from './components/admin/ActionButtons.vue';
+import PageHeader from './components/admin/PageHeader.vue';
+import NoDataMessage from './components/admin/NoDataMessage.vue';
+
+// Import admin UI components
+import AdminUIComponents from './components/admin/ui/index.js';
+
+// Initialize Alpine.js for any legacy code that might still use it
+import Alpine from 'alpinejs';
+
+// Import all stores explicitly
+import { useProductStore } from './stores/productStore';
+import { useCartStore } from './stores/cartStore';
+import { useWishlistStore } from './stores/wishlistStore';
+import { useAuthStore } from './stores/authStore';
+import { useCategoryStore } from './stores/categoryStore';
+
+// Type definitions
+interface GlobalAuthStore {
+  isLoggedIn: boolean;
+  isAdmin: boolean;
+  isLoading: boolean;
+  user: any;
+  authInitialized: boolean;
+}
+
+interface Window {
+  debug: (...args: any[]) => void;
+  Alpine: typeof Alpine;
+  axios: AxiosInstance;
+  _: any;
+}
+
+declare global {
+  interface Window {
+    debug: (...args: any[]) => void;
+    Alpine: typeof Alpine;
+    axios: AxiosInstance;
+    _: any;
+  }
+}
+
 // Set Axios defaults
-axios.defaults.baseURL = window.location.protocol + '//' + window.location.host;  // Use full URL
+axios.defaults.baseURL = window.location.protocol + '//' + window.location.host;
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.headers.common['Accept'] = 'application/json';
-axios.defaults.withCredentials = true; // Very important for cookies
+axios.defaults.withCredentials = true;
 
 // Make sure axios uses full URLs to avoid cookie issues
-const baseApiUrl = window.location.protocol + '//' + window.location.host;
+const baseApiUrl: string = window.location.protocol + '//' + window.location.host;
 if (import.meta.env.DEV) console.log('Base API URL:', baseApiUrl);
 
 // Add debugging
@@ -27,7 +76,7 @@ if (import.meta.env.DEV) console.log('Axios defaults set:', {
 });
 
 // Global debug function
-window.debug = function(...args) {
+window.debug = function(...args: any[]): void {
     if (process.env.NODE_ENV === 'development') {
         console.log(...args);
     }
@@ -35,15 +84,18 @@ window.debug = function(...args) {
 
 // Override console logs for production (suppress non-critical)
 if (process.env.NODE_ENV === 'production') {
-    const noop = function() {};
+    const noop = function(): void {};
     console.log = noop;
     console.debug = noop;
     console.info = noop;
     // Keep console.warn/error for real issues
 }
 
+// Store authStore globally for axios interceptor
+let globalAuthStore: GlobalAuthStore | null = null;
+
 // Global interceptor for Axios
-axios.interceptors.request.use(config => {
+axios.interceptors.request.use((config: InternalAxiosRequestConfig): InternalAxiosRequestConfig | Promise<InternalAxiosRequestConfig> => {
   if (import.meta.env.DEV) console.log('Axios Request:', config);
   
   // Check admin API requests
@@ -65,7 +117,7 @@ axios.interceptors.request.use(config => {
         }
         
         // Check if we're on a non-admin page (user was redirected)
-        const currentPath = window.location.pathname;
+        const currentPath: string = window.location.pathname;
         if (!currentPath.startsWith('/admin')) {
           console.log('User is not on admin page, allowing request to complete');
           return config;
@@ -89,8 +141,9 @@ axios.interceptors.request.use(config => {
   }
   
   // Add X-XSRF-TOKEN header for all requests
-  const token = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)');
+  const token: RegExpMatchArray | null = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)');
   if (token) {
+    config.headers = config.headers || {};
     config.headers['X-XSRF-TOKEN'] = decodeURIComponent(token[2]);
     if (import.meta.env.DEV) console.log('XSRF Token found and added to headers');
   } else {
@@ -101,25 +154,25 @@ axios.interceptors.request.use(config => {
 });
 
 // Add interceptor to refresh CSRF token on 401/419 errors
-let isRefreshing = false;
+let isRefreshing: boolean = false;
 
 axios.interceptors.response.use(
-  response => {
+  (response: AxiosResponse): AxiosResponse => {
     if (import.meta.env.DEV) console.log('Axios Response:', response);
     
     // Debug the raw response for API calls
-    if (import.meta.env.DEV && response.config.url.includes('/api/')) {
+    if (import.meta.env.DEV && response.config.url?.includes('/api/')) {
       console.log('Raw API response for', response.config.url.split('/').pop(), ':', response);
     }
     
     return response;
   },
-  async error => {
-    const status = error?.response?.status;
-    const url = error?.config?.url || '';
+  async (error: AxiosError): Promise<AxiosResponse> => {
+    const status: number | undefined = error?.response?.status;
+    const url: string = error?.config?.url || '';
 
     // For GET /api/user 401/419, do not retry or spam logs. Let callers handle guest state gracefully.
-    const isUserEndpoint = typeof url === 'string' && url.includes('/api/user');
+    const isUserEndpoint: boolean = typeof url === 'string' && url.includes('/api/user');
     if ((status === 401 || status === 419) && isUserEndpoint) {
       return Promise.reject(error);
     }
@@ -135,7 +188,7 @@ axios.interceptors.response.use(
     }
 
     // Handle session/CSRF token expiration (419) or other 401 (excluding /api/user)
-    if (error.response && (status === 419 || status === 401) && !error.config._retry) {
+    if (error.response && (status === 419 || status === 401) && !(error.config as any)._retry) {
       if (!isRefreshing) {
         console.log('Session expired or CSRF token mismatch. Refreshing...');
         isRefreshing = true;
@@ -146,9 +199,9 @@ axios.interceptors.response.use(
           console.log('CSRF cookie refreshed');
           
           // Retry original request
-          error.config._retry = true;
+          (error.config as any)._retry = true;
           isRefreshing = false;
-          return axios(error.config);
+          return axios(error.config!);
         } catch (refreshError) {
           console.error('Failed to refresh CSRF token, forcing logout');
           // If we still can't refresh token, log out user
@@ -183,40 +236,15 @@ axios.interceptors.response.use(
   }
 );
 
-// Import FontAwesome
-import '@fortawesome/fontawesome-free/css/all.css';
-
-// Import admin components
-import SearchFilters from './components/admin/SearchFilters.vue';
-import LoadingSpinner from './components/admin/LoadingSpinner.vue';
-import Pagination from './components/admin/Pagination.vue';
-import ActionButtons from './components/admin/ActionButtons.vue';
-import PageHeader from './components/admin/PageHeader.vue';
-import NoDataMessage from './components/admin/NoDataMessage.vue';
-
-// Import admin UI components
-import AdminUIComponents from './components/admin/ui/index.js';
-
-// Initialize Alpine.js for any legacy code that might still use it
-import Alpine from 'alpinejs';
+// Set Alpine.js globally
 window.Alpine = Alpine;
 Alpine.start();
 
-// Import all stores explicitly
-import { useProductStore } from './stores/productStore';
-import { useCartStore } from './stores/cartStore';
-import { useWishlistStore } from './stores/wishlistStore';
-import { useAuthStore } from './stores/authStore';
-import { useCategoryStore } from './stores/categoryStore';
-
-// Store authStore globally for axios interceptor
-let globalAuthStore = null;
-
 // Create Pinia (State Management)
-const pinia = createPinia();
+const pinia: Pinia = createPinia();
 
 // Create Vue App
-const app = createApp(App);
+const app: VueApp = createApp(App);
 
 // Register global components
 app.component('SearchFilters', SearchFilters);
@@ -226,11 +254,8 @@ app.component('ActionButtons', ActionButtons);
 app.component('PageHeader', PageHeader);
 app.component('NoDataMessage', NoDataMessage);
 
-// Use Plugins
-app.use(router);
-app.use(pinia);
-app.use(AdminUIComponents);
-app.use(Toast, {
+// Toast configuration
+const toastOptions: PluginOptions = {
   transition: "Vue-Toastification__fade",
   maxToasts: 3,
   newestOnTop: true,
@@ -249,7 +274,13 @@ app.use(Toast, {
   toastClassName: "custom-toast",
   bodyClassName: ["custom-toast-body"],
   containerClassName: "custom-toast-container"
-});
+};
+
+// Use Plugins
+app.use(router);
+app.use(pinia);
+app.use(AdminUIComponents);
+app.use(Toast, toastOptions);
 
 // Initialize stores
 const productStore = useProductStore();
@@ -262,19 +293,21 @@ const categoryStore = useCategoryStore();
 globalAuthStore = authStore;
 
 // Mount the app when the DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', (): void => {
   // Mount Vue app immediately
   app.mount('#app');
   console.log('Vue app mounted');
   
   // Hide blade loader after short delay to allow smooth transition
-  setTimeout(() => {
-    const fallbackLoader = document.getElementById('vue-fallback-loader') || document.getElementById('admin-fallback-loader');
+  setTimeout((): void => {
+    const fallbackLoader: HTMLElement | null = document.getElementById('vue-fallback-loader') || document.getElementById('admin-fallback-loader');
     if (fallbackLoader) {
       fallbackLoader.style.transition = 'opacity 0.3s ease-out';
       fallbackLoader.style.opacity = '0';
-      setTimeout(() => {
-        fallbackLoader.style.display = 'none';
+      setTimeout((): void => {
+        if (fallbackLoader) {
+          fallbackLoader.style.display = 'none';
+        }
       }, 300);
     }
   }, 800); // Hide after Vue has time to load and auth to complete

@@ -84,7 +84,7 @@
 </template>
 
 <script>
-import { newsletterService } from '../services/newsletterService';
+import newsletterService from '../services/newsletterService.ts';
 import { useToast } from "vue-toastification";
 
 export default {

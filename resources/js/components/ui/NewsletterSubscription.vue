@@ -73,7 +73,7 @@
 </template>
 
 <script>
-import { newsletterService } from '../../services/newsletterService';
+import newsletterService from '../../services/newsletterService.ts';
 
 export default {
   name: 'NewsletterSubscription',

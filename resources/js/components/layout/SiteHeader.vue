@@ -666,6 +666,10 @@ export default {
       mobileMenuOpen.value = !mobileMenuOpen.value
     }
 
+    const toggleMobileProductsDropdown = () => {
+      showMobileProductsDropdown.value = !showMobileProductsDropdown.value
+    }
+
     const logout = async () => {
       try {
         // Show logout message immediately
@@ -743,6 +747,7 @@ export default {
       toggleProductsDropdown,
       toggleUserMenu,
       toggleMobileMenu,
+      toggleMobileProductsDropdown,
       logout,
       onMobileSearchInput,
       onMobileSearchBlur,

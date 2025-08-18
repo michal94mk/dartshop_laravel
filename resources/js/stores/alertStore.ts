@@ -1,7 +1,25 @@
 import { defineStore } from 'pinia';
 
+// Type definitions
+type AlertType = 'success' | 'error' | 'warning' | 'info';
+
+interface Alert {
+  id: number;
+  message: string;
+  type: AlertType;
+  timeout: number;
+}
+
+interface AlertState {
+  alerts: Alert[];
+  nextId: number;
+  successMessage: string;
+  errorMessage: string;
+  infoMessage: string;
+}
+
 export const useAlertStore = defineStore('alert', {
-  state: () => ({
+  state: (): AlertState => ({
     alerts: [],
     nextId: 1,
     successMessage: '',
@@ -10,7 +28,7 @@ export const useAlertStore = defineStore('alert', {
   }),
   
   actions: {
-    add(message, type = 'info', timeout = 5000) {
+    add(message: string, type: AlertType = 'info', timeout: number = 5000): number {
       const id = this.nextId++;
       this.alerts.push({ id, message, type, timeout });
       
@@ -23,10 +41,10 @@ export const useAlertStore = defineStore('alert', {
       return id;
     },
     
-    success(message, timeout = 5000) {
+    success(message: string, timeout: number = 5000): number {
       this.successMessage = message;
       
-              // Automatically clear success message after timeout
+      // Automatically clear success message after timeout
       if (timeout > 0) {
         setTimeout(() => {
           this.successMessage = '';
@@ -36,10 +54,10 @@ export const useAlertStore = defineStore('alert', {
       return this.add(message, 'success', timeout);
     },
     
-    error(message, timeout = 5000) {
+    error(message: string, timeout: number = 5000): number {
       this.errorMessage = message;
       
-              // Automatically clear error message after timeout
+      // Automatically clear error message after timeout
       if (timeout > 0) {
         setTimeout(() => {
           this.errorMessage = '';
@@ -49,11 +67,11 @@ export const useAlertStore = defineStore('alert', {
       return this.add(message, 'error', timeout);
     },
     
-    warning(message, timeout = 5000) {
+    warning(message: string, timeout: number = 5000): number {
       return this.add(message, 'warning', timeout);
     },
     
-    info(message, timeout = 5000) {
+    info(message: string, timeout: number = 5000): number {
       this.infoMessage = message;
       
       // Automatically clear info message after timeout
@@ -66,30 +84,30 @@ export const useAlertStore = defineStore('alert', {
       return this.add(message, 'info', timeout);
     },
     
-    remove(id) {
+    remove(id: number): void {
       const index = this.alerts.findIndex(alert => alert.id === id);
       if (index !== -1) {
         this.alerts.splice(index, 1);
       }
     },
     
-    clear() {
+    clear(): void {
       this.alerts = [];
       this.successMessage = '';
       this.errorMessage = '';
       this.infoMessage = '';
     },
     
-    clearSuccess() {
+    clearSuccess(): void {
       this.successMessage = '';
     },
     
-    clearError() {
+    clearError(): void {
       this.errorMessage = '';
     },
     
-    clearInfo() {
+    clearInfo(): void {
       this.infoMessage = '';
     }
   }
-}); 
+});

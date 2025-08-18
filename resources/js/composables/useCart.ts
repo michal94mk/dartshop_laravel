@@ -50,7 +50,7 @@ export function useCart() {
     const item = items.value.find(item => item.product_id === productId)
     const success = await cartStore.removeFromCart(productId)
     
-    if (success && showToast && item) {
+    if (success && showToast && item && item.product) {
       toast.info(`Usunięto ${item.product.name} z koszyka`)
     }
     
@@ -113,7 +113,7 @@ export function useCart() {
     }
     
     // Check stock if available
-    if (item.product.stock_quantity !== undefined) {
+    if (item.product && item.product.stock_quantity !== undefined) {
       return (currentQuantity + requestedQuantity) <= item.product.stock_quantity
     }
     
@@ -122,7 +122,10 @@ export function useCart() {
 
   const getTotalForProduct = (productId: number): number => {
     const item = getItemByProductId(productId)
-    return item ? item.quantity * item.price : 0
+    if (!item || !item.product) return 0
+    
+    const price = parseFloat(item.product.price)
+    return item.quantity * price
   }
 
   // Format price helper

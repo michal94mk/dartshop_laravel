@@ -124,7 +124,7 @@
                   <button 
                     @click="setSorting('newest')" 
                     class="w-full px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
-                    :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort === 'newest', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': productStore.filters.sort !== 'newest'}"
+                    :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort_by === 'created_at', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': productStore.filters.sort_by !== 'created_at'}"
                   >
                     <span class="flex items-center justify-center">
                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,7 +142,7 @@
                     <button 
                       @click="setSorting('price_asc')" 
                       class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
-                      :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort === 'price_asc', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': productStore.filters.sort !== 'price_asc'}"
+                      :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort_by === 'price' && productStore.filters.sort_direction === 'asc', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': !(productStore.filters.sort_by === 'price' && productStore.filters.sort_direction === 'asc')}"
                     >
                       <span class="flex items-center justify-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,7 +154,7 @@
                     <button 
                       @click="setSorting('price_desc')" 
                       class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
-                      :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort === 'price_desc', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': productStore.filters.sort !== 'price_desc'}"
+                      :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort_by === 'price' && productStore.filters.sort_direction === 'desc', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': !(productStore.filters.sort_by === 'price' && productStore.filters.sort_direction === 'desc')}"
                     >
                       <span class="flex items-center justify-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,7 +173,7 @@
                     <button 
                       @click="setSorting('name_asc')" 
                       class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
-                      :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort === 'name_asc', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': productStore.filters.sort !== 'name_asc'}"
+                      :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort_by === 'name' && productStore.filters.sort_direction === 'asc', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': !(productStore.filters.sort_by === 'name' && productStore.filters.sort_direction === 'asc')}"
                     >
                       <span class="flex items-center justify-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,13 +185,44 @@
                     <button 
                       @click="setSorting('name_desc')" 
                       class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
-                      :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort === 'name_desc', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': productStore.filters.sort !== 'name_desc'}"
+                      :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort_by === 'name' && productStore.filters.sort_direction === 'desc', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': !(productStore.filters.sort_by === 'name' && productStore.filters.sort_direction === 'desc')}"
                     >
                       <span class="flex items-center justify-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m-4 4l4 4"/>
                         </svg>
                         Z-A
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Sortowanie po kategoriach -->
+                <div class="space-y-3">
+                  <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Kategoria</div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button 
+                      @click="setSorting('category_asc')" 
+                      class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
+                      :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort_by === 'category_id' && productStore.filters.sort_direction === 'asc', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': !(productStore.filters.sort_by === 'category_id' && productStore.filters.sort_direction === 'asc')}"
+                    >
+                      <span class="flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                        Kategorie A-Z
+                      </span>
+                    </button>
+                    <button 
+                      @click="setSorting('category_desc')" 
+                      class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
+                      :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort_by === 'category_id' && productStore.filters.sort_direction === 'desc', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': !(productStore.filters.sort_by === 'category_id' && productStore.filters.sort_direction === 'desc')}"
+                    >
+                      <span class="flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                        Kategorie Z-A
                       </span>
                     </button>
                   </div>
@@ -345,20 +376,26 @@
           <div class="mt-4 text-sm text-gray-600">
             Wyświetlanie {{ productStore.products.length }} z {{ productStore.pagination.total }} produktów
             <span class="ml-2 text-xs text-gray-500">
-              <template v-if="productStore.filters.sort === 'newest'">
+              <template v-if="productStore.filters.sort_by === 'created_at'">
                 (sortowanie: najnowsze najpierw)
               </template>
-              <template v-else-if="productStore.filters.sort === 'price_asc'">
+              <template v-else-if="productStore.filters.sort_by === 'price' && productStore.filters.sort_direction === 'asc'">
                 (sortowanie: od najtańszych)
               </template>
-              <template v-else-if="productStore.filters.sort === 'price_desc'">
+              <template v-else-if="productStore.filters.sort_by === 'price' && productStore.filters.sort_direction === 'desc'">
                 (sortowanie: od najdroższych)
               </template>
-              <template v-else-if="productStore.filters.sort === 'name_asc'">
+              <template v-else-if="productStore.filters.sort_by === 'name' && productStore.filters.sort_direction === 'asc'">
                 (sortowanie: A-Z)
               </template>
-              <template v-else-if="productStore.filters.sort === 'name_desc'">
+              <template v-else-if="productStore.filters.sort_by === 'name' && productStore.filters.sort_direction === 'desc'">
                 (sortowanie: Z-A)
+              </template>
+              <template v-else-if="productStore.filters.sort_by === 'category_id' && productStore.filters.sort_direction === 'asc'">
+                (sortowanie: kategorie A-Z)
+              </template>
+              <template v-else-if="productStore.filters.sort_by === 'category_id' && productStore.filters.sort_direction === 'desc'">
+                (sortowanie: kategorie Z-A)
               </template>
             </span>
           </div>
@@ -657,7 +694,7 @@ export default {
       // Check for category parameter in URL
       if (route.query.category) {
         selectedCategory.value = parseInt(route.query.category);
-        productStore.filters.category = parseInt(route.query.category);
+        productStore.filters.category_id = parseInt(route.query.category);
       }
       
       // Then load products
@@ -700,14 +737,14 @@ export default {
           filtersChanged = true;
         }
         
-        if (newQuery.category && newQuery.category !== productStore.filters.category) {
+        if (newQuery.category && newQuery.category !== productStore.filters.category_id) {
           console.log('🔍 WATCHER: category changed', newQuery.category);
-          productStore.filters.category = parseInt(newQuery.category);
+          productStore.filters.category_id = parseInt(newQuery.category);
           selectedCategory.value = parseInt(newQuery.category);
           filtersChanged = true;
-        } else if (!newQuery.category && productStore.filters.category) {
+        } else if (!newQuery.category && productStore.filters.category_id) {
           console.log('🔍 WATCHER: category cleared');
-          productStore.filters.category = null;
+          productStore.filters.category_id = null;
           selectedCategory.value = null;
           filtersChanged = true;
         }
@@ -792,8 +829,8 @@ export default {
       
       // Reset all filters
       productStore.filters = {
-        category: null,
-        brand: null,
+        category_id: null,
+        brand_id: null,
         search: '',
         priceRange: [0, 1000],
         sort: 'newest'
@@ -857,7 +894,40 @@ export default {
     };
 
     const setSorting = (sort) => {
-      productStore.filters.sort = sort;
+      // Map old sort values to new format
+      switch (sort) {
+        case 'newest':
+          productStore.filters.sort_by = 'created_at';
+          productStore.filters.sort_direction = 'desc';
+          break;
+        case 'price_asc':
+          productStore.filters.sort_by = 'price';
+          productStore.filters.sort_direction = 'asc';
+          break;
+        case 'price_desc':
+          productStore.filters.sort_by = 'price';
+          productStore.filters.sort_direction = 'desc';
+          break;
+        case 'name_asc':
+          productStore.filters.sort_by = 'name';
+          productStore.filters.sort_direction = 'asc';
+          break;
+        case 'name_desc':
+          productStore.filters.sort_by = 'name';
+          productStore.filters.sort_direction = 'desc';
+          break;
+        case 'category_asc':
+          productStore.filters.sort_by = 'category_id';
+          productStore.filters.sort_direction = 'asc';
+          break;
+        case 'category_desc':
+          productStore.filters.sort_by = 'category_id';
+          productStore.filters.sort_direction = 'desc';
+          break;
+        default:
+          productStore.filters.sort_by = 'created_at';
+          productStore.filters.sort_direction = 'desc';
+      }
       applyFilters();
     };
 

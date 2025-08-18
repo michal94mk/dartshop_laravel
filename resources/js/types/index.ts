@@ -20,7 +20,9 @@ export interface Product {
   slug: string
   description: string
   short_description?: string
-  price: number
+  price: string
+  promotion_price?: string
+  image?: string
   image_url?: string
   category_id: number
   brand_id?: number
@@ -62,8 +64,9 @@ export interface CartItem {
   id: number
   product_id: number
   quantity: number
-  price: number
-  product: Product
+  product?: Product
+  created_at?: string
+  updated_at?: string
 }
 
 export interface Order {
@@ -200,6 +203,7 @@ export interface AuthState {
 export interface CartState {
   items: CartItem[]
   isLoading: boolean
+  loadingProductIds: number[]
   hasError: boolean
   errorMessage: string
 }

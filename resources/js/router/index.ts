@@ -1,5 +1,28 @@
+// @ts-ignore - Vue Router 4 type issues
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
+
+// Type definitions for route meta
+interface RouteMeta {
+  layout?: 'default' | 'admin';
+  title?: string;
+  requiresAuth?: boolean;
+  requiresAdmin?: boolean;
+  requiresVerified?: boolean;
+  guest?: boolean;
+  reloadAlways?: boolean;
+}
+
+// Simple route type that works with Vue Router 4
+interface AppRoute {
+  path: string;
+  name?: string;
+  component?: any;
+  props?: boolean;
+  meta?: RouteMeta;
+  children?: AppRoute[];
+  redirect?: any;
+}
 
 // Import critical components directly (for better UX)
 import Home from '../pages/Home.vue';
@@ -31,6 +54,7 @@ const VerifyEmail = () => import(/* webpackChunkName: "auth" */ '../pages/Verify
 const NewsletterVerification = () => import(/* webpackChunkName: "auth" */ '../pages/NewsletterVerification.vue');
 const GoogleCallback = () => import(/* webpackChunkName: "auth" */ '../pages/GoogleCallback.vue');
 const AutoLogin = () => import(/* webpackChunkName: "auth" */ '../pages/AutoLogin.vue');
+
 // Keep AdminLayout as direct import (needed for route structure)
 import AdminLayout from '../components/layouts/AdminLayout.vue';
 
@@ -50,7 +74,7 @@ const AdminNewsletter = () => import(/* webpackChunkName: "admin" */ '../pages/a
 const AdminPrivacyPolicies = () => import(/* webpackChunkName: "admin" */ '../pages/admin/PrivacyPolicies.vue');
 const AdminTermsOfService = () => import(/* webpackChunkName: "admin" */ '../pages/admin/TermsOfService.vue');
 
-const routes = [
+const routes: AppRoute[] = [
   {
     path: '/',
     name: 'home',
@@ -268,10 +292,6 @@ const routes = [
       layout: 'default',
       title: 'Newsletter zweryfikowany'
     }
-  },
-  {
-    // Removed duplicate '/newsletter/verify' route to avoid path collision
-    // If a dedicated error view is required, map it to a unique path like '/newsletter/verify/error'
   },
   {
     path: '/newsletter/unsubscribe',
@@ -492,7 +512,7 @@ router.beforeEach(async (to, from, next) => {
   }
   
   // Check if route requires authorization
-  if (to.matched.some(record => record.meta.requiresAuth)) {
+  if (to.matched.some(record => record.meta?.requiresAuth)) {
     // Check if user is logged in
     if (!authStore.isLoggedIn) {
       // Special handling for email verification success
@@ -535,7 +555,7 @@ router.beforeEach(async (to, from, next) => {
     }
     
     // Check if route requires admin permissions
-    if (to.matched.some(record => record.meta.requiresAdmin)) {
+    if (to.matched.some(record => record.meta?.requiresAdmin)) {
       if (!authStore.isAdmin) {
         // Redirect to home page if user is not admin
         next({ path: '/' });
@@ -547,7 +567,7 @@ router.beforeEach(async (to, from, next) => {
     }
     
     // Check if user has verified email (if required)
-    if (to.matched.some(record => record.meta.requiresVerified) && 
+    if (to.matched.some(record => record.meta?.requiresVerified) && 
         authStore.user && !authStore.user.email_verified_at) {
       next({ path: '/email/verify' });
       return;
@@ -557,7 +577,7 @@ router.beforeEach(async (to, from, next) => {
     return;
   } 
   // Check if route requires user not to be logged in (e.g. login, register)
-  else if (to.matched.some(record => record.meta.guest)) {
+  else if (to.matched.some(record => record.meta?.guest)) {
     // If user is already logged in, redirect to home page
     if (authStore.isLoggedIn) {
       next({ path: '/' });
@@ -574,8 +594,8 @@ router.beforeEach(async (to, from, next) => {
 router.afterEach((to) => {
   // Use the title from route meta or fall back to default
   const defaultTitle = 'DartShop';
-  const title = to.meta.title || defaultTitle;
+  const title = to.meta?.title || defaultTitle;
   document.title = title;
 });
 
-export default router; 
+export default router;

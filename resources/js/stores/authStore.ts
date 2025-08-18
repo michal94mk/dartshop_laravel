@@ -1,12 +1,66 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
-import apiService from '@/services/apiService';
+import { apiService } from '@/services/apiService';
 import { useCartStore } from './cartStore';
 
-// Note: Global axios interceptor is handled in app.js to avoid duplication
+// Type definitions
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  email_verified_at?: string;
+  is_admin?: boolean;
+  is_google_user?: boolean;
+  roles?: string[];
+  permissions?: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+interface RegisterData {
+  name: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  privacy_policy_accepted: boolean;
+  newsletter_consent: boolean;
+}
+
+interface AuthState {
+  user: User | null;
+  isLoading: boolean;
+  isRegularLoading: boolean;
+  isGoogleLoading: boolean;
+  hasError: boolean;
+  errorMessage: string;
+  permissions: string[];
+  authInitialized: boolean;
+  token?: string;
+}
+
+interface LoginResponse {
+  user: User;
+  token: string;
+  token_type: string;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
+
+// Note: Global axios interceptor is handled in app.ts to avoid duplication
 
 export const useAuthStore = defineStore('auth', {
-  state: () => ({
+  state: (): AuthState => ({
     user: null,
     isLoading: false,
     isRegularLoading: false, // Loading for regular login
@@ -14,47 +68,48 @@ export const useAuthStore = defineStore('auth', {
     hasError: false,
     errorMessage: '',
     permissions: [], // List of user permissions
-    authInitialized: false // Flag indicating whether auth state has been initialized
+    authInitialized: false, // Flag indicating whether auth state has been initialized
+    token: undefined
   }),
   
   getters: {
-    isLoggedIn: (state) => !!state.user,
+    isLoggedIn: (state): boolean => !!state.user,
     
-    userName: (state) => state.user?.name || '',
+    userName: (state): string => state.user?.name || '',
     
-    userEmail: (state) => state.user?.email || '',
+    userEmail: (state): string => state.user?.email || '',
     
-    userInitial: (state) => {
+    userInitial: (state): string => {
       return state.user?.name ? state.user.name.charAt(0).toUpperCase() : '';
     },
     
-    isAdmin: (state) => {
+    isAdmin: (state): boolean => {
       return state.user?.is_admin || (state.user?.roles?.includes('admin')) || false;
     },
     
-    isEmailVerified: (state) => {
+    isEmailVerified: (state): boolean => {
       return !!state.user?.email_verified_at;
     },
     
     // Check if user has specific permission
-    hasPermission: (state) => (permission) => {
+    hasPermission: (state) => (permission: string): boolean => {
       return state.permissions.includes(permission);
     },
     
     // Check if user has specific role
-    hasRole: (state) => (role) => {
+    hasRole: (state) => (role: string): boolean => {
       return state.user?.roles?.includes(role) || false;
     },
     
     // Check if user is logged in via Google OAuth
-    isGoogleUser: (state) => {
+    isGoogleUser: (state): boolean => {
       return state.user?.is_google_user || false;
     }
   },
   
   actions: {
     // Save user data to localStorage
-    saveUserToLocalStorage() {
+    saveUserToLocalStorage(): void {
       if (this.user) {
         localStorage.setItem('user', JSON.stringify(this.user));
         localStorage.setItem('permissions', JSON.stringify(this.permissions));
@@ -67,10 +122,10 @@ export const useAuthStore = defineStore('auth', {
     },
     
     // Load user data from localStorage
-    loadUserFromLocalStorage() {
+    loadUserFromLocalStorage(): boolean {
       try {
-        const user = JSON.parse(localStorage.getItem('user'));
-        const permissions = JSON.parse(localStorage.getItem('permissions')) || [];
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
         const authTime = parseInt(localStorage.getItem('auth_time') || '0');
         
         // Check if data is not too old (max 24 hours)
@@ -91,7 +146,7 @@ export const useAuthStore = defineStore('auth', {
     },
     
     // Initialize auth state based on server data
-    async initAuth() {
+    async initAuth(): Promise<User | null> {
       if (this.authInitialized) {
         console.log('initAuth: Already initialized, returning existing user:', this.user?.email || 'no user');
         return this.user;
@@ -108,7 +163,7 @@ export const useAuthStore = defineStore('auth', {
         console.log('CSRF token refreshed before auth check');
         
         // Check user status on server regardless of localStorage data
-        const response = await apiService.get('/user', undefined, { suppressErrorToast: true });
+        const response = await apiService.get<User>('/user', undefined, { suppressErrorToast: true });
         console.log('User API response:', response);
         
         // apiService returns the actual data payload already
@@ -132,7 +187,7 @@ export const useAuthStore = defineStore('auth', {
         this.hasError = false;
         this.errorMessage = '';
         return this.user;
-      } catch (error) {
+      } catch (error: any) {
         // Log only non-401 errors to keep guest startup clean
         if (!(error?.response && error.response.status === 401)) {
           console.error('Failed to initialize auth state:', error);
@@ -164,7 +219,7 @@ export const useAuthStore = defineStore('auth', {
     },
     
     // User login
-    async login(email, password) {
+    async login(email: string, password: string): Promise<boolean> {
       this.isRegularLoading = true;
       // Reset error state before attempting login
       this.hasError = false;
@@ -182,7 +237,7 @@ export const useAuthStore = defineStore('auth', {
             .find(cookie => cookie.startsWith('XSRF-TOKEN='))
             ?.split('=')[1];
             
-        const headers = {
+        const headers: Record<string, string> = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest'
@@ -197,14 +252,14 @@ export const useAuthStore = defineStore('auth', {
         }
         
         // Perform login
-        const response = await apiService.post('/login', { email, password });
+        const response = await apiService.post<LoginResponse>('/login', { email, password });
         // Normalize response to { success, data: { user, token, token_type } } or direct shape
-        const payload = response && response.success ? response.data : response
+        const payload = response && (response as any).success ? (response as any).data : response;
         
         // Handle new API response format
         if (payload && (payload.user || (payload.data && payload.data.user))) {
             // Support both new and old shapes
-            const data = payload.data ? payload.data : payload
+            const data = payload.data ? payload.data : payload;
             this.user = data.user;
             this.token = data.token;
             
@@ -229,7 +284,7 @@ export const useAuthStore = defineStore('auth', {
         }
         
         throw new Error('Invalid response format');
-      } catch (error) {
+      } catch (error: any) {
         console.error('Login failed:', error);
         this.hasError = true;
         
@@ -259,7 +314,16 @@ export const useAuthStore = defineStore('auth', {
     },
     
     // User registration
-    async register(name, firstName, lastName, email, password, passwordConfirmation, privacyPolicyAccepted = false, newsletterConsent = false) {
+    async register(
+      name: string, 
+      firstName: string, 
+      lastName: string, 
+      email: string, 
+      password: string, 
+      passwordConfirmation: string, 
+      privacyPolicyAccepted: boolean = false, 
+      newsletterConsent: boolean = false
+    ): Promise<boolean> {
       this.isRegularLoading = true;
       // Reset error state before attempting registration
       this.hasError = false;
@@ -270,7 +334,7 @@ export const useAuthStore = defineStore('auth', {
         await axios.get('/sanctum/csrf-cookie');
         
         // Perform registration
-        const response = await apiService.post('/register', {
+        const response = await apiService.post<ApiResponse<LoginResponse>>('/register', {
           name,
           first_name: firstName,
           last_name: lastName,
@@ -282,23 +346,23 @@ export const useAuthStore = defineStore('auth', {
         });
         
         // Handle new API response format (BaseApiController)
-        if (response.data.success && response.data.data) {
+        if (response.success && response.data) {
             // New format: { success: true, data: { user, token, token_type } }
-            this.user = response.data.data.user;
-            this.token = response.data.data.token;
-            
-            // Save permissions if they exist
-            if (response.data.data.user.permissions) {
-                this.permissions = response.data.data.user.permissions;
-            }
-        } else if (response.data.user) {
-            // Fallback for old format: { user, token, token_type }
             this.user = response.data.user;
             this.token = response.data.token;
             
             // Save permissions if they exist
             if (response.data.user.permissions) {
                 this.permissions = response.data.user.permissions;
+            }
+        } else if ((response as any).user) {
+            // Fallback for old format: { user, token, token_type }
+            this.user = (response as any).user;
+            this.token = (response as any).token;
+            
+            // Save permissions if they exist
+            if ((response as any).user.permissions) {
+                this.permissions = (response as any).user.permissions;
             }
         } else {
             throw new Error('Invalid response format');
@@ -317,7 +381,7 @@ export const useAuthStore = defineStore('auth', {
         this.errorMessage = '';
         
         return true;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Registration failed:', error);
         this.hasError = true;
         
@@ -357,7 +421,7 @@ export const useAuthStore = defineStore('auth', {
     },
     
     // User logout
-    async logout() {
+    async logout(): Promise<boolean> {
       this.isLoading = true;
       
       try {
@@ -366,7 +430,7 @@ export const useAuthStore = defineStore('auth', {
         // Get CSRF token
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         
-                  // Call logout API and wait for response
+        // Call logout API and wait for response
         try {
           const response = await apiService.post('/logout');
           console.log('Logout API success:', response);
@@ -394,7 +458,7 @@ export const useAuthStore = defineStore('auth', {
     },
     
     // Forced logout (client-side only)
-    async forceLogout() {
+    async forceLogout(): Promise<void> {
       // Clear user data in store
       this.user = null;
       this.permissions = [];
@@ -461,7 +525,7 @@ export const useAuthStore = defineStore('auth', {
     },
     
     // Method to refresh user session state
-    async refreshSession() {
+    async refreshSession(): Promise<User | null> {
       // Don't refresh if we're not logged in
       if (!this.user) return null;
       
@@ -473,14 +537,14 @@ export const useAuthStore = defineStore('auth', {
         await axios.get('/sanctum/csrf-cookie');
         
         // Then get current user data
-        const response = await apiService.get('/user', undefined, { suppressErrorToast: true });
+        const response = await apiService.get<User>('/user', undefined, { suppressErrorToast: true });
         
-        if (response.data) {
-          this.user = response.data;
+        if (response) {
+          this.user = response;
           
           // Get user permissions if they exist
-          if (response.data.permissions) {
-            this.permissions = response.data.permissions;
+          if (response.permissions) {
+            this.permissions = response.permissions;
           }
           
           console.log('User session refreshed successfully');
@@ -488,7 +552,7 @@ export const useAuthStore = defineStore('auth', {
         }
         
         return null;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to refresh user session:', error);
         
         // If we get 401 or 419 error, user is no longer logged in
@@ -504,7 +568,7 @@ export const useAuthStore = defineStore('auth', {
     },
     
     // Method to initialize auth state with retry
-    async initAuthWithRetry(maxRetries = 3, retryDelay = 1000) {
+    async initAuthWithRetry(maxRetries: number = 3, retryDelay: number = 1000): Promise<User | null> {
       // keep retry behavior as before
       let retries = 0;
       
@@ -535,7 +599,7 @@ export const useAuthStore = defineStore('auth', {
     },
     
     // Google login (redirect flow)
-    async loginWithGoogle() {
+    async loginWithGoogle(): Promise<boolean> {
       this.isGoogleLoading = true;
       this.hasError = false;
       this.errorMessage = '';
@@ -555,21 +619,21 @@ export const useAuthStore = defineStore('auth', {
         await axios.get('/sanctum/csrf-cookie');
         
         // Get Google redirect URL
-        const redirectResponse = await axios.get('/api/auth/google/redirect');
+        const redirectResponse = await apiService.get<{ success: boolean; data: { url: string } }>('/auth/google/redirect');
         
-        if (!redirectResponse.data.success || !redirectResponse.data.data?.url) {
+        if (!redirectResponse.success || !redirectResponse.data?.url) {
           throw new Error('Failed to get Google redirect URL');
         }
         
-        console.log('Redirecting to Google auth:', redirectResponse.data.data.url);
+        console.log('Redirecting to Google auth:', redirectResponse.data.url);
         
         // Redirect to Google OAuth (without popup)
-        window.location.href = redirectResponse.data.data.url;
+        window.location.href = redirectResponse.data.url;
         
         // This function won't return a value because the page will be redirected
         return true;
         
-      } catch (error) {
+      } catch (error: any) {
         console.error('Google login error:', error);
         this.hasError = true;
         this.errorMessage = error.response?.data?.message || 'Error during Google login';
@@ -580,7 +644,7 @@ export const useAuthStore = defineStore('auth', {
     },
     
     // Resend email verification link
-    async resendVerificationEmail() {
+    async resendVerificationEmail(): Promise<string | false> {
       this.isLoading = true;
       this.hasError = false;
       this.errorMessage = '';
@@ -590,10 +654,10 @@ export const useAuthStore = defineStore('auth', {
         await axios.get('/sanctum/csrf-cookie');
         
         // Send resend verification request
-        const response = await axios.post('/api/email/verification-notification');
+        const response = await apiService.post('/email/verification-notification');
         
-        return response.data.message || 'Verification link has been sent again.';
-      } catch (error) {
+        return (response as any).message || 'Verification link has been sent again.';
+      } catch (error: any) {
         console.error('Resend verification failed:', error);
         this.hasError = true;
         this.errorMessage = error.response?.data?.message || 'Failed to send verification link.';
@@ -604,7 +668,7 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // Refresh user data (to update email_verified_at after verification)
-    async refreshUser() {
+    async refreshUser(): Promise<User | null> {
       try {
         console.log('Starting user refresh...');
         
@@ -612,11 +676,11 @@ export const useAuthStore = defineStore('auth', {
         await axios.get('/sanctum/csrf-cookie');
         console.log('CSRF token refreshed before user check');
         
-        const response = await axios.get('/api/user');
-        console.log('User API response:', response.data);
+        const response = await apiService.get<User>('/user');
+        console.log('User API response:', response);
         
-        // Handle new API response format
-        const userData = response.data.success ? response.data.data : response.data;
+        // apiService already handles the response format
+        const userData = response;
         
         if (userData) {
           // Create a new object to ensure reactivity
@@ -651,7 +715,7 @@ export const useAuthStore = defineStore('auth', {
         localStorage.removeItem('auth_time');
         
         return null;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to refresh user data:', error);
         
         // If we get 401, clear user data
@@ -665,10 +729,10 @@ export const useAuthStore = defineStore('auth', {
           // Try to refresh CSRF token and retry once
           try {
             await axios.get('/sanctum/csrf-cookie');
-            const retryResponse = await apiService.get('/user', undefined, { suppressErrorToast: true });
+            const retryResponse = await apiService.get<User>('/user', undefined, { suppressErrorToast: true });
             
             // Handle new API response format for retry
-            const retryUserData = retryResponse.data.success ? retryResponse.data.data : retryResponse.data;
+            const retryUserData = retryResponse;
             
             if (retryUserData) {
               this.user = { ...retryUserData };
@@ -688,7 +752,7 @@ export const useAuthStore = defineStore('auth', {
     },
     
     // Update user profile
-    async updateProfile(userData) {
+    async updateProfile(userData: Partial<User>): Promise<boolean> {
       this.isLoading = true;
       this.hasError = false;
       this.errorMessage = '';
@@ -698,13 +762,13 @@ export const useAuthStore = defineStore('auth', {
         await axios.get('/sanctum/csrf-cookie');
         
         // Send update profile request
-        const response = await apiService.put('/user/profile', userData);
+        const response = await apiService.put<{ user: User }>('/user/profile', userData);
         
         // Update user data in store
-        this.user = response.data.user;
+        this.user = response.user;
         
         return true;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Profile update failed:', error);
         this.hasError = true;
         this.errorMessage = error.response?.data?.message || 'Profile update failed.';
@@ -715,7 +779,7 @@ export const useAuthStore = defineStore('auth', {
     },
     
     // Change password
-    async updatePassword(currentPassword, newPassword, newPasswordConfirmation) {
+    async updatePassword(currentPassword: string, newPassword: string, newPasswordConfirmation: string): Promise<boolean> {
       this.isLoading = true;
       this.hasError = false;
       this.errorMessage = '';
@@ -732,7 +796,7 @@ export const useAuthStore = defineStore('auth', {
         });
         
         return true;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Password change failed:', error);
         this.hasError = true;
         this.errorMessage = error.response?.data?.message || 'Password change failed.';
@@ -742,4 +806,4 @@ export const useAuthStore = defineStore('auth', {
       }
     }
   }
-}); 
+});

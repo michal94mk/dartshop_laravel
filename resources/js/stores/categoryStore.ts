@@ -1,8 +1,21 @@
 import { defineStore } from 'pinia';
 import { productApi } from '../services';
+import type { Category, ApiResponse } from '@/types';
+
+// Type definitions
+interface CategoryState {
+  categories: Category[];
+  currentCategory: Category | null;
+  loading: boolean;
+  error: string | null;
+}
+
+interface CategoryParams {
+  _t?: number;
+}
 
 export const useCategoryStore = defineStore('category', {
-  state: () => ({
+  state: (): CategoryState => ({
     categories: [],
     currentCategory: null,
     loading: false,
@@ -10,15 +23,15 @@ export const useCategoryStore = defineStore('category', {
   }),
   
   getters: {
-    categoriesWithProducts: (state) => {
+    categoriesWithProducts: (state): Category[] => {
       return state.categories;
     },
     
-    getCategoryById: (state) => (id) => {
-      return state.categories.find(category => category.id === parseInt(id));
+    getCategoryById: (state) => (id: number): Category | undefined => {
+      return state.categories.find(category => category.id === id);
     },
     
-    orderedCategories: (state) => {
+    orderedCategories: (state): Category[] => {
       return [...state.categories].sort((a, b) => {
         return a.name.localeCompare(b.name);
       });
@@ -26,34 +39,24 @@ export const useCategoryStore = defineStore('category', {
   },
   
   actions: {
-    async fetchCategories() {
+    async fetchCategories(): Promise<void> {
       console.log('CategoryStore: fetchCategories called');
       this.loading = true;
       this.error = null;
       
       try {
         const response = await productApi.getCategories();
-        console.log('CategoryStore: API response:', response.data);
+        console.log('CategoryStore: API response:', response);
         
-        // Handle new API response format (BaseApiController)
-        if (response.data && response.data.success && response.data.data) {
-          if (Array.isArray(response.data.data.data)) {
-            this.categories = response.data.data.data;
-          } else if (Array.isArray(response.data.data)) {
-            this.categories = response.data.data;
-          } else {
-            this.categories = [];
-          }
-        } else if (response.data && response.data.data) {
-          this.categories = response.data.data;
-        } else if (Array.isArray(response.data)) {
+        // Handle API response format - apiService returns { data: [...categories...], meta: {...} }
+        if (response && response.data && Array.isArray(response.data)) {
           this.categories = response.data;
         } else {
-          throw new Error('Unexpected API response format');
+          this.categories = [];
         }
         
         console.log('CategoryStore: Categories set to:', this.categories);
-      } catch (error) {
+      } catch (error: any) {
         console.error('CategoryStore: Error fetching categories:', error);
         this.error = error.message || 'Błąd podczas pobierania kategorii';
         this.categories = [];
@@ -62,12 +65,12 @@ export const useCategoryStore = defineStore('category', {
       }
     },
 
-    async refreshCategories() {
+    async refreshCategories(): Promise<void> {
       console.log('CategoryStore: refreshCategories called');
       await this.fetchCategories();
     },
 
-    async forceRefreshCategories() {
+    async forceRefreshCategories(): Promise<void> {
       console.log('CategoryStore: forceRefreshCategories called - bypassing cache');
       this.loading = true;
       this.error = null;
@@ -75,30 +78,17 @@ export const useCategoryStore = defineStore('category', {
       try {
         // Add a timestamp to bypass cache
         const response = await productApi.getCategories({ _t: Date.now() });
-        console.log('CategoryStore: Force refresh API response:', response.data);
+        console.log('CategoryStore: Force refresh API response:', response);
         
-        // Handle new API response format (BaseApiController)
-        if (response.data.success && response.data.data) {
-          // Nowy format: { success: true, data: { data: [...], meta: {...} } }
-          if (Array.isArray(response.data.data)) {
-            this.categories = response.data.data;
-          } else if (Array.isArray(response.data.data.data)) {
-            this.categories = response.data.data.data;
-          } else {
-            this.categories = [];
-          }
-        } else if (response.data && response.data.data) {
-          // Fallback for old format: { data: [...] }
-          this.categories = response.data.data;
-        } else if (Array.isArray(response.data)) {
-          // Direct array response
+        // Handle API response format - apiService returns { data: [...categories...], meta: {...} }
+        if (response && response.data && Array.isArray(response.data)) {
           this.categories = response.data;
         } else {
-          throw new Error('Unexpected API response format');
+          this.categories = [];
         }
         
         console.log('CategoryStore: Categories force refreshed to:', this.categories);
-      } catch (error) {
+      } catch (error: any) {
         console.error('CategoryStore: Error force refreshing categories:', error);
         this.error = error.message || 'Błąd podczas odświeżania kategorii';
         this.categories = [];
@@ -107,24 +97,24 @@ export const useCategoryStore = defineStore('category', {
       }
     },
     
-    async fetchCategory(id) {
+    async fetchCategory(id: number): Promise<Category> {
       console.log('CategoryStore: fetchCategory called with:', id);
       this.loading = true;
       this.error = null;
       
       try {
         const response = await productApi.getCategory(id);
-        this.currentCategory = response.data;
+        this.currentCategory = response;
         
         // Also update the category in the categories array if it exists
-        const index = this.categories.findIndex(cat => cat.id === this.currentCategory.id);
+        const index = this.categories.findIndex(cat => cat.id === this.currentCategory!.id);
         
         if (index !== -1) {
-          this.categories[index] = this.currentCategory;
+          this.categories[index] = this.currentCategory!;
         }
         
-        return this.currentCategory;
-      } catch (error) {
+        return this.currentCategory!;
+      } catch (error: any) {
         console.error('CategoryStore: Error fetching category:', error);
         this.error = error.message || 'Błąd podczas pobierania kategorii';
         this.currentCategory = null;
@@ -134,12 +124,12 @@ export const useCategoryStore = defineStore('category', {
       }
     },
     
-    clearCurrentCategory() {
+    clearCurrentCategory(): void {
       this.currentCategory = null;
     },
     
-    clearError() {
+    clearError(): void {
       this.error = null;
     }
   }
-}); 
+});

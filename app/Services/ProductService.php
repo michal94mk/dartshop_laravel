@@ -146,7 +146,7 @@ class ProductService
         $sortField = $request->sort_by ?? 'created_at';
         $sortDirection = $request->sort_direction ?? 'desc';
         
-        $allowedSortFields = ['created_at', 'name', 'price', 'updated_at'];
+        $allowedSortFields = ['created_at', 'name', 'price', 'updated_at', 'category_id'];
         if (!in_array($sortField, $allowedSortFields)) {
             $sortField = 'created_at';
         }
@@ -155,7 +155,15 @@ class ProductService
             $sortDirection = 'desc';
         }
         
-        $query->orderBy($sortField, $sortDirection);
+        // Special handling for category sorting
+        if ($sortField === 'category_id') {
+            // Use join for category sorting to avoid conflicts with eager loading
+            $query->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+                  ->orderBy('categories.name', $sortDirection)
+                  ->select('products.*'); // Ensure we only select products columns
+        } else {
+            $query->orderBy($sortField, $sortDirection);
+        }
     }
 
     /**

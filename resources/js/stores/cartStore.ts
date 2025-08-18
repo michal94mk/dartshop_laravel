@@ -1,9 +1,46 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import { apiService } from '../services/apiService';
 import { useAuthStore } from './authStore';
 
+// Type definitions
+import type { Product, CartItem } from '@/types';
+
+interface CartState {
+  items: CartItem[];
+  isLoading: boolean;
+  loadingProductIds: number[];
+  hasError: boolean;
+  errorMessage: string;
+}
+
+interface AddToCartRequest {
+  product_id: number;
+  quantity: number;
+}
+
+interface UpdateCartItemRequest {
+  quantity: number;
+}
+
+interface SyncCartRequest {
+  items: Array<{
+    product_id: number;
+    quantity: number;
+  }>;
+}
+
+interface CartResponse {
+  items: CartItem[];
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
+
 export const useCartStore = defineStore('cart', {
-  state: () => ({
+  state: (): CartState => ({
     items: [],
     isLoading: false,
     loadingProductIds: [],
@@ -12,11 +49,11 @@ export const useCartStore = defineStore('cart', {
   }),
   
   getters: {
-    totalItems: (state) => {
+    totalItems: (state): number => {
       return state.items.reduce((total, item) => total + item.quantity, 0);
     },
     
-    subtotal: (state) => {
+    subtotal: (state): number => {
       return state.items.reduce((total, item) => {
         // Use promotional price if available, otherwise use regular price
         const hasPromotion = item.product && item.product.promotion_price && 
@@ -28,27 +65,36 @@ export const useCartStore = defineStore('cart', {
       }, 0);
     },
     
-    isEmpty: (state) => {
+    isEmpty: (state): boolean => {
       return state.items.length === 0;
     },
     
     // Add discount calculation (0 for now, can be expanded later)
-    discount: () => {
+    discount: (): number => {
       return 0;
     },
     
     // Calculate total after discount
-    total: (state, getters) => {
-      return getters.subtotal - getters.discount;
+    total: (state): number => {
+      const subtotal = state.items.reduce((total, item) => {
+        // Use promotional price if available, otherwise use regular price
+        const hasPromotion = item.product && item.product.promotion_price && 
+                            parseFloat(item.product.promotion_price) < parseFloat(item.product.price);
+        const price = hasPromotion ? 
+                     parseFloat(item.product.promotion_price) : 
+                     (item.product && item.product.price ? parseFloat(item.product.price) : 0);
+        return total + (price * item.quantity);
+      }, 0);
+      return subtotal - 0; // Discount is 0 for now
     },
     
     // Add isLoading as a getter that takes a productId parameter
-    isLoadingProduct: (state) => (productId) => {
+    isLoadingProduct: (state) => (productId: number): boolean => {
       return state.loadingProductIds.includes(productId);
     },
     
     // Add formatted price getters
-    formattedSubtotal: (state) => {
+    formattedSubtotal: (state): string => {
       const subtotal = state.items.reduce((total, item) => {
         // Use promotional price if available, otherwise use regular price
         const hasPromotion = item.product && item.product.promotion_price && 
@@ -61,12 +107,12 @@ export const useCartStore = defineStore('cart', {
       return subtotal.toFixed(2) + ' zł';
     },
     
-    formattedDiscount: (state) => {
+    formattedDiscount: (): string => {
       // For now, discount is always 0
       return '0.00 zł';
     },
     
-    formattedTotal: (state) => {
+    formattedTotal: (state): string => {
       const total = state.items.reduce((total, item) => {
         // Use promotional price if available, otherwise use regular price
         const hasPromotion = item.product && item.product.promotion_price && 
@@ -83,7 +129,7 @@ export const useCartStore = defineStore('cart', {
   
   actions: {
     // Load local cart data from localStorage on initialization
-    initCart() {
+    initCart(): void {
       this.isLoading = true;
       
       try {
@@ -132,7 +178,7 @@ export const useCartStore = defineStore('cart', {
     },
     
     // Save cart to localStorage (for guests only)
-    saveToLocalStorage() {
+    saveToLocalStorage(): void {
       const authStore = useAuthStore();
       
       if (!authStore.isLoggedIn) {
@@ -141,7 +187,7 @@ export const useCartStore = defineStore('cart', {
     },
     
     // Fetch cart from API for logged in user
-    async fetchCart() {
+    async fetchCart(): Promise<void> {
       const authStore = useAuthStore();
       
       if (!authStore.isLoggedIn) {
@@ -161,24 +207,18 @@ export const useCartStore = defineStore('cart', {
       this.isLoading = true;
       
       try {
-        const response = await axios.get('/api/cart');
+        const response = await apiService.get<CartResponse>('/cart');
         
-        // Handle new API response format (BaseApiController)
-        if (response.data.success && response.data.data) {
-          // New format: { success: true, data: { items: [...] } }
-          this.items = response.data.data.items || [];
-        } else if (response.data.items) {
-          // Fallback for old format: { items: [...] }
-          this.items = response.data.items || [];
-        } else {
-          this.items = [];
-        }
-      } catch (error) {
+        // apiService already handles the response format
+        this.items = response.items || [];
+      } catch (error: any) {
         console.error('Failed to fetch cart:', error);
         
         // If unauthorized or forbidden, fall back to localStorage
         if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-          authStore.isLoggedIn = false; // Reset auth state
+          // Reset auth state by clearing user data
+          authStore.user = null;
+          authStore.permissions = [];
           const savedCart = localStorage.getItem('cart');
           if (savedCart) {
             try {
@@ -198,11 +238,11 @@ export const useCartStore = defineStore('cart', {
     },
     
     // Add product to cart
-    async addToCart(productId, quantity = 1) {
+    async addToCart(productId: number, quantity: number = 1): Promise<any> {
       const authStore = useAuthStore();
       
       // Ensure quantity is a number and valid
-      quantity = parseInt(quantity);
+      quantity = parseInt(quantity.toString());
       if (isNaN(quantity) || quantity < 1) {
         quantity = 1;
       }
@@ -218,13 +258,13 @@ export const useCartStore = defineStore('cart', {
       try {
         if (authStore.isLoggedIn) {
           // Dla zalogowanego użytkownika: użyj API
-          const response = await axios.post('/api/cart', {
+          const response = await apiService.post('/cart', {
             product_id: productId,
             quantity: quantity
-          });
+          } as AddToCartRequest);
           
           await this.fetchCart(); // Refresh cart after adding
-          return response.data;
+          return response;
         } else {
           // Dla gościa: obsługa w localStorage
           const existingItemIndex = this.items.findIndex(item => item.product_id === productId);
@@ -234,8 +274,8 @@ export const useCartStore = defineStore('cart', {
             // Uzupełnij dane produktu jeśli brakuje
             if (!this.items[existingItemIndex].product) {
               try {
-                const response = await axios.get(`/api/products/${productId}`);
-                const product = response.data.success && response.data.data ? response.data.data : response.data;
+                const response = await apiService.get<Product>(`/products/${productId}`);
+                const product = response;
                 this.items[existingItemIndex].product = product;
               } catch (error) {
                 console.error('Failed to fetch product details:', error);
@@ -244,8 +284,8 @@ export const useCartStore = defineStore('cart', {
           } else {
             // Pobierz dane produktu z API
             try {
-              const response = await axios.get(`/api/products/${productId}`);
-              const product = response.data.success && response.data.data ? response.data.data : response.data;
+              const response = await apiService.get<Product>(`/products/${productId}`);
+              const product = response;
               this.items.push({
                 id: Date.now(),
                 product_id: productId,
@@ -261,7 +301,7 @@ export const useCartStore = defineStore('cart', {
           // Return true to indicate success for guest users
           return true;
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to add item to cart:', error);
         this.hasError = true;
         this.errorMessage = 'Failed to add product to cart';
@@ -273,7 +313,7 @@ export const useCartStore = defineStore('cart', {
     },
     
     // Update cart item quantity
-    async updateCartItem(productId, quantity) {
+    async updateCartItem(productId: number, quantity: number): Promise<boolean> {
       const authStore = useAuthStore();
       
       try {
@@ -285,9 +325,9 @@ export const useCartStore = defineStore('cart', {
           }
           
           // Use CartItem ID for API call
-          await axios.put(`/api/cart/${item.id}`, {
+          await apiService.put(`/cart/${item.id}`, {
             quantity: quantity
-          });
+          } as UpdateCartItemRequest);
           
           // Refresh cart after updating
           await this.fetchCart();
@@ -301,7 +341,7 @@ export const useCartStore = defineStore('cart', {
           }
         }
         return true;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to update cart item:', error);
         this.hasError = true;
         this.errorMessage = 'Failed to update cart item';
@@ -310,12 +350,12 @@ export const useCartStore = defineStore('cart', {
     },
 
     // Remove item from cart
-    async removeFromCart(productId) {
+    async removeFromCart(productId: number): Promise<boolean> {
       const authStore = useAuthStore();
       
       // Check if product is already being removed to prevent duplicates
       if (this.loadingProductIds.includes(productId)) {
-        return;
+        return false;
       }
       
       // Add to loading products
@@ -330,7 +370,7 @@ export const useCartStore = defineStore('cart', {
           }
           
           // Use CartItem ID for API call
-          await axios.delete(`/api/cart/${item.id}`);
+          await apiService.delete(`/cart/${item.id}`);
           
           // Refresh cart after removing
           await this.fetchCart();
@@ -341,7 +381,7 @@ export const useCartStore = defineStore('cart', {
         }
         
         return true;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to remove item from cart:', error);
         this.hasError = true;
         this.errorMessage = 'Failed to remove item from cart';
@@ -353,7 +393,7 @@ export const useCartStore = defineStore('cart', {
     },
     
     // Wyczyść cały koszyk
-    async clearCart() {
+    async clearCart(): Promise<boolean> {
       const authStore = useAuthStore();
       
       try {
@@ -363,7 +403,7 @@ export const useCartStore = defineStore('cart', {
           // Dla zalogowanego użytkownika: użyj dedykowanego endpointu clear
           try {
             // Użyj dedykowanego endpointu do czyszczenia koszyka
-            await axios.delete('/api/cart');
+            await apiService.delete('/cart');
           } catch (error) {
             console.error('Failed to clear cart via API:', error);
             // Kontynuuj mimo błędu API, aby wyczyścić lokalny stan
@@ -381,7 +421,7 @@ export const useCartStore = defineStore('cart', {
         this.errorMessage = '';
         
         return true;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to clear cart:', error);
         this.hasError = true;
         this.errorMessage = 'Nie udało się wyczyścić koszyka';
@@ -392,12 +432,12 @@ export const useCartStore = defineStore('cart', {
     },
     
     // Synchronizuj koszyk z localStorage do API po zalogowaniu
-    async syncCartAfterLogin() {
+    async syncCartAfterLogin(): Promise<void> {
       const savedCart = localStorage.getItem('cart');
       
       if (!savedCart) return;
       
-      const cartItems = JSON.parse(savedCart);
+      const cartItems: CartItem[] = JSON.parse(savedCart);
       
       if (cartItems.length === 0) return;
       
@@ -411,14 +451,14 @@ export const useCartStore = defineStore('cart', {
         }));
         
         // Wyślij dane do API do synchronizacji
-        await axios.post('/api/cart/sync', { items: itemsToSync });
+        await apiService.post('/cart/sync', { items: itemsToSync } as SyncCartRequest);
         
         // Po synchronizacji usuń dane z localStorage
         localStorage.removeItem('cart');
         
         // Pobierz zaktualizowany koszyk z API
         await this.fetchCart();
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to sync cart after login:', error);
         this.hasError = true;
         this.errorMessage = 'Nie udało się zsynchronizować koszyka';
@@ -427,4 +467,4 @@ export const useCartStore = defineStore('cart', {
       }
     }
   }
-}); 
+});

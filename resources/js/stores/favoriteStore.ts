@@ -1,9 +1,40 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import { apiService } from '../services/apiService';
 import { useAuthStore } from './authStore';
+import type { Product, ApiResponse } from '@/types';
+
+// Type definitions
+interface FavoriteProduct {
+  id: number;
+  name: string;
+  price: string;
+  image_url?: string | null;
+  category?: any;
+  brand?: any;
+  price_formatted?: string;
+}
+
+interface FavoriteState {
+  favorites: FavoriteProduct[];
+  loading: boolean;
+  error: string | null;
+  initialized: boolean;
+}
+
+interface ToggleFavoriteResponse {
+  is_favorite: boolean;
+}
+
+interface FavoriteStatusResponse {
+  is_favorite: boolean;
+}
+
+interface FavoritesResponse {
+  favorite_products: FavoriteProduct[];
+}
 
 export const useFavoriteStore = defineStore('favorites', {
-  state: () => ({
+  state: (): FavoriteState => ({
     favorites: [],
     loading: false,
     error: null,
@@ -11,17 +42,17 @@ export const useFavoriteStore = defineStore('favorites', {
   }),
   
   getters: {
-    totalFavorites: (state) => {
+    totalFavorites: (state): number => {
       return state.favorites.length;
     },
     
-    isInFavorites: (state) => (productId) => {
+    isInFavorites: (state) => (productId: number): boolean => {
       return state.favorites.some(item => item.id === productId);
     }
   },
   
   actions: {
-    async initializeFavorites() {
+    async initializeFavorites(): Promise<void> {
       const authStore = useAuthStore();
       
       // Only load favorites if user is authenticated
@@ -37,10 +68,10 @@ export const useFavoriteStore = defineStore('favorites', {
       this.error = null;
       
       try {
-        const response = await axios.get('/api/favorites');
-        this.favorites = (response.data.data && response.data.data.favorite_products) || response.data.favorite_products || [];
+        const response = await apiService.get<FavoritesResponse>('/favorites');
+        this.favorites = (response.favorite_products) || [];
         this.initialized = true;
-      } catch (error) {
+      } catch (error: any) {
         this.error = 'Failed to load favorites';
         console.error('Error loading favorites:', error);
       } finally {
@@ -48,7 +79,7 @@ export const useFavoriteStore = defineStore('favorites', {
       }
     },
     
-    async toggleFavorite(product) {
+    async toggleFavorite(product: Product): Promise<ToggleFavoriteResponse> {
       const authStore = useAuthStore();
       
       // Redirect to login if not authenticated
@@ -64,8 +95,8 @@ export const useFavoriteStore = defineStore('favorites', {
       this.error = null;
       
       try {
-        const response = await axios.post(`/api/favorites/${product.id}`);
-        const isFavorite = (response.data.data && response.data.data.is_favorite) ?? response.data.is_favorite;
+        const response = await apiService.post<ToggleFavoriteResponse>(`/favorites/${product.id}`);
+        const isFavorite = response.is_favorite;
         if (isFavorite) {
           // Add to favorites if not already there
           if (!this.isInFavorites(product.id)) {
@@ -83,7 +114,7 @@ export const useFavoriteStore = defineStore('favorites', {
           this.favorites = this.favorites.filter(item => item.id !== product.id);
         }
         return { is_favorite: isFavorite };
-      } catch (error) {
+      } catch (error: any) {
         this.error = 'Failed to update favorite status';
         console.error('Error toggling favorite:', error);
         throw error;
@@ -92,7 +123,7 @@ export const useFavoriteStore = defineStore('favorites', {
       }
     },
     
-    async checkFavoriteStatus(productId) {
+    async checkFavoriteStatus(productId: number): Promise<boolean> {
       const authStore = useAuthStore();
       
       // Return false immediately if not authenticated
@@ -101,15 +132,15 @@ export const useFavoriteStore = defineStore('favorites', {
       }
       
       try {
-        const response = await axios.get(`/api/favorites/check/${productId}`);
-        return (response.data.data && response.data.data.is_favorite) ?? response.data.is_favorite;
-      } catch (error) {
+        const response = await apiService.get<FavoriteStatusResponse>(`/favorites/check/${productId}`);
+        return response.is_favorite;
+      } catch (error: any) {
         console.error('Error checking favorite status:', error);
         return false;
       }
     },
     
-    async loadFavorites() {
+    async loadFavorites(): Promise<void> {
       const authStore = useAuthStore();
       
       // Only load favorites if user is authenticated
@@ -122,8 +153,8 @@ export const useFavoriteStore = defineStore('favorites', {
       this.error = null;
       
       try {
-        const response = await axios.get('/api/favorites');
-        this.favorites = (response.data.data && response.data.data.favorite_products) || response.data.favorite_products || [];
+        const response = await apiService.get<FavoritesResponse>('/favorites');
+        this.favorites = (response.favorite_products) || [];
         
         // Format price for display
         this.favorites.forEach(product => {
@@ -131,7 +162,7 @@ export const useFavoriteStore = defineStore('favorites', {
             product.price_formatted = this.formatPrice(product.price) + ' zł';
           }
         });
-      } catch (error) {
+      } catch (error: any) {
         this.error = 'Failed to load favorites';
         console.error('Error loading favorites:', error);
       } finally {
@@ -140,19 +171,19 @@ export const useFavoriteStore = defineStore('favorites', {
     },
     
     // Format price helper
-    formatPrice(price) {
-      if (price === null || price === undefined || isNaN(price)) {
+    formatPrice(price: string | number): string {
+      if (price === null || price === undefined || isNaN(Number(price))) {
         return '0.00';
       }
-      return parseFloat(price).toFixed(2);
+      return parseFloat(price.toString()).toFixed(2);
     },
     
     // Reset store - useful for logout
-    resetStore() {
+    resetStore(): void {
       this.favorites = [];
       this.loading = false;
       this.error = null;
       this.initialized = false;
     }
   }
-}); 
+});
