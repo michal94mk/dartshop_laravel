@@ -17,6 +17,7 @@ PROJECT_DIR="/var/www/html/dartshop_laravel"
 BACKUP_DIR="/var/backups/dartshop"
 PHP_VERSION="8.2"
 NODE_VERSION="20"
+GIT_REPO="https://github.com/michal94mk/dartshop_laravel"
 
 # Functions
 log_info() {
@@ -69,13 +70,60 @@ update_code() {
     log_info "Updating code from repository..."
     cd $PROJECT_DIR
     
-    # Stash any local changes
-    git stash
+    # Check if we're in a git repository
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+        log_info "Not a git repository. Initializing..."
+        
+        # Initialize git repository
+        git init
+        
+        # Add remote origin
+        git remote add origin $GIT_REPO
+        
+        # Fetch and checkout master branch
+        git fetch origin
+        git checkout -b master origin/master
+        
+        log_success "Git repository initialized and code fetched"
+        return
+    fi
     
-    # Pull latest changes
-    git pull origin master
+    # Check if remote origin exists
+    if ! git remote get-url origin > /dev/null 2>&1; then
+        log_info "Adding remote origin..."
+        git remote add origin $GIT_REPO
+    fi
     
-    log_success "Code updated"
+    # Check current branch
+    local current_branch=$(git branch --show-current)
+    log_info "Current branch: $current_branch"
+    
+    # Check if there are any uncommitted changes
+    if ! git diff-index --quiet HEAD --; then
+        log_info "Stashing local changes..."
+        git stash
+    fi
+    
+    # Check remote connection
+    log_info "Checking remote connection..."
+    if ! git ls-remote --exit-code origin > /dev/null 2>&1; then
+        log_error "Cannot connect to remote repository: $GIT_REPO"
+        log_error "Please check your internet connection and repository URL"
+        exit 1
+    fi
+    
+    # Pull latest changes with verbose output
+    log_info "Pulling latest changes from origin/master..."
+    if git pull origin master; then
+        log_success "Code updated successfully"
+        
+        # Show last commit info
+        local last_commit=$(git log -1 --oneline)
+        log_info "Latest commit: $last_commit"
+    else
+        log_error "Failed to pull changes from repository"
+        exit 1
+    fi
 }
 
 # Install dependencies
