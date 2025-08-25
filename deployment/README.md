@@ -1,5 +1,86 @@
 # 🚀 DartShop - Production Deployment Guide
 
+## ⚡ Quick Start (3 Commands)
+
+### **Complete Deployment in 3 Steps:**
+
+#### **Step 1: Server Setup (one command)**
+```bash
+curl -fsSL https://raw.githubusercontent.com/michal94mk/dartshop_laravel/master/deployment/server-setup.sh | bash
+```
+*This installs: PHP 8.2, Nginx, MySQL, Node.js, Composer, Supervisor and configures basic settings*
+
+#### **Step 2: Database Configuration**
+```bash
+sudo mysql -u root -p
+```
+```sql
+CREATE DATABASE dartshop CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'dartshop'@'localhost' IDENTIFIED BY 'your_strong_password';
+GRANT ALL PRIVILEGES ON dartshop.* TO 'dartshop'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+#### **Step 3: Application Deployment (one command)**
+```bash
+cd /var/www/dartshop_laravel && git clone https://github.com/michal94mk/dartshop_laravel.git . && chmod +x deployment/deploy.sh && DOMAIN=your-domain.com ./deployment/deploy.sh --first-time
+```
+
+**🎉 Done! Your application will be running at `http://your-domain.com`**
+
+### **What happens during deployment:**
+- ✅ Automatic dependency installation
+- ✅ Environment file creation (`.env`)
+- ✅ Database connection testing
+- ✅ Migrations and seeding
+- ✅ Frontend asset building
+- ✅ Permission configuration
+- ✅ Post-deployment instructions
+
+### **⚠️ Important Notes:**
+- Replace `your-domain.com` with your actual domain
+- Replace `your_strong_password` with a secure password
+- The deployment script will ask you to edit `.env` file during setup
+- You'll need to configure Nginx and SSL separately (see detailed guide below)
+- For production use, configure email settings, Stripe keys, and Google OAuth
+
+### **🚫 Common Mistakes:**
+- **DON'T run Step 3 before Step 1** - you'll get "command not found" errors
+- **DON'T skip database setup** - the app won't work without it
+- **DON'T use weak passwords** - use strong, unique passwords
+- **DON'T forget to configure your domain DNS** to point to the server
+
+### **🔒 Alternative Method (More Secure):**
+If you prefer not to run scripts directly from the internet:
+
+```bash
+# 1. Clone repository first
+git clone https://github.com/michal94mk/dartshop_laravel.git
+cd dartshop_laravel
+
+# 2. Review scripts before running
+cat deployment/server-setup.sh
+cat deployment/deploy.sh
+
+# 3. Run server setup locally
+chmod +x deployment/server-setup.sh
+./deployment/server-setup.sh
+
+# 4. Configure database (same as above)
+sudo mysql -u root -p
+# ... database commands ...
+
+# 5. Run deployment
+sudo mkdir -p /var/www/dartshop_laravel
+sudo cp -r . /var/www/dartshop_laravel/
+cd /var/www/dartshop_laravel
+sudo chown -R $USER:www-data .
+DOMAIN=your-domain.com ./deployment/deploy.sh --first-time
+```
+
+---
+
 ## 📋 System Requirements
 
 ### Server
@@ -13,13 +94,25 @@
 - **Node.js**: 18+ (20 LTS recommended)
 - **Nginx**: 1.18+
 - **MySQL**: 8.0+ or PostgreSQL 13+
-- **Redis**: 6.0+ (optional but recommended)
+- **Redis**: Not currently used (may be added in future)
 - **Supervisor**: for queue worker
 
 ## 🛠️ Deployment Steps
 
 ### 1. Prepare the Server
 
+#### Automated Server Setup (Recommended):
+```bash
+# Download and run server setup script
+curl -fsSL https://github.com/michal94mk/dartshop_laravel/master/deployment/server-setup.sh | bash
+
+# Or if you have the repository cloned locally:
+cd /path/to/dartshop_laravel
+chmod +x deployment/server-setup.sh
+./deployment/server-setup.sh
+```
+
+#### Manual Server Setup:
 ```bash
 # Update the system
 sudo apt update && sudo apt upgrade -y
@@ -49,8 +142,8 @@ sudo apt install -y nginx
 sudo apt install -y mysql-server
 sudo mysql_secure_installation
 
-# Install Redis (optional)
-sudo apt install -y redis-server
+# Redis is not currently used in this project
+# sudo apt install -y redis-server
 
 # Install Supervisor
 sudo apt install -y supervisor
@@ -66,17 +159,26 @@ GRANT ALL PRIVILEGES ON dartshop.* TO 'dartshop'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-### 3. Clone and Configure the Application
+### 3. Deploy the Application
 
+#### One-Command Deployment:
+```bash
+# Clone and deploy in one command
+cd /var/www/dartshop_laravel
+git clone https://github.com/michal94mk/dartshop_laravel.git .
+chmod +x deployment/deploy.sh
+DOMAIN=your-domain.com ./deployment/deploy.sh --first-time
+```
+
+#### Manual Clone and Configure:
 ```bash
 # Clone the repository
-sudo mkdir -p /var/www
-cd /var/www
-sudo git clone https://github.com/your-repo/dartshop.git dartshop
-cd dartshop
+sudo mkdir -p /var/www/dartshop_laravel
+cd /var/www/dartshop_laravel
+sudo git clone https://github.com/michal94mk/dartshop_laravel.git .
 
 # Set ownership
-sudo chown -R $USER:www-data /var/www/dartshop
+sudo chown -R $USER:www-data /var/www/dartshop_laravel
 
 # Copy environment file
 cp .env.example .env
@@ -101,13 +203,14 @@ DB_DATABASE=dartshop
 DB_USERNAME=dartshop
 DB_PASSWORD=strong_db_password
 
-CACHE_DRIVER=redis
+CACHE_DRIVER=file
 QUEUE_CONNECTION=database
-SESSION_DRIVER=redis
+SESSION_DRIVER=file
 
-REDIS_HOST=127.0.0.1
-REDIS_PASSWORD=
-REDIS_PORT=6379
+# Redis configuration (not currently used)
+# REDIS_HOST=127.0.0.1
+# REDIS_PASSWORD=
+# REDIS_PORT=6379
 
 MAIL_MAILER=smtp
 MAIL_HOST=smtp.your-domain.com
@@ -131,12 +234,20 @@ NOCAPTCHA_SITEKEY=xxx
 
 ### 5. Installation and Setup
 
+#### Automated Deployment (Recommended):
 ```bash
-# Run installation
+# Configure deployment (optional)
+cp deployment/config.sh deployment/config.local.sh
+nano deployment/config.local.sh  # Edit your settings
+source deployment/config.local.sh
+
+# Run first-time deployment
 chmod +x deployment/deploy.sh
 ./deployment/deploy.sh --first-time
+```
 
-# Or manually:
+#### Manual Installation:
+```bash
 composer install --optimize-autoloader --no-dev
 npm ci
 npm run build
@@ -247,13 +358,33 @@ tail -f /var/log/php8.2-fpm.log
 - **Performance**: New Relic, Datadog
 - **Server**: Prometheus + Grafana
 
-## 🔄 Updates
+## 🔄 Updates & Deployment Options
 
+### Standard Deployment:
 ```bash
-# Standard deployment
 ./deployment/deploy.sh
+```
 
-# Check status
+### Advanced Deployment Options:
+```bash
+# Skip backup (faster)
+./deployment/deploy.sh --no-backup
+
+# Skip building assets (if no frontend changes)
+./deployment/deploy.sh --skip-build
+
+# Quick deployment (no backup, no build)
+./deployment/deploy.sh --no-backup --skip-build
+
+# Use custom domain
+DOMAIN=your-domain.com ./deployment/deploy.sh
+
+# Check help
+./deployment/deploy.sh --help
+```
+
+### Status Check:
+```bash
 php artisan app:setup-production --check-only
 ```
 
