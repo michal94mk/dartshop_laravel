@@ -81,9 +81,9 @@ log_info "Installing Node.js ${NODE_VERSION}..."
 curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | sudo -E bash -
 sudo apt install -y nodejs
 
-# Install Nginx
-log_info "Installing Nginx..."
-sudo apt install -y nginx
+# Install Apache
+log_info "Installing Apache..."
+sudo apt install -y apache2
 
 # Install MySQL
 log_info "Installing MySQL..."
@@ -106,13 +106,13 @@ sudo sed -i "s/memory_limit = .*/memory_limit = 256M/" /etc/php/${PHP_VERSION}/f
 
 # Start services
 log_info "Starting services..."
-sudo systemctl enable nginx php${PHP_VERSION}-fpm mysql supervisor
-sudo systemctl start nginx php${PHP_VERSION}-fpm mysql supervisor
+sudo systemctl enable apache2 php${PHP_VERSION}-fpm mysql supervisor
+sudo systemctl start apache2 php${PHP_VERSION}-fpm mysql supervisor
 
 # Configure firewall
 log_info "Configuring firewall..."
 sudo ufw allow ssh
-sudo ufw allow 'Nginx Full'
+sudo ufw allow 'Apache Full'
 sudo ufw --force enable
 
 # Secure MySQL installation
@@ -122,9 +122,9 @@ sudo mysql_secure_installation
 
 # Create project directory
 log_info "Creating project directory..."
-sudo mkdir -p /var/www/dartshop_laravel
-sudo chown $USER:www-data /var/www/dartshop_laravel
-sudo chmod 755 /var/www/dartshop_laravel
+sudo mkdir -p /var/www/html/dartshop_laravel
+sudo chown $USER:www-data /var/www/html/dartshop_laravel
+sudo chmod 755 /var/www/html/dartshop_laravel
 
 # Create backup directory
 log_info "Creating backup directory..."
@@ -137,7 +137,7 @@ log_info "📋 What was installed:"
 echo "✅ PHP ${PHP_VERSION} with extensions"
 echo "✅ Composer"
 echo "✅ Node.js ${NODE_VERSION} & npm"
-echo "✅ Nginx web server"
+echo "✅ Apache web server"
 echo "✅ MySQL database"
 echo "✅ Supervisor process manager"
 echo "✅ UFW firewall configured"
@@ -153,7 +153,7 @@ echo "   FLUSH PRIVILEGES;"
 echo "   EXIT;"
 echo ""
 echo "2. Deploy DartShop application:"
-echo "   cd /var/www/dartshop_laravel"
+echo "   cd /var/www/html/dartshop_laravel"
 echo "   git clone https://github.com/michal94mk/dartshop_laravel.git ."
 echo "   chmod +x deployment/deploy.sh"
 echo "   DOMAIN=your-domain.com ./deployment/deploy.sh --first-time"

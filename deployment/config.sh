@@ -2,7 +2,7 @@
 # Source this file before running deploy.sh: source deployment/config.sh
 
 # Basic configuration
-export PROJECT_DIR="/var/www/dartshop_laravel"
+export PROJECT_DIR="/var/www/html/dartshop_laravel"
 export BACKUP_DIR="/var/backups/dartshop"
 export DOMAIN="your-domain.com"
 

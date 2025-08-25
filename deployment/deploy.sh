@@ -45,7 +45,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration - can be overridden by environment variables
-PROJECT_DIR="${PROJECT_DIR:-/var/www/dartshop_laravel}"
+PROJECT_DIR="${PROJECT_DIR:-/var/www/html/dartshop_laravel}"
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/dartshop}"
 PHP_VERSION="${PHP_VERSION:-8.2}"
 NODE_VERSION="${NODE_VERSION:-20}"
@@ -131,9 +131,9 @@ check_system_requirements() {
     fi
     
     # Check web server
-    if ! command -v nginx &> /dev/null && ! command -v apache2 &> /dev/null; then
-        log_warning "No web server found. Nginx recommended."
-        missing_packages+=("nginx")
+    if ! command -v apache2 &> /dev/null && ! command -v nginx &> /dev/null; then
+        log_warning "No web server found. Apache recommended."
+        missing_packages+=("apache2")
     fi
     
     # Check MySQL
@@ -527,7 +527,7 @@ restart_services() {
     # Restart PHP-FPM
     sudo systemctl restart php${PHP_VERSION}-fpm
     
-    # Restart Apache (instead of Nginx)
+    # Restart Apache
     sudo systemctl restart apache2
     
     # Restart queue worker (if using supervisor)
@@ -660,14 +660,20 @@ main() {
     echo ""
     
     log_info "🔧 Next steps to complete setup:"
-    echo "1. Configure web server (Nginx/Apache):"
-    echo "   sudo cp $PROJECT_DIR/deployment/nginx.conf /etc/nginx/sites-available/dartshop"
-    echo "   sudo ln -s /etc/nginx/sites-available/dartshop /etc/nginx/sites-enabled/"
-    echo "   sudo nginx -t && sudo systemctl reload nginx"
+    echo "1. Configure web server:"
+    echo "   Apache (recommended):"
+    echo "     sudo cp $PROJECT_DIR/deployment/apache.conf /etc/apache2/sites-available/dartshop.conf"
+    echo "     sudo a2ensite dartshop.conf && sudo a2enmod rewrite headers deflate expires ssl"
+    echo "     sudo apache2ctl configtest && sudo systemctl reload apache2"
+    echo ""
+    echo "   Nginx (alternative):"
+    echo "     sudo cp $PROJECT_DIR/deployment/nginx.conf /etc/nginx/sites-available/dartshop"
+    echo "     sudo ln -s /etc/nginx/sites-available/dartshop /etc/nginx/sites-enabled/"
+    echo "     sudo nginx -t && sudo systemctl reload nginx"
     echo ""
     echo "2. Setup SSL certificate:"
-    echo "   sudo apt install certbot python3-certbot-nginx"
-    echo "   sudo certbot --nginx -d $DOMAIN"
+    echo "   sudo apt install certbot python3-certbot-apache"
+    echo "   sudo certbot --apache -d $DOMAIN"
     echo ""
     echo "3. Configure cron jobs:"
     echo "   sudo crontab -e"

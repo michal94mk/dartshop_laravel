@@ -24,7 +24,7 @@ EXIT;
 
 #### **Step 3: Application Deployment (one command)**
 ```bash
-cd /var/www/dartshop_laravel && git clone https://github.com/michal94mk/dartshop_laravel.git . && chmod +x deployment/deploy.sh && DOMAIN=your-domain.com ./deployment/deploy.sh --first-time
+cd /var/www/html/dartshop_laravel && git clone https://github.com/michal94mk/dartshop_laravel.git . && chmod +x deployment/deploy.sh && DOMAIN=your-domain.com ./deployment/deploy.sh --first-time
 ```
 
 **🎉 Done! Your application will be running at `http://your-domain.com`**
@@ -72,9 +72,9 @@ sudo mysql -u root -p
 # ... database commands ...
 
 # 5. Run deployment
-sudo mkdir -p /var/www/dartshop_laravel
-sudo cp -r . /var/www/dartshop_laravel/
-cd /var/www/dartshop_laravel
+sudo mkdir -p /var/www/html/dartshop_laravel
+sudo cp -r . /var/www/html/dartshop_laravel/
+cd /var/www/html/dartshop_laravel
 sudo chown -R $USER:www-data .
 DOMAIN=your-domain.com ./deployment/deploy.sh --first-time
 ```
@@ -173,12 +173,12 @@ DOMAIN=your-domain.com ./deployment/deploy.sh --first-time
 #### Manual Clone and Configure:
 ```bash
 # Clone the repository
-sudo mkdir -p /var/www/dartshop_laravel
-cd /var/www/dartshop_laravel
+sudo mkdir -p /var/www/html/dartshop_laravel
+cd /var/www/html/dartshop_laravel
 sudo git clone https://github.com/michal94mk/dartshop_laravel.git .
 
 # Set ownership
-sudo chown -R $USER:www-data /var/www/dartshop_laravel
+sudo chown -R $USER:www-data /var/www/html/dartshop_laravel
 
 # Copy environment file
 cp .env.example .env
@@ -258,8 +258,28 @@ php artisan db:seed --class=RolesAndPermissionsSeeder
 php artisan app:setup-production
 ```
 
-### 6. Nginx Configuration
+### 6. Web Server Configuration
 
+#### Apache Configuration (Default):
+```bash
+# Copy Apache configuration
+sudo cp deployment/apache.conf /etc/apache2/sites-available/dartshop.conf
+
+# Enable site and required modules
+sudo a2ensite dartshop.conf
+sudo a2enmod rewrite headers deflate expires ssl
+
+# Disable default site (optional)
+sudo a2dissite 000-default.conf
+
+# Test configuration
+sudo apache2ctl configtest
+
+# Restart Apache
+sudo systemctl restart apache2
+```
+
+#### Nginx Configuration (Alternative):
 ```bash
 # Copy configuration
 sudo cp deployment/nginx.conf /etc/nginx/sites-available/dartshop
