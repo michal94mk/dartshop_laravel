@@ -42,13 +42,6 @@ interface GlobalAuthStore {
   authInitialized: boolean;
 }
 
-interface Window {
-  debug: (...args: any[]) => void;
-  Alpine: typeof Alpine;
-  axios: AxiosInstance;
-  _: any;
-}
-
 declare global {
   interface Window {
     debug: (...args: any[]) => void;
@@ -64,9 +57,8 @@ axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.headers.common['Accept'] = 'application/json';
 axios.defaults.withCredentials = true;
 
-// Make sure axios uses full URLs to avoid cookie issues
-const baseApiUrl: string = window.location.protocol + '//' + window.location.host;
-if (import.meta.env.DEV) console.log('Base API URL:', baseApiUrl);
+// Debug axios configuration in development
+if (import.meta.env.DEV) console.log('Base API URL:', window.location.protocol + '//' + window.location.host);
 
 // Add debugging
 if (import.meta.env.DEV) console.log('Axios defaults set:', {
@@ -134,8 +126,8 @@ axios.interceptors.request.use((config: InternalAxiosRequestConfig): InternalAxi
     }
   }
   
-  // Add a timestamp to prevent caching
-  if (config.method === 'get') {
+  // Cache busting is handled by apiService, but keep for direct axios calls
+  if (config.method === 'get' && !config.url?.includes('/api/')) {
     config.params = config.params || {};
     config.params._nocache = new Date().getTime();
   }
@@ -143,7 +135,9 @@ axios.interceptors.request.use((config: InternalAxiosRequestConfig): InternalAxi
   // Add X-XSRF-TOKEN header for all requests
   const token: RegExpMatchArray | null = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)');
   if (token) {
-    config.headers = config.headers || {};
+    if (!config.headers) {
+      config.headers = {} as any;
+    }
     config.headers['X-XSRF-TOKEN'] = decodeURIComponent(token[2]);
     if (import.meta.env.DEV) console.log('XSRF Token found and added to headers');
   } else {
@@ -194,8 +188,8 @@ axios.interceptors.response.use(
         isRefreshing = true;
         
         try {
-          // Refresh CSRF token
-          await axios.get('/sanctum/csrf-cookie');
+          // Refresh CSRF token using full URL to avoid routing issues
+          await axios.get(window.location.protocol + '//' + window.location.host + '/sanctum/csrf-cookie');
           console.log('CSRF cookie refreshed');
           
           // Retry original request
@@ -259,7 +253,7 @@ const toastOptions: PluginOptions = {
   transition: "Vue-Toastification__fade",
   maxToasts: 3,
   newestOnTop: true,
-  position: "top-center",
+  position: "top-center" as any,
   timeout: 4000,
   closeOnClick: false,
   pauseOnFocusLoss: true,

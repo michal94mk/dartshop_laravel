@@ -42,7 +42,8 @@ class ProductService
      */
     protected function buildProductQuery(Request $request): Builder
     {
-        $query = Product::with(['category', 'brand', 'activePromotions']);
+        $query = Product::with(['category', 'brand', 'activePromotions'])
+            ->where('is_active', true); // Only active products
         
         // Apply basic filters
         if ($request->has('category_id')) {
@@ -200,7 +201,8 @@ class ProductService
         $cacheKey = 'latest_products';
         
         return Cache::remember($cacheKey, 1800, function () use ($hasReviews, $limit) {
-            $query = Product::with(['category', 'brand', 'activePromotions']);
+            $query = Product::with(['category', 'brand', 'activePromotions'])
+                ->where('is_active', true); // Only active products
             
             if ($hasReviews) {
                 $query->with(['reviews' => function($query) {

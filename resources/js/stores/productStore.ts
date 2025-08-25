@@ -149,7 +149,7 @@ export const useProductStore = defineStore('product', {
         console.log('Latest products API response:', response);
         
         // apiService extracts the data from { success: true, data: {...} }
-        // The actual structure is { data: [...products...], meta: { count: ... } }
+        // So response is already { data: [...products...], meta: { count: ... } }
         if (response && response.data && Array.isArray(response.data)) {
           this.latestProducts = response.data.map(product => ({
             ...product,
