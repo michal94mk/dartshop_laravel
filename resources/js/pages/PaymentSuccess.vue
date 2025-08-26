@@ -238,9 +238,11 @@ export default {
           await cartStore.clearCart();
         } else if (sessionId) {
           // Stripe payment
-          // Najpierw odśwież dane użytkownika
-          console.log('Refreshing user data before processing Stripe payment...');
-          await authStore.refreshUser();
+          // Odśwież dane użytkownika tylko jeśli jest zalogowany
+          if (authStore.isLoggedIn) {
+            console.log('Refreshing user data before processing Stripe payment...');
+            await authStore.refreshUser();
+          }
           
           const response = await axios.post('/api/stripe/success', {
             session_id: sessionId
@@ -251,9 +253,11 @@ export default {
           // Clear cart after successful Stripe payment
           await cartStore.clearCart();
           
-          // Ponownie odśwież dane użytkownika po potwierdzeniu płatności
-          console.log('Payment confirmed, refreshing user data again...');
-          await authStore.refreshUser();
+          // Ponownie odśwież dane użytkownika po potwierdzeniu płatności (tylko dla zalogowanych)
+          if (authStore.isLoggedIn) {
+            console.log('Payment confirmed, refreshing user data again...');
+            await authStore.refreshUser();
+          }
           
           // Dodatkowe sprawdzenie czy dane użytkownika są poprawne
           if (!authStore.user) {

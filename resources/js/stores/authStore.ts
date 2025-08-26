@@ -672,6 +672,13 @@ export const useAuthStore = defineStore('auth', {
       try {
         console.log('Starting user refresh...');
         
+        // Skip refresh if not authenticated
+        if (!this.isLoggedIn && !localStorage.getItem('user')) {
+          console.log('No user logged in, skipping refresh');
+          this.authInitialized = true;
+          return null;
+        }
+        
         // First refresh CSRF token
         await axios.get('/sanctum/csrf-cookie');
         console.log('CSRF token refreshed before user check');
