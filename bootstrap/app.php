@@ -36,7 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->group('api', [
-            \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
+            \Illuminate\Routing\Middleware\ThrottleRequests::class.':200,1',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
 

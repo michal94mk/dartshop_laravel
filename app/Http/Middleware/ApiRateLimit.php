@@ -15,7 +15,7 @@ class ApiRateLimit
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, int $maxAttempts = 60, int $decayMinutes = 1): Response
+    public function handle(Request $request, Closure $next, int $maxAttempts = 200, int $decayMinutes = 1): Response
     {
         // Skip rate limiting for non-API routes
         if (!$request->is('api/*')) {
