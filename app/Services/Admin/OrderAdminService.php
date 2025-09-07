@@ -5,10 +5,8 @@ namespace App\Services\Admin;
 use App\Models\Order;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OrderStatusChangedMail;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * Service for handling admin order business logic (listing, filtering, CRUD, status update, deletion)

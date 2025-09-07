@@ -4,8 +4,6 @@ namespace App\Services\Admin;
 
 use App\Models\ContactMessage;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Service for handling admin contact message business logic (listing, filtering, updating, deleting, responding)

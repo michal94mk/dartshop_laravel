@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use App\Services\ContactService;
 use App\Http\Requests\Frontend\ContactRequest;
 use Illuminate\Http\JsonResponse;
-use Exception;
 
 class ContactController extends BaseApiController
 {

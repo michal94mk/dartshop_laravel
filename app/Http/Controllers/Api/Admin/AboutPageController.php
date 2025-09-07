@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\Admin\AboutPageRequest;
 use App\Services\Admin\AboutPageAdminService;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
 
 class AboutPageController extends BaseApiController

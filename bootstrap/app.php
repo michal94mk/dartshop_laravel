@@ -36,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->group('api', [
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':200,1',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
@@ -58,7 +59,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.rate.limit' => \App\Http\Middleware\ApiRateLimit::class,
         ]);
         
-        $middleware->statefulApi();
+        // $middleware->statefulApi(); // Manually configured above
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

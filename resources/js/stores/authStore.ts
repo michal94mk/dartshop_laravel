@@ -162,7 +162,14 @@ export const useAuthStore = defineStore('auth', {
         await axios.get('/sanctum/csrf-cookie');
         console.log('CSRF token refreshed before auth check');
         
-        // Check user status on server regardless of localStorage data
+        // Only check server if we have evidence of being logged in
+        if (!loadedFromStorage && !localStorage.getItem('user')) {
+          console.log('No local auth data found, skipping server check');
+          this.authInitialized = true;
+          return null;
+        }
+        
+        // Check user status on server
         const response = await apiService.get<User>('/user', undefined, { suppressErrorToast: true });
         console.log('User API response:', response);
         
@@ -619,16 +626,16 @@ export const useAuthStore = defineStore('auth', {
         await axios.get('/sanctum/csrf-cookie');
         
         // Get Google redirect URL
-        const redirectResponse = await apiService.get<{ success: boolean; data: { url: string } }>('/auth/google/redirect');
+        const redirectResponse = await apiService.get<{ url: string }>('/auth/google/redirect');
         
-        if (!redirectResponse.success || !redirectResponse.data?.url) {
+        if (!redirectResponse.url) {
           throw new Error('Failed to get Google redirect URL');
         }
         
-        console.log('Redirecting to Google auth:', redirectResponse.data.url);
+        console.log('Redirecting to Google auth:', redirectResponse.url);
         
         // Redirect to Google OAuth (without popup)
-        window.location.href = redirectResponse.data.url;
+        window.location.href = redirectResponse.url;
         
         // This function won't return a value because the page will be redirected
         return true;

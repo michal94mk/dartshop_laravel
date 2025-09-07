@@ -8,7 +8,7 @@ use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\PasswordController;
-use App\Http\Controllers\Api\Auth\SocialAuthController;
+use App\Http\Controllers\Api\SocialAuthController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\EmailVerificationController;
 
@@ -82,6 +82,7 @@ Route::post('/login', [LoginController::class, 'login']);
 Route::post('/register', [RegisterController::class, 'register']);
 
 // Social Auth API
+Route::get('/auth/google/redirect', [SocialAuthController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout']);

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
-use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
 use App\Services\UserOrderService;

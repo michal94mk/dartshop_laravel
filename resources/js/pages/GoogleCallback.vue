@@ -68,93 +68,168 @@ export default {
         
         // Get parameters from URL
         const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const redirect = urlParams.get('redirect');
         const code = urlParams.get('code');
         const errorParam = urlParams.get('error');
         
-        console.log('URL params:', { code: code?.substring(0, 20) + '...', error: errorParam });
+        console.log('URL params:', { token: token?.substring(0, 20) + '...', redirect, code: code?.substring(0, 20) + '...', error: errorParam });
         
         if (errorParam) {
           throw new Error('Login was cancelled or an error occurred');
         }
         
-        if (!code) {
-          throw new Error('Missing authorization code from Google');
-        }
-        
-        console.log('Sending request to API callback...');
-        
-        // First get CSRF token
-        await axios.get('/sanctum/csrf-cookie');
-        console.log('CSRF token acquired');
-        
-        // Send code to backend
-        const response = await axios.get(`/api/auth/google/callback?code=${code}`);
-        
-        console.log('API Response:', response.data);
-        
-        if (response.data.success && response.data.data?.user) {
-          console.log('Google auth successful, updating auth store...');
+        // If we have a token, use it directly (new flow)
+        if (token) {
+          console.log('Token received, setting up authentication...');
           
-          // Update store with user data
-          authStore.user = response.data.data.user;
-          authStore.permissions = response.data.data.user.permissions || [];
-          authStore.authInitialized = true;
-          authStore.hasError = false;
-          authStore.errorMessage = '';
+          // Set token in axios headers
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
-          // Save data to localStorage
-          authStore.saveUserToLocalStorage();
+          // Get user data with the token
+          const response = await axios.get('/api/user');
           
-          // Sync cart after login
-          await cartStore.syncCartAfterLogin();
-          
-          success.value = true;
-          
-          // Show success message based on action type
-          const { useAlertStore } = await import('../stores/alertStore');
-          const alertStore = useAlertStore();
-          
-          const authAction = localStorage.getItem('google_auth_action') || 'login';
-          localStorage.removeItem('google_auth_action');
-          
-          if (authAction === 'register') {
-            alertStore.success(`🎉 Konto utworzone przez Google! Witaj, ${authStore.user.name}!`, 4000);
-          } else {
-            alertStore.success(`👋 Witaj ponownie, ${authStore.user.name}!`, 3000);
-          }
-          
-          // Get redirect path from localStorage or use profile as default
-          const redirectPath = localStorage.getItem('google_auth_redirect') || '/profile';
-          localStorage.removeItem('google_auth_redirect');
-          
-          console.log('User authenticated successfully, redirecting to:', redirectPath);
-          console.log('Auth store state:', { 
-            isLoggedIn: authStore.isLoggedIn, 
-            authInitialized: authStore.authInitialized,
-            user: authStore.user?.email 
-          });
-          
-          // Make sure auth store is fully updated before redirecting
-          setTimeout(() => {
-            console.log('Final auth check before redirect:', {
-              isLoggedIn: authStore.isLoggedIn,
-              userName: authStore.user?.name
+          if (response.data) {
+            console.log('Google auth successful, updating auth store...');
+            
+            // Update store with user data
+            authStore.user = response.data;
+            authStore.permissions = response.data.permissions || [];
+            authStore.authInitialized = true;
+            authStore.hasError = false;
+            authStore.errorMessage = '';
+            
+            // Save data to localStorage
+            authStore.saveUserToLocalStorage();
+            
+            // Sync cart after login
+            await cartStore.syncCartAfterLogin();
+            
+            success.value = true;
+            
+            // Show success message based on action type
+            const { useAlertStore } = await import('../stores/alertStore');
+            const alertStore = useAlertStore();
+            
+            const authAction = localStorage.getItem('google_auth_action') || 'login';
+            localStorage.removeItem('google_auth_action');
+            
+            if (authAction === 'register') {
+              alertStore.success(`🎉 Konto utworzone przez Google! Witaj, ${authStore.user.name}!`, 4000);
+            } else {
+              alertStore.success(`👋 Witaj ponownie, ${authStore.user.name}!`, 3000);
+            }
+            
+            // Get redirect path from localStorage or use profile as default
+            const redirectPath = localStorage.getItem('google_auth_redirect') || '/profile';
+            localStorage.removeItem('google_auth_redirect');
+            
+            console.log('User authenticated successfully, redirecting to:', redirectPath);
+            console.log('Auth store state:', { 
+              isLoggedIn: authStore.isLoggedIn, 
+              authInitialized: authStore.authInitialized,
+              user: authStore.user?.email 
             });
             
-            // Use router.push instead of window.location.href
-            // Router guard has been fixed to handle Google Callback
-            router.push(redirectPath).catch(err => {
-              if (err.name === 'NavigationDuplicated') {
-                return;
-              }
-              console.error('Navigation error:', err);
-              // Fallback to window.location if router has issues
-              window.location.href = redirectPath;
-            });
-          }, 1500);
+            // Make sure auth store is fully updated before redirecting
+            setTimeout(() => {
+              console.log('Final auth check before redirect:', {
+                isLoggedIn: authStore.isLoggedIn,
+                userName: authStore.user?.name
+              });
+              
+              // Use router.push instead of window.location.href
+              // Router guard has been fixed to handle Google Callback
+              router.push(redirectPath).catch(err => {
+                if (err.name === 'NavigationDuplicated') {
+                  return;
+                }
+                console.error('Navigation error:', err);
+                // Fallback to window.location if router has issues
+                window.location.href = redirectPath;
+              });
+            }, 1500);
+          }
           
+        } else if (code) {
+          // Old flow - handle with code parameter
+          console.log('Sending request to API callback...');
+          
+          // First get CSRF token
+          await axios.get('/sanctum/csrf-cookie');
+          console.log('CSRF token acquired');
+          
+          // Send code to backend
+          const response = await axios.get(`/api/auth/google/callback?code=${code}`);
+          
+          console.log('API Response:', response.data);
+          
+          if (response.data.success && response.data.data?.user) {
+            console.log('Google auth successful, updating auth store...');
+            
+            // Update store with user data
+            authStore.user = response.data.data.user;
+            authStore.permissions = response.data.data.user.permissions || [];
+            authStore.authInitialized = true;
+            authStore.hasError = false;
+            authStore.errorMessage = '';
+            
+            // Save data to localStorage
+            authStore.saveUserToLocalStorage();
+            
+            // Sync cart after login
+            await cartStore.syncCartAfterLogin();
+            
+            success.value = true;
+            
+            // Show success message based on action type
+            const { useAlertStore } = await import('../stores/alertStore');
+            const alertStore = useAlertStore();
+            
+            const authAction = localStorage.getItem('google_auth_action') || 'login';
+            localStorage.removeItem('google_auth_action');
+            
+            if (authAction === 'register') {
+              alertStore.success(`🎉 Konto utworzone przez Google! Witaj, ${authStore.user.name}!`, 4000);
+            } else {
+              alertStore.success(`👋 Witaj ponownie, ${authStore.user.name}!`, 3000);
+            }
+            
+            // Get redirect path from localStorage or use profile as default
+            const redirectPath = localStorage.getItem('google_auth_redirect') || '/profile';
+            localStorage.removeItem('google_auth_redirect');
+            
+            console.log('User authenticated successfully, redirecting to:', redirectPath);
+            console.log('Auth store state:', { 
+              isLoggedIn: authStore.isLoggedIn, 
+              authInitialized: authStore.authInitialized,
+              user: authStore.user?.email 
+            });
+            
+            // Make sure auth store is fully updated before redirecting
+            setTimeout(() => {
+              console.log('Final auth check before redirect:', {
+                isLoggedIn: authStore.isLoggedIn,
+                userName: authStore.user?.name
+              });
+              
+              // Use router.push instead of window.location.href
+              // Router guard has been fixed to handle Google Callback
+              router.push(redirectPath).catch(err => {
+                if (err.name === 'NavigationDuplicated') {
+                  return;
+                }
+                console.error('Navigation error:', err);
+                // Fallback to window.location if router has issues
+                window.location.href = redirectPath;
+              });
+            }, 1500);
+            
+          } else {
+            throw new Error(response.data.message || 'Error during login');
+          }
         } else {
-          throw new Error(response.data.message || 'Error during login');
+          throw new Error('Missing authorization code or token from Google');
         }
         
       } catch (err) {

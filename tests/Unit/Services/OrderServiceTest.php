@@ -7,12 +7,10 @@ use App\Services\OrderService;
 use App\Services\ShippingService;
 use App\Models\User;
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\CartItem;
 use App\Models\Product;
 use App\Enums\OrderStatus;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 

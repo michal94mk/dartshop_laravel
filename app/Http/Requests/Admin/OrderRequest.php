@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Enums\OrderStatus;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Admin Order validation request

@@ -3,8 +3,6 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Promotion validation request

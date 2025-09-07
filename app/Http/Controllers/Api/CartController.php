@@ -11,7 +11,6 @@ use App\Models\Product;
 use App\Services\CartService;
 use App\Services\PromotionService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CartController extends BaseApiController

@@ -3,7 +3,6 @@
 namespace App\Services\Admin;
 
 use App\Models\NewsletterSubscription;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * Service for handling admin newsletter business logic (listing, filtering, exporting, deleting, stats)

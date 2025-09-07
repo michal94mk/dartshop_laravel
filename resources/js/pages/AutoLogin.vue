@@ -69,11 +69,12 @@ export default {
         
         console.log('Auto-login with token:', token.substring(0, 10) + '...');
         
-        // Set the token in axios headers
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        
-        // Get user data with the token
-        const response = await axios.get('/api/user');
+        // Get user data with the token (set Authorization only for this request)
+        const response = await axios.get('/api/user', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         
         if (response.data) {
           // Update auth store
