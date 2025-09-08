@@ -17,7 +17,7 @@ class ApiService {
 
   constructor() {
     this.api = axios.create({
-      baseURL: 'http://dartshop.toadres.pl/api',
+      baseURL: 'https://dartshop.toadres.pl/api',
       timeout: 15000,
       headers: {
         'Content-Type': 'application/json',

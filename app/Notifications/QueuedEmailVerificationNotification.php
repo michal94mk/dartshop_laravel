@@ -37,8 +37,14 @@ class QueuedEmailVerificationNotification extends VerifyEmail implements ShouldQ
      */
     protected function verificationUrl($notifiable)
     {
+        // Force HTTPS for production environments
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
+        
+        // Use the API endpoint instead of redirect endpoint
         return URL::temporarySignedRoute(
-            'api.verification.verify',
+            'api.verification.verify-api',
             Carbon::now()->addMinutes(60),
             [
                 'id' => $notifiable->getKey(),
