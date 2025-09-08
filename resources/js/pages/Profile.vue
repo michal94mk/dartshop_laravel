@@ -520,7 +520,7 @@
                                <p class="font-semibold text-gray-900">{{ item.product.name }}</p>
                                <p class="text-sm text-gray-500">Ilość: {{ item.quantity }}</p>
                              </div>
-                             <p class="font-bold text-indigo-600">{{ item.price_formatted }}</p>
+                             <p class="font-bold text-indigo-600">{{ item.total_formatted || formatPrice(item.total) }}</p>
                            </div>
                          </div>
                        </div>

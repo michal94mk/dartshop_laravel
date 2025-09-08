@@ -344,11 +344,11 @@
             </template>
             
             <template #cell-price="{ item }">
-              {{ formatPrice(item.price || 0) }}
+              {{ item.price_formatted || formatPrice(item.price || 0) }}
             </template>
             
             <template #cell-total="{ item }">
-              {{ formatPrice((item.price || 0) * (item.quantity || 0)) }}
+              {{ item.total_formatted || formatPrice(item.total || 0) }}
             </template>
           </admin-table>
           

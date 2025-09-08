@@ -28,6 +28,18 @@ class OrderItem extends Model
         'total_price'
     ];
 
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'price',
+        'total',
+        'price_formatted',
+        'total_formatted'
+    ];
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
@@ -36,5 +48,37 @@ class OrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get the price attribute (alias for product_price).
+     */
+    public function getPriceAttribute()
+    {
+        return $this->product_price;
+    }
+
+    /**
+     * Get the total attribute (alias for total_price).
+     */
+    public function getTotalAttribute()
+    {
+        return $this->total_price;
+    }
+
+    /**
+     * Get the formatted price.
+     */
+    public function getPriceFormattedAttribute()
+    {
+        return number_format($this->product_price, 2, ',', ' ') . ' zł';
+    }
+
+    /**
+     * Get the formatted total.
+     */
+    public function getTotalFormattedAttribute()
+    {
+        return number_format($this->total_price, 2, ',', ' ') . ' zł';
     }
 }
