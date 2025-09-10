@@ -167,6 +167,11 @@ export default {
           if (response.data.success && response.data.data?.user) {
             console.log('Google auth successful, updating auth store...');
             
+            // Set token from response if available
+            if (response.data.data.token) {
+              axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.data.token}`;
+            }
+            
             // Update store with user data
             authStore.user = response.data.data.user;
             authStore.permissions = response.data.data.user.permissions || [];

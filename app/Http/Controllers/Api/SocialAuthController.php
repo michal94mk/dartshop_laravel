@@ -14,14 +14,38 @@ use Illuminate\Http\JsonResponse;
 
 class SocialAuthController extends BaseApiController
 {
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum')->except(['redirectToGoogle', 'handleGoogleCallback']);
+    }
+
     /**
      * Redirect to Google OAuth
      */
     public function redirectToGoogle(): JsonResponse
     {
         $this->logApiRequest(request(), 'Redirect to Google OAuth');
-        $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
-        return $this->successResponse(['url' => $url], 'Google OAuth redirect URL generated');
+        
+        // Tymczasowe logowanie dla diagnostyki
+        Log::info('Google OAuth configuration check', [
+            'client_id' => config('services.google.client_id'),
+            'client_secret' => config('services.google.client_secret') ? 'SET' : 'NOT SET',
+            'redirect' => config('services.google.redirect'),
+            'app_env' => config('app.env'),
+            'app_url' => config('app.url'),
+        ]);
+        
+        try {
+            $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
+            Log::info('Google OAuth redirect URL generated successfully', ['url' => $url]);
+            return $this->successResponse(['url' => $url], 'Google OAuth redirect URL generated');
+        } catch (\Exception $e) {
+            Log::error('Google OAuth redirect error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return $this->errorResponse('Błąd podczas generowania URL Google OAuth: ' . $e->getMessage(), 500);
+        }
     }
 
     /**
@@ -65,10 +89,20 @@ class SocialAuthController extends BaseApiController
         $userData = $user->toArray();
         $userData['permissions'] = $permissions;
         $userData['roles'] = method_exists($user, 'getRoleNames') ? $user->getRoleNames()->toArray() : [];
+        
+        // Create token
+        $token = $user->createToken('auth-token')->plainTextToken;
+        
+        Log::info('Google OAuth successful', [
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+            'token_created' => true
+        ]);
+        
         return $this->successResponse([
             'message' => 'Successfully logged in with Google',
             'user' => $userData,
-            'token' => $user->createToken('auth-token')->plainTextToken
+            'token' => $token
         ], 'Google OAuth login successful');
     }
 
