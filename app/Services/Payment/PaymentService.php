@@ -73,8 +73,8 @@ class PaymentService
             'payment_method_types' => $this->getPaymentMethods(),
             'line_items' => $lineItems,
             'mode' => 'payment',
-            'success_url' => env('APP_FRONTEND_URL') . '/payment/success?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => env('APP_FRONTEND_URL') . '/checkout',
+            'success_url' => config('app.url') . '/payment/success?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => config('app.url') . '/checkout',
             'customer_email' => $shippingData['email'],
             'metadata' => [
                 'user_id' => $user->id,
@@ -112,8 +112,8 @@ class PaymentService
             'payment_method_types' => $this->getPaymentMethods(),
             'line_items' => $lineItems,
             'mode' => 'payment',
-            'success_url' => env('APP_FRONTEND_URL') . '/payment/success?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => env('APP_FRONTEND_URL') . '/checkout',
+            'success_url' => config('app.url') . '/payment/success?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => config('app.url') . '/checkout',
             'customer_email' => $shippingData['email'],
             'metadata' => [
                 'guest_order' => 'true',
