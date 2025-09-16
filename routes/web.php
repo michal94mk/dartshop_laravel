@@ -1,9 +1,12 @@
 <?php
 
 use App\Http\Controllers\SPAController;
+use App\Http\Controllers\Api\SocialAuthController;
 use Illuminate\Support\Facades\Route;
 
 // Auth routes are now handled by API only
+
+// Google OAuth callback moved to API routes for better SPA architecture
 
 // Main entry point route - named route for SEO
 Route::get('/', [SPAController::class, 'index'])->name('home');

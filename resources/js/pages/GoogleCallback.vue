@@ -74,6 +74,15 @@ export default {
         const errorParam = urlParams.get('error');
         
         console.log('URL params:', { token: token?.substring(0, 20) + '...', redirect, code: code?.substring(0, 20) + '...', error: errorParam });
+        console.log('Full URL:', window.location.href);
+        console.log('Token present:', !!token);
+        console.log('Code present:', !!code);
+        
+        // Debug logging
+        console.log('Google OAuth callback - Full URL:', window.location.href);
+        console.log('Google OAuth callback - Token present:', !!token, 'Code present:', !!code);
+        console.log('Google OAuth callback - All URL params:', Object.fromEntries(urlParams));
+        console.log('Google OAuth callback - Raw search:', window.location.search);
         
         if (errorParam) {
           throw new Error('Login was cancelled or an error occurred');
@@ -82,12 +91,15 @@ export default {
         // If we have a token, use it directly (new flow)
         if (token) {
           console.log('Token received, setting up authentication...');
-          
+          console.log('Token value:', token);
           // Set token in axios headers
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          console.log('Authorization header set');
           
           // Get user data with the token
+          console.log('Fetching user data...');
           const response = await axios.get('/api/user');
+          console.log('User data response:', response.data);
           
           if (response.data) {
             console.log('Google auth successful, updating auth store...');
@@ -152,29 +164,28 @@ export default {
           }
           
         } else if (code) {
-          // Old flow - handle with code parameter
-          console.log('Sending request to API callback...');
-          
+          // Handle code directly (Google redirects to /auth/google/success with code)
+          console.log('Code received, processing with backend...');
+          console.log('Code value:', code);
+
           // First get CSRF token
           await axios.get('/sanctum/csrf-cookie');
-          console.log('CSRF token acquired');
           
           // Send code to backend
           const response = await axios.get(`/api/auth/google/callback?code=${code}`);
-          
-          console.log('API Response:', response.data);
-          
-          if (response.data.success && response.data.data?.user) {
-            console.log('Google auth successful, updating auth store...');
+          console.log('Backend response:', response);
+
+          if (response.data && response.data.data && response.data.data.token) {
+            const { user, token: backendToken } = response.data.data;
             
-            // Set token from response if available
-            if (response.data.data.token) {
-              axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.data.token}`;
-            }
+            console.log('Google OAuth successful, setting up authentication...');
             
-            // Update store with user data
-            authStore.user = response.data.data.user;
-            authStore.permissions = response.data.data.user.permissions || [];
+            // Set token in axios headers
+            axios.defaults.headers.common['Authorization'] = `Bearer ${backendToken}`;
+            
+            // Update auth store
+            authStore.user = user;
+            authStore.permissions = user.permissions || [];
             authStore.authInitialized = true;
             authStore.hasError = false;
             authStore.errorMessage = '';
@@ -187,58 +198,40 @@ export default {
             
             success.value = true;
             
-            // Show success message based on action type
+            // Show success message
             const { useAlertStore } = await import('../stores/alertStore');
             const alertStore = useAlertStore();
+            alertStore.success(`👋 Witaj, ${user.name}!`, 3000);
             
-            const authAction = localStorage.getItem('google_auth_action') || 'login';
-            localStorage.removeItem('google_auth_action');
-            
-            if (authAction === 'register') {
-              alertStore.success(`🎉 Konto utworzone przez Google! Witaj, ${authStore.user.name}!`, 4000);
-            } else {
-              alertStore.success(`👋 Witaj ponownie, ${authStore.user.name}!`, 3000);
-            }
-            
-            // Get redirect path from localStorage or use profile as default
-            const redirectPath = localStorage.getItem('google_auth_redirect') || '/profile';
-            localStorage.removeItem('google_auth_redirect');
-            
+            // Redirect to profile
+            const redirectPath = '/profile';
             console.log('User authenticated successfully, redirecting to:', redirectPath);
-            console.log('Auth store state:', { 
-              isLoggedIn: authStore.isLoggedIn, 
-              authInitialized: authStore.authInitialized,
-              user: authStore.user?.email 
-            });
             
-            // Make sure auth store is fully updated before redirecting
             setTimeout(() => {
-              console.log('Final auth check before redirect:', {
-                isLoggedIn: authStore.isLoggedIn,
-                userName: authStore.user?.name
-              });
-              
-              // Use router.push instead of window.location.href
-              // Router guard has been fixed to handle Google Callback
               router.push(redirectPath).catch(err => {
                 if (err.name === 'NavigationDuplicated') {
                   return;
                 }
                 console.error('Navigation error:', err);
-                // Fallback to window.location if router has issues
                 window.location.href = redirectPath;
               });
             }, 1500);
-            
           } else {
-            throw new Error(response.data.message || 'Error during login');
+            throw new Error('Invalid response from backend');
           }
         } else {
-          throw new Error('Missing authorization code or token from Google');
+          throw new Error('Missing authorization token or code from Google');
         }
         
       } catch (err) {
         console.error('Google callback error:', err);
+        console.error('Error details:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+          url: err.config?.url
+        });
+        console.error('Google OAuth error:', err.message);
         error.value = err.response?.data?.message || err.message || 'An unexpected error occurred';
       }
     });

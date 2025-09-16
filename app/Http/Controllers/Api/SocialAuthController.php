@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 
 class SocialAuthController extends BaseApiController
 {
@@ -26,7 +27,6 @@ class SocialAuthController extends BaseApiController
     {
         $this->logApiRequest(request(), 'Redirect to Google OAuth');
         
-        // Tymczasowe logowanie dla diagnostyki
         Log::info('Google OAuth configuration check', [
             'client_id' => config('services.google.client_id'),
             'client_secret' => config('services.google.client_secret') ? 'SET' : 'NOT SET',
@@ -51,47 +51,72 @@ class SocialAuthController extends BaseApiController
     /**
      * Handle Google OAuth callback
      */
-    public function handleGoogleCallback(Request $request): JsonResponse
+    public function handleGoogleCallback(Request $request): RedirectResponse
     {
         $this->logApiRequest($request, 'Handle Google OAuth callback');
         
-        if (!$request->has('code')) {
-            return $this->errorResponse('Brak kodu autoryzacyjnego od Google', 400);
-        }
-
-        $this->forceSSLConfiguration();
-        $googleUser = Socialite::driver('google')->stateless()->user();
-
-        $user = User::where('email', $googleUser->getEmail())->first();
-        if ($user) {
-            $user->update([
-                'google_id' => $googleUser->getId(),
-                'avatar' => $googleUser->getAvatar(),
-                'email_verified_at' => $user->email_verified_at ?? now(),
-            ]);
-        } else {
-            $user = User::create([
-                'name' => $googleUser->getName() ?? 'Użytkownik Google',
-                'first_name' => $googleUser->user['given_name'] ?? '',
-                'last_name' => $googleUser->user['family_name'] ?? '',
-                'email' => $googleUser->getEmail(),
-                'google_id' => $googleUser->getId(),
-                'avatar' => $googleUser->getAvatar(),
-                'password' => Hash::make(Str::random(50)),
-                'email_verified_at' => now(),
-            ]);
-            if (method_exists($user, 'assignRole')) {
-                $user->assignRole('user');
-            }
-        }
-        Auth::login($user);
-        $permissions = method_exists($user, 'getAllPermissions') ? $user->getAllPermissions()->pluck('name')->toArray() : [];
-        $userData = $user->toArray();
-        $userData['permissions'] = $permissions;
-        $userData['roles'] = method_exists($user, 'getRoleNames') ? $user->getRoleNames()->toArray() : [];
+        // Debug logging
+        Log::info('Google OAuth callback debug', [
+            'url' => $request->fullUrl(),
+            'query_params' => $request->query(),
+            'has_code' => $request->has('code'),
+            'code_value' => $request->get('code') ? 'PRESENT' : 'MISSING',
+            'all_params' => $request->all()
+        ]);
         
-        // Create token
-        $token = $user->createToken('auth-token')->plainTextToken;
+        if (!$request->has('code')) {
+            Log::error('Google OAuth callback missing code', [
+                'url' => $request->fullUrl(),
+                'query_params' => $request->query()
+            ]);
+            return redirect('/login?error=missing_code');
+        }
+
+        try {
+            $this->forceSSLConfiguration();
+            $googleUser = Socialite::driver('google')->stateless()->user();
+        } catch (\Exception $e) {
+            Log::error('Google OAuth error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect('/login?error=oauth_error');
+        }
+
+        try {
+            $user = User::where('email', $googleUser->getEmail())->first();
+            if ($user) {
+                $user->update([
+                    'google_id' => $googleUser->getId(),
+                    'avatar' => $googleUser->getAvatar(),
+                    'email_verified_at' => $user->email_verified_at ?? now(),
+                ]);
+            } else {
+                $user = User::create([
+                    'name' => $googleUser->getName() ?? 'Użytkownik Google',
+                    'first_name' => $googleUser->user['given_name'] ?? '',
+                    'last_name' => $googleUser->user['family_name'] ?? '',
+                    'email' => $googleUser->getEmail(),
+                    'google_id' => $googleUser->getId(),
+                    'avatar' => $googleUser->getAvatar(),
+                    'password' => Hash::make(Str::random(50)),
+                    'email_verified_at' => now(),
+                ]);
+                if (method_exists($user, 'assignRole')) {
+                    $user->assignRole('user');
+                }
+            }
+            Auth::login($user);
+            
+            // Create token
+            $token = $user->createToken('auth-token')->plainTextToken;
+        } catch (\Exception $e) {
+            Log::error('User creation/login error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect('/login?error=user_error');
+        }
         
         Log::info('Google OAuth successful', [
             'user_id' => $user->id,
@@ -99,11 +124,17 @@ class SocialAuthController extends BaseApiController
             'token_created' => true
         ]);
         
-        return $this->successResponse([
-            'message' => 'Successfully logged in with Google',
-            'user' => $userData,
-            'token' => $token
-        ], 'Google OAuth login successful');
+        // Redirect to frontend with token
+        $frontendUrl = config('app.url');
+        $redirectUrl = $frontendUrl . '/auth/google/success?token=' . $token . '&redirect=/profile';
+        
+        Log::info('Google OAuth redirect to frontend', [
+            'frontend_url' => $frontendUrl,
+            'redirect_url' => $redirectUrl,
+            'app_url' => config('app.url')
+        ]);
+        
+        return redirect($redirectUrl);
     }
 
     /**

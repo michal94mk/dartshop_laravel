@@ -1,4 +1,3 @@
-// @ts-ignore - Vue Router 4 type issues
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 
@@ -303,7 +302,7 @@ const routes: AppRoute[] = [
     }
   },
   {
-    path: '/auth/google/callback',
+    path: '/auth/google/success',
     name: 'google-callback',
     component: GoogleCallback,
     meta: {
