@@ -21,8 +21,24 @@ class EmailVerificationController extends BaseApiController
     public function verify(Request $request, int $id, string $hash)
     {
         $this->logApiRequest($request, "Email verification attempt for user ID: {$id}");
+        
+        // Debug: Log request details
+        \Log::info('Email verification debug', [
+            'url' => $request->fullUrl(),
+            'method' => $request->method(),
+            'headers' => $request->headers->all(),
+            'query' => $request->query->all(),
+            'app_url' => config('app.url'),
+            'app_env' => config('app.env'),
+        ]);
 
         if (!$request->hasValidSignature()) {
+            \Log::error('Invalid signature for email verification', [
+                'user_id' => $id,
+                'url' => $request->fullUrl(),
+                'signature' => $request->query('signature'),
+                'expires' => $request->query('expires'),
+            ]);
             return redirect(config('app.url') . '/profile?verified=invalid');
         }
 
@@ -60,8 +76,24 @@ class EmailVerificationController extends BaseApiController
     public function verifyApi(Request $request, int $id, string $hash): JsonResponse
     {
         $this->logApiRequest($request, "API Email verification attempt for user ID: {$id}");
+        
+        // Debug: Log request details
+        \Log::info('API Email verification debug', [
+            'url' => $request->fullUrl(),
+            'method' => $request->method(),
+            'headers' => $request->headers->all(),
+            'query' => $request->query->all(),
+            'app_url' => config('app.url'),
+            'app_env' => config('app.env'),
+        ]);
 
         if (!$request->hasValidSignature()) {
+            \Log::error('Invalid signature for API email verification', [
+                'user_id' => $id,
+                'url' => $request->fullUrl(),
+                'signature' => $request->query('signature'),
+                'expires' => $request->query('expires'),
+            ]);
             return $this->errorResponse('Link weryfikacyjny jest nieprawidłowy lub wygasł.', 400);
         }
 

@@ -36,7 +36,7 @@ class SocialAuthController extends BaseApiController
         ]);
         
         try {
-            $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
+            $url = Socialite::driver('google')->redirect()->getTargetUrl();
             Log::info('Google OAuth redirect URL generated successfully', ['url' => $url]);
             return $this->successResponse(['url' => $url], 'Google OAuth redirect URL generated');
         } catch (\Exception $e) {
@@ -74,7 +74,9 @@ class SocialAuthController extends BaseApiController
 
         try {
             $this->forceSSLConfiguration();
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            // Note: For API routes, we might need session state for OAuth flow
+            // Using stateless() can cause issues with Google's CSRF protection
+            $googleUser = Socialite::driver('google')->user();
         } catch (\Exception $e) {
             Log::error('Google OAuth error', [
                 'message' => $e->getMessage(),

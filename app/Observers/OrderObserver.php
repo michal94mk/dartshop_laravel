@@ -3,7 +3,9 @@
 namespace App\Observers;
 
 use App\Models\Order;
+use App\Mail\OrderConfirmationMail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class OrderObserver
 {
@@ -34,8 +36,34 @@ class OrderObserver
     {
         Log::info('OrderObserver: Order created successfully', [
             'order_id' => $order->id,
-            'order_number' => $order->order_number
+            'order_number' => $order->order_number,
+            'email' => $order->email
         ]);
+
+        // Send order confirmation email
+        try {
+            if ($order->email) {
+                Mail::to($order->email)->queue(new OrderConfirmationMail($order));
+                
+                Log::info('OrderObserver: Order confirmation email queued', [
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'email' => $order->email
+                ]);
+            } else {
+                Log::warning('OrderObserver: Cannot send confirmation email - no email address', [
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('OrderObserver: Failed to queue order confirmation email', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'email' => $order->email,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 
     /**
