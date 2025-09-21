@@ -38,6 +38,9 @@ class CheckoutRequest extends FormRequest
             'payment_method' => 'required|string|in:stripe,cod',
             'shipping_method' => 'required|string|in:courier,inpost,pickup,express',
             'notes' => 'nullable|string|max:2000',
+            'cart_items' => 'nullable|array',
+            'cart_items.*.product_id' => 'required_with:cart_items|integer|exists:products,id',
+            'cart_items.*.quantity' => 'required_with:cart_items|integer|min:1|max:99',
         ];
     }
 
@@ -72,6 +75,14 @@ class CheckoutRequest extends FormRequest
             'shipping_method.required' => 'Metoda dostawy jest wymagana.',
             'shipping_method.in' => 'Wybierz prawidłową metodę dostawy.',
             'notes.max' => 'Uwagi nie mogą być dłuższe niż 2000 znaków.',
+            'cart_items.array' => 'Dane koszyka muszą być w formie tablicy.',
+            'cart_items.*.product_id.required_with' => 'ID produktu jest wymagane.',
+            'cart_items.*.product_id.integer' => 'ID produktu musi być liczbą.',
+            'cart_items.*.product_id.exists' => 'Produkt nie istnieje.',
+            'cart_items.*.quantity.required_with' => 'Ilość produktu jest wymagana.',
+            'cart_items.*.quantity.integer' => 'Ilość musi być liczbą.',
+            'cart_items.*.quantity.min' => 'Ilość musi być większa niż 0.',
+            'cart_items.*.quantity.max' => 'Ilość nie może być większa niż 99.',
         ];
     }
 

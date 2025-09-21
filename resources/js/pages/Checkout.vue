@@ -435,13 +435,13 @@ export default {
              shippingDetails.value.postal_code &&
              shippingDetails.value.country;
              
-      // Sprawdź czy wybrano metodę wysyłki
+      // Check if shipping method is selected
       const shippingMethodValid = !!selectedShippingMethod.value;
       
-      // Sprawdź czy wybrano metodę płatności
+      // Check if payment method is selected
       const paymentMethodValid = !!paymentMethod.value;
       
-      // Sprawdź politykę prywatności dla gości lub użytkowników, którzy jej nie zaakceptowali
+      // Check privacy policy for guests or users who haven't accepted it
       const privacyPolicyValid = authStore.isLoggedIn && authStore.user?.privacy_policy_accepted ? true : privacyPolicyAccepted.value;
       
       return basicFormValid && shippingMethodValid && paymentMethodValid && privacyPolicyValid;
@@ -453,12 +453,12 @@ export default {
         error.value = null
         
         if (authStore.isLoggedIn) {
-          // Pobierz koszyk dla zalogowanych użytkowników
+          // Get cart for authenticated users
           const cartResponse = await axios.get('/api/cart')
           cartItems.value = cartResponse.data.data?.items || []
           cartTotal.value = cartResponse.data.total || 0
 
-          // Pobierz metody wysyłki dla zalogowanych użytkowników
+          // Get shipping methods for authenticated users
           const shippingResponse = await axios.get('/api/user/shipping-methods', {
             params: {
               cart_total: cartTotal.value
@@ -467,17 +467,17 @@ export default {
           shippingMethods.value = shippingResponse.data.data?.methods || {}
           freeShippingThreshold.value = shippingResponse.data.data?.free_shipping_threshold || 0
           
-          // Ustaw domyślną metodę wysyłki, jeśli nie jest jeszcze wybrana
+          // Set default shipping method if not selected yet
           if (!selectedShippingMethod.value && Object.keys(shippingMethods.value).length > 0) {
             selectedShippingMethod.value = 'courier'
           }
         } else {
-          // Dla gości - pobierz z localStorage
+          // For guests - get from localStorage
           const savedCart = localStorage.getItem('cart')
           if (savedCart) {
             const localCartItems = JSON.parse(savedCart)
             cartItems.value = localCartItems
-            // Uzupełnij brakujące dane produktów
+            // Fill missing product data
             for (const item of cartItems.value) {
               if (!item.product) {
                 try {
@@ -491,18 +491,14 @@ export default {
             
             // Oblicz sumę koszyka
             const calculatedTotal = localCartItems.reduce((total, item) => {
-              console.log('Item:', item)
               const price = item.product?.promotion_price && parseFloat(item.product.promotion_price) < parseFloat(item.product.price)
                 ? parseFloat(item.product.promotion_price)
                 : parseFloat(item.product.price)
-              console.log('Calculated price:', price, 'Quantity:', item.quantity)
               return total + (price * item.quantity)
             }, 0)
-            console.log('Calculated total before Number conversion:', calculatedTotal)
             cartTotal.value = Number(calculatedTotal.toFixed(2))
-            console.log('Final cartTotal:', cartTotal.value)
             
-            // Pobierz metody wysyłki dla gości
+            // Get shipping methods for guests
             const shippingResponse = await axios.get('/api/shipping-methods', {
               params: {
                 cart_total: cartTotal.value
@@ -511,7 +507,7 @@ export default {
             shippingMethods.value = shippingResponse.data.data?.methods || {}
             freeShippingThreshold.value = shippingResponse.data.data?.free_shipping_threshold || 0
             
-            // Ustaw domyślną metodę wysyłki, jeśli nie jest jeszcze wybrana
+            // Set default shipping method if not selected yet
             if (!selectedShippingMethod.value && Object.keys(shippingMethods.value).length > 0) {
               selectedShippingMethod.value = 'courier'
             }
@@ -534,25 +530,25 @@ export default {
         loading.value = true
         error.value = null
 
-        // Sprawdź czy formularz jest wypełniony
+        // Check if form is valid
         if (!isFormValid.value) {
           error.value = 'Uzupełnij wszystkie wymagane pola'
           return
         }
 
-        // Sprawdź czy wybrano metodę wysyłki
+        // Check if shipping method is selected
         if (!selectedShippingMethod.value) {
           error.value = 'Wybierz metodę wysyłki'
           return
         }
 
-        // Jeśli wybrano płatność online, przekieruj do Stripe
+        // If online payment selected, redirect to Stripe
         if (paymentMethod.value === 'stripe') {
           await processStripeCheckout()
           return
         }
 
-        // Dla płatności przy odbiorze, kontynuuj standardowy proces
+        // For COD payment, continue with standard process
         const checkoutData = {
           shipping_address: {
             first_name: shippingDetails.value.first_name,
@@ -566,29 +562,32 @@ export default {
           },
           shipping_method: selectedShippingMethod.value,
           payment_method: paymentMethod.value,
-          notes: shippingDetails.value.notes
+          notes: shippingDetails.value.notes,
+          // Add cart_items for guest users
+          ...(authStore.isLoggedIn ? {} : {
+            cart_items: cartItems.value.map(item => ({
+              product_id: item.product_id || item.product.id,
+              quantity: item.quantity
+            }))
+          })
         }
 
-        console.log('Wysyłanie danych zamówienia:', checkoutData)
-
-        // Wybierz odpowiedni endpoint w zależności od stanu logowania
+        // Choose appropriate endpoint based on authentication status
         const endpoint = authStore.isLoggedIn ? '/api/checkout' : '/api/guest-checkout'
-        console.log('Używany endpoint:', endpoint)
 
         const response = await axios.post(endpoint, checkoutData)
-        console.log('Odpowiedź z serwera:', response.data)
 
         if (response.data && response.data.success && response.data.data?.order) {
-          // Wyczyść koszyk
+          // Clear cart
           await cartStore.clearCart()
-          // Przekieruj do strony potwierdzenia, przekazując zamówienie przez state
+          // Redirect to confirmation page, passing order via state
           router.push({
             name: 'payment-success',
             query: { order_id: response.data.data.order.id },
             state: { order: response.data.data.order }
           })
         } else if (response.data && response.data.order) {
-          // Obsługa starego formatu odpowiedzi
+          // Handle old response format
           await cartStore.clearCart()
           router.push({
             name: 'payment-success',
