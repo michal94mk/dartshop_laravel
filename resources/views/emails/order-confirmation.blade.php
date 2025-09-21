@@ -70,13 +70,8 @@ Twoje zamówienie **{{ $order->order_number }}** zostało pomyślnie złożone i
 
 ---
 
-@if($order->user_id)
-@component('mail::button', ['url' => config('app.url') . '/profile/orders/' . $order->id])
-Zobacz szczegóły zamówienia
-@endcomponent
-@endif
 
-Czas realizacji zamówienia wynosi zwykle 1-3 dni robocze. O każdej zmianie statusu zamówienia poinformujemy Cię emailem.
+Czas realizacji zamówienia wynosi zwykle 1-3 dni robocze.
 
 W razie pytań, skontaktuj się z nami pod adresem {{ config('mail.from.address') }}.
 
