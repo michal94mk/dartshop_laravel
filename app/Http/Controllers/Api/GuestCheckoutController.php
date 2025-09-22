@@ -90,9 +90,12 @@ class GuestCheckoutController extends BaseApiController
                 return $this->errorResponse('Order total cannot be zero. Please check product prices.', 400);
             }
 
-            $shippingCost = $validated['shipping_method'] === 'express' ? 20.00 : 15.00;
-            $discount = 0;
-            $total = $subtotal + $shippingCost - $discount;
+            // Calculate shipping cost using ShippingService
+            $shippingMethod = $validated['shipping_method'];
+            $originalShippingCost = $this->shippingService->getShippingMethod($shippingMethod)['cost'] ?? 0.00;
+            $shippingCost = $this->shippingService->calculateShippingCost($shippingMethod, $subtotal);
+            $discount = $originalShippingCost - $shippingCost;
+            $total = $subtotal + $shippingCost;
 
             // Create guest order
             $order = Order::create([

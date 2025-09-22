@@ -375,7 +375,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { useCartStore } from '../stores/cartStore'
@@ -456,7 +456,7 @@ export default {
           // Get cart for authenticated users
           const cartResponse = await axios.get('/api/cart')
           cartItems.value = cartResponse.data.data?.items || []
-          cartTotal.value = cartResponse.data.total || 0
+          cartTotal.value = cartResponse.data.data?.subtotal || cartResponse.data.subtotal || 0
 
           // Get shipping methods for authenticated users
           const shippingResponse = await axios.get('/api/user/shipping-methods', {
@@ -671,6 +671,22 @@ export default {
           shippingDetails.value.name = `${user.first_name} ${user.last_name}`
         } else if (user.name) {
           shippingDetails.value.name = user.name
+        }
+      }
+    })
+
+    // Watch cartTotal changes to update shipping methods
+    watch(cartTotal, async (newTotal) => {
+      if (newTotal > 0) {
+        try {
+          const endpoint = authStore.isLoggedIn ? '/api/user/shipping-methods' : '/api/shipping-methods'
+          const response = await axios.get(endpoint, {
+            params: { cart_total: newTotal }
+          })
+          shippingMethods.value = response.data.data?.methods || {}
+          freeShippingThreshold.value = response.data.data?.free_shipping_threshold || 0
+        } catch (err) {
+          console.error('Error updating shipping methods:', err)
         }
       }
     })

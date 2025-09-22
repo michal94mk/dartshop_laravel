@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\CartService;
 use App\Services\ReservationService;
+use App\Services\ShippingService;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Http\Requests\Frontend\CheckoutRequest;
@@ -19,13 +20,16 @@ class CheckoutController extends BaseApiController
 {
     protected $cartService;
     protected $reservationService;
+    protected $shippingService;
 
     public function __construct(
         CartService $cartService,
-        ReservationService $reservationService
+        ReservationService $reservationService,
+        ShippingService $shippingService
     ) {
         $this->cartService = $cartService;
         $this->reservationService = $reservationService;
+        $this->shippingService = $shippingService;
     }
 
     /**
@@ -42,35 +46,51 @@ class CheckoutController extends BaseApiController
             // Get validated data
             $validated = $request->validated();
 
-            // Pobierz koszyk
+            // Get cart items
             $cartItems = $this->cartService->getCartItems();
 
             if ($cartItems->isEmpty()) {
-                return $this->errorResponse('Koszyk jest pusty', 400);
+                return $this->errorResponse('Cart is empty', 400);
             }
 
-            // Rozpocznij transakcję
+            // Start database transaction
             return DB::transaction(function () use ($validated, $cartItems) {
                 try {
-                    // Zarezerwuj produkty
+                    // Reserve products
                     foreach ($cartItems as $item) {
                         if (!$this->reservationService->reserveProduct($item->product, $item->quantity)) {
-                            throw new Exception("Produkt {$item->product->name} jest niedostępny w żądanej ilości.");
+                            throw new Exception("Product {$item->product->name} is not available in the requested quantity.");
                         }
                     }
 
-                    // Przygotuj dane adresowe
+                    // Prepare shipping data
                     $shippingData = $validated['shipping_address'];
 
-                    // Oblicz koszty
+                    // Calculate costs
                     $subtotal = (float) $cartItems->sum(function ($item) {
-                        return $item->quantity * $item->product->getPromotionalPrice();
+                        $price = $item->product->getPromotionalPrice();
+                        \Illuminate\Support\Facades\Log::info('Cart item calculation', [
+                            'product' => $item->product->name,
+                            'quantity' => $item->quantity,
+                            'price' => $price,
+                            'total' => $item->quantity * $price
+                        ]);
+                        return $item->quantity * $price;
                     });
 
-                    $shippingCost = (float) ($validated['shipping_method'] === 'express' ? 20.00 : 15.00);
+                    \Illuminate\Support\Facades\Log::info('Order calculation', [
+                        'subtotal' => $subtotal,
+                        'cart_items_count' => $cartItems->count()
+                    ]);
+
+                    // Calculate shipping cost using ShippingService
+                    $shippingMethod = $validated['shipping_method'];
+                    $originalShippingCost = $this->shippingService->getShippingMethod($shippingMethod)['cost'] ?? 0.00;
+                    $shippingCost = $this->shippingService->calculateShippingCost($shippingMethod, $subtotal);
+                    $discount = $originalShippingCost - $shippingCost;
                     $total = (float) ($subtotal + $shippingCost);
 
-                    // Utwórz zamówienie
+                    // Create order
                     $order = Order::create([
                         'user_id' => Auth::id(),
                         'order_number' => Order::generateOrderNumber(),
@@ -86,13 +106,14 @@ class CheckoutController extends BaseApiController
                         'notes' => $validated['notes'] ?? null,
                         'subtotal' => $subtotal,
                         'shipping_cost' => $shippingCost,
+                        'discount' => $discount,
                         'total' => $total,
                         'payment_method' => $validated['payment_method'],
                         'shipping_method' => $validated['shipping_method'],
-                        'country' => 'PL' // Domyślnie Polska
+                        'country' => 'PL' // Default to Poland
                     ]);
 
-                    // Dodaj produkty do zamówienia
+                    // Add products to order
                     foreach ($cartItems as $item) {
                         OrderItem::create([
                             'order_id' => $order->id,
@@ -104,13 +125,13 @@ class CheckoutController extends BaseApiController
                         ]);
                     }
 
-                    // Wyczyść koszyk
+                    // Clear cart
                     $this->cartService->clearCart();
 
-                    // Zwróć utworzone zamówienie
+                    // Return created order
                     return $this->createdResponse([
                         'order' => $order->load('items')
-                    ], 'Zamówienie zostało utworzone pomyślnie');
+                    ], 'Order created successfully');
 
                 } catch (Exception $e) {
                     return $this->handleException($e, 'Creating order in transaction');
@@ -139,4 +160,4 @@ class CheckoutController extends BaseApiController
             return $this->handleException($e, "Fetching order details for ID: {$orderId}");
         }
     }
-} 
+}
