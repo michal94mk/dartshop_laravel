@@ -52,9 +52,8 @@ Twoje zamówienie **{{ $order->order_number }}** zostało pomyślnie złożone i
 - **Wartość produktów:** {{ number_format($order->subtotal, 2, ',', ' ') }} zł
 @if($order->shipping_cost > 0)
 - **Koszt dostawy:** {{ number_format($order->shipping_cost, 2, ',', ' ') }} zł
-@endif
-@if($order->discount > 0)
-- **Rabat:** -{{ number_format($order->discount, 2, ',', ' ') }} zł
+@else
+- **Dostawa:** 0 zł
 @endif
 - **Do zapłaty:** **{{ number_format($order->total, 2, ',', ' ') }} zł**
 
