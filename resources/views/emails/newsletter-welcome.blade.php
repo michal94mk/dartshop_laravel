@@ -1,23 +1,22 @@
 @component('mail::message')
-# 🎉 Witaj w społeczności {{ $appName }}!
+# Witaj w {{ $appName }}!
 
-Dziękujemy za potwierdzenie subskrypcji! Od teraz będziesz otrzymywać najlepsze oferty i nowości ze świata darta bezpośrednio na swoją skrzynkę.
+Dziękujemy za potwierdzenie subskrypcji newslettera! Od teraz będziesz otrzymywać najlepsze oferty i nowości ze świata darta bezpośrednio na swoją skrzynkę.
 
-## 🎯 Co Cię czeka?
-
-- **Ekskluzywne promocje** tylko dla subskrybentów
-- **Najnowsze produkty** przed wszystkimi innymi
-- **Porady ekspertów** jak poprawić swoją grę
-- **Informacje o turniejach** i wydarzeniach dartowych
+**Co Cię czeka:**
+- Ekskluzywne promocje tylko dla subskrybentów
+- Najnowsze produkty przed wszystkimi innymi
+- Porady ekspertów jak poprawić swoją grę
+- Informacje o turniejach i wydarzeniach dartowych
 
 @component('mail::button', ['url' => config('app.url')])
-🛒 Sprawdź nasze produkty
+Sprawdź nasze produkty
 @endcomponent
 
-## 🏆 Specjalna oferta powitalna!
+**Specjalna oferta powitalna:**
 
-Jako nowy subskrybent otrzymujesz **10% rabatu** na pierwsze zamówienie! 
-Użyj kodu: **WELCOME10**
+Jako nowy subskrybent otrzymujesz **10% rabatu** na pierwsze zamówienie!  
+Kod rabatowy: **WELCOME10**
 
 ---
 
@@ -25,8 +24,8 @@ Użyj kodu: **WELCOME10**
 Jeśli masz pytania, skontaktuj się z nami pod adresem {{ config('mail.from.address') }}
 
 **Nie chcesz już otrzymywać naszych wiadomości?**  
-[Wypisz się z newslettera]({{ $unsubscribeUrl }})
+W każdej chwili możesz się wypisać klikając [tutaj]({{ $unsubscribeUrl }})
 
-Miłej zabawy z dartem!<br>
+Pozdrawienia,<br>
 {{ $appName }} Team
 @endcomponent
