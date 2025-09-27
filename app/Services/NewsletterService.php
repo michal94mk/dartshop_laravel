@@ -53,7 +53,30 @@ class NewsletterService
      */
     public function sendVerificationEmail(NewsletterSubscription $subscription, string $token): void
     {
-        Mail::to($subscription->email)->queue(new NewsletterVerificationMail($subscription, $token));
+        try {
+            // Generate verification URL
+            $verificationUrl = config('app.url') . '/newsletter/verify?token=' . $token;
+            
+            // Use the same approach as working password reset
+            $subscription->notify(new \App\Notifications\NewsletterVerificationNotification($verificationUrl));
+            
+            Log::info('Newsletter verification notification queued successfully', [
+                'subscription_id' => $subscription->id,
+                'email' => $subscription->email,
+                'verification_url' => $verificationUrl,
+                'notification_class' => 'NewsletterVerificationNotification',
+                'queue' => 'emails',
+                'mail_driver' => config('mail.default')
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to queue newsletter verification email', [
+                'subscription_id' => $subscription->id,
+                'email' => $subscription->email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
     }
 
     /**
@@ -64,7 +87,7 @@ class NewsletterService
      */
     public function sendWelcomeEmail(NewsletterSubscription $subscription): void
     {
-        Mail::to($subscription->email)->queue(new NewsletterWelcomeMail($subscription));
+        $subscription->notify(new \App\Notifications\NewsletterWelcomeNotification());
     }
 
     /**
@@ -83,7 +106,23 @@ class NewsletterService
         }
         $subscription->markAsVerified();
         // Send welcome email
-        \Mail::to($subscription->email)->queue(new \App\Mail\NewsletterWelcomeMail($subscription));
+        try {
+            $subscription->notify(new \App\Notifications\NewsletterWelcomeNotification());
+            Log::info('Newsletter welcome notification queued successfully', [
+                'subscription_id' => $subscription->id,
+                'email' => $subscription->email,
+                'notification_class' => 'NewsletterWelcomeNotification',
+                'queue' => 'emails',
+                'mail_driver' => config('mail.default')
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to queue newsletter welcome email', [
+                'subscription_id' => $subscription->id,
+                'email' => $subscription->email,
+                'error' => $e->getMessage()
+            ]);
+            // Don't throw here - verification was successful
+        }
         return true;
     }
 
