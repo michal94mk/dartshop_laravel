@@ -32,7 +32,7 @@ export const newsletterService = {
    */
   async verify(token: string): Promise<NewsletterResponse> {
     try {
-      return await apiService.get<NewsletterResponse>('/newsletter/verify', { token })
+      return await apiService.get<NewsletterResponse>(`/newsletter/verify?token=${encodeURIComponent(token)}`)
     } catch (error: any) {
       if (error.response?.data) return error.response.data
       throw error

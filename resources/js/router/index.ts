@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 
 // Type definitions for route meta
@@ -10,17 +10,6 @@ interface RouteMeta {
   requiresVerified?: boolean;
   guest?: boolean;
   reloadAlways?: boolean;
-}
-
-// Simple route type that works with Vue Router 4
-interface AppRoute {
-  path: string;
-  name?: string;
-  component?: any;
-  props?: boolean;
-  meta?: RouteMeta;
-  children?: AppRoute[];
-  redirect?: any;
 }
 
 // Import critical components directly (for better UX)
@@ -73,7 +62,7 @@ const AdminNewsletter = () => import(/* webpackChunkName: "admin" */ '../pages/a
 const AdminPrivacyPolicies = () => import(/* webpackChunkName: "admin" */ '../pages/admin/PrivacyPolicies.vue');
 const AdminTermsOfService = () => import(/* webpackChunkName: "admin" */ '../pages/admin/TermsOfService.vue');
 
-const routes: AppRoute[] = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'home',
@@ -594,7 +583,7 @@ router.afterEach((to) => {
   // Use the title from route meta or fall back to default
   const defaultTitle = 'DartShop';
   const title = to.meta?.title || defaultTitle;
-  document.title = title;
+  (document as Document).title = title as string;
 });
 
 export default router;

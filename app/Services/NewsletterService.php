@@ -54,8 +54,8 @@ class NewsletterService
     public function sendVerificationEmail(NewsletterSubscription $subscription, string $token): void
     {
         try {
-            // Generate verification URL
-            $verificationUrl = config('app.url') . '/newsletter/verify?token=' . $token;
+            // Generate verification URL - use API endpoint that redirects
+            $verificationUrl = config('app.url') . '/api/newsletter/verify-redirect?token=' . $token;
             
             // Use the same approach as working password reset
             $subscription->notify(new \App\Notifications\NewsletterVerificationNotification($verificationUrl));
@@ -101,6 +101,7 @@ class NewsletterService
         $subscription = \App\Models\NewsletterSubscription::where('verification_token', $token)
             ->where('status', 'pending')
             ->first();
+            
         if (!$subscription) {
             return false;
         }

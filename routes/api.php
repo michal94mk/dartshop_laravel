@@ -167,7 +167,8 @@ Route::post('/contact', [ContactController::class, 'store']);
 // Newsletter API
 Route::prefix('newsletter')->group(function () {
     Route::post('/subscribe', [NewsletterController::class, 'subscribe']);
-    Route::get('/verify', [NewsletterController::class, 'verify']);
+    Route::get('/verify', [NewsletterController::class, 'verifyApi']); // API endpoint
+    Route::get('/verify-redirect', [NewsletterController::class, 'verify']); // Redirect endpoint
     Route::post('/unsubscribe', [NewsletterController::class, 'unsubscribe']);
     Route::post('/status', [NewsletterController::class, 'status']);
     

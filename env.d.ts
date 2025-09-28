@@ -6,17 +6,7 @@ declare module '*.vue' {
   export default component
 }
 
-declare module 'vue-router' {
-  interface RouteMeta {
-    requiresAuth?: boolean
-    requiresAdmin?: boolean
-    requiresVerified?: boolean
-    guest?: boolean
-    layout?: 'default' | 'admin'
-    title?: string
-    reloadAlways?: boolean
-  }
-}
+// Moved RouteMeta to router/index.ts to avoid module declaration conflicts
 
 // Laravel global variables
 declare global {

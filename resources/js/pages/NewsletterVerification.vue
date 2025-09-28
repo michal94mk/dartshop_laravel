@@ -28,6 +28,7 @@
           </div>
         </div>
 
+
         <!-- Error State -->
         <div v-else class="text-center">
           <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
@@ -58,7 +59,7 @@
 </template>
 
 <script>
-import newsletterService from '../services/newsletterService.ts';
+import newsletterService from '../services/newsletterService';
 
 export default {
   name: 'NewsletterVerification',
@@ -70,37 +71,64 @@ export default {
       token: null
     };
   },
-  async mounted() {
-    this.token = this.$route.query.token;
-    
-    if (!this.token) {
+  mounted() {
+    try {
+      // Check if we have status/message from redirect
+      const status = this.$route.query.status;
+      const message = this.$route.query.message;
+      
+      if (status === 'error') {
+        this.loading = false;
+        this.verified = false;
+        this.message = decodeURIComponent(message || 'Wystąpił błąd podczas weryfikacji adresu email.');
+        return;
+      }
+      
+      if (message) {
+        this.loading = false;
+        this.verified = true;
+        this.message = decodeURIComponent(message);
+        return;
+      }
+      
+      // Fallback to token verification
+      this.token = this.$route.query.token;
+      
+      if (!this.token) {
+        this.loading = false;
+        this.message = 'Brak tokenu weryfikacyjnego w linku.';
+        return;
+      }
+      
+      // Only try API if no redirect params
+      this.verifyEmail();
+    } catch (error) {
       this.loading = false;
-      this.message = 'Brak tokenu weryfikacyjnego w linku.';
-      return;
+      this.message = 'Błąd inicjalizacji komponentu.';
     }
-    
-    await this.verifyEmail();
   },
   methods: {
     async verifyEmail() {
-      this.loading = true;
-      
       try {
+        this.loading = true;
         const response = await newsletterService.verify(this.token);
         
-        if (response.success) {
+        if (response && response.success) {
           this.verified = true;
-          const message = response.data?.message || response.message || 'Email został pomyślnie zweryfikowany!';
-          this.message = message;
+          this.message = response.message || 'Email został pomyślnie zweryfikowany!';
         } else {
           this.verified = false;
-          const message = response.data?.message || response.message || 'Wystąpił błąd podczas weryfikacji adresu email.';
-          this.message = message;
+          this.message = (response && response.message) || 'Wystąpił błąd podczas weryfikacji adresu email.';
         }
       } catch (error) {
-        console.error('Newsletter verification error:', error);
         this.verified = false;
-        this.message = 'Wystąpił błąd podczas weryfikacji adresu email.';
+        
+        // Handle API error response
+        if (error.response && error.response.data) {
+          this.message = error.response.data.message || 'Wystąpił błąd podczas weryfikacji adresu email.';
+        } else {
+          this.message = 'Wystąpił błąd podczas weryfikacji adresu email.';
+        }
       } finally {
         this.loading = false;
       }

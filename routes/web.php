@@ -17,6 +17,6 @@ Route::get('/admin/{any?}', [SPAController::class, 'index'])
     ->name('admin');
 
 // SPA catch-all route - all other routes should be handled by Vue Router
-// Exclude API routes and admin routes from the catch-all
+// Exclude API routes, admin routes, and build assets from the catch-all
 Route::get('/{any}', [SPAController::class, 'index'])
-    ->where('any', '^(?!api|admin).*$'); // Match any route that doesn't start with 'api' or 'admin'
+    ->where('any', '^(?!api|admin|build).*$'); // Match any route that doesn't start with 'api', 'admin', or 'build'

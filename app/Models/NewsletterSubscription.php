@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class NewsletterSubscription extends Model
 {
-    use HasFactory;
+    use HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -80,5 +81,13 @@ class NewsletterSubscription extends Model
     public function scopePending($query): Builder
     {
         return $query->where('status', 'pending');
+    }
+
+    /**
+     * Get the email address that should be used for notifications.
+     */
+    public function routeNotificationForMail(): string
+    {
+        return $this->email;
     }
 }
