@@ -19,7 +19,7 @@ class NewsletterController extends BaseApiController
         $this->newsletterService = $newsletterService;
     }
     /**
-     * Subscribe to the newsletter.
+     * Subscribe to the newsletter
      *
      * @param NewsletterRequest $request
      * @return JsonResponse
@@ -33,22 +33,28 @@ class NewsletterController extends BaseApiController
             'url' => $request->fullUrl()
         ]);
         
-        $email = $request->validated()['email'];
-        $subscription = $this->newsletterService->subscribe($email);
-        $response = [
-            'subscription' => $subscription,
-            'message' => 'Check your email and click the verification link'
-        ];
-        Log::info('Newsletter subscribe success response', [
-            'response' => $response,
-            'subscription_id' => $subscription->id,
-            'email' => $subscription->email
-        ]);
-        return $this->successResponse($response);
+        try {
+            $email = $request->validated()['email'];
+            $result = $this->newsletterService->subscribe($email);
+            
+            Log::info('Newsletter subscribe response', [
+                'response' => $result,
+                'subscription_id' => $result['subscription']->id,
+                'email' => $result['subscription']->email
+            ]);
+            
+            return $this->successResponse($result);
+        } catch (\Exception $e) {
+            Log::info('Newsletter subscribe error response', [
+                'error_message' => $e->getMessage(),
+                'email' => $request->validated()['email'] ?? 'unknown'
+            ]);
+            return $this->errorResponse($e->getMessage());
+        }
     }
 
     /**
-     * Verify email subscription.
+     * Verify email subscription (for direct browser links).
      *
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
@@ -61,10 +67,33 @@ class NewsletterController extends BaseApiController
         
         // Verification logic is handled in the service
         $success = $this->newsletterService->verifySubscription($validated['token']);
+        
         if (!$success) {
-            return redirect('/newsletter/verify?status=error');
+            return redirect('/newsletter/verify?status=error&message=' . urlencode('Token nieprawidłowy lub wygasły'));
         }
-        return redirect('/newsletter/verified');
+        return redirect('/newsletter/verified?message=' . urlencode('Email został pomyślnie zweryfikowany!'));
+    }
+
+    /**
+     * Verify email subscription (API endpoint for SPA).
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function verifyApi(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'token' => 'required|string'
+        ]);
+        
+        // Verification logic is handled in the service
+        $success = $this->newsletterService->verifySubscription($validated['token']);
+        
+        if (!$success) {
+            return $this->errorResponse('Invalid or expired verification token');
+        }
+        
+        return $this->successResponse(null, 'Email został pomyślnie zweryfikowany!');
     }
 
     /**

@@ -15,30 +15,44 @@ class NewsletterService
      * Subscribe to the newsletter and send a verification or welcome email.
      *
      * @param string $email
-     * @return NewsletterSubscription
+     * @return array
      * @throws Exception
      */
-    public function subscribe(string $email): NewsletterSubscription
+    public function subscribe(string $email): array
     {
         try {
             $subscription = NewsletterSubscription::firstOrNew(['email' => $email]);
+            
             if ($subscription->isActive()) {
-                throw new Exception('Ten adres email jest już zapisany do newslettera');
+                return [
+                    'subscription' => $subscription,
+                    'message' => 'Ten adres email jest już zapisany do newslettera'
+                ];
             }
+            
             if ($subscription->isPending()) {
                 $token = $subscription->generateVerificationToken();
                 $this->sendVerificationEmail($subscription, $token);
-                return $subscription;
+                return [
+                    'subscription' => $subscription,
+                    'message' => 'Sprawdź swoją skrzynkę pocztową i kliknij link weryfikacyjny'
+                ];
             }
+            
             $subscription->status = 'pending';
             $subscription->save();
             $token = $subscription->generateVerificationToken();
             $this->sendVerificationEmail($subscription, $token);
-            return $subscription;
+            
+            return [
+                'subscription' => $subscription,
+                'message' => 'Sprawdź swoją skrzynkę pocztową i kliknij link weryfikacyjny'
+            ];
         } catch (Exception $e) {
             Log::error('NewsletterService error', [
                 'message' => $e->getMessage(),
                 'email' => $email,
+                'trace' => $e->getTraceAsString()
             ]);
             throw $e;
         }
