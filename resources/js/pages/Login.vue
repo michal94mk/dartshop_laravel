@@ -185,7 +185,13 @@ export default {
         
         if (success) {
           // Show success message with shorter timeout for quick redirect
-          alertStore.success(`👋 Witaj ponownie, ${authStore.userName}!`, 3000);
+          // Show personalized message if user has a proper name, otherwise generic message
+          const userName = authStore.userName;
+          if (userName && userName !== 'Użytkownik' && userName !== 'Admin' && !userName.includes('@')) {
+            alertStore.success(`👋 Witaj ponownie, ${userName}!`, 3000);
+          } else {
+            alertStore.success(`👋 Witaj ponownie!`, 3000);
+          }
           
           // Check if redirect parameter exists
           const redirectPath = router.currentRoute.value.query.redirect || '/';

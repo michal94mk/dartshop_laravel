@@ -7,6 +7,9 @@ import { useCartStore } from './cartStore';
 interface User {
   id: number;
   name: string;
+  first_name?: string;
+  last_name?: string;
+  display_name?: string;
   email: string;
   email_verified_at?: string;
   is_admin?: boolean;
@@ -75,12 +78,74 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isLoggedIn: (state): boolean => !!state.user,
     
-    userName: (state): string => state.user?.name || '',
+    userName: (state): string => {
+      if (!state.user) return '';
+      
+      // Use display_name if available, otherwise fall back to name
+      if (state.user.display_name) {
+        return state.user.display_name;
+      }
+      
+      // If name is empty or just whitespace, try to construct from first_name and last_name
+      if (!state.user.name || state.user.name.trim() === '') {
+        const firstName = state.user.first_name || '';
+        const lastName = state.user.last_name || '';
+        
+        if (firstName && lastName) {
+          return `${firstName} ${lastName}`.trim();
+        }
+        
+        if (firstName) {
+          return firstName;
+        }
+        
+        if (lastName) {
+          return lastName;
+        }
+        
+        // Extract name from email as last resort
+        if (state.user.email) {
+          const emailName = state.user.email.split('@')[0];
+          return emailName.replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+        
+        return 'Użytkownik';
+      }
+      
+      return state.user.name;
+    },
     
     userEmail: (state): string => state.user?.email || '',
     
     userInitial: (state): string => {
-      return state.user?.name ? state.user.name.charAt(0).toUpperCase() : '';
+      if (!state.user) return '';
+      
+      // Use the same logic as userName getter
+      let name = '';
+      
+      if (state.user.display_name) {
+        name = state.user.display_name;
+      } else if (!state.user.name || state.user.name.trim() === '') {
+        const firstName = state.user.first_name || '';
+        const lastName = state.user.last_name || '';
+        
+        if (firstName && lastName) {
+          name = `${firstName} ${lastName}`.trim();
+        } else if (firstName) {
+          name = firstName;
+        } else if (lastName) {
+          name = lastName;
+        } else if (state.user.email) {
+          const emailName = state.user.email.split('@')[0];
+          name = emailName.replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        } else {
+          name = 'Użytkownik';
+        }
+      } else {
+        name = state.user.name;
+      }
+      
+      return name ? name.charAt(0).toUpperCase() : '';
     },
     
     isAdmin: (state): boolean => {

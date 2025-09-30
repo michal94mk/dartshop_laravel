@@ -22,8 +22,6 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
-
-
     /**
      * The attributes that are mass assignable.
      *
@@ -123,7 +121,35 @@ class User extends Authenticatable implements MustVerifyEmail
     
     public function getDisplayNameAttribute(): string
     {
-        return $this->getFullNameAttribute();
+        // If name is available and not empty, use it
+        if (!empty($this->name)) {
+            return $this->name;
+        }
+        
+        // Try to construct name from first_name and last_name
+        if ($this->first_name && $this->last_name) {
+            return trim($this->first_name . ' ' . $this->last_name);
+        }
+        
+        if ($this->first_name) {
+            return $this->first_name;
+        }
+        
+        if ($this->last_name) {
+            return $this->last_name;
+        }
+        
+        // Extract name from email as last resort
+        if (!empty($this->email)) {
+            $emailName = explode('@', $this->email)[0];
+            // Replace dots and underscores with spaces and capitalize
+            $emailName = str_replace(['.', '_'], ' ', $emailName);
+            $emailName = ucwords($emailName);
+            return $emailName;
+        }
+        
+        // Final fallback
+        return 'Użytkownik';
     }
     
     public function getRoleAttribute(): string

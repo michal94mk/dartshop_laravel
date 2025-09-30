@@ -88,14 +88,30 @@ class SocialAuthController extends BaseApiController
         try {
             $user = User::where('email', $googleUser->getEmail())->first();
             if ($user) {
-                $user->update([
+                // Update existing user with Google data, but preserve name if it's already set
+                $updateData = [
                     'google_id' => $googleUser->getId(),
                     'avatar' => $googleUser->getAvatar(),
                     'email_verified_at' => $user->email_verified_at ?? now(),
-                ]);
+                ];
+                
+                // Only update name if it's empty or default
+                if (empty($user->name) || $user->name === 'Użytkownik Google') {
+                    $updateData['name'] = $this->generateDisplayName($googleUser);
+                }
+                
+                // Update first_name and last_name if they're empty
+                if (empty($user->first_name)) {
+                    $updateData['first_name'] = $googleUser->user['given_name'] ?? '';
+                }
+                if (empty($user->last_name)) {
+                    $updateData['last_name'] = $googleUser->user['family_name'] ?? '';
+                }
+                
+                $user->update($updateData);
             } else {
                 $user = User::create([
-                    'name' => $googleUser->getName() ?? 'Użytkownik Google',
+                    'name' => $this->generateDisplayName($googleUser),
                     'first_name' => $googleUser->user['given_name'] ?? '',
                     'last_name' => $googleUser->user['family_name'] ?? '',
                     'email' => $googleUser->getEmail(),
@@ -154,14 +170,30 @@ class SocialAuthController extends BaseApiController
         }
         $user = User::where('email', $googleUser->getEmail())->first();
         if ($user) {
-            $user->update([
+            // Update existing user with Google data, but preserve name if it's already set
+            $updateData = [
                 'google_id' => $googleUser->getId(),
                 'avatar' => $googleUser->getAvatar(),
                 'email_verified_at' => $user->email_verified_at ?? now(),
-            ]);
+            ];
+            
+            // Only update name if it's empty or default
+            if (empty($user->name) || $user->name === 'Użytkownik Google') {
+                $updateData['name'] = $this->generateDisplayName($googleUser);
+            }
+            
+            // Update first_name and last_name if they're empty
+            if (empty($user->first_name)) {
+                $updateData['first_name'] = $googleUser->user['given_name'] ?? '';
+            }
+            if (empty($user->last_name)) {
+                $updateData['last_name'] = $googleUser->user['family_name'] ?? '';
+            }
+            
+            $user->update($updateData);
         } else {
             $user = User::create([
-                'name' => $googleUser->getName() ?? 'Użytkownik Google',
+                'name' => $this->generateDisplayName($googleUser),
                 'first_name' => $googleUser->user['given_name'] ?? '',
                 'last_name' => $googleUser->user['family_name'] ?? '',
                 'email' => $googleUser->getEmail(),
@@ -179,6 +211,8 @@ class SocialAuthController extends BaseApiController
         $userData = $user->toArray();
         $userData['permissions'] = $permissions;
         $userData['roles'] = method_exists($user, 'getRoleNames') ? $user->getRoleNames()->toArray() : [];
+        
+        
         return $this->successResponse([
             'message' => 'Pomyślnie zalogowano przez Google',
             'user' => $userData
@@ -213,5 +247,48 @@ class SocialAuthController extends BaseApiController
                 'method' => __METHOD__
             ]);
         }
+    }
+
+    /**
+     * Generate a proper display name from Google user data
+     */
+    private function generateDisplayName($googleUser): string
+    {
+        // Try to get the full name from Google
+        $fullName = $googleUser->getName();
+        
+        // If full name is available and not empty, use it
+        if (!empty($fullName)) {
+            return $fullName;
+        }
+        
+        // Try to construct name from first and last name
+        $firstName = $googleUser->user['given_name'] ?? '';
+        $lastName = $googleUser->user['family_name'] ?? '';
+        
+        if (!empty($firstName) && !empty($lastName)) {
+            return trim($firstName . ' ' . $lastName);
+        }
+        
+        if (!empty($firstName)) {
+            return $firstName;
+        }
+        
+        if (!empty($lastName)) {
+            return $lastName;
+        }
+        
+        // Extract name from email as last resort
+        $email = $googleUser->getEmail();
+        if (!empty($email)) {
+            $emailName = explode('@', $email)[0];
+            // Replace dots and underscores with spaces and capitalize
+            $emailName = str_replace(['.', '_'], ' ', $emailName);
+            $emailName = ucwords($emailName);
+            return $emailName;
+        }
+        
+        // Final fallback
+        return 'Użytkownik Google';
     }
 } 

@@ -126,10 +126,22 @@ export default {
             const authAction = localStorage.getItem('google_auth_action') || 'login';
             localStorage.removeItem('google_auth_action');
             
+            // Show personalized message if user has a proper name, otherwise generic message
+            const userName = authStore.userName;
+            const hasProperName = userName && userName !== 'Użytkownik' && userName !== 'Admin' && !userName.includes('@');
+            
             if (authAction === 'register') {
-              alertStore.success(`🎉 Konto utworzone przez Google! Witaj, ${authStore.user.name}!`, 4000);
+              if (hasProperName) {
+                alertStore.success(`🎉 Konto utworzone przez Google! Witaj, ${userName}!`, 4000);
+              } else {
+                alertStore.success(`🎉 Konto utworzone przez Google! Witaj!`, 4000);
+              }
             } else {
-              alertStore.success(`👋 Witaj ponownie, ${authStore.user.name}!`, 3000);
+              if (hasProperName) {
+                alertStore.success(`👋 Witaj ponownie, ${userName}!`, 3000);
+              } else {
+                alertStore.success(`👋 Witaj ponownie!`, 3000);
+              }
             }
             
             // Get redirect path from localStorage or use profile as default
