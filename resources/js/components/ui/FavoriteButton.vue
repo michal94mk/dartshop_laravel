@@ -84,16 +84,21 @@ export default {
         const result = await favoriteStore.toggleFavorite(props.product);
         if (result) {
           const wasAdded = result.is_favorite;
-          isFavorite.value = wasAdded;
+          const wasRedirected = result.redirected;
           
-          // Emit general toggled event
-          emit('toggled', { product: props.product, isFavorite: isFavorite.value });
-          
-          // Emit specific events for added or removed
-          if (wasAdded) {
-            emit('favorite-added', props.product);
-          } else {
-            emit('favorite-removed', props.product);
+          // Only update state and emit events if not redirected
+          if (!wasRedirected) {
+            isFavorite.value = wasAdded;
+            
+            // Emit general toggled event
+            emit('toggled', { product: props.product, isFavorite: isFavorite.value });
+            
+            // Emit specific events for added or removed
+            if (wasAdded) {
+              emit('favorite-added', props.product);
+            } else {
+              emit('favorite-removed', props.product);
+            }
           }
         }
       } catch (error) {

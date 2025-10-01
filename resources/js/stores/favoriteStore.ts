@@ -23,6 +23,7 @@ interface FavoriteState {
 
 interface ToggleFavoriteResponse {
   is_favorite: boolean;
+  redirected?: boolean;
 }
 
 interface FavoriteStatusResponse {
@@ -88,7 +89,7 @@ export const useFavoriteStore = defineStore('favorites', {
         localStorage.setItem('loginRedirect', window.location.pathname);
         // Redirect to login page
         window.location.href = '/login';
-        return { is_favorite: false };
+        return { is_favorite: false, redirected: true };
       }
       
       this.loading = true;
