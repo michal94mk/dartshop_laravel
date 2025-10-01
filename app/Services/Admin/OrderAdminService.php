@@ -3,6 +3,7 @@
 namespace App\Services\Admin;
 
 use App\Models\Order;
+use App\Enums\OrderStatus;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -146,13 +147,23 @@ class OrderAdminService
         DB::beginTransaction();
         try {
             $order = Order::findOrFail($id);
+            
             // Prevent changing user_id for existing orders
             if (isset($data['user_id']) && $order->user_id && $order->user_id != $data['user_id']) {
                 throw new \Exception('Nie można zmienić użytkownika zamówienia po jego utworzeniu.');
             }
+            
             // Block editing for completed, shipped, or delivered orders
-            if (in_array($order->status, ['completed', 'shipped', 'delivered'])) {
-                throw new \Exception('Nie można edytować zamówienia po jego realizacji (zrealizowane, wysłane lub dostarczone).');
+            if (in_array($order->status, [OrderStatus::Shipped, OrderStatus::Delivered])) {
+                throw new \Exception('Nie można edytować zamówienia po jego realizacji (wysłane lub dostarczone).');
+            }
+            
+            // Prevent editing user data for existing orders (security measure)
+            $userDataFields = ['first_name', 'last_name', 'email', 'phone', 'address', 'city', 'postal_code', 'country'];
+            foreach ($userDataFields as $field) {
+                if (isset($data[$field]) && $order->$field !== $data[$field]) {
+                    throw new \Exception('Nie można edytować danych użytkownika w istniejącym zamówieniu. Zamówienie to dokument prawny.');
+                }
             }
             $order->update($data);
             if ($items !== null) {
@@ -213,16 +224,23 @@ class OrderAdminService
     }
 
     /**
-     * Delete an order and its items.
+     * Delete an order and its items (only if status is pending).
      *
      * @param int $id
      * @return void
+     * @throws \Exception
      */
     public function deleteById(int $id): void
     {
         DB::beginTransaction();
         try {
             $order = Order::findOrFail($id);
+            
+            // Only allow deletion of pending orders
+            if ($order->status !== OrderStatus::Pending) {
+                throw new \Exception('Można usuwać tylko zamówienia ze statusem "Oczekujące".');
+            }
+            
             $order->items()->delete();
             $order->delete();
             DB::commit();

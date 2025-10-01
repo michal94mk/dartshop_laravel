@@ -227,7 +227,7 @@
                   @details="openOrderDetails"
                   :show-details="true"
                   :show-edit="true"
-                  :show-delete="true"
+                  :show-delete="item.status === 'pending'"
                   justify="end"
                 />
               </td>
@@ -496,6 +496,21 @@
               </div>
             </div>
           </div>
+          
+          <div v-if="isUserDataBlocked && !isEditBlocked" class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-blue-700">
+                  <strong>Informacja:</strong> Dane użytkownika są zablokowane do edycji. Zamówienie to dokument prawny - można edytować tylko status, produkty i notatki.
+                </p>
+              </div>
+            </div>
+          </div>
           <!-- Add validation errors display -->
           <div v-if="validationErrors.length > 0" class="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
             <div class="flex">
@@ -543,7 +558,7 @@
                   type="text"
                   v-model="editedOrder.first_name"
                   required
-                  :disabled="isEditBlocked"
+                  :disabled="isEditBlocked || isUserDataBlocked"
                   ref="firstNameInput"
                   :class="[
                     'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
@@ -561,7 +576,7 @@
                   type="text"
                   v-model="editedOrder.last_name"
                   required
-                  :disabled="isEditBlocked"
+                  :disabled="isEditBlocked || isUserDataBlocked"
                   ref="lastNameInput"
                   :class="[
                     'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
@@ -579,7 +594,7 @@
                   type="email"
                   v-model="editedOrder.email"
                   required
-                  :disabled="isEditBlocked"
+                  :disabled="isEditBlocked || isUserDataBlocked"
                   :class="[
                     'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                     (formErrors.email || emailError) 
@@ -596,7 +611,7 @@
                 <input
                   type="text"
                   v-model="editedOrder.phone"
-                  :disabled="isEditBlocked"
+                  :disabled="isEditBlocked || isUserDataBlocked"
                   :class="[
                     'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                     formErrors.phone 
@@ -616,7 +631,7 @@
               <input
                 type="text"
                 v-model="editedOrder.address"
-                :disabled="isEditBlocked"
+                :disabled="isEditBlocked || isUserDataBlocked"
                 :class="[
                   'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                   formErrors.address 
@@ -632,7 +647,7 @@
                 <input
                   type="text"
                   v-model="editedOrder.postal_code"
-                  :disabled="isEditBlocked"
+                  :disabled="isEditBlocked || isUserDataBlocked"
                   :class="[
                     'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                     formErrors.postal_code 
@@ -647,7 +662,7 @@
                 <input
                   type="text"
                   v-model="editedOrder.city"
-                  :disabled="isEditBlocked"
+                  :disabled="isEditBlocked || isUserDataBlocked"
                   :class="[
                     'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                     formErrors.city 
@@ -662,7 +677,7 @@
                 <input
                   type="text"
                   v-model="editedOrder.country"
-                  :disabled="isEditBlocked"
+                  :disabled="isEditBlocked || isUserDataBlocked"
                   :class="[
                     'mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                     formErrors.country 
@@ -878,7 +893,7 @@
       @close="showDeleteModal = false"
     >
       <p class="text-sm text-gray-500">
-        Czy na pewno chcesz usunąć to zamówienie? Tej operacji nie można cofnąć.
+        Czy na pewno chcesz usunąć to zamówienie? Można usuwać tylko zamówienia ze statusem "Oczekujące". Tej operacji nie można cofnąć.
       </p>
       
       <template #footer>
@@ -1824,7 +1839,7 @@ export default {
     
     const deleteOrder = async () => {
       try {
-        await axios.delete(`/api/admin/orders/${orderToDelete.value.id}`)
+        const response = await axios.delete(`/api/admin/orders/${orderToDelete.value.id}`)
         alertStore.success(response.data.message || 'Zamówienie zostało usunięte')
         showDeleteModal.value = false
         orderToDelete.value = null
@@ -1963,8 +1978,11 @@ export default {
     // Add computed property for disabling user_id
     const isUserIdDisabled = computed(() => showEditModal.value)
     
-    const blockedStatuses = ['completed', 'shipped', 'delivered']
+    const blockedStatuses = ['shipped', 'delivered']
     const isEditBlocked = computed(() => showEditModal.value && selectedOrder.value && blockedStatuses.includes(selectedOrder.value.status))
+    
+    // Block editing user data for existing orders (security measure)
+    const isUserDataBlocked = computed(() => showEditModal.value && editedOrder.value.id !== null)
     
     // Helper to check if error is field-specific (no longer needed for product error)
     const isFieldSpecificError = (error) => false
@@ -2028,6 +2046,7 @@ export default {
       translateShippingMethod,
       isUserIdDisabled,
       isEditBlocked,
+      isUserDataBlocked,
       isFieldSpecificError,
       hasProductError
     }
