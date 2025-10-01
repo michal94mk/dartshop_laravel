@@ -213,7 +213,6 @@ export const useProductStore = defineStore('product', {
           category_id: 1,
           is_active: true,
           is_featured: false,
-          stock_quantity: 0,
           reviews_count: 0,
           average_rating: 0,
           created_at: new Date().toISOString(),

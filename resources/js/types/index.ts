@@ -28,7 +28,6 @@ export interface Product {
   brand_id?: number
   is_active: boolean
   is_featured: boolean
-  stock_quantity: number
   reviews_count: number
   average_rating: number
   category?: Category

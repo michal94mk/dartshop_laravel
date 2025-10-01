@@ -177,20 +177,6 @@
                 </div>
               </div>
               
-              <div class="mb-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <svg class="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                  </svg>
-                  Dostępność
-                </h2>
-                <div class="flex items-center text-green-600 bg-green-50 rounded-lg p-3">
-                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                  </svg>
-                  <span class="font-medium">Produkt dostępny</span>
-                </div>
-              </div>
               
               <div class="pt-8 border-t border-gray-200">
                 <div class="flex flex-col sm:flex-row gap-4">

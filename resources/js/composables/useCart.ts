@@ -112,10 +112,7 @@ export function useCart() {
       return requestedQuantity > 0
     }
     
-    // Check stock if available
-    if (item.product && item.product.stock_quantity !== undefined) {
-      return (currentQuantity + requestedQuantity) <= item.product.stock_quantity
-    }
+    // Stock checking not implemented yet
     
     return true
   }

@@ -652,7 +652,7 @@
           
           <div>
             <h4 class="text-sm font-medium text-gray-500">Stan magazynowy</h4>
-            <p class="mt-1 text-sm text-gray-900">{{ selectedProduct.stock_quantity }} szt.</p>
+            <p class="mt-1 text-sm text-gray-500">Stock tracking not implemented</p>
           </div>
           
           <div>
