@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { apiService } from '../services/apiService';
-import type { Product, ProductFilters, PaginationInfo, ApiResponse, PaginatedResponse } from '@/types';
+import type { Product, ProductFilters, PaginationInfo, ApiResponse, PaginatedResponse } from '../types';
 
 // Type definitions
 interface ProductState {
@@ -50,6 +50,7 @@ export const useProductStore = defineStore('product', {
       search: '',
       min_price: 0,
       max_price: 1000,
+      priceRange: [0, 1000],
       sort_by: 'created_at',
       sort_direction: 'desc'
     },
@@ -67,7 +68,11 @@ export const useProductStore = defineStore('product', {
     },
     filteredProducts: (state): Product[] => {
       return state.products;
-    }
+    },
+    // Pagination getters for compatibility
+    currentPage: (state) => state.pagination.current_page,
+    totalPages: (state) => state.pagination.last_page,
+    perPage: (state) => state.pagination.per_page
   },
   
   actions: {

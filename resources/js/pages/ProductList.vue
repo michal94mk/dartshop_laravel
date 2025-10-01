@@ -83,23 +83,6 @@
             </button>
           </div>
           
-          <!-- Active Category Info -->
-          <div v-if="selectedCategory" class="mt-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-            <div class="flex items-center">
-              <svg class="h-5 w-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-              </svg>
-              <span class="text-sm font-medium text-indigo-800">
-                Filtrowanie według kategorii: <span class="font-semibold">{{ getCategoryName(selectedCategory) }}</span>
-              </span>
-              <button 
-                @click="filterByCategory(null)"
-                class="ml-auto text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-              >
-                Usuń filtr
-              </button>
-            </div>
-          </div>
         </div>
       </div>
       
@@ -197,36 +180,6 @@
                   </div>
                 </div>
 
-                <!-- Sortowanie po kategoriach -->
-                <div class="space-y-3">
-                  <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Kategoria</div>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <button 
-                      @click="setSorting('category_asc')" 
-                      class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
-                      :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort_by === 'category_id' && productStore.filters.sort_direction === 'asc', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': !(productStore.filters.sort_by === 'category_id' && productStore.filters.sort_direction === 'asc')}"
-                    >
-                      <span class="flex items-center justify-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                        </svg>
-                        Kategorie A-Z
-                      </span>
-                    </button>
-                    <button 
-                      @click="setSorting('category_desc')" 
-                      class="px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
-                      :class="{'bg-indigo-600 text-white shadow-lg': productStore.filters.sort_by === 'category_id' && productStore.filters.sort_direction === 'desc', 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200': !(productStore.filters.sort_by === 'category_id' && productStore.filters.sort_direction === 'desc')}"
-                    >
-                      <span class="flex items-center justify-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                        </svg>
-                        Kategorie Z-A
-                      </span>
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -292,40 +245,6 @@
                   </div>
                 </div>
 
-                <!-- Szybkie filtry cenowe -->
-                <div class="space-y-3">
-                  <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Popularne zakresy</div>
-                  <div class="space-y-2">
-                    <div class="grid grid-cols-2 gap-2">
-                      <button 
-                        @click="setQuickPriceFilter(0, 50)"
-                        class="px-3 py-2.5 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 border border-gray-200 text-xs font-semibold hover:border-gray-300 shadow-sm"
-                      >
-                        0-50 zł
-                      </button>
-                      <button 
-                        @click="setQuickPriceFilter(50, 100)"
-                        class="px-3 py-2.5 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 border border-gray-200 text-xs font-semibold hover:border-gray-300 shadow-sm"
-                      >
-                        50-100 zł
-                      </button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                      <button 
-                        @click="setQuickPriceFilter(100, 200)"
-                        class="px-3 py-2.5 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 border border-gray-200 text-xs font-semibold hover:border-gray-300 shadow-sm"
-                      >
-                        100-200 zł
-                      </button>
-                      <button 
-                        @click="setQuickPriceFilter(200, null)"
-                        class="px-3 py-2.5 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 border border-gray-200 text-xs font-semibold hover:border-gray-300 shadow-sm"
-                      >
-                        200+ zł
-                      </button>
-                    </div>
-                  </div>
-                </div>
 
                 <!-- Przyciski akcji -->
                 <div class="space-y-3">
@@ -390,12 +309,6 @@
               </template>
               <template v-else-if="productStore.filters.sort_by === 'name' && productStore.filters.sort_direction === 'desc'">
                 (sortowanie: Z-A)
-              </template>
-              <template v-else-if="productStore.filters.sort_by === 'category_id' && productStore.filters.sort_direction === 'asc'">
-                (sortowanie: kategorie A-Z)
-              </template>
-              <template v-else-if="productStore.filters.sort_by === 'category_id' && productStore.filters.sort_direction === 'desc'">
-                (sortowanie: kategorie Z-A)
               </template>
             </span>
           </div>
@@ -562,15 +475,15 @@
         </div>
         
         <!-- Pagination -->
-        <div v-if="productStore.pagination.totalPages > 1" class="mt-10 flex justify-center">
+        <div v-if="productStore.totalPages > 1" class="mt-10 flex justify-center">
           <nav class="flex items-center justify-center space-x-2">
             <!-- Previous page button -->
             <button 
-              @click="goToPage(productStore.pagination.currentPage - 1)"
-              :disabled="productStore.pagination.currentPage === 1"
+              @click="goToPage(productStore.currentPage - 1)"
+              :disabled="productStore.currentPage === 1"
               class="relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md border"
               :class="[
-                productStore.pagination.currentPage === 1 
+                productStore.currentPage === 1 
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
                   : 'bg-white text-gray-700 hover:bg-gray-50'
               ]"
@@ -586,7 +499,7 @@
                   @click="goToPage(page)"
                   class="relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md"
                   :class="[
-                    page === productStore.pagination.currentPage 
+                    page === productStore.currentPage 
                       ? 'z-10 bg-indigo-600 text-white' 
                       : 'bg-white text-gray-700 hover:bg-gray-50'
                   ]"
@@ -604,11 +517,11 @@
 
             <!-- Next page button -->
             <button 
-              @click="goToPage(productStore.pagination.currentPage + 1)"
-              :disabled="productStore.pagination.currentPage === productStore.pagination.totalPages"
+              @click="goToPage(productStore.currentPage + 1)"
+              :disabled="productStore.currentPage === productStore.totalPages"
               class="relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md border"
               :class="[
-                productStore.pagination.currentPage === productStore.pagination.totalPages 
+                productStore.currentPage === productStore.totalPages 
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
                   : 'bg-white text-gray-700 hover:bg-gray-50'
               ]"
@@ -620,8 +533,8 @@
 
         <!-- Pagination info -->
         <div class="mt-4 text-sm text-gray-600 text-center">
-          Wyświetlanie {{ (productStore.pagination.currentPage - 1) * productStore.pagination.perPage + 1 }} 
-          - {{ Math.min(productStore.pagination.currentPage * productStore.pagination.perPage, productStore.pagination.total) }} 
+          Wyświetlanie {{ (productStore.currentPage - 1) * productStore.perPage + 1 }} 
+          - {{ Math.min(productStore.currentPage * productStore.perPage, productStore.pagination.total) }} 
           z {{ productStore.pagination.total }} produktów
         </div>
       </div>
@@ -779,8 +692,8 @@ export default {
     }, { deep: true });
 
     const paginationPages = computed(() => {
-      const totalPages = productStore.pagination.totalPages;
-      const currentPage = productStore.pagination.currentPage;
+      const totalPages = productStore.totalPages;
+      const currentPage = productStore.currentPage;
       
       if (totalPages <= 7) {
         // If 7 or fewer pages, show all
@@ -810,14 +723,16 @@ export default {
     });
 
     const applyFilters = () => {
-              // Before applying filters, convert priceRange values to numbers
+      // Before applying filters, convert priceRange values to numbers
       const minPrice = priceRange.value[0] !== '' && priceRange.value[0] !== undefined ? parseFloat(priceRange.value[0]) : null;
       const maxPrice = priceRange.value[1] !== '' && priceRange.value[1] !== undefined ? parseFloat(priceRange.value[1]) : null;
       
-              // Pass price range to filters
+      // Pass price range to filters
       productStore.filters.priceRange = [minPrice, maxPrice];
+      productStore.filters.min_price = minPrice;
+      productStore.filters.max_price = maxPrice;
       
-              // Get products with applied filters
+      // Get products with applied filters
       productStore.fetchProducts();
     };
 
@@ -832,8 +747,11 @@ export default {
         category_id: null,
         brand_id: null,
         search: '',
+        min_price: 0,
+        max_price: 1000,
         priceRange: [0, 1000],
-        sort: 'newest'
+        sort_by: 'created_at',
+        sort_direction: 'desc'
       };
       
       // Reset UI state
@@ -856,8 +774,8 @@ export default {
       if (
         typeof page === 'number' && 
         page >= 1 && 
-        page <= productStore.pagination.totalPages && 
-        page !== productStore.pagination.currentPage
+        page <= productStore.totalPages && 
+        page !== productStore.currentPage
       ) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         productStore.setPage(page);
@@ -916,30 +834,24 @@ export default {
           productStore.filters.sort_by = 'name';
           productStore.filters.sort_direction = 'desc';
           break;
-        case 'category_asc':
-          productStore.filters.sort_by = 'category_id';
-          productStore.filters.sort_direction = 'asc';
-          break;
-        case 'category_desc':
-          productStore.filters.sort_by = 'category_id';
-          productStore.filters.sort_direction = 'desc';
-          break;
         default:
           productStore.filters.sort_by = 'created_at';
           productStore.filters.sort_direction = 'desc';
       }
-      applyFilters();
+      productStore.fetchProducts();
     };
 
     const applyPriceFilter = () => {
-      productStore.filters.priceRange = priceRange.value;
-      applyFilters();
+      const minPrice = priceRange.value[0] !== '' && priceRange.value[0] !== undefined ? parseFloat(priceRange.value[0]) : null;
+      const maxPrice = priceRange.value[1] !== '' && priceRange.value[1] !== undefined ? parseFloat(priceRange.value[1]) : null;
+      
+      productStore.filters.priceRange = [minPrice, maxPrice];
+      productStore.filters.min_price = minPrice;
+      productStore.filters.max_price = maxPrice;
+      
+      productStore.fetchProducts();
     };
 
-    const setQuickPriceFilter = (min, max) => {
-      priceRange.value = [min, max];
-      applyPriceFilter();
-    };
 
     const handleFavoriteAdded = (product, productId) => {
       // Show local success message for this specific product
@@ -1010,15 +922,21 @@ export default {
       return null;
     };
 
-    const filterByCategory = (category) => {
+    const filterByCategory = async (category) => {
       console.log('🏷️ filterByCategory called with:', category);
       console.log('🏷️ Current filters before change:', { ...productStore.filters });
+      
+      // Set manual update flag to prevent watcher interference
+      isManualUpdate.value = true;
       
       selectedCategory.value = category;
       
       // Clear any success messages
       cartSuccessMessages.value = {};
       favoriteSuccessMessages.value = {};
+      
+      // Update store filters immediately
+      productStore.filters.category_id = category;
       
       // Update URL - keep existing query params but update/remove category and search
       const query = { ...route.query };
@@ -1034,10 +952,13 @@ export default {
       }
       
       console.log('🏷️ New URL query:', query);
-      console.log('🏷️ Pushing new URL and letting watcher handle filter sync...');
+      console.log('🏷️ Updating URL and loading products immediately...');
       
-      // Update URL - watcher will handle filter synchronization and product loading
+      // Update URL
       router.push({ path: route.path, query });
+      
+      // Load products immediately without waiting for watcher
+      await loadProducts();
     };
 
     const getCategoryName = (categoryId) => {
@@ -1080,7 +1001,6 @@ export default {
       getCategoryName,
       selectedCategory,
       categoryStore,
-      setQuickPriceFilter,
       cartSuccessMessages,
       hasCartSuccessMessage,
       favoriteSuccessMessages,

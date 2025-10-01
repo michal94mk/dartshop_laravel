@@ -224,6 +224,7 @@ export interface ProductFilters {
   brand_id?: number
   min_price?: number
   max_price?: number
+  priceRange?: [number | null, number | null]
   sort_by?: string
   sort_direction?: 'asc' | 'desc'
 }
