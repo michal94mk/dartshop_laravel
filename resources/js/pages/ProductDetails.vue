@@ -199,25 +199,34 @@
                   </div>
                   
                   <div class="flex-1 flex items-end">
-                    <button 
-                      @click="addToCart"
-                      :disabled="cartLoading"
-                      class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 border border-transparent rounded-lg py-4 px-6 flex items-center justify-center text-base font-semibold text-white hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                    >
-                      <template v-if="cartLoading">
-                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Dodawanie...
-                      </template>
-                      <template v-else>
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0L17 18"/>
-                        </svg>
-                        Dodaj do koszyka
-                      </template>
-                    </button>
+                    <div class="w-full">
+                      <button 
+                        @click="addToCart"
+                        :disabled="cartLoading"
+                        class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 border border-transparent rounded-lg py-4 px-6 flex items-center justify-center text-base font-semibold text-white hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                      >
+                        <template v-if="cartLoading">
+                          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Dodawanie...
+                        </template>
+                        <template v-else>
+                          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0L17 18"/>
+                          </svg>
+                          Dodaj do koszyka
+                        </template>
+                      </button>
+                      
+                      <!-- Local success message for cart -->
+                      <transition name="cart-success-fade">
+                        <div v-if="showCartSuccess" class="mt-3 bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                          <p class="text-green-700 text-sm font-medium">{{ cartSuccessMessage }}</p>
+                        </div>
+                      </transition>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -332,6 +341,8 @@ export default {
     const existingReviewInfo = ref(null)
     const showFavoriteSuccess = ref(false)
     const favoriteMessage = ref('')
+    const showCartSuccess = ref(false)
+    const cartSuccessMessage = ref('')
 
     // Methods
     const fetchProduct = async () => {
@@ -410,7 +421,13 @@ export default {
         if (success) {
           // Reset quantity after successful add
           quantity.value = 1
-          alertStore.success(`🛒 Świetnie! "${product.value.name}" został dodany do koszyka (${quantityNum > 1 ? quantityNum + ' szt.' : ''})!`, 4000)
+          
+          // Show local success message
+          cartSuccessMessage.value = `🛒 Świetnie! "${product.value.name}" został dodany do koszyka${quantityNum > 1 ? ' (' + quantityNum + ' szt.)' : ''}!`
+          showCartSuccess.value = true
+          setTimeout(() => {
+            showCartSuccess.value = false
+          }, 4000)
         } else {
           alertStore.error('😞 Ups! Nie udało się dodać produktu do koszyka. Spróbuj ponownie!', 5000)
         }
@@ -520,6 +537,8 @@ export default {
       existingReviewInfo,
       showFavoriteSuccess,
       favoriteMessage,
+      showCartSuccess,
+      cartSuccessMessage,
       getProductImageUrl,
       handleImageError
     }
@@ -544,5 +563,21 @@ export default {
 .success-fade-leave-to {
   opacity: 0;
   transform: translateY(-5px) scale(0.95);
+}
+
+/* Cart success message animation */
+.cart-success-fade-enter-active,
+.cart-success-fade-leave-active {
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.cart-success-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-15px) scale(0.9);
+}
+
+.cart-success-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
 }
 </style> 
