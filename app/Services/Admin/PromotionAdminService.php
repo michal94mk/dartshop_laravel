@@ -257,4 +257,151 @@ class PromotionAdminService
             ]
         ];
     }
+
+    /**
+     * Get public promotions for frontend.
+     *
+     * @param Request $request
+     * @return LengthAwarePaginator
+     */
+    public function getPublicPromotions(Request $request): LengthAwarePaginator
+    {
+        $query = Promotion::with(['products:id,name,price,image_url'])
+                          ->active()
+                          ->ordered();
+
+        // Filtering for public API
+        if ($request->has('featured')) {
+            $query->featured();
+        }
+
+        $perPage = $request->get('per_page', 10);
+        $promotions = $query->paginate($perPage);
+
+        // Add promotion information to each product in each promotion
+        $promotions->getCollection()->transform(function ($promotion) {
+            $promotion->products->transform(function ($product) use ($promotion) {
+                $product->promotion_price = $promotion->calculateDiscountedPrice($product->price);
+                $product->savings = $promotion->getDiscountAmount($product->price);
+                $product->promotion = [
+                    'id' => $promotion->id,
+                    'title' => $promotion->title,
+                    'badge_text' => $promotion->badge_text,
+                    'badge_color' => $promotion->badge_color,
+                    'discount_type' => $promotion->discount_type,
+                    'discount_value' => $promotion->discount_value
+                ];
+                return $product;
+            });
+            return $promotion;
+        });
+
+        return $promotions;
+    }
+
+    /**
+     * Get featured promotions for frontend.
+     *
+     * @param Request $request
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getFeaturedPromotions(Request $request)
+    {
+        $promotions = Promotion::with(['products:id,name,price,image_url'])
+                              ->active()
+                              ->featured()
+                              ->ordered()
+                              ->limit($request->get('limit', 5))
+                              ->get();
+
+        // Add promotion information to each product in each promotion
+        $promotions->transform(function ($promotion) {
+            $promotion->products->transform(function ($product) use ($promotion) {
+                $product->promotion_price = $promotion->calculateDiscountedPrice($product->price);
+                $product->savings = $promotion->getDiscountAmount($product->price);
+                $product->promotion = [
+                    'id' => $promotion->id,
+                    'title' => $promotion->title,
+                    'badge_text' => $promotion->badge_text,
+                    'badge_color' => $promotion->badge_color,
+                    'discount_type' => $promotion->discount_type,
+                    'discount_value' => $promotion->discount_value
+                ];
+                return $product;
+            });
+            return $promotion;
+        });
+
+        return $promotions;
+    }
+
+    /**
+     * Get public promotion details.
+     *
+     * @param Promotion $promotion
+     * @return Promotion
+     */
+    public function getPublicPromotionDetails(Promotion $promotion): Promotion
+    {
+        $promotion->load(['products' => function ($query) {
+            $query->with(['category:id,name', 'brand:id,name']);
+        }]);
+        
+        return $promotion;
+    }
+
+    /**
+     * Get products for a specific promotion.
+     *
+     * @param Request $request
+     * @param Promotion $promotion
+     * @return LengthAwarePaginator
+     */
+    public function getPromotionProducts(Request $request, Promotion $promotion): LengthAwarePaginator
+    {
+        $query = $promotion->products()
+                          ->with(['category:id,name', 'brand:id,name']);
+
+        // Filtering
+        if ($request->has('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort_by', 'name');
+        $sortDirection = $request->get('sort_direction', 'asc');
+        
+        $allowedSorts = ['name', 'price', 'created_at'];
+        if (in_array($sortBy, $allowedSorts)) {
+            $query->orderBy($sortBy, $sortDirection);
+        }
+
+        $perPage = $request->get('per_page', 12);
+        $products = $query->paginate($perPage);
+
+        // Add promotion information to each product
+        $products->getCollection()->transform(function ($product) use ($promotion) {
+            $product->promotion_price = $promotion->calculateDiscountedPrice($product->price);
+            $product->savings = $promotion->getDiscountAmount($product->price);
+            $product->promotion = [
+                'id' => $promotion->id,
+                'title' => $promotion->title,
+                'badge_text' => $promotion->badge_text,
+                'badge_color' => $promotion->badge_color,
+                'discount_type' => $promotion->discount_type,
+                'discount_value' => $promotion->discount_value
+            ];
+            return $product;
+        });
+
+        return $products;
+    }
 } 

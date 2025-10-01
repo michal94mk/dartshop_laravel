@@ -134,7 +134,7 @@ class PromotionController extends BaseApiController
     public function getAvailableProducts(Request $request): JsonResponse
     {
         $products = $this->promotionAdminService->getAvailableProducts($request);
-        return $this->successResponse($products, 'Available products fetched successfully');
+        return $this->paginatedResponse($products);
     }
 
     /**

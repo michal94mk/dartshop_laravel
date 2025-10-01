@@ -295,15 +295,17 @@ export default {
 
         const response = await window.axios.get(`/api/promotions?${params}`)
         
-        if (response.data && response.data.success && response.data.data) {
-          // Laravel paginator: response.data.data = paginator, response.data.data.data = items
-          promotions.value = response.data.data.data || []
-          Object.assign(pagination, {
-            current_page: response.data.data.current_page,
-            last_page: response.data.data.last_page,
-            per_page: response.data.data.per_page,
-            total: response.data.data.total
-          })
+        if (response.data && response.data.success) {
+          // New paginatedResponse structure
+          promotions.value = response.data.data || []
+          if (response.data.pagination) {
+            Object.assign(pagination, {
+              current_page: response.data.pagination.current_page,
+              last_page: response.data.pagination.last_page,
+              per_page: response.data.pagination.per_page,
+              total: response.data.pagination.total
+            })
+          }
         } else {
           promotions.value = []
         }

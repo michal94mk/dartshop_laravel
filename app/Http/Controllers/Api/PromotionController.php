@@ -49,7 +49,7 @@ class PromotionController extends BaseApiController
             return $promotion;
         });
 
-        return $this->successResponse($promotions, 'Promotions fetched successfully');
+        return $this->paginatedResponse($promotions);
     }
 
     /**
@@ -168,7 +168,7 @@ class PromotionController extends BaseApiController
             return $product;
         });
 
-        return $this->successResponse($products, 'Promotion products fetched successfully');
+        return $this->paginatedResponse($products);
     }
 
     /**
@@ -202,10 +202,10 @@ class PromotionController extends BaseApiController
             'has_promotion' => true,
             'product' => $product,
             'promotion' => $activePromotion,
-            'promotional_price' => $activePromotion->calculatePromotionalPrice((float) $product->price),
-            'savings_amount' => (float) $product->price - $activePromotion->calculatePromotionalPrice((float) $product->price),
+            'promotional_price' => $activePromotion->calculateDiscountedPrice((float) $product->price),
+            'savings_amount' => $activePromotion->getDiscountAmount((float) $product->price),
             'savings_percentage' => $product->price > 0 ? 
-                round((((float) $product->price - $activePromotion->calculatePromotionalPrice((float) $product->price)) / (float) $product->price) * 100, 1) : 0
+                round(($activePromotion->getDiscountAmount((float) $product->price) / (float) $product->price) * 100, 1) : 0
         ], 'Product promotion details fetched successfully');
     }
 } 
