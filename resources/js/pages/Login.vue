@@ -74,7 +74,18 @@
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
                 placeholder="Wprowadź hasło"
               />
-              <div class="mt-2 text-right">
+              <div class="mt-2 flex items-center justify-between">
+                <div class="flex items-center">
+                  <input 
+                    id="remember" 
+                    type="checkbox" 
+                    v-model="rememberMe"
+                    class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                  <label for="remember" class="ml-2 block text-sm text-gray-700">
+                    Zapamiętaj mnie
+                  </label>
+                </div>
                 <router-link to="/forgot-password" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">
                   Zapomniałeś hasła?
                 </router-link>
@@ -158,6 +169,7 @@ export default {
   setup() {
     const email = ref('');
     const password = ref('');
+    const rememberMe = ref(false);
     const router = useRouter();
     const authStore = useAuthStore();
     const alertStore = useAlertStore();
@@ -181,7 +193,7 @@ export default {
         authStore.hasError = false;
         authStore.errorMessage = '';
         
-        const success = await authStore.login(email.value, password.value);
+        const success = await authStore.login(email.value, password.value, rememberMe.value);
         
         if (success) {
           // Show success message with shorter timeout for quick redirect
@@ -235,6 +247,7 @@ export default {
     return {
       email,
       password,
+      rememberMe,
       authStore,
       handleLogin,
       handleGoogleLogin

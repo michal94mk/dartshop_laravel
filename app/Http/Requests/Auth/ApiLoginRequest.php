@@ -22,6 +22,7 @@ class ApiLoginRequest extends FormRequest
         return [
             'email' => 'required|email',
             'password' => 'required',
+            'remember' => 'boolean',
         ];
     }
 

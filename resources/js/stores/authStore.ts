@@ -291,7 +291,7 @@ export const useAuthStore = defineStore('auth', {
     },
     
     // User login
-    async login(email: string, password: string): Promise<boolean> {
+    async login(email: string, password: string, remember: boolean = false): Promise<boolean> {
       this.isRegularLoading = true;
       // Reset error state before attempting login
       this.hasError = false;
@@ -324,7 +324,7 @@ export const useAuthStore = defineStore('auth', {
         }
         
         // Perform login
-        const response = await apiService.post<LoginResponse>('/login', { email, password });
+        const response = await apiService.post<LoginResponse>('/login', { email, password, remember });
         // Normalize response to { success, data: { user, token, token_type } } or direct shape
         const payload = response && (response as any).success ? (response as any).data : response;
         
