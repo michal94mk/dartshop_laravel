@@ -438,6 +438,69 @@ body {
     top: 0 !important;
     bottom: auto !important; /* Don't stretch to bottom */
   }
+  
+  /* Product details page mobile optimizations */
+  .product-details-container {
+    padding: 1rem !important; /* Reduce padding on mobile */
+  }
+  
+  .product-details-container .lg\:w-1\/2 {
+    width: 100% !important; /* Full width on mobile */
+  }
+  
+  .product-details-container .lg\:flex {
+    flex-direction: column !important; /* Stack vertically on mobile */
+  }
+  
+  /* Product image container - reduce height and padding */
+  .product-details-container .relative.bg-gray-50 {
+    height: 300px !important; /* Reduce from 500px to 300px */
+    margin-bottom: 0.5rem !important; /* Reduce margin further */
+  }
+  
+  .product-details-container .relative.bg-gray-50 img {
+    padding: 1rem !important; /* Reduce padding from p-8 to p-4 */
+  }
+  
+  /* Product name - responsive text size and layout */
+  .product-details-container h1 {
+    font-size: 1.5rem !important; /* Reduce from text-3xl to text-2xl */
+    line-height: 1.3 !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  
+  /* Product info container - adjust flex layout */
+  .product-details-container .flex.justify-between.items-start {
+    flex-direction: column !important; /* Stack vertically */
+    align-items: flex-start !important;
+  }
+  
+  .product-details-container .flex.justify-between.items-start > div:first-child {
+    width: 100% !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  /* Breadcrumbs - make them wrap on mobile */
+  .product-details-container nav.flex {
+    flex-wrap: wrap !important;
+  }
+  
+  .product-details-container nav.flex ol {
+    flex-wrap: wrap !important;
+    gap: 0.25rem !important;
+  }
+  
+  .product-details-container nav.flex ol li {
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  
+  .product-details-container nav.flex ol li a {
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+  }
 }
 
 /* Responsive styles */

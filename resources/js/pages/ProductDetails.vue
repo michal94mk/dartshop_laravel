@@ -43,7 +43,7 @@
       </div>
       
       <div v-else-if="product">
-        <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
+        <div class="product-details-container bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
           <!-- Breadcrumbs -->
           <div class="px-8 py-6 border-b border-gray-200 bg-gray-50">
             <nav class="flex" aria-label="Breadcrumb">
