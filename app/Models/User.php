@@ -13,10 +13,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Notifications\QueuedEmailVerificationNotification;
 use App\Notifications\QueuedResetPasswordNotification;
 
-/**
- *
- */
-
 
 class User extends Authenticatable implements MustVerifyEmail
 {

@@ -20,11 +20,17 @@ class LoginController extends BaseApiController
     {
         $this->logApiRequest($request, 'User login attempt');
 
-        if (Auth::attempt($request->validated(), true)) {
+        $validated = $request->validated();
+        $remember = $validated['remember'] ?? false;
+
+        if (Auth::attempt([
+            'email' => $validated['email'],
+            'password' => $validated['password']
+        ], $remember)) {
             $user = Auth::user();
             
             // Also login via web guard for session-based auth
-            Auth::guard('web')->login($user, true);
+            Auth::guard('web')->login($user, $remember);
             
             // Migrate session cart to database
             $this->cartService->migrateSessionCartToDatabase($user);
@@ -62,7 +68,10 @@ class LoginController extends BaseApiController
     public function user(Request $request): JsonResponse
     {
         $user = $request->user();
-        return $this->successResponse($this->getUserWithRolesAndPermissions($user));
+        $userData = $this->getUserWithRolesAndPermissions($user);
+        
+        
+        return $this->successResponse($userData);
     }
 
     protected function getUserWithRolesAndPermissions(User $user): array

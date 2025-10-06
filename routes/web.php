@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\SPAController;
-use App\Http\Controllers\Api\SocialAuthController;
 use Illuminate\Support\Facades\Route;
 
 // Auth routes are now handled by API only

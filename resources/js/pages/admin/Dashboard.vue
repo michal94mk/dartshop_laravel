@@ -176,13 +176,13 @@
       
       <!-- Revenue & Orders Chart -->
       <div class="mt-8 bg-white shadow rounded-lg p-6">
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
           <h2 class="text-lg font-medium text-gray-900">Analiza sprzedaży</h2>
-          <div>
+          <div class="w-full sm:w-auto">
             <select 
               v-model="salesMetric" 
               @change="updateChartData"
-              class="mt-1 block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             >
               <option value="revenue">Przychód</option>
               <option value="orders">Liczba zamówień</option>
