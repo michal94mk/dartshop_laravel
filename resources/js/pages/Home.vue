@@ -83,8 +83,8 @@
           
           <div v-else-if="productStore.latestProducts && productStore.latestProducts.length > 0" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <!-- Display API products -->
-            <div v-for="product in productStore.latestProducts" :key="product.id" class="product-card bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col" style="aspect-ratio: 1 / 1.5;">
-              <div class="relative h-4/5 overflow-hidden">
+            <div v-for="product in productStore.latestProducts" :key="product.id" class="product-card bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col aspect-[1/1.5] md:aspect-[1/1.5]">
+              <div class="relative h-4/5 md:h-4/5 overflow-hidden">
                 <img 
                   :src="getProductImageUrl(product.image_url, product.name)" 
                   :alt="product.name" 

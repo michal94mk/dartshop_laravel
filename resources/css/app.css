@@ -351,6 +351,15 @@ body {
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
+  
+  /* Mobile product card styles - taller images */
+  .product-card {
+    aspect-ratio: 1 / 2.2 !important; /* Increased height for mobile */
+  }
+  
+  .product-card .relative {
+    height: 40% !important; /* Image takes 40% of card height */
+  }
 }
 
 /* Responsive styles */
