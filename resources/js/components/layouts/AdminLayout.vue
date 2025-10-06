@@ -271,7 +271,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useAlertStore } from '../../stores/alertStore'
@@ -300,6 +300,23 @@ export default {
     const closeSidebar = () => {
       sidebarOpen.value = false
     }
+
+    // Watch for sidebar state changes to control body scroll on mobile
+    watch(sidebarOpen, (isOpen) => {
+      // Only disable scroll on mobile devices
+      if (window.innerWidth < 1024) { // lg breakpoint
+        if (isOpen) {
+          // Lock body scroll - sidebar has position fixed so it will always be visible
+          document.body.classList.add('overflow-hidden')
+          // Prevent iOS bounce scrolling
+          document.body.style.touchAction = 'none'
+        } else {
+          // Restore body scroll
+          document.body.classList.remove('overflow-hidden')
+          document.body.style.touchAction = ''
+        }
+      }
+    })
     
     // Page title
     const pageTitle = computed(() => {
@@ -377,6 +394,9 @@ export default {
     
     onBeforeUnmount(() => {
       document.removeEventListener('click', closeDropdowns)
+      // Make sure to restore scroll when component is unmounted
+      document.body.classList.remove('overflow-hidden')
+      document.body.style.touchAction = ''
     })
     
     // Logout function

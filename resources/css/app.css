@@ -231,6 +231,11 @@ body {
     overscroll-behavior-x: none;
 }
 
+/* Mobile menu scroll lock - lightweight approach */
+body.overflow-hidden {
+    overflow: hidden !important;
+}
+
 #app {
     display: flex;
     flex-direction: column;

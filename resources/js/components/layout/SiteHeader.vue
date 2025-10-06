@@ -1,5 +1,6 @@
 <template>
-  <header class="bg-white shadow-sm border-b border-gray-200">
+  <div>
+    <header class="bg-white shadow-sm border-b border-gray-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-16">
         <!-- Logo -->
@@ -169,15 +170,23 @@
         </div>
       </div>
     </div>
-    
-    <!-- Mobile menu -->
-    <div v-show="mobileMenuOpen" class="lg:hidden fixed inset-0 z-[99999]" id="mobile-menu">
+  </header>
+
+  <!-- Mobile menu - Teleported to body for proper fixed positioning -->
+  <Teleport to="body">
+    <div class="lg:hidden">
       <!-- Backdrop/Overlay -->
-      <div class="fixed inset-0 bg-black bg-opacity-50" @click="mobileMenuOpen = false"></div>
+      <div 
+        class="fixed inset-0 bg-black transition-opacity duration-300 z-[99998]"
+        :class="mobileMenuOpen ? 'opacity-50 pointer-events-auto' : 'opacity-0 pointer-events-none'" 
+        @click="mobileMenuOpen = false"
+      ></div>
       
       <!-- Slide-out Menu -->
-      <div class="fixed top-0 left-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out overflow-y-auto z-[99999]"
-           :class="mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'">
+      <div 
+        class="fixed top-0 bottom-0 left-0 w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out overflow-y-auto z-[99999]"
+        :class="mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'"
+      >
         
         <!-- Header -->
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
@@ -439,7 +448,8 @@
         </div>
       </div>
     </div>
-  </header>
+  </Teleport>
+  </div>
 </template>
 
 <script>
@@ -666,6 +676,20 @@ export default {
       mobileMenuOpen.value = !mobileMenuOpen.value
     }
 
+    // Watch for mobile menu state changes to control body scroll
+    watch(mobileMenuOpen, (isOpen) => {
+      if (isOpen) {
+        // Lock body scroll - menu has position fixed so it will always be visible
+        document.body.classList.add('overflow-hidden')
+        // Prevent iOS bounce scrolling
+        document.body.style.touchAction = 'none'
+      } else {
+        // Restore body scroll
+        document.body.classList.remove('overflow-hidden')
+        document.body.style.touchAction = ''
+      }
+    })
+
     const toggleMobileProductsDropdown = () => {
       showMobileProductsDropdown.value = !showMobileProductsDropdown.value
     }
@@ -711,6 +735,9 @@ export default {
     // Cleanup on component unmount
     onUnmounted(() => {
       document.removeEventListener('click', handleClickOutside)
+      // Make sure to restore scroll when component is unmounted
+      document.body.classList.remove('overflow-hidden')
+      document.body.style.touchAction = ''
     })
 
     return {
