@@ -120,8 +120,8 @@
             </span>
           </router-link>
           
-          <!-- User menu -->
-          <div v-if="isLoggedIn" class="ml-3 relative">
+          <!-- User menu - hidden on mobile, options available in hamburger menu -->
+          <div v-if="isLoggedIn" class="ml-3 relative hidden lg:block">
             <div>
               <button @click="toggleUserMenu" type="button" class="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
                 <span class="sr-only">Open user menu</span>
@@ -130,7 +130,7 @@
                 </span>
               </button>
             </div>
-            <div v-show="userMenuOpen" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
+            <div v-show="userMenuOpen" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-[9999]" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
               <router-link v-if="isAdmin" to="/admin" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" @click.prevent="navigateTo('/admin', $event)">
                 Panel Administratora
               </router-link>
@@ -177,8 +177,8 @@
     <div class="lg:hidden">
       <!-- Backdrop/Overlay -->
       <div 
-        class="fixed inset-0 bg-black transition-opacity duration-300 z-[99998]"
-        :class="mobileMenuOpen ? 'opacity-50 pointer-events-auto' : 'opacity-0 pointer-events-none'" 
+        v-show="mobileMenuOpen"
+        class="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 z-[99998]"
         @click="mobileMenuOpen = false"
       ></div>
       
