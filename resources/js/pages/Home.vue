@@ -31,7 +31,7 @@
             </div>
           </div>
           <div class="mt-8 lg:mt-0">
-            <div class="relative h-64 sm:h-80 lg:h-[400px]">
+            <div class="hero-image-container relative h-64 sm:h-80 lg:h-[400px]">
               <img 
                 class="w-full h-full rounded-2xl shadow-2xl object-cover transition-opacity duration-300" 
                 src="/img/hero_image.jpg" 
@@ -81,7 +81,7 @@
             </button>
           </div>
           
-          <div v-else-if="productStore.latestProducts && productStore.latestProducts.length > 0" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div v-else-if="productStore.latestProducts && productStore.latestProducts.length > 0" class="home-products grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <!-- Display API products -->
             <div v-for="product in productStore.latestProducts" :key="product.id" class="product-card bg-white overflow-hidden shadow-lg rounded-2xl transition-all hover:shadow-xl group transform hover:-translate-y-2 duration-300 border border-gray-100 flex flex-col aspect-[1/1.5] md:aspect-[1/1.5]">
               <div class="relative h-4/5 md:h-4/5 overflow-hidden">
