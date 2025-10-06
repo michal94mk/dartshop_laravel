@@ -191,4 +191,32 @@ export default {
 
 <style scoped>
 /* Add any custom styles if needed */
+</style>
+
+<style>
+/* Mobile responsive styles for reviews - not scoped to override Vue scoped styles */
+@media (max-width: 768px) {
+  /* Review header layout - stack vertically on mobile */
+  .border.border-gray-200 .flex.items-start.justify-between {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  
+  /* Featured badge positioning */
+  .border.border-gray-200 .flex.items-start.justify-between > div:last-child {
+    margin-top: 0.5rem !important;
+    align-self: flex-start !important;
+    width: auto !important;
+  }
+  
+  /* Featured badge styling */
+  .bg-yellow-100.text-yellow-800.rounded-full {
+    font-size: 0.75rem !important;
+    padding: 0.25rem 0.5rem !important;
+    white-space: nowrap !important;
+    max-width: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+}
 </style> 

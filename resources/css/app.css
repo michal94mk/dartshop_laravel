@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Podstawowe klasy układu */
 @layer base {
   html, body {
     @apply h-full;
@@ -17,7 +16,7 @@
   }
 }
 
-/* Komponenty UI */
+/* UI Components */
 @layer components {
   /* Custom aspect ratios for product images */
   .aspect-square {
@@ -500,6 +499,41 @@ body {
     word-wrap: break-word !important;
     overflow-wrap: break-word !important;
     white-space: normal !important;
+  }
+  
+  /* Reviews section mobile optimizations - more specific selectors */
+  .product-details-container .flex.items-start.justify-between,
+  .product-details-container .border.border-gray-200 .flex.items-start.justify-between,
+  .product-details-container .space-y-6 .flex.items-start.justify-between {
+    flex-direction: column !important; /* Stack vertically on mobile */
+    align-items: flex-start !important;
+  }
+  
+  .product-details-container .flex.items-start.justify-between > div:last-child,
+  .product-details-container .border.border-gray-200 .flex.items-start.justify-between > div:last-child,
+  .product-details-container .space-y-6 .flex.items-start.justify-between > div:last-child {
+    margin-top: 0.5rem !important; /* Add margin for featured badge */
+    align-self: flex-start !important;
+    width: auto !important; /* Allow natural width */
+  }
+  
+  /* Featured review badge - make it smaller and better positioned */
+  .product-details-container .inline-flex.items-center.px-2\.5.py-0\.5,
+  .product-details-container .bg-yellow-100.text-yellow-800,
+  .product-details-container .rounded-full.text-xs.font-medium {
+    font-size: 0.75rem !important; /* Smaller text */
+    padding: 0.25rem 0.5rem !important; /* Smaller padding */
+    white-space: nowrap !important; /* Prevent text wrapping */
+    max-width: none !important; /* Remove any width restrictions */
+  }
+  
+  /* Target the specific featured badge */
+  .product-details-container .bg-yellow-100.text-yellow-800.rounded-full {
+    display: inline-flex !important;
+    align-items: center !important;
+    font-size: 0.75rem !important;
+    padding: 0.25rem 0.5rem !important;
+    margin-top: 0.5rem !important;
   }
 }
 
