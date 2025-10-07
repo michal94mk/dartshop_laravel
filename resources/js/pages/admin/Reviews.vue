@@ -1162,7 +1162,7 @@ export default {
           const apiUrl = '/api/admin/reviews/form-data'
           console.log('Fetching form data from API endpoint:', apiUrl)
           const response = await axios.get(apiUrl)
-          formDataResponse = response.data
+          formDataResponse = response.data.data
           console.log('Form data loaded from endpoint successfully')
         } catch (error) {
           console.error('Error loading from endpoint, using workaround:', error)
