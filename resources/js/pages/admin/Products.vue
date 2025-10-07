@@ -173,202 +173,188 @@
   </div>
 
   <!-- Product Modal -->
-  <div v-if="showModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="flex items-center justify-center min-h-screen px-4 text-center sm:block sm:p-0">
-      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="showModal = false"></div>
-      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-        <form @submit.prevent="saveProduct">
-          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <div class="sm:flex sm:items-start">
-              <div class="w-full">
-                <div class="flex justify-between items-center mb-4">
-                  <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                    {{ currentProduct.id ? 'Edytuj produkt' : 'Dodaj nowy produkt' }}
-                  </h3>
-                  <button @click="showModal = false" class="text-gray-400 hover:text-gray-500">
-                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+  <admin-modal
+    :show="showModal"
+    :title="currentProduct.id ? 'Edytuj produkt' : 'Dodaj nowy produkt'"
+    size="4xl"
+    @close="showModal = false"
+  >
+    <form @submit.prevent="saveProduct" class="space-y-4">
+      <div class="grid grid-cols-1 gap-4">
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700">Nazwa produktu</label>
+          <input
+            type="text"
+            id="name"
+            v-model="currentProduct.name"
+            required
+            :class="[
+              'mt-1 block w-full shadow-sm sm:text-sm rounded-md',
+              formErrors.name 
+                ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+            ]"
+          />
+          <p v-if="formErrors.name" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.name) ? formErrors.name[0] : formErrors.name }}</p>
+        </div>
+        
+        <div>
+          <label for="description" class="block text-sm font-medium text-gray-700">Opis</label>
+          <textarea
+            id="description"
+            v-model="currentProduct.description"
+            required
+            rows="3"
+            :class="[
+              'mt-1 block w-full shadow-sm sm:text-sm rounded-md',
+              formErrors.description 
+                ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+            ]"
+          ></textarea>
+          <p v-if="formErrors.description" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.description) ? formErrors.description[0] : formErrors.description }}</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="price" class="block text-sm font-medium text-gray-700">Cena (zł)</label>
+            <input
+              type="number"
+              id="price"
+              v-model="currentProduct.price"
+              required
+              min="0"
+              step="0.01"
+              :class="[
+                'mt-1 block w-full shadow-sm sm:text-sm rounded-md',
+                formErrors.price 
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+              ]"
+            />
+            <p v-if="formErrors.price" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.price) ? formErrors.price[0] : formErrors.price }}</p>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="category_id" class="block text-sm font-medium text-gray-700">Kategoria</label>
+            <select
+              id="category_id"
+              v-model="currentProduct.category_id"
+              required
+              :class="[
+                'mt-1 block w-full bg-white rounded-md shadow-sm py-2 px-3 focus:outline-none sm:text-sm',
+                formErrors.category_id 
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+              ]"
+            >
+              <option v-for="category in categories" :key="category.id" :value="category.id">
+                {{ category.name }}
+              </option>
+            </select>
+            <p v-if="formErrors.category_id" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.category_id) ? formErrors.category_id[0] : formErrors.category_id }}</p>
+          </div>
+          
+          <div>
+            <label for="brand_id" class="block text-sm font-medium text-gray-700">Marka</label>
+            <select
+              id="brand_id"
+              v-model="currentProduct.brand_id"
+              required
+              :class="[
+                'mt-1 block w-full bg-white rounded-md shadow-sm py-2 px-3 focus:outline-none sm:text-sm',
+                formErrors.brand_id 
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+              ]"
+            >
+              <option v-for="brand in brands" :key="brand.id" :value="brand.id">
+                {{ brand.name }}
+              </option>
+            </select>
+            <p v-if="formErrors.brand_id" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.brand_id) ? formErrors.brand_id[0] : formErrors.brand_id }}</p>
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Zdjęcie produktu</label>
+          <div class="mt-1 flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <div class="flex-shrink-0 h-32 w-32 sm:h-40 sm:w-40 bg-gray-100 rounded-md overflow-hidden">
+              <img v-if="currentProduct.image_url && !isFileObject(currentProduct.image_url)" 
+                :src="getProductImageUrl(currentProduct.image_url, currentProduct.name, 160, 160)" 
+                alt="Product image" 
+                class="h-32 w-32 sm:h-40 sm:w-40 object-cover"
+                @error="(e) => handleImageError(e, currentProduct.name, 160, 160)"
+                loading="lazy"
+                crossorigin="anonymous"
+              />
+              <img v-else-if="currentProduct.image_url && isFileObject(currentProduct.image_url)" 
+                :src="getImagePreviewUrl(currentProduct.image_url)" 
+                alt="Product image" 
+                class="h-32 w-32 sm:h-40 sm:w-40 object-cover"
+              />
+              <div v-else class="h-32 w-32 sm:h-40 sm:w-40 flex items-center justify-center text-gray-400">
+                <svg class="h-8 w-8 sm:h-12 sm:w-12" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                </svg>
+              </div>
+            </div>
+            <div class="flex-1 w-full">
+              <input
+                type="file"
+                id="file-upload"
+                ref="fileInput"
+                @change="handleFileChange"
+                accept="image/*"
+                class="sr-only"
+              />
+              <div class="space-y-2">
+                <label
+                  for="file-upload"
+                  class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
+                >
+                  {{ currentProduct.image_url ? 'Zmień zdjęcie' : 'Wybierz plik' }}
+                </label>
+                <p v-if="currentProduct.image_url" class="text-sm text-gray-500">
+                  <span class="truncate block max-w-xs">
+                    {{ isFileObject(currentProduct.image_url) ? currentProduct.image_url.name : currentProduct.image_url.split('/').pop() }}
+                  </span>
+                  <button 
+                    type="button" 
+                    @click="removeImage" 
+                    class="ml-2 mt-1 text-red-600 hover:text-red-800 text-xs font-medium"
+                  >
+                    Usuń
                   </button>
-                </div>
-                
-                <div class="grid grid-cols-1 gap-4">
-                  <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700">Nazwa produktu</label>
-                    <input
-                      type="text"
-                      id="name"
-                      v-model="currentProduct.name"
-                      required
-                      :class="[
-                        'mt-1 block w-full shadow-sm sm:text-sm rounded-md',
-                        formErrors.name 
-                          ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                          : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
-                      ]"
-                    />
-                    <p v-if="formErrors.name" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.name) ? formErrors.name[0] : formErrors.name }}</p>
-                  </div>
-                  
-                  <div>
-                    <label for="description" class="block text-sm font-medium text-gray-700">Opis</label>
-                    <textarea
-                      id="description"
-                      v-model="currentProduct.description"
-                      required
-                      rows="3"
-                      :class="[
-                        'mt-1 block w-full shadow-sm sm:text-sm rounded-md',
-                        formErrors.description 
-                          ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                          : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
-                      ]"
-                    ></textarea>
-                    <p v-if="formErrors.description" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.description) ? formErrors.description[0] : formErrors.description }}</p>
-                  </div>
-                  
-                  <div class="grid grid-cols-2 gap-4">
-                    <div>
-                      <label for="price" class="block text-sm font-medium text-gray-700">Cena</label>
-                      <input
-                        type="number"
-                        id="price"
-                        v-model="currentProduct.price"
-                        required
-                        min="0"
-                        step="0.01"
-                        :class="[
-                          'mt-1 block w-full shadow-sm sm:text-sm rounded-md',
-                          formErrors.price 
-                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                            : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
-                        ]"
-                      />
-                      <p v-if="formErrors.price" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.price) ? formErrors.price[0] : formErrors.price }}</p>
-                    </div>
-                  </div>
-                  
-                  <div class="grid grid-cols-2 gap-4">
-                    <div>
-                      <label for="category_id" class="block text-sm font-medium text-gray-700">Kategoria</label>
-                      <select
-                        id="category_id"
-                        v-model="currentProduct.category_id"
-                        required
-                        :class="[
-                          'mt-1 block w-full bg-white rounded-md shadow-sm py-2 px-3 focus:outline-none sm:text-sm',
-                          formErrors.category_id 
-                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                            : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
-                        ]"
-                      >
-                        <option v-for="category in categories" :key="category.id" :value="category.id">
-                          {{ category.name }}
-                        </option>
-                      </select>
-                      <p v-if="formErrors.category_id" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.category_id) ? formErrors.category_id[0] : formErrors.category_id }}</p>
-                    </div>
-                    
-                    <div>
-                      <label for="brand_id" class="block text-sm font-medium text-gray-700">Marka</label>
-                      <select
-                        id="brand_id"
-                        v-model="currentProduct.brand_id"
-                        required
-                        :class="[
-                          'mt-1 block w-full bg-white rounded-md shadow-sm py-2 px-3 focus:outline-none sm:text-sm',
-                          formErrors.brand_id 
-                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                            : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
-                        ]"
-                      >
-                        <option v-for="brand in brands" :key="brand.id" :value="brand.id">
-                          {{ brand.name }}
-                        </option>
-                      </select>
-                      <p v-if="formErrors.brand_id" class="mt-1 text-sm text-red-600">{{ Array.isArray(formErrors.brand_id) ? formErrors.brand_id[0] : formErrors.brand_id }}</p>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700">Zdjęcie produktu</label>
-                    <div class="mt-1 flex items-center space-x-4">
-                      <div class="flex-shrink-0 h-40 w-40 bg-gray-100 rounded-md overflow-hidden">
-                        <img v-if="currentProduct.image_url && !isFileObject(currentProduct.image_url)" 
-                          :src="getProductImageUrl(currentProduct.image_url, currentProduct.name, 160, 160)" 
-                          alt="Product image" 
-                          class="h-40 w-40 object-cover"
-                          @error="(e) => handleImageError(e, currentProduct.name, 160, 160)"
-                          loading="lazy"
-                          crossorigin="anonymous"
-                        />
-                        <img v-else-if="currentProduct.image_url && isFileObject(currentProduct.image_url)" 
-                          :src="getImagePreviewUrl(currentProduct.image_url)" 
-                          alt="Product image" 
-                          class="h-40 w-40 object-cover"
-                        />
-                        <div v-else class="h-40 w-40 flex items-center justify-center text-gray-400">
-                          <svg class="h-12 w-12" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
-                          </svg>
-                        </div>
-                      </div>
-                      <div class="flex-1">
-                        <input
-                          type="file"
-                          id="file-upload"
-                          ref="fileInput"
-                          @change="handleFileChange"
-                          accept="image/*"
-                          class="sr-only"
-                        />
-                        <div class="space-y-2">
-                          <label
-                            for="file-upload"
-                            class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
-                          >
-                            {{ currentProduct.image_url ? 'Zmień zdjęcie' : 'Wybierz plik' }}
-                          </label>
-                          <p v-if="currentProduct.image_url" class="text-sm text-gray-500">
-                            <span class="truncate block max-w-xs">
-                              {{ isFileObject(currentProduct.image_url) ? currentProduct.image_url.name : currentProduct.image_url.split('/').pop() }}
-                            </span>
-                            <button 
-                              type="button" 
-                              @click="removeImage" 
-                              class="ml-2 mt-1 text-red-600 hover:text-red-800 text-xs font-medium"
-                            >
-                              Usuń
-                            </button>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                </p>
               </div>
             </div>
           </div>
-          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            <button 
-              type="submit"
-              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
-            >
-              {{ currentProduct.id ? 'Zapisz zmiany' : 'Dodaj produkt' }}
-            </button>
-            <button 
-              type="button"
-              @click="showModal = false"
-              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-            >
-              Anuluj
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
-    </div>
-  </div>
+    </form>
+    
+    <template #footer>
+      <admin-button-group justify="end" spacing="sm">
+        <admin-button 
+          @click="showModal = false" 
+          variant="secondary"
+          outline
+        >
+          Anuluj
+        </admin-button>
+        <admin-button 
+          type="submit"
+          @click="saveProduct"
+          variant="primary"
+        >
+          {{ currentProduct.id ? 'Zapisz zmiany' : 'Dodaj produkt' }}
+        </admin-button>
+      </admin-button-group>
+    </template>
+  </admin-modal>
 
   <!-- Delete confirmation modal -->
   <admin-modal

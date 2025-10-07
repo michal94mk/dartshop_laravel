@@ -100,19 +100,19 @@
         <div>
           <h3 class="text-lg font-bold text-white tracking-wider uppercase mb-4">Śledź nas</h3>
           <div class="flex space-x-4 mb-6">
-            <a href="#" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center text-indigo-200 hover:text-white hover:bg-white/20 transition-all duration-200 backdrop-blur-sm">
+            <a href="https://www.facebook.com/" @click="openSocialLink" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center text-indigo-200 hover:text-white hover:bg-white/20 transition-all duration-200 backdrop-blur-sm">
               <span class="sr-only">Facebook</span>
               <i class="fab fa-facebook text-lg"></i>
             </a>
-            <a href="#" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center text-indigo-200 hover:text-white hover:bg-white/20 transition-all duration-200 backdrop-blur-sm">
+            <a href="https://www.instagram.com/" @click="openSocialLink" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center text-indigo-200 hover:text-white hover:bg-white/20 transition-all duration-200 backdrop-blur-sm">
               <span class="sr-only">Instagram</span>
               <i class="fab fa-instagram text-lg"></i>
             </a>
-            <a href="#" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center text-indigo-200 hover:text-white hover:bg-white/20 transition-all duration-200 backdrop-blur-sm">
+            <a href="https://twitter.com/" @click="openSocialLink" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center text-indigo-200 hover:text-white hover:bg-white/20 transition-all duration-200 backdrop-blur-sm">
               <span class="sr-only">Twitter</span>
               <i class="fab fa-twitter text-lg"></i>
             </a>
-            <a href="#" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center text-indigo-200 hover:text-white hover:bg-white/20 transition-all duration-200 backdrop-blur-sm">
+            <a href="https://www.youtube.com/" @click="openSocialLink" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center text-indigo-200 hover:text-white hover:bg-white/20 transition-all duration-200 backdrop-blur-sm">
               <span class="sr-only">YouTube</span>
               <i class="fab fa-youtube text-lg"></i>
             </a>
@@ -123,13 +123,13 @@
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
               </svg>
-              hello@dartshop.pl
+              <a href="mailto:hello@dartshop.pl" class="hover:text-white transition-colors duration-200">hello@dartshop.pl</a>
             </p>
             <p class="flex items-center">
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
               </svg>
-              +48 123 456 789
+              <a href="tel:+48123456789" class="hover:text-white transition-colors duration-200">+48 123 456 789</a>
             </p>
           </div>
         </div>
@@ -146,9 +146,6 @@
             </router-link>
             <router-link to="/terms" class="text-indigo-200 hover:text-white text-sm transition-colors duration-200">
               Regulamin
-            </router-link>
-            <router-link to="/cookies" class="text-indigo-200 hover:text-white text-sm transition-colors duration-200">
-              Cookies
             </router-link>
             <router-link to="/newsletter/unsubscribe" class="text-indigo-200 hover:text-white text-sm transition-colors duration-200">
               Wypisz się z newslettera
@@ -171,6 +168,20 @@ export default {
   computed: {
     currentYear() {
       return new Date().getFullYear();
+    }
+  },
+  methods: {
+    openSocialLink(event) {
+      event.preventDefault();
+      const url = event.currentTarget.href;
+      
+      // On mobile, open in same tab
+      // On desktop, open in new tab
+      if (window.innerWidth >= 768) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      } else {
+        window.location.href = url;
+      }
     }
   }
 }
