@@ -49,61 +49,65 @@
           <div v-else>
             <!-- Tabs navigation -->
             <div class="border-b border-gray-200 mb-8">
-              <nav class="flex space-x-8" aria-label="Tabs">
+              <nav class="flex flex-wrap gap-2 sm:gap-8" aria-label="Tabs">
                 <button 
                   @click="activeTab = 'profile'" 
-                  class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200"
+                  class="py-2 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-200 whitespace-nowrap"
                   :class="activeTab === 'profile' 
                     ? 'border-indigo-500 text-indigo-600' 
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                 >
                   <div class="flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 0 1 8 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
-                    Profil
+                    <span class="hidden sm:inline">Profil</span>
+                    <span class="sm:hidden">Profil</span>
                   </div>
                 </button>
                 <button 
                   @click="activeTab = 'favorites'" 
-                  class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200"
+                  class="py-2 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-200 whitespace-nowrap"
                   :class="activeTab === 'favorites' 
                     ? 'border-indigo-500 text-indigo-600' 
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                 >
                   <div class="flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                     </svg>
-                    Ulubione produkty
+                    <span class="hidden sm:inline">Ulubione produkty</span>
+                    <span class="sm:hidden">Ulubione</span>
                   </div>
                 </button>
                 <button 
                   @click="activeTab = 'orders'" 
-                  class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200"
+                  class="py-2 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-200 whitespace-nowrap"
                   :class="activeTab === 'orders' 
                     ? 'border-indigo-500 text-indigo-600' 
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                 >
                   <div class="flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6a2 2 0 002 2h4a2 2 0 002-2v-6M8 11h8"/>
                     </svg>
-                    Zamówienia
+                    <span class="hidden sm:inline">Zamówienia</span>
+                    <span class="sm:hidden">Zamówienia</span>
                   </div>
                 </button>
                 <button 
                   @click="activeTab = 'reviews'" 
-                  class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200"
+                  class="py-2 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-200 whitespace-nowrap"
                   :class="activeTab === 'reviews' 
                     ? 'border-indigo-500 text-indigo-600' 
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                 >
                   <div class="flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
                     </svg>
-                    Moje opinie
+                    <span class="hidden sm:inline">Moje opinie</span>
+                    <span class="sm:hidden">Opinie</span>
                   </div>
                 </button>
               </nav>
