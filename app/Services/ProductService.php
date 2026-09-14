@@ -85,10 +85,12 @@ class ProductService
                   ->orWhereHas('activePromotions', function($promotionQuery) use ($priceMin) {
                       $promotionQuery->whereRaw('
                           CASE 
-                              WHEN promotions.discount_type = "percentage" THEN 
+                              WHEN promotions.discount_type = \'percentage\' THEN 
                                   products.price * (1 - (promotions.discount_value / 100))
-                              WHEN promotions.discount_type = "fixed" THEN 
-                                  GREATEST(0, products.price - promotions.discount_value)
+                              WHEN promotions.discount_type = \'fixed\' THEN 
+                                  CASE WHEN products.price - promotions.discount_value < 0 
+                                       THEN 0 
+                                       ELSE products.price - promotions.discount_value END
                               ELSE products.price
                           END >= ?
                       ', [$priceMin]);
@@ -103,10 +105,12 @@ class ProductService
                   ->orWhereHas('activePromotions', function($promotionQuery) use ($priceMax) {
                       $promotionQuery->whereRaw('
                           CASE 
-                              WHEN promotions.discount_type = "percentage" THEN 
+                              WHEN promotions.discount_type = \'percentage\' THEN 
                                   products.price * (1 - (promotions.discount_value / 100))
-                              WHEN promotions.discount_type = "fixed" THEN 
-                                  GREATEST(0, products.price - promotions.discount_value)
+                              WHEN promotions.discount_type = \'fixed\' THEN 
+                                  CASE WHEN products.price - promotions.discount_value < 0 
+                                       THEN 0 
+                                       ELSE products.price - promotions.discount_value END
                               ELSE products.price
                           END <= ?
                       ', [$priceMax]);

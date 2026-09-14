@@ -12,7 +12,9 @@ class BrandFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->word,
+            // brands.name is unique and BrandRequest restricts it to letters, digits,
+            // spaces, "-", "." and "&" - so the suffix carries uniqueness, not faker->word
+            'name' => ucfirst($this->faker->word()) . ' ' . $this->faker->unique()->numberBetween(1, 999999),
         ];
     }
 }

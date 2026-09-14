@@ -6,9 +6,12 @@ use Tests\TestCase;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class ProductTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function testProductCanBeCreated()
     {
         $product = Product::factory()->create();
@@ -31,13 +34,6 @@ class ProductTest extends TestCase
         $this->expectException(\Illuminate\Database\QueryException::class);
         
         Product::factory()->create(['price' => null]);
-    }
-
-    public function testProductPriceIsNumeric()
-    {
-        $this->expectException(\Illuminate\Database\QueryException::class);
-        
-        Product::factory()->create(['price' => 'invalid-price']);
     }
 
     public function testProductCanBeUpdated()

@@ -138,30 +138,6 @@ namespace App\Swagger;
  * )
  *
  * @OA\Get(
- *     path="/api/orders/{order}",
- *     summary="Get order details (public)",
- *     description="Retrieve order details for success/confirmation page",
- *     tags={"Orders"},
- *     @OA\Parameter(
- *         name="order",
- *         in="path",
- *         description="Order ID",
- *         required=true,
- *         @OA\Schema(type="integer", example=1)
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Order details retrieved successfully",
- *         @OA\JsonContent(ref="#/components/schemas/OrderDetailed")
- *     ),
- *     @OA\Response(
- *         response=404,
- *         description="Order not found",
- *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
- *     )
- * )
- *
- * @OA\Get(
  *     path="/api/shipping-methods",
  *     summary="Get shipping methods",
  *     description="Retrieve available shipping methods with costs",

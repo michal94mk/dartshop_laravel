@@ -264,19 +264,21 @@ export default {
             console.log('User data still missing, forcing auth refresh...');
             await authStore.initAuth();
           }
-        } else if (orderId) {
-          // Cash on delivery - get order data (dla zalogowanych)
-          const response = await axios.get(`/api/orders/${orderId}`)
-          order.value = response.data.order
+        } else if (orderId && authStore.isLoggedIn) {
+          // Cash on delivery after a page reload - re-fetch through the owner-scoped endpoint
+          const response = await axios.get(`/api/orders/my-orders/${orderId}`)
+          order.value = response.data.data
           success.value = true
           
           // Clear cart after successful COD order
           await cartStore.clearCart();
           
           // Odśwież dane użytkownika również dla płatności przy odbiorze
-          if (authStore.isLoggedIn) {
-            await authStore.refreshUser();
-          }
+          await authStore.refreshUser();
+        } else if (orderId) {
+          // Guest order: the details were only available in the router state for this
+          // navigation. There is no owner to authorise against, so do not expose them.
+          throw new Error('Szczegóły zamówienia są dostępne bezpośrednio po jego złożeniu. Potwierdzenie wysłaliśmy na Twój adres e-mail.')
         } else {
           throw new Error('Brak danych zamówienia')
         }

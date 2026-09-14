@@ -1530,50 +1530,6 @@
                 }
             }
         },
-        "/api/orders/{order}": {
-            "get": {
-                "tags": [
-                    "Orders"
-                ],
-                "summary": "Get order details (public)",
-                "description": "Retrieve order details for success/confirmation page",
-                "operationId": "8b0b3b06676f1fa587c207325d5a928f",
-                "parameters": [
-                    {
-                        "name": "order",
-                        "in": "path",
-                        "description": "Order ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "example": 1
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Order details retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/OrderDetailed"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Order not found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/shipping-methods": {
             "get": {
                 "tags": [
