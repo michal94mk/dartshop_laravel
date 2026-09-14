@@ -95,6 +95,23 @@ class ProductControllerTest extends TestCase
     }
 
     #[Test]
+    public function admin_cannot_create_product_with_non_numeric_price()
+    {
+        $response = $this->actingAs($this->admin)
+            ->postJson('/api/admin/products', [
+                'name' => 'Broken Product',
+                'description' => 'Product description',
+                'price' => 'invalid-price',
+                'category_id' => $this->category->id,
+                'brand_id' => $this->brand->id,
+            ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('price');
+        $this->assertDatabaseMissing('products', ['name' => 'Broken Product']);
+    }
+
+    #[Test]
     public function admin_can_update_product()
     {
         $updateData = [
