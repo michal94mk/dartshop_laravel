@@ -196,9 +196,6 @@ Route::prefix('stripe')->group(function () {
     Route::post('/webhook', [StripeWebhookController::class, 'handleWebhook']);
 });
 
-// Public order endpoint for success page
-Route::get('/orders/{order}', [CheckoutController::class, 'showOrder']);
-
 // Public Promotions API
 Route::prefix('promotions')->group(function () {
     Route::get('/', [PromotionController::class, 'indexPublic']);

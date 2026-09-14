@@ -141,23 +141,4 @@ class CheckoutController extends BaseApiController
             return $this->handleException($e, 'Processing checkout');
         }
     }
-
-    /**
-     * Show order details for a given order ID.
-     *
-     * @param string|int $orderId
-     * @return JsonResponse
-     */
-    public function showOrder($orderId): JsonResponse
-    {
-        try {
-            $this->logApiRequest(request(), "Fetch order details for ID: {$orderId}");
-            
-            $order = Order::with(['items', 'items.product'])->findOrFail($orderId);
-
-            return $this->successResponse(['order' => $order], 'Order details fetched successfully');
-        } catch (Exception $e) {
-            return $this->handleException($e, "Fetching order details for ID: {$orderId}");
-        }
-    }
 }
