@@ -6,9 +6,9 @@ on:
   pull_request:
 
 jobs:
-  # The suite runs on sqlite in memory and reads its key from the committed
-  # .env.testing, so it needs no database service, no secrets and no built
-  # frontend assets.
+  # The suite runs on sqlite in memory, reads APP_KEY from .env.testing, and
+  # stubs Vite via TestCase::withoutVite(), so it needs no database service,
+  # secrets, or frontend build.
   phpunit:
     name: PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
