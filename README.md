@@ -1,5 +1,7 @@
 # 🛒 DartShop - Modern E-commerce Platform
 
+[![tests](https://github.com/michal94mk/dartshop_laravel/actions/workflows/tests.yml/badge.svg)](https://github.com/michal94mk/dartshop_laravel/actions/workflows/tests.yml)
+
 DartShop is a full-featured e-commerce platform built with Laravel and Vue.js, offering a complete online shopping experience with modern features and robust architecture.
 
 ## ✨ Features
