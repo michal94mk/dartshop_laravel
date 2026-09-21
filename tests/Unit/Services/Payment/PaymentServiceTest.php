@@ -5,6 +5,7 @@ namespace Tests\Unit\Services\Payment;
 use Tests\TestCase;
 use App\Services\Payment\PaymentService;
 use App\Services\ShippingService;
+use App\Services\OrderService;
 use App\Models\User;
 use App\Models\CartItem;
 use App\Models\Product;
@@ -19,14 +20,15 @@ class PaymentServiceTest extends TestCase
 
     protected $paymentService;
     protected $shippingServiceMock;
+    protected $orderService;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        // Mock ShippingService
         $this->shippingServiceMock = Mockery::mock(ShippingService::class);
-        $this->paymentService = new PaymentService($this->shippingServiceMock);
+        $this->orderService = new OrderService($this->shippingServiceMock);
+        $this->paymentService = new PaymentService($this->shippingServiceMock, $this->orderService);
     }
 
     protected function tearDown(): void
@@ -66,7 +68,7 @@ class PaymentServiceTest extends TestCase
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Stripe secret key is not configured. Please check your .env file.');
 
-        new PaymentService($this->shippingServiceMock);
+        new PaymentService($this->shippingServiceMock, $this->orderService);
     }
 
     #[Test]
@@ -93,7 +95,7 @@ class PaymentServiceTest extends TestCase
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Koszyk jest pusty');
 
-        $this->paymentService->createPaymentIntent();
+        $this->paymentService->createPaymentIntent('courier');
     }
 
     #[Test]
@@ -103,10 +105,14 @@ class PaymentServiceTest extends TestCase
             ['product_id' => 999, 'quantity' => 1] // Non-existent product
         ];
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Nieprawidłowa suma zamówienia');
+        $this->shippingServiceMock
+            ->shouldReceive('isValidMethod')
+            ->with('pickup')
+            ->andReturn(true);
 
-        $this->paymentService->createGuestPaymentIntent($cartData);
+        $this->expectException(\Exception::class);
+
+        $this->paymentService->createGuestPaymentIntent($cartData, 'pickup');
     }
 
     #[Test]

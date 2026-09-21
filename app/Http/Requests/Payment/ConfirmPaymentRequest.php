@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Payment;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class ConfirmPaymentRequest extends FormRequest
 {
@@ -16,27 +17,21 @@ class ConfirmPaymentRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
+     *
+     * Cart lines are not accepted from the client anymore — they are taken from
+     * the snapshot frozen when the PaymentIntent was created.
      */
     public function rules(): array
     {
-        $rules = [
+        return [
             'payment_intent_id' => 'required|string',
             'shipping.name' => 'required|string|max:255',
             'shipping.email' => 'required|email|max:255',
             'shipping.address' => 'required|string|max:255',
             'shipping.city' => 'required|string|max:255',
             'shipping.postalCode' => 'required|string|max:10|regex:/^\d{2}-\d{3}$/',
-            'shipping_method' => 'required|string|in:courier,express,pickup',
+            'shipping_method' => 'required|string|in:courier,express,pickup,inpost',
         ];
-
-        // For guest payments, cart_items are also required
-        if ($this->isGuestPayment()) {
-            $rules['cart_items'] = 'required|array|min:1';
-            $rules['cart_items.*.product_id'] = 'required|exists:products,id';
-            $rules['cart_items.*.quantity'] = 'required|integer|min:1|max:99';
-        }
-
-        return $rules;
     }
 
     /**
@@ -47,15 +42,6 @@ class ConfirmPaymentRequest extends FormRequest
         return [
             'payment_intent_id.required' => 'ID płatności jest wymagane.',
             'payment_intent_id.string' => 'ID płatności musi być tekstem.',
-            'cart_items.required' => 'Koszyk nie może być pusty.',
-            'cart_items.array' => 'Nieprawidłowe dane koszyka.',
-            'cart_items.min' => 'Koszyk musi zawierać przynajmniej jeden produkt.',
-            'cart_items.*.product_id.required' => 'ID produktu jest wymagane.',
-            'cart_items.*.product_id.exists' => 'Wybrany produkt nie istnieje.',
-            'cart_items.*.quantity.required' => 'Ilość produktu jest wymagana.',
-            'cart_items.*.quantity.integer' => 'Ilość musi być liczbą całkowitą.',
-            'cart_items.*.quantity.min' => 'Minimalna ilość to 1.',
-            'cart_items.*.quantity.max' => 'Maksymalna ilość to 99.',
             'shipping.name.required' => 'Imię i nazwisko są wymagane.',
             'shipping.name.max' => 'Imię i nazwisko nie mogą przekraczać 255 znaków.',
             'shipping.email.required' => 'Adres email jest wymagany.',
@@ -72,11 +58,11 @@ class ConfirmPaymentRequest extends FormRequest
     }
 
     /**
-     * Check if this is a guest payment request.
+     * Guest vs authenticated is determined by the session, not by request shape.
      */
     public function isGuestPayment(): bool
     {
-        return $this->has('cart_items');
+        return !Auth::check();
     }
 
     /**
@@ -85,14 +71,6 @@ class ConfirmPaymentRequest extends FormRequest
     public function getPaymentIntentId(): string
     {
         return $this->validated()['payment_intent_id'];
-    }
-
-    /**
-     * Get the validated cart items (for guest payments).
-     */
-    public function getCartItems(): array
-    {
-        return $this->validated()['cart_items'] ?? [];
     }
 
     /**
@@ -110,4 +88,4 @@ class ConfirmPaymentRequest extends FormRequest
     {
         return $this->validated()['shipping_method'];
     }
-} 
+}

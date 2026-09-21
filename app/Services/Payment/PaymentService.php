@@ -7,18 +7,25 @@ use Stripe\PaymentIntent;
 use Stripe\Checkout\Session;
 use App\Models\CartItem;
 use App\Models\Product;
+use App\Models\User;
+use App\Services\OrderService;
 use App\Services\ShippingService;
+use App\Exceptions\PaymentAmountMismatchException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class PaymentService
 {
-    protected $shippingService;
+    private const CART_SNAPSHOT_TTL_SECONDS = 86400;
 
-    public function __construct(ShippingService $shippingService)
+    protected $shippingService;
+    protected $orderService;
+
+    public function __construct(ShippingService $shippingService, OrderService $orderService)
     {
         $this->initializeStripe();
         $this->shippingService = $shippingService;
+        $this->orderService = $orderService;
     }
 
     /**
@@ -138,67 +145,123 @@ class PaymentService
     }
 
     /**
-     * Create payment intent for authenticated user
+     * Create payment intent for authenticated user.
+     * Amount includes shipping; cart lines are frozen in cache for confirm.
      */
-    public function createPaymentIntent(): array
+    public function createPaymentIntent(string $shippingMethod): array
     {
+        /** @var User $user */
         $user = Auth::user();
-        $cartItems = CartItem::where('user_id', $user->id)
-            ->with(['product.activePromotions'])
-            ->get();
-
-        if ($cartItems->isEmpty()) {
-            throw new \Exception('Koszyk jest pusty');
-        }
-
-        $total = $this->calculateCartTotal($cartItems);
-        $amountInCents = (int) ($total * 100);
+        $quote = $this->orderService->quoteFromUserCart($user, $shippingMethod);
 
         $paymentIntent = PaymentIntent::create([
-            'amount' => $amountInCents,
+            'amount' => $quote['total_cents'],
             'currency' => 'pln',
             'payment_method_types' => $this->getPaymentMethods(),
             'metadata' => [
-                'user_id' => $user->id,
-                'cart_items_count' => $cartItems->count()
-            ]
+                'user_id' => (string) $user->id,
+                'shipping_method' => $shippingMethod,
+                'cart_items_count' => (string) count($quote['lines']),
+                'expected_amount_cents' => (string) $quote['total_cents'],
+            ],
+        ]);
+
+        $this->storeCartSnapshot($paymentIntent->id, [
+            'user_id' => $user->id,
+            'guest' => false,
+            'shipping_method' => $shippingMethod,
+            'lines' => $quote['lines'],
+            'expected_amount_cents' => $quote['total_cents'],
         ]);
 
         return [
             'client_secret' => $paymentIntent->client_secret,
             'payment_intent_id' => $paymentIntent->id,
-            'amount' => $total
+            'amount' => $quote['total'],
         ];
     }
 
     /**
-     * Create payment intent for guest user
+     * Create payment intent for guest user.
      */
-    public function createGuestPaymentIntent(array $cartData): array
+    public function createGuestPaymentIntent(array $cartData, string $shippingMethod): array
     {
-        $total = $this->calculateGuestCartTotal($cartData);
+        $quote = $this->orderService->quoteFromGuestCart($cartData, $shippingMethod);
 
-        if ($total <= 0) {
+        if ($quote['total_cents'] <= 0) {
             throw new \Exception('Nieprawidłowa suma zamówienia');
         }
 
-        $amountInCents = (int) ($total * 100);
-
         $paymentIntent = PaymentIntent::create([
-            'amount' => $amountInCents,
+            'amount' => $quote['total_cents'],
             'currency' => 'pln',
             'payment_method_types' => $this->getPaymentMethods(),
             'metadata' => [
                 'guest_order' => 'true',
-                'cart_items_count' => count($cartData)
-            ]
+                'shipping_method' => $shippingMethod,
+                'cart_items_count' => (string) count($quote['lines']),
+                'expected_amount_cents' => (string) $quote['total_cents'],
+            ],
+        ]);
+
+        $this->storeCartSnapshot($paymentIntent->id, [
+            'user_id' => null,
+            'guest' => true,
+            'shipping_method' => $shippingMethod,
+            'lines' => $quote['lines'],
+            'expected_amount_cents' => $quote['total_cents'],
         ]);
 
         return [
             'client_secret' => $paymentIntent->client_secret,
             'payment_intent_id' => $paymentIntent->id,
-            'amount' => $total
+            'amount' => $quote['total'],
         ];
+    }
+
+    /**
+     * @return array{user_id: ?int, guest: bool, shipping_method: string, lines: array, expected_amount_cents: int}|null
+     */
+    public function pullCartSnapshot(string $paymentIntentId): ?array
+    {
+        $key = $this->cartSnapshotCacheKey($paymentIntentId);
+        $snapshot = Cache::get($key);
+
+        return is_array($snapshot) ? $snapshot : null;
+    }
+
+    public function forgetCartSnapshot(string $paymentIntentId): void
+    {
+        Cache::forget($this->cartSnapshotCacheKey($paymentIntentId));
+    }
+
+    /**
+     * Ensure the succeeded PaymentIntent covers exactly the frozen quote.
+     *
+     * @throws PaymentAmountMismatchException
+     */
+    public function assertPaymentIntentMatchesQuote(object $paymentIntent, int $expectedCents): void
+    {
+        $paidCents = (int) $paymentIntent->amount;
+        $currency = strtolower((string) $paymentIntent->currency);
+
+        if ($currency !== 'pln' || $paidCents !== $expectedCents) {
+            throw new PaymentAmountMismatchException($expectedCents, $paidCents);
+        }
+    }
+
+    private function storeCartSnapshot(string $paymentIntentId, array $snapshot): void
+    {
+        Cache::put(
+            $this->cartSnapshotCacheKey($paymentIntentId),
+            $snapshot,
+            self::CART_SNAPSHOT_TTL_SECONDS
+        );
+    }
+
+    private function cartSnapshotCacheKey(string $paymentIntentId): string
+    {
+        return 'payment_intent_cart:' . $paymentIntentId;
     }
 
     /**
@@ -231,7 +294,7 @@ class PaymentService
     /**
      * Retrieve payment intent
      */
-    public function getPaymentIntent(string $paymentIntentId): PaymentIntent
+    public function getPaymentIntent(string $paymentIntentId): object
     {
         return PaymentIntent::retrieve($paymentIntentId);
     }

@@ -26,6 +26,7 @@ class OrderServiceTest extends TestCase
         parent::setUp();
 
         $this->shippingServiceMock = Mockery::mock(ShippingService::class);
+        $this->shippingServiceMock->shouldReceive('isValidMethod')->andReturn(true)->byDefault();
         $this->orderService = new OrderService($this->shippingServiceMock);
     }
 
@@ -246,48 +247,51 @@ class OrderServiceTest extends TestCase
     }
 
     #[Test]
-    public function it_calculates_cart_subtotal_correctly()
+    public function it_quotes_user_cart_with_shipping()
     {
-        $product1 = Mockery::mock();
-        $product1->shouldReceive('getPromotionalPrice')->andReturn(80);
+        $user = User::factory()->create();
+        $product = Product::factory()->create(['price' => 100]);
 
-        $product2 = Mockery::mock();
-        $product2->shouldReceive('getPromotionalPrice')->andReturn(40);
+        CartItem::factory()->create([
+            'user_id' => $user->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+        ]);
 
-        $cartItem1 = Mockery::mock();
-        $cartItem1->product = $product1;
-        $cartItem1->quantity = 2;
+        $this->shippingServiceMock
+            ->shouldReceive('calculateShippingCost')
+            ->with('courier', 200.0)
+            ->andReturn(15.0);
 
-        $cartItem2 = Mockery::mock();
-        $cartItem2->product = $product2;
-        $cartItem2->quantity = 3;
+        $quote = $this->orderService->quoteFromUserCart($user, 'courier');
 
-        // Use reflection to test private method
-        $reflection = new \ReflectionClass($this->orderService);
-        $method = $reflection->getMethod('calculateCartSubtotal');
-        $method->setAccessible(true);
-
-        $subtotal = $method->invoke($this->orderService, collect([$cartItem1, $cartItem2]));
-
-        $this->assertEquals(280.0, $subtotal); // (80*2) + (40*3) = 160 + 120 = 280
+        $this->assertEquals(200.0, $quote['subtotal']);
+        $this->assertEquals(15.0, $quote['shipping_cost']);
+        $this->assertEquals(215.0, $quote['total']);
+        $this->assertEquals(21500, $quote['total_cents']);
+        $this->assertCount(1, $quote['lines']);
+        $this->assertEquals(10000, $quote['lines'][0]['unit_amount_cents']);
     }
 
     #[Test]
-    public function it_calculates_guest_cart_subtotal_correctly()
+    public function it_quotes_guest_cart_using_database_prices()
     {
-        $cartItems = [
-            ['price' => 80, 'quantity' => 2],
-            ['price' => 40, 'quantity' => 3]
-        ];
+        $product1 = Product::factory()->create(['price' => 80]);
+        $product2 = Product::factory()->create(['price' => 40]);
 
-        // Use reflection to test private method
-        $reflection = new \ReflectionClass($this->orderService);
-        $method = $reflection->getMethod('calculateGuestCartSubtotal');
-        $method->setAccessible(true);
+        $this->shippingServiceMock
+            ->shouldReceive('calculateShippingCost')
+            ->with('pickup', 280.0)
+            ->andReturn(0.0);
 
-        $subtotal = $method->invoke($this->orderService, $cartItems);
+        $quote = $this->orderService->quoteFromGuestCart([
+            ['product_id' => $product1->id, 'quantity' => 2],
+            ['product_id' => $product2->id, 'quantity' => 3],
+        ], 'pickup');
 
-        $this->assertEquals(280.0, $subtotal); // (80*2) + (40*3) = 160 + 120 = 280
+        $this->assertEquals(280.0, $quote['subtotal']);
+        $this->assertEquals(0.0, $quote['shipping_cost']);
+        $this->assertEquals(28000, $quote['total_cents']);
     }
 
     #[Test]

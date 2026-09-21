@@ -5,6 +5,7 @@ namespace Tests\Unit\Services\Payment;
 use Tests\TestCase;
 use App\Services\Payment\PaymentService;
 use App\Services\ShippingService;
+use App\Services\OrderService;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -17,13 +18,15 @@ class PaymentServiceCacheTest extends TestCase
 
     protected $paymentService;
     protected $shippingServiceMock;
+    protected $orderService;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->shippingServiceMock = Mockery::mock(ShippingService::class);
-        $this->paymentService = new PaymentService($this->shippingServiceMock);
+        $this->orderService = new OrderService($this->shippingServiceMock);
+        $this->paymentService = new PaymentService($this->shippingServiceMock, $this->orderService);
     }
 
     protected function tearDown(): void
@@ -56,7 +59,7 @@ class PaymentServiceCacheTest extends TestCase
         Cache::forget('stripe_secret_key');
         
         // This should trigger cache storage during initialization
-        $service = new PaymentService($this->shippingServiceMock);
+        $service = new PaymentService($this->shippingServiceMock, $this->orderService);
         
         $this->assertTrue(Cache::has('stripe_secret_key'));
         // Check that the cached value matches the config value
@@ -100,7 +103,7 @@ class PaymentServiceCacheTest extends TestCase
         // Populate cache
         $this->paymentService->getPaymentMethods();
         config(['services.stripe.secret' => 'sk_test_123']);
-        new PaymentService($this->shippingServiceMock);
+        new PaymentService($this->shippingServiceMock, $this->orderService);
         
         // Verify cache exists
         $this->assertTrue(Cache::has('stripe_payment_methods'));

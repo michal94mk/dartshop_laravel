@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Payment;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class PaymentIntentRequest extends FormRequest
 {
@@ -19,17 +20,18 @@ class PaymentIntentRequest extends FormRequest
      */
     public function rules(): array
     {
-        // For guest users, cart_items are required
-        // For authenticated users, cart comes from database
+        $rules = [
+            'shipping_method' => 'required|string|in:courier,express,pickup,inpost',
+        ];
+
+        // Guests must send product ids + quantities; prices always come from the DB.
         if ($this->isGuestPayment()) {
-            return [
-                'cart_items' => 'required|array|min:1',
-                'cart_items.*.product_id' => 'required|exists:products,id',
-                'cart_items.*.quantity' => 'required|integer|min:1|max:99',
-            ];
+            $rules['cart_items'] = 'required|array|min:1';
+            $rules['cart_items.*.product_id'] = 'required|exists:products,id';
+            $rules['cart_items.*.quantity'] = 'required|integer|min:1|max:99';
         }
 
-        return [];
+        return $rules;
     }
 
     /**
@@ -38,6 +40,8 @@ class PaymentIntentRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'shipping_method.required' => 'Metoda wysyłki jest wymagana.',
+            'shipping_method.in' => 'Wybrano nieprawidłową metodę wysyłki.',
             'cart_items.required' => 'Koszyk nie może być pusty.',
             'cart_items.array' => 'Nieprawidłowe dane koszyka.',
             'cart_items.min' => 'Koszyk musi zawierać przynajmniej jeden produkt.',
@@ -50,19 +54,18 @@ class PaymentIntentRequest extends FormRequest
         ];
     }
 
-    /**
-     * Check if this is a guest payment request.
-     */
     public function isGuestPayment(): bool
     {
-        return $this->has('cart_items');
+        return !Auth::check();
     }
 
-    /**
-     * Get the validated cart items (for guest payments).
-     */
     public function getCartItems(): array
     {
         return $this->validated()['cart_items'] ?? [];
     }
-} 
+
+    public function getShippingMethod(): string
+    {
+        return $this->validated()['shipping_method'];
+    }
+}
